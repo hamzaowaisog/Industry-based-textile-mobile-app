@@ -1,0 +1,41 @@
+@HamzaTex.Api_HostAddress = http://localhost:5225
+@contentType = application/json
+
+### Get all items
+GET {{HamzaTex.Api_HostAddress}}/api/items
+Accept: {{contentType}}
+
+###
+
+### Get item by ID
+GET {{HamzaTex.Api_HostAddress}}/api/items/1
+Accept: {{contentType}}
+
+###
+
+### Create new item
+POST {{HamzaTex.Api_HostAddress}}/api/items
+Content-Type: {{contentType}}
+
+{
+  "name": "New Test Item",
+  "description": "This is a test item created via HTTP request"
+}
+
+###
+
+### Update item
+PUT {{HamzaTex.Api_HostAddress}}/api/items/1
+Content-Type: {{contentType}}
+
+{
+  "name": "Updated Item Name",
+  "description": "Updated item description"
+}
+
+###
+
+### Delete item
+DELETE {{HamzaTex.Api_HostAddress}}/api/items/1
+
+###
