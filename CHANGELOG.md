@@ -5,6 +5,25 @@ All notable changes to the Hamza Tex project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-11-01
+
+### Changed
+
+#### Frontend Dependencies Update
+- Upgraded React Native from 0.72.6 to 0.81.4
+- Updated React from 18.2.0 to ^19.1.0
+- Updated Expo from ~49.0.15 to ~54.0.21
+- Updated Redux Toolkit from ^1.9.7 to ^2.9.2
+- Updated React Redux from ^8.1.3 to ^9.2.0
+- Updated React Navigation Native from ^6.1.9 to ^7.1.19
+- Updated React Navigation Stack from ^6.3.20 to ^7.6.2
+- Updated React Native Gesture Handler from ~2.12.0 to ~2.29.0
+- Updated React Native Reanimated from ~3.3.0 to ~4.1.3
+- Updated React Native Screens from ~3.22.0 to ~4.18.0
+- Updated React Native Safe Area Context from 4.6.3 to ~5.6.2
+- Updated AsyncStorage from 1.18.2 to ~2.2.0
+- Updated TypeScript definitions for React and React Native
+
 ## [1.0.0] - 2025-11-01
 
 ### Added
@@ -80,12 +99,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical Details
 
 #### Frontend Stack
-- React Native 0.72.6
-- Expo ~49.0.15
-- Redux Toolkit 1.9.7
-- React Navigation 6.x
+- React Native 0.81.4
+- React 19.1.0
+- Expo ~54.0.21
+- Redux Toolkit 2.9.2
+- React Redux 9.2.0
+- React Navigation 7.x
 - Axios 1.6.0
-- AsyncStorage 1.18.2
+- AsyncStorage 2.2.0
 
 #### Backend Stack
 - ASP.NET Core 8.0
