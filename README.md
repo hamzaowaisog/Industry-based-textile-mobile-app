@@ -193,11 +193,13 @@ dotnet run
 ## 📦 Dependencies
 
 ### Frontend Key Dependencies
-- react-native: 0.72.6
-- expo: ~49.0.15
-- @reduxjs/toolkit: ^1.9.7
-- react-redux: ^8.1.3
-- @react-navigation/native: ^6.1.9
+- react-native: 0.81.4
+- react: ^19.1.0
+- expo: ~54.0.21
+- @reduxjs/toolkit: ^2.9.2
+- react-redux: ^9.2.0
+- @react-navigation/native: ^7.1.19
+- @react-navigation/stack: ^7.6.2
 - axios: ^1.6.0
 
 ### Backend Key Dependencies
