@@ -1,4 +1,4 @@
-@HamzaTex.Api_HostAddress = http://localhost:5225
+@HamzaTex.Api_HostAddress = http://localhost:5001
 @contentType = application/json
 
 ### Get all items
