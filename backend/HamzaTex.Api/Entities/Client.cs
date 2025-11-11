@@ -9,6 +9,8 @@ public partial class Client
 
     public string Name { get; set; } = null!;
 
+    public ClientType Type { get; set;}
+
     public string? Phone { get; set; }
 
     public string? Address { get; set; }

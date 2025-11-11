@@ -8,6 +8,8 @@ public partial class Purchase
     public Guid Id { get; set; }
 
     public Guid SupplierId { get; set; }
+    
+    public PaymentType PaymentType { get; set; }
 
     public DateOnly PurchaseDate { get; set; }
 

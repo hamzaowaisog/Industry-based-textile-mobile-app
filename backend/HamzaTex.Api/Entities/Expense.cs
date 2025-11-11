@@ -7,9 +7,13 @@ public partial class Expense
 {
     public Guid Id { get; set; }
 
+    public ExpenseType ExpenseType { get; set; }
+
     public string? SubCategory { get; set; }
 
     public decimal Amount { get; set; }
+
+    public TransMode Mode { get; set; }
 
     public DateOnly ExpenseDate { get; set; }
 

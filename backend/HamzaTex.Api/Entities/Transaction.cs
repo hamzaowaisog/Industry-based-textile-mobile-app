@@ -17,6 +17,12 @@ public partial class Transaction
 
     public Guid? LinkedId { get; set; }
 
+    public TransType Type { get; set; }
+
+    public TransMode Mode { get; set; }
+
+    public TransCategory Category { get; set; }
+
     public decimal Amount { get; set; }
 
     public DateOnly TransDate { get; set; }

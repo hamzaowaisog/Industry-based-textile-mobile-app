@@ -9,6 +9,10 @@ public partial class Payment
 
     public Guid PartyClientId { get; set; }
 
+    public PaymentDirection Direction { get; set; }
+
+    public TransMode Mode { get; set; }
+
     public decimal Amount { get; set; }
 
     public DateOnly PaymentDate { get; set; }

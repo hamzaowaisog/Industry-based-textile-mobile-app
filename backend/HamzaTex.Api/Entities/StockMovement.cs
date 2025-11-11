@@ -9,6 +9,10 @@ public partial class StockMovement
 
     public Guid ProductId { get; set; }
 
+    public MovementType MovementType { get; set; }
+
+    public MovementSource Source { get; set; }
+
     public int Qty { get; set; }
 
     public decimal? UnitCost { get; set; }

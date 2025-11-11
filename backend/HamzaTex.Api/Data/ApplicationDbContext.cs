@@ -80,6 +80,7 @@ public partial class ApplicationDbContext : DbContext
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
             entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.Type).HasColumnType("client_type").HasColumnName("type");
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.OpeningBalance)
                 .HasPrecision(14, 2)
@@ -100,6 +101,8 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Amount)
                 .HasPrecision(14, 2)
                 .HasColumnName("amount");
+            entity.Property(e => e.ExpenseType).HasColumnType("expense_type").HasColumnName("expense_type");
+            entity.Property(e => e.Mode).HasColumnType("trans_mode").HasColumnName("mode");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnType("timestamp without time zone")
@@ -119,6 +122,8 @@ public partial class ApplicationDbContext : DbContext
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
             entity.Property(e => e.ClientId).HasColumnName("client_id");
+            entity.Property(e => e.Status).HasColumnType("order_status").HasColumnName("status");
+            entity.Property(e => e.PaymentType).HasColumnType("payment_type").HasColumnName("payment_type");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnType("timestamp without time zone")
@@ -177,6 +182,8 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.PartyClientId).HasColumnName("party_client_id");
             entity.Property(e => e.PaymentDate).HasColumnName("payment_date");
+            entity.Property(e => e.Direction).HasColumnType("payment_direction").HasColumnName("direction");
+            entity.Property(e => e.Mode).HasColumnType("trans_mode").HasColumnName("mode");
 
             entity.HasOne(d => d.PartyClient).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.PartyClientId)
@@ -232,6 +239,7 @@ public partial class ApplicationDbContext : DbContext
                 .HasDefaultValueSql("now()")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
+            entity.Property(e => e.PaymentType).HasColumnType("payment_type").HasColumnName("payment_type");
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.PurchaseDate).HasColumnName("purchase_date");
             entity.Property(e => e.SupplierId).HasColumnName("supplier_id");
@@ -290,7 +298,8 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.UnitPrice)
                 .HasPrecision(14, 4)
                 .HasColumnName("unit_price");
-
+            entity.Property(e => e.MovementType).HasColumnType("movement_type").HasColumnName("movement_type");
+            entity.Property(e => e.Source).HasColumnType("movement_source").HasColumnName("source");
             entity.HasOne(d => d.Product).WithMany(p => p.StockMovements)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -320,7 +329,9 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.TransDate).HasColumnName("trans_date");
             entity.Property(e => e.UserId).HasColumnName("user_id");
-
+            entity.Property(e => e.Type).HasColumnType("trans_type").HasColumnName("type");
+            entity.Property(e => e.Mode).HasColumnType("trans_mode").HasColumnName("mode");
+            entity.Property(e => e.Category).HasColumnType("trans_category").HasColumnName("category");
             entity.HasOne(d => d.Client).WithMany(p => p.Transactions)
                 .HasForeignKey(d => d.ClientId)
                 .OnDelete(DeleteBehavior.SetNull)
@@ -356,6 +367,9 @@ public partial class ApplicationDbContext : DbContext
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
             entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
+            entity.Property(e => e.Role)
+                .HasColumnType("user_role")
+                .HasColumnName("role");
             entity.Property(e => e.Username).HasColumnName("username");
         });
 

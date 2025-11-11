@@ -8,6 +8,8 @@ public partial class Order
     public Guid Id { get; set; }
 
     public Guid ClientId { get; set; }
+    public OrderStatus Status { get; set; }
+    public PaymentType PaymentType { get; set; }
 
     public DateOnly OrderDate { get; set; }
 
