@@ -16,14 +16,30 @@ jobs:
           fetch-depth: 0
           ref: main
 
+      - name: Validate required secrets
+        run: |
+          if [ -z "${{ secrets.PUBLIC_REPO_URL }}" ]; then
+            echo "ERROR: PUBLIC_REPO_URL secret is not set. Set it to git@github.com:owner/repo.git"
+            exit 1
+          fi
+          if [ -z "${{ secrets.PUBLIC_REPO_SSH_KEY }}" ]; then
+            echo "ERROR: PUBLIC_REPO_SSH_KEY secret is not set. Add the private SSH key as a secret."
+            exit 1
+          fi
+
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.PUBLIC_REPO_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          # Ensure we do not append duplicate host keys on repeated runs
+          ssh-keygen -F github.com || ssh-keyscan github.com >> ~/.ssh/known_hosts
 
       - name: Push main to public repo
+        env:
+          PUBLIC_REPO_URL: ${{ secrets.PUBLIC_REPO_URL }}
         run: |
-          git remote add public ${{ secrets.PUBLIC_REPO_URL }}
+          # Double-check the repo URL we will use (only for debugging; remove in prod if you don't want to leak)
+          echo "Using PUBLIC_REPO_URL: ${PUBLIC_REPO_URL}"
+          git remote add public "${PUBLIC_REPO_URL}"
           git push -f public main:main
