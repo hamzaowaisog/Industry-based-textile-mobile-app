@@ -87,11 +87,69 @@ StyleCopReport.xml
 *.nuget.props
 *.nuget.targets
 
-# Azure / AppSettings
+# Sensitive Data - Configuration Files
+# AppSettings (contains connection strings, API keys, secrets)
 appsettings.Development.json
 appsettings.Production.json
+appsettings.Staging.json
 appsettings.*.json
-!appsettings.json
+# Uncomment the line below if appsettings.json contains sensitive data (connection strings, passwords, etc.)
+appsettings.json
+# Keep appsettings.json.example or appsettings.template.json for reference
+# !appsettings.json.example
+# !appsettings.template.json
+# !appsettings.sample.json
+
+# Secrets and API Keys
+*.secrets.json
+*.secrets
+secrets.json
+.secrets/
+**/secrets/
+**/*.secret
+**/*.secrets
+*.key
+*.pem
+*.p12
+*.pfx
+*.cer
+*.crt
+*.cert
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+!.env.template
+!.env.sample
+.envrc
+
+# Connection Strings and Database Credentials
+*connection*.json
+*connection*.txt
+*db*.json
+*db*.txt
+connectionstrings.json
+database.json
+
+# API Keys and Tokens
+*apikey*.json
+*apikey*.txt
+*token*.json
+*token*.txt
+api-keys.json
+tokens.json
+
+# User Secrets (ASP.NET Core)
+# Uncomment if launchSettings.json contains sensitive data
+# **/Properties/launchSettings.json
+
+# Azure / Cloud Configuration
+azure-*.json
+*.azure.json
+.azure/
+azure-publish.json
+azure-publish.xml
 
 # Database
 *.db
@@ -126,3 +184,32 @@ coverage/
 *.temp
 .tmp/
 .temp/
+
+# Backup files (may contain sensitive data)
+*.bak
+*.backup
+*~
+*.swp
+*.swo
+*_backup
+*_old
+
+# Log files (may contain sensitive data)
+*.log
+logs/
+*.log.*
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDE and Editor files (may contain sensitive data)
+.vscode/settings.json
+.vs/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries/
+.idea/shelf/
+*.iml
