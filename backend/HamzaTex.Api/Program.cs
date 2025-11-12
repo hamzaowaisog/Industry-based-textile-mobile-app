@@ -1,18 +1,22 @@
 using HamzaTex.Api.Data;
-using HamzaTex.Api.Services;
+// using HamzaTex.Api.Services;
 using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Add Entity Framework Core with SQLite
+// Add Entity Framework Core with MySQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        new MySqlServerVersion(new Version(8, 0, 21)) // Adjust version to match your MySQL version
+    ));
 
 // Register services
-builder.Services.AddScoped<IItemService, ItemService>();
+// builder.Services.AddScoped<IItemService, ItemService>();
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -39,11 +43,11 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Initialize database
+// Apply database migrations and seed data
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.EnsureCreated();
+    dbContext.Database.Migrate();
 }
 
 // Configure the HTTP request pipeline.
