@@ -13,8 +13,6 @@ public partial class Client
 
     public string? Phone { get; set; }
 
-    public string? Email { get; set; }
-
     public string? Address { get; set; }
 
     public decimal? CreditLimit { get; set; }

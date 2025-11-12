@@ -318,6 +318,11 @@ ALTER TABLE `clients` ADD `Email` longtext CHARACTER SET utf8mb4 NULL;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20251112215143_AddedEmailColumnInClient', '9.0.10');
 
+ALTER TABLE `clients` DROP COLUMN `Email`;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20251112215320_DeletedEmailColumnInClient', '9.0.10');
+
 COMMIT;
 
 
