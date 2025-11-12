@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
 
+[Index(nameof(Name), Name = "IX_clients_name")]
+[Index(nameof(IsActive), Name = "IX_clients_is_active")]
+[Index(nameof(Phone), Name = "IX_clients_phone")]
 public partial class Client
 {
     public Guid Id { get; set; }

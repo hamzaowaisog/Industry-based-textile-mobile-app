@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
 
+[Index(nameof(Sku), IsUnique = true, Name = "products_sku_key")]
+[Index(nameof(Name), Name = "IX_products_name")]
+[Index(nameof(IsActive), Name = "IX_products_is_active")]
+[Index(nameof(IsActive), nameof(Name), Name = "IX_products_is_active_name")]
 public partial class Product
 {
     public Guid Id { get; set; }

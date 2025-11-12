@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
 
+[Index(nameof(ExpenseTypeId), Name = "IX_expenses_expense_type_id")]
+[Index(nameof(TransModeId), Name = "IX_expenses_trans_mode_id")]
+[Index(nameof(ExpenseDate), Name = "IX_expenses_expense_date")]
+[Index(nameof(ExpenseTypeId), nameof(ExpenseDate), Name = "IX_expenses_type_date")]
 public partial class Expense
 {
     public Guid Id { get; set; }

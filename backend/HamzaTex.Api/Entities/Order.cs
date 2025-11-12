@@ -1,8 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
 
+[Index(nameof(ClientId), Name = "IX_orders_client_id")]
+[Index(nameof(StatusId), Name = "IX_orders_status_id")]
+[Index(nameof(PaymentTypeId), Name = "IX_orders_payment_type_id")]
+[Index(nameof(OrderDate), Name = "IX_orders_order_date")]
+[Index(nameof(ClientId), nameof(OrderDate), Name = "IX_orders_client_date")]
+[Index(nameof(StatusId), nameof(OrderDate), Name = "IX_orders_status_date")]
 public partial class Order
 {
     public Guid Id { get; set; }

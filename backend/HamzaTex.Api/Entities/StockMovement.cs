@@ -1,8 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
 
+[Index(nameof(ProductId), Name = "IX_stock_movements_product_id")]
+[Index(nameof(MovementTypeId), Name = "IX_stock_movements_movement_type_id")]
+[Index(nameof(MovementSourceId), Name = "IX_stock_movements_movement_source_id")]
+[Index(nameof(MovementDate), Name = "IX_stock_movements_movement_date")]
+[Index(nameof(ProductId), nameof(MovementDate), Name = "IX_stock_movements_product_date")]
 public partial class StockMovement
 {
     public Guid Id { get; set; }

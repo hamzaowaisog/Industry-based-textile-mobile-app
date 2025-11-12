@@ -323,6 +323,69 @@ ALTER TABLE `clients` DROP COLUMN `Email`;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20251112215320_DeletedEmailColumnInClient', '9.0.10');
 
+ALTER TABLE `users` MODIFY COLUMN `email` varchar(255) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `products` MODIFY COLUMN `name` varchar(255) CHARACTER SET utf8mb4 NOT NULL;
+
+ALTER TABLE `logins` MODIFY COLUMN `username` varchar(255) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `clients` MODIFY COLUMN `phone` varchar(255) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `clients` MODIFY COLUMN `name` varchar(255) CHARACTER SET utf8mb4 NOT NULL;
+
+CREATE INDEX `IX_users_email` ON `users` (`email`);
+
+CREATE INDEX `IX_users_is_active` ON `users` (`is_active`);
+
+CREATE INDEX `IX_users_is_active_created_at` ON `users` (`is_active`, `created_at`);
+
+CREATE INDEX `IX_transactions_client_date` ON `transactions` (`client_id`, `trans_date`);
+
+CREATE INDEX `IX_transactions_trans_date` ON `transactions` (`trans_date`);
+
+CREATE INDEX `IX_transactions_type_date` ON `transactions` (`trans_type_id`, `trans_date`);
+
+CREATE INDEX `IX_transactions_user_date` ON `transactions` (`user_id`, `trans_date`);
+
+CREATE INDEX `IX_stock_movements_movement_date` ON `stock_movements` (`movement_date`);
+
+CREATE INDEX `IX_stock_movements_product_date` ON `stock_movements` (`product_id`, `movement_date`);
+
+CREATE INDEX `IX_purchases_purchase_date` ON `purchases` (`purchase_date`);
+
+CREATE INDEX `IX_purchases_supplier_date` ON `purchases` (`supplier_id`, `purchase_date`);
+
+CREATE INDEX `IX_products_is_active` ON `products` (`is_active`);
+
+CREATE INDEX `IX_products_is_active_name` ON `products` (`is_active`, `name`);
+
+CREATE INDEX `IX_products_name` ON `products` (`name`);
+
+CREATE INDEX `IX_payments_client_date` ON `payments` (`party_client_id`, `payment_date`);
+
+CREATE INDEX `IX_payments_payment_date` ON `payments` (`payment_date`);
+
+CREATE INDEX `IX_orders_client_date` ON `orders` (`client_id`, `order_date`);
+
+CREATE INDEX `IX_orders_order_date` ON `orders` (`order_date`);
+
+CREATE INDEX `IX_orders_status_date` ON `orders` (`status_id`, `order_date`);
+
+CREATE UNIQUE INDEX `IX_logins_username` ON `logins` (`username`);
+
+CREATE INDEX `IX_expenses_expense_date` ON `expenses` (`expense_date`);
+
+CREATE INDEX `IX_expenses_type_date` ON `expenses` (`expense_type_id`, `expense_date`);
+
+CREATE INDEX `IX_clients_is_active` ON `clients` (`is_active`);
+
+CREATE INDEX `IX_clients_name` ON `clients` (`name`);
+
+CREATE INDEX `IX_clients_phone` ON `clients` (`phone`);
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20251112221435_AddedIndexingForEntities', '9.0.10');
+
 COMMIT;
 
 

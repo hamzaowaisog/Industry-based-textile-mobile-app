@@ -1,5 +1,8 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace HamzaTex.Api.Entities;
 
+[Index(nameof(Username), Name = "IX_logins_username")]
 public partial class Login
 {
     public Guid Id { get; set; }

@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
 
+[Index(nameof(Name), Name = "users_name_key")]
+[Index(nameof(Email), Name = "IX_users_email")]
+[Index(nameof(IsActive), Name = "IX_users_is_active")]
+[Index(nameof(IsActive), nameof(CreatedAt), Name = "IX_users_is_active_created_at")]
 public partial class User
 {
     public Guid Id { get; set; }

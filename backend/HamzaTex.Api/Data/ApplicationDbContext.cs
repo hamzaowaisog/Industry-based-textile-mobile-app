@@ -494,6 +494,7 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.Username).HasColumnName("username");
+            entity.HasIndex(e => e.Username, "IX_logins_username").IsUnique();
             entity.Property(e => e.Password).HasColumnName("password");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
