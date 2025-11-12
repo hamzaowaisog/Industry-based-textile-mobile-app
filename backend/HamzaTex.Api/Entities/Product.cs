@@ -11,8 +11,6 @@ public partial class Product
 
     public string Sku { get; set; } = null!;
 
-    public string? Category { get; set; }
-
     public string Unit { get; set; } = null!;
 
     public decimal? DefaultCost { get; set; }

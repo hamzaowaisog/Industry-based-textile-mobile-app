@@ -9,7 +9,7 @@ public partial class Purchase
 
     public Guid SupplierId { get; set; }
     
-    public PaymentType PaymentType { get; set; }
+    public Guid PaymentTypeId { get; set; }
 
     public DateOnly PurchaseDate { get; set; }
 
@@ -20,4 +20,6 @@ public partial class Purchase
     public virtual ICollection<PurchaseLine> PurchaseLines { get; set; } = new List<PurchaseLine>();
 
     public virtual Client Supplier { get; set; } = null!;
+    
+    public virtual PaymentType PaymentType { get; set; } = null!;
 }

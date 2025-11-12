@@ -13,15 +13,11 @@ public partial class Transaction
 
     public Guid? UserId { get; set; }
 
-    public string? LinkedEntity { get; set; }
+    public Guid? TransTypeId { get; set; }
 
-    public Guid? LinkedId { get; set; }
+    public Guid? TransModeId { get; set; }
 
-    public TransType Type { get; set; }
-
-    public TransMode Mode { get; set; }
-
-    public TransCategory Category { get; set; }
+    public Guid? TransCategoryId { get; set; }
 
     public decimal Amount { get; set; }
 
@@ -36,4 +32,10 @@ public partial class Transaction
     public virtual Product? Product { get; set; }
 
     public virtual User? User { get; set; }
+
+    public virtual TransType? TransType { get; set; }
+
+    public virtual TransMode? TransMode { get; set; }
+
+    public virtual TransCategory? TransCategory { get; set; }
 }

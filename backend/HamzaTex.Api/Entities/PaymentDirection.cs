@@ -1,7 +1,9 @@
 namespace HamzaTex.Api.Entities;
 
-public enum PaymentDirection
+public partial class PaymentDirection
 {
-    Receive,
-    Pay
+    public Guid Id { get; set; }
+    public string? Name { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

@@ -9,9 +9,9 @@ public partial class Client
 
     public string Name { get; set; } = null!;
 
-    public ClientType Type { get; set;}
+    public Guid ClientTypeId { get; set; }
 
-    public string? Phone { get; set; }
+    public int Phone { get; set; }
 
     public string? Address { get; set; }
 
@@ -24,6 +24,8 @@ public partial class Client
     public bool IsActive { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+
+    public virtual ClientType ClientType { get; set; } = null!;
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 

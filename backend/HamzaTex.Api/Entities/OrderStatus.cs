@@ -1,8 +1,9 @@
 namespace HamzaTex.Api.Entities;
 
-public enum OrderStatus
+public partial class OrderStatus
 {
-    Pending,
-    Delivered,
-    Cancelled
+    public Guid Id { get; set; }
+    public string? Name { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 }

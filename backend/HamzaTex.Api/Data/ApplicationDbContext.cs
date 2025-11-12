@@ -18,6 +18,30 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<Client> Clients { get; set; }
 
+    public virtual DbSet<ClientType> ClientTypes { get; set; }
+
+    public virtual DbSet<Login> Logins { get; set; }
+
+    public virtual DbSet<UserRole> UserRoles { get; set; }
+
+    public virtual DbSet<ExpenseType> ExpenseTypes { get; set; }
+    
+    public virtual DbSet<MovementSource> MovementSources { get; set; }
+    
+    public virtual DbSet<MovementType> MovementTypes { get; set; }
+
+    public virtual DbSet<OrderStatus> OrderStatuses { get; set; }
+
+    public virtual DbSet<PaymentDirection> PaymentDirections { get; set; }
+
+    public virtual DbSet<PaymentType> PaymentTypes { get; set; }
+
+    public virtual DbSet<TransCategory> TransCategories { get; set; }
+
+    public virtual DbSet<TransMode> TransModes { get; set; }
+
+    public virtual DbSet<TransType> TransTypes { get; set; }
+
     public virtual DbSet<Expense> Expenses { get; set; }
 
     public virtual DbSet<Order> Orders { get; set; }
@@ -44,20 +68,24 @@ public partial class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder
-            .HasPostgresEnum("client_type", new[] { "Customer", "Supplier" })
-            .HasPostgresEnum("expense_type", new[] { "Office", "Home" })
-            .HasPostgresEnum("movement_sources", new[] { "Purchase", "Sale", "Manual" })
-            .HasPostgresEnum("movement_type", new[] { "In", "Out", "Adjust" })
-            .HasPostgresEnum("order_status", new[] { "Pending", "Delivered", "Cancelled" })
-            .HasPostgresEnum("payment_direction", new[] { "Receive", "Pay" })
-            .HasPostgresEnum("payment_type", new[] { "Cash", "Credit" })
-            .HasPostgresEnum("trans_category", new[] { "Sales", "Purchase", "OfficeExpense", "HomeExpense", "PaymentIn", "PaymentOut" })
-            .HasPostgresEnum("trans_mode", new[] { "Cash", "Credit", "Bank" })
-            .HasPostgresEnum("trans_type", new[] { "Debit", "Credit" })
-            .HasPostgresEnum("user_role", new[] { "Admin", "Staff" })
-            .HasPostgresExtension("pg_trgm")
-            .HasPostgresExtension("uuid-ossp");
+        // Configure enums to be stored as strings in SQL Server
+        // EF Core will automatically convert enum values to/from strings
+
+        modelBuilder.Entity<ClientType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("client_types_pkey");
+
+            entity.ToTable("client_types");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("NEWID()")
+                .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
+        });
 
         modelBuilder.Entity<Client>(entity =>
         {
@@ -66,12 +94,12 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("clients");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasDefaultValueSql("NEWID()")
                 .HasColumnName("id");
             entity.Property(e => e.Address).HasColumnName("address");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
                 .HasColumnName("created_at");
             entity.Property(e => e.CreditLimit)
                 .HasPrecision(14, 2)
@@ -80,8 +108,13 @@ public partial class ApplicationDbContext : DbContext
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
             entity.Property(e => e.Name).HasColumnName("name");
-            entity.Property(e => e.Type).HasColumnType("client_type").HasColumnName("type");
+            entity.Property(e => e.ClientTypeId).HasColumnName("client_type_id");
             entity.Property(e => e.Notes).HasColumnName("notes");
+
+            entity.HasOne(d => d.ClientType).WithMany(p => p.Clients)
+                .HasForeignKey(d => d.ClientTypeId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("clients_client_type_id_fkey");
             entity.Property(e => e.OpeningBalance)
                 .HasPrecision(14, 2)
                 .HasDefaultValueSql("0")
@@ -96,20 +129,31 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("expenses");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasDefaultValueSql("NEWID()")
                 .HasColumnName("id");
+            entity.Property(e => e.ExpenseTypeId).HasColumnName("expense_type_id");
             entity.Property(e => e.Amount)
                 .HasPrecision(14, 2)
                 .HasColumnName("amount");
-            entity.Property(e => e.ExpenseType).HasColumnType("expense_type").HasColumnName("expense_type");
-            entity.Property(e => e.Mode).HasColumnType("trans_mode").HasColumnName("mode");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_at");
-            entity.Property(e => e.ExpenseDate).HasColumnName("expense_date");
+            entity.Property(e => e.TransModeId).HasColumnName("trans_mode_id");
+            entity.Property(e => e.ExpenseDate)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("expense_date");
             entity.Property(e => e.Notes).HasColumnName("notes");
-            entity.Property(e => e.SubCategory).HasColumnName("sub_category");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
+
+            entity.HasOne(d => d.ExpenseType).WithMany(p => p.Expenses)
+                .HasForeignKey(d => d.ExpenseTypeId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("expenses_expense_type_id_fkey");
+            entity.HasOne(d => d.TransMode).WithMany(p => p.Expenses)
+                .HasForeignKey(d => d.TransModeId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("expenses_trans_mode_id_fkey");
         });
 
         modelBuilder.Entity<Order>(entity =>
@@ -119,22 +163,30 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("orders");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasDefaultValueSql("NEWID()")
                 .HasColumnName("id");
             entity.Property(e => e.ClientId).HasColumnName("client_id");
-            entity.Property(e => e.Status).HasColumnType("order_status").HasColumnName("status");
-            entity.Property(e => e.PaymentType).HasColumnType("payment_type").HasColumnName("payment_type");
+            entity.Property(e => e.StatusId).HasColumnName("status_id");
+            entity.Property(e => e.PaymentTypeId).HasColumnName("payment_type_id");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
                 .HasColumnName("created_at");
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.OrderDate).HasColumnName("order_date");
 
             entity.HasOne(d => d.Client).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.ClientId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("orders_client_id_fkey");
+            entity.HasOne(d => d.Status).WithMany(p => p.Orders)
+                .HasForeignKey(d => d.StatusId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("orders_status_id_fkey");
+            entity.HasOne(d => d.PaymentType).WithMany(p => p.Orders)
+                .HasForeignKey(d => d.PaymentTypeId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("orders_payment_type_id_fkey");
         });
 
         modelBuilder.Entity<OrderLine>(entity =>
@@ -144,7 +196,7 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("order_lines");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasDefaultValueSql("NEWID()")
                 .HasColumnName("id");
             entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
@@ -159,7 +211,7 @@ public partial class ApplicationDbContext : DbContext
 
             entity.HasOne(d => d.Product).WithMany(p => p.OrderLines)
                 .HasForeignKey(d => d.ProductId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("order_lines_product_id_fkey");
         });
 
@@ -170,25 +222,37 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("payments");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasDefaultValueSql("NEWID()")
                 .HasColumnName("id");
+            entity.Property(e => e.PartyClientId).HasColumnName("party_client_id");
+            entity.Property(e => e.PaymentDirectionId).HasColumnName("payment_direction_id");
+            entity.Property(e => e.TransModeId).HasColumnName("trans_mode_id");
             entity.Property(e => e.Amount)
                 .HasPrecision(14, 2)
                 .HasColumnName("amount");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_at");
+            entity.Property(e => e.PaymentDate).HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("payment_date");
             entity.Property(e => e.Notes).HasColumnName("notes");
-            entity.Property(e => e.PartyClientId).HasColumnName("party_client_id");
-            entity.Property(e => e.PaymentDate).HasColumnName("payment_date");
-            entity.Property(e => e.Direction).HasColumnType("payment_direction").HasColumnName("direction");
-            entity.Property(e => e.Mode).HasColumnType("trans_mode").HasColumnName("mode");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
 
             entity.HasOne(d => d.PartyClient).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.PartyClientId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("payments_party_client_id_fkey");
+            
+            entity.HasOne(d => d.PaymentDirection).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.PaymentDirectionId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("payments_payment_direction_id_fkey");
+            
+            entity.HasOne(d => d.TransMode).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.TransModeId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("payments_trans_mode_id_fkey");
         });
 
         modelBuilder.Entity<Product>(entity =>
@@ -200,12 +264,11 @@ public partial class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.Sku, "products_sku_key").IsUnique();
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasDefaultValueSql("NEWID()")
                 .HasColumnName("id");
-            entity.Property(e => e.Category).HasColumnName("category");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
                 .HasColumnName("created_at");
             entity.Property(e => e.DefaultCost)
                 .HasPrecision(14, 2)
@@ -233,21 +296,27 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("purchases");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasDefaultValueSql("NEWID()")
                 .HasColumnName("id");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_at");
-            entity.Property(e => e.PaymentType).HasColumnType("payment_type").HasColumnName("payment_type");
-            entity.Property(e => e.Notes).HasColumnName("notes");
-            entity.Property(e => e.PurchaseDate).HasColumnName("purchase_date");
             entity.Property(e => e.SupplierId).HasColumnName("supplier_id");
+            entity.Property(e => e.PaymentTypeId).HasColumnName("payment_type_id");
+            entity.Property(e => e.PurchaseDate).HasDefaultValueSql("GETDATE()")
+                  .HasColumnType("datetime2")
+                  .HasColumnName("purchase_date");
+            entity.Property(e => e.Notes).HasColumnName("notes");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
 
             entity.HasOne(d => d.Supplier).WithMany(p => p.Purchases)
                 .HasForeignKey(d => d.SupplierId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("purchases_supplier_id_fkey");
+            entity.HasOne(d => d.PaymentType).WithMany(p => p.Purchases)
+                .HasForeignKey(d => d.PaymentTypeId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("purchases_payment_type_id_fkey");
         });
 
         modelBuilder.Entity<PurchaseLine>(entity =>
@@ -257,7 +326,7 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("purchase_lines");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasDefaultValueSql("NEWID()")
                 .HasColumnName("id");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.PurchaseId).HasColumnName("purchase_id");
@@ -268,7 +337,7 @@ public partial class ApplicationDbContext : DbContext
 
             entity.HasOne(d => d.Product).WithMany(p => p.PurchaseLines)
                 .HasForeignKey(d => d.ProductId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("purchase_lines_product_id_fkey");
 
             entity.HasOne(d => d.Purchase).WithMany(p => p.PurchaseLines)
@@ -283,14 +352,11 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("stock_movements");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasDefaultValueSql("NEWID()")
                 .HasColumnName("id");
-            entity.Property(e => e.LinkedEntity).HasColumnName("linked_entity");
-            entity.Property(e => e.LinkedId)
-                .HasDefaultValueSql("uuid_generate_v4()")
-                .HasColumnName("linked_id");
-            entity.Property(e => e.MovementDate).HasColumnName("movement_date");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.MovementTypeId).HasColumnName("movement_type_id");
+            entity.Property(e => e.MovementSourceId).HasColumnName("movement_source_id");
             entity.Property(e => e.Qty).HasColumnName("qty");
             entity.Property(e => e.UnitCost)
                 .HasPrecision(14, 4)
@@ -298,12 +364,24 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.UnitPrice)
                 .HasPrecision(14, 4)
                 .HasColumnName("unit_price");
-            entity.Property(e => e.MovementType).HasColumnType("movement_type").HasColumnName("movement_type");
-            entity.Property(e => e.Source).HasColumnType("movement_source").HasColumnName("source");
+            entity.Property(e => e.MovementDate).HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("movement_date");
+
             entity.HasOne(d => d.Product).WithMany(p => p.StockMovements)
                 .HasForeignKey(d => d.ProductId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("stock_movements_product_id_fkey");
+            
+            entity.HasOne(d => d.MovementType).WithMany(p => p.StockMovements)
+                .HasForeignKey(d => d.MovementTypeId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("stock_movements_movement_type_id_fkey");
+            
+            entity.HasOne(d => d.MovementSource).WithMany(p => p.StockMovements)
+                .HasForeignKey(d => d.MovementSourceId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("stock_movements_movement_source_id_fkey");
         });
 
         modelBuilder.Entity<Transaction>(entity =>
@@ -313,25 +391,27 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("transactions");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasDefaultValueSql("NEWID()")
                 .HasColumnName("id");
+            entity.Property(e => e.ClientId).HasColumnName("client_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.TransTypeId).HasColumnName("trans_type_id");
+            entity.Property(e => e.TransModeId).HasColumnName("trans_mode_id");
+            entity.Property(e => e.TransCategoryId).HasColumnName("trans_category_id");
             entity.Property(e => e.Amount)
                 .HasPrecision(14, 2)
                 .HasColumnName("amount");
-            entity.Property(e => e.ClientId).HasColumnName("client_id");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_at");
-            entity.Property(e => e.LinkedEntity).HasColumnName("linked_entity");
-            entity.Property(e => e.LinkedId).HasColumnName("linked_id");
+            entity.Property(e => e.TransDate)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("trans_date");
             entity.Property(e => e.Notes).HasColumnName("notes");
-            entity.Property(e => e.ProductId).HasColumnName("product_id");
-            entity.Property(e => e.TransDate).HasColumnName("trans_date");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.Type).HasColumnType("trans_type").HasColumnName("type");
-            entity.Property(e => e.Mode).HasColumnType("trans_mode").HasColumnName("mode");
-            entity.Property(e => e.Category).HasColumnType("trans_category").HasColumnName("category");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
+
             entity.HasOne(d => d.Client).WithMany(p => p.Transactions)
                 .HasForeignKey(d => d.ClientId)
                 .OnDelete(DeleteBehavior.SetNull)
@@ -346,6 +426,21 @@ public partial class ApplicationDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("transactions_user_id_fkey");
+
+            entity.HasOne(d => d.TransType).WithMany(p => p.Transactions)
+                .HasForeignKey(d => d.TransTypeId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("transactions_trans_type_id_fkey");
+
+            entity.HasOne(d => d.TransMode).WithMany(p => p.Transactions)
+                .HasForeignKey(d => d.TransModeId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("transactions_trans_mode_id_fkey");
+
+            entity.HasOne(d => d.TransCategory).WithMany(p => p.Transactions)
+                .HasForeignKey(d => d.TransCategoryId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("transactions_trans_category_id_fkey");
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -354,23 +449,161 @@ public partial class ApplicationDbContext : DbContext
 
             entity.ToTable("users");
 
-            entity.HasIndex(e => e.Username, "users_username_key").IsUnique();
+            entity.HasIndex(e => e.Name, "users_name_key");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasDefaultValueSql("NEWID()")
                 .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.Email).HasColumnName("email");
+            entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
                 .HasColumnName("created_at");
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
-            entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
-            entity.Property(e => e.Role)
-                .HasColumnType("user_role")
-                .HasColumnName("role");
+            entity.HasOne(d => d.Role).WithMany(p => p.Users)
+                .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("users_role_id_fkey");
+        }
+        );
+        modelBuilder.Entity<UserRole>(entity => {
+            entity.HasKey(e => e.Id).HasName("user_roles_pkey");
+            entity.ToTable("user_roles");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("NEWID()")
+                .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<Login>(entity => {
+            entity.HasKey(e => e.Id).HasName("logins_pkey");
+            entity.ToTable("logins");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("NEWID()")
+                .HasColumnName("id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.Username).HasColumnName("username");
+            entity.Property(e => e.Password).HasColumnName("password");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
+            entity.HasOne(d => d.User).WithOne()
+                .HasForeignKey<Login>(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("logins_user_id_fkey");
+        });
+
+        modelBuilder.Entity<OrderStatus>(entity => {
+            entity.HasKey(e => e.Id).HasName("order_statuses_pkey");
+            entity.ToTable("order_statuses");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("NEWID()")
+                .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<PaymentType>(entity => {
+            entity.HasKey(e => e.Id).HasName("payment_types_pkey");
+            entity.ToTable("payment_types");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("NEWID()")
+                .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<TransCategory>(entity => {
+            entity.HasKey(e => e.Id).HasName("trans_categories_pkey");
+            entity.ToTable("trans_categories");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("NEWID()")
+                .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<TransMode>(entity => {
+            entity.HasKey(e => e.Id).HasName("trans_modes_pkey");
+            entity.ToTable("trans_modes");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("NEWID()")
+                .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<TransType>(entity => {
+            entity.HasKey(e => e.Id).HasName("trans_types_pkey");
+            entity.ToTable("trans_types");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("NEWID()")
+                .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<PaymentDirection>(entity => {
+            entity.HasKey(e => e.Id).HasName("payment_directions_pkey");
+            entity.ToTable("payment_directions");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("NEWID()")
+                .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<MovementType>(entity => {
+            entity.HasKey(e => e.Id).HasName("movement_types_pkey");
+            entity.ToTable("movement_types");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("NEWID()")
+                .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<MovementSource>(entity => {
+            entity.HasKey(e => e.Id).HasName("movement_sources_pkey");
+            entity.ToTable("movement_sources");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("NEWID()")
+                .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("datetime2")
+                .HasColumnName("created_at");
         });
 
         modelBuilder.Entity<VClientBalance>(entity =>

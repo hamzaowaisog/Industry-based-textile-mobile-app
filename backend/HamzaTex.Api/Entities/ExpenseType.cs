@@ -1,7 +1,9 @@
 namespace HamzaTex.Api.Entities;
 
-public enum ExpenseType
+public partial class ExpenseType
 {
-    Office,
-    Home
+    public Guid Id { get; set; }
+    public string? Name { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public virtual ICollection<Expense> Expenses { get; set; } = new List<Expense>();
 }

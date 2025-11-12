@@ -9,9 +9,9 @@ public partial class Payment
 
     public Guid PartyClientId { get; set; }
 
-    public PaymentDirection Direction { get; set; }
+    public Guid? PaymentDirectionId { get; set; }
 
-    public TransMode Mode { get; set; }
+    public Guid? TransModeId { get; set; }
 
     public decimal Amount { get; set; }
 
@@ -22,4 +22,6 @@ public partial class Payment
     public DateTime? CreatedAt { get; set; }
 
     public virtual Client PartyClient { get; set; } = null!;
+    public virtual PaymentDirection PaymentDirection { get; set; } = null!;
+    public virtual TransMode TransMode { get; set; } = null!;
 }

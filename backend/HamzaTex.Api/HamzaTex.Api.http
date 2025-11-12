@@ -2,19 +2,19 @@
 @contentType = application/json
 
 ### Get all items
-GET {{HamzaTex.Api_HostAddress}}/api/items
+GET {{HamzaTex.Api_HostAddress}}/api/
 Accept: {{contentType}}
 
 ###
 
 ### Get item by ID
-GET {{HamzaTex.Api_HostAddress}}/api/items/1
+GET {{HamzaTex.Api_HostAddress}}/api/
 Accept: {{contentType}}
 
 ###
 
 ### Create new item
-POST {{HamzaTex.Api_HostAddress}}/api/items
+POST {{HamzaTex.Api_HostAddress}}/api/
 Content-Type: {{contentType}}
 
 {
@@ -25,7 +25,7 @@ Content-Type: {{contentType}}
 ###
 
 ### Update item
-PUT {{HamzaTex.Api_HostAddress}}/api/items/1
+PUT {{HamzaTex.Api_HostAddress}}/api/
 Content-Type: {{contentType}}
 
 {
@@ -36,6 +36,6 @@ Content-Type: {{contentType}}
 ###
 
 ### Delete item
-DELETE {{HamzaTex.Api_HostAddress}}/api/items/1
+DELETE {{HamzaTex.Api_HostAddress}}/api/
 
 ###
