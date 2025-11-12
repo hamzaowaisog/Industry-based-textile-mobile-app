@@ -308,6 +308,11 @@ CREATE INDEX `users_name_key` ON `users` (`name`);
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20251112134038_InitialMySqlMigration', '9.0.10');
 
+ALTER TABLE `clients` MODIFY COLUMN `phone` longtext CHARACTER SET utf8mb4 NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20251112214843_ChangePhoneNumberColumnType', '9.0.10');
+
 COMMIT;
 
 

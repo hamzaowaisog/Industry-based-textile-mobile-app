@@ -99,30 +99,30 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedOnAdd()
                 .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.ClientTypeId).HasColumnName("client_type_id");
+            entity.Property(e => e.Phone).HasColumnName("phone");
             entity.Property(e => e.Address).HasColumnName("address");
+            entity.Property(e => e.CreditLimit)
+                .HasPrecision(14, 2)
+                .HasColumnName("credit_limit");
+            entity.Property(e => e.OpeningBalance)
+                .HasPrecision(14, 2)
+                .HasDefaultValueSql("0")
+                .HasColumnName("opening_balance");
+            entity.Property(e => e.Notes).HasColumnName("notes");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
-            entity.Property(e => e.CreditLimit)
-                .HasPrecision(14, 2)
-                .HasColumnName("credit_limit");
-            entity.Property(e => e.IsActive)
-                .HasDefaultValue(true)
-                .HasColumnName("is_active");
-            entity.Property(e => e.Name).HasColumnName("name");
-            entity.Property(e => e.ClientTypeId).HasColumnName("client_type_id");
-            entity.Property(e => e.Notes).HasColumnName("notes");
 
             entity.HasOne(d => d.ClientType).WithMany(p => p.Clients)
                 .HasForeignKey(d => d.ClientTypeId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("clients_client_type_id_fkey");
-            entity.Property(e => e.OpeningBalance)
-                .HasPrecision(14, 2)
-                .HasDefaultValueSql("0")
-                .HasColumnName("opening_balance");
-            entity.Property(e => e.Phone).HasColumnName("phone");
         });
 
         modelBuilder.Entity<Expense>(entity =>

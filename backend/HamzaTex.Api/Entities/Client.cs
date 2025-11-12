@@ -11,7 +11,7 @@ public partial class Client
 
     public Guid? ClientTypeId { get; set; }
 
-    public int Phone { get; set; }
+    public string? Phone { get; set; }
 
     public string? Address { get; set; }
 
