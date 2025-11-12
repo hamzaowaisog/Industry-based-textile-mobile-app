@@ -20,5 +20,3 @@ jobs:
         with:
           target_repo_url: ${{ secrets.PUBLIC_REPO_URL }}
           ssh_private_key: ${{ secrets.PUBLIC_REPO_SSH_KEY }}
-          source_branch: "main"
-          target_branch: "main"
