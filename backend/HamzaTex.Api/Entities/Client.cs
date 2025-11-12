@@ -9,7 +9,7 @@ public partial class Client
 
     public string Name { get; set; } = null!;
 
-    public Guid ClientTypeId { get; set; }
+    public Guid? ClientTypeId { get; set; }
 
     public int Phone { get; set; }
 
@@ -25,7 +25,7 @@ public partial class Client
 
     public DateTime? CreatedAt { get; set; }
 
-    public virtual ClientType ClientType { get; set; } = null!;
+    public virtual ClientType? ClientType { get; set; }
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 

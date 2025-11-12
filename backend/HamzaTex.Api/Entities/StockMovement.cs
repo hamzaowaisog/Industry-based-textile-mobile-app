@@ -7,11 +7,11 @@ public partial class StockMovement
 {
     public Guid Id { get; set; }
 
-    public Guid ProductId { get; set; }
+    public Guid? ProductId { get; set; }
 
-    public Guid MovementTypeId { get; set; }
+    public Guid? MovementTypeId { get; set; }
 
-    public Guid MovementSourceId { get; set; }
+    public Guid? MovementSourceId { get; set; }
 
     public int Qty { get; set; }
 
@@ -21,7 +21,7 @@ public partial class StockMovement
 
     public DateOnly MovementDate { get; set; }
 
-    public virtual Product Product { get; set; } = null!;
-    public virtual MovementType MovementType { get; set; } = null!;
-    public virtual MovementSource MovementSource { get; set; } = null!;
+    public virtual Product? Product { get; set; }
+    public virtual MovementType? MovementType { get; set; }
+    public virtual MovementSource? MovementSource { get; set; }
 }

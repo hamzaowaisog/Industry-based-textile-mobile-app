@@ -9,13 +9,13 @@ public partial class PurchaseLine
 
     public Guid PurchaseId { get; set; }
 
-    public Guid ProductId { get; set; }
+    public Guid? ProductId { get; set; }
 
     public int Qty { get; set; }
 
     public decimal UnitCost { get; set; }
 
-    public virtual Product Product { get; set; } = null!;
+    public virtual Product? Product { get; set; }
 
     public virtual Purchase Purchase { get; set; } = null!;
 }

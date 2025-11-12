@@ -7,11 +7,11 @@ public partial class Order
 {
     public Guid Id { get; set; }
 
-    public Guid ClientId { get; set; }
+    public Guid? ClientId { get; set; }
 
-    public Guid StatusId { get; set; }
+    public Guid? StatusId { get; set; }
     
-    public Guid PaymentTypeId { get; set; }
+    public Guid? PaymentTypeId { get; set; }
 
     public DateOnly OrderDate { get; set; }
 
@@ -19,9 +19,9 @@ public partial class Order
 
     public DateTime? CreatedAt { get; set; }
 
-    public virtual Client Client { get; set; } = null!;
-    public virtual OrderStatus Status { get; set; } = null!;
-    public virtual PaymentType PaymentType { get; set; } = null!;
+    public virtual Client? Client { get; set; }
+    public virtual OrderStatus? Status { get; set; }
+    public virtual PaymentType? PaymentType { get; set; }
 
     public virtual ICollection<OrderLine> OrderLines { get; set; } = new List<OrderLine>();
 }

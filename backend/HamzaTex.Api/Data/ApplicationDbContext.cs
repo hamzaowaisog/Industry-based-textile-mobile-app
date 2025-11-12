@@ -68,7 +68,10 @@ public partial class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Configure enums to be stored as strings in SQL Server
+        // Configure DateOnly to map to MySQL 'date' type
+        // EF Core 9.0+ supports DateOnly natively when mapped to 'date' type
+        
+        // Configure enums to be stored as strings in MySQL
         // EF Core will automatically convert enum values to/from strings
 
         modelBuilder.Entity<ClientType>(entity =>
@@ -78,12 +81,12 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("client_types");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
         });
 
@@ -94,12 +97,12 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("clients");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Address).HasColumnName("address");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
             entity.Property(e => e.CreditLimit)
                 .HasPrecision(14, 2)
@@ -129,7 +132,7 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("expenses");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.ExpenseTypeId).HasColumnName("expense_type_id");
             entity.Property(e => e.Amount)
@@ -137,13 +140,12 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("amount");
             entity.Property(e => e.TransModeId).HasColumnName("trans_mode_id");
             entity.Property(e => e.ExpenseDate)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasColumnType("date")
                 .HasColumnName("expense_date");
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
 
             entity.HasOne(d => d.ExpenseType).WithMany(p => p.Expenses)
@@ -163,17 +165,19 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("orders");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.ClientId).HasColumnName("client_id");
             entity.Property(e => e.StatusId).HasColumnName("status_id");
             entity.Property(e => e.PaymentTypeId).HasColumnName("payment_type_id");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
             entity.Property(e => e.Notes).HasColumnName("notes");
-            entity.Property(e => e.OrderDate).HasColumnName("order_date");
+            entity.Property(e => e.OrderDate)
+                .HasColumnType("date")
+                .HasColumnName("order_date");
 
             entity.HasOne(d => d.Client).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.ClientId)
@@ -196,7 +200,7 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("order_lines");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
@@ -222,7 +226,7 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("payments");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.PartyClientId).HasColumnName("party_client_id");
             entity.Property(e => e.PaymentDirectionId).HasColumnName("payment_direction_id");
@@ -230,13 +234,13 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Amount)
                 .HasPrecision(14, 2)
                 .HasColumnName("amount");
-            entity.Property(e => e.PaymentDate).HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+            entity.Property(e => e.PaymentDate)
+                .HasColumnType("date")
                 .HasColumnName("payment_date");
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
 
             entity.HasOne(d => d.PartyClient).WithMany(p => p.Payments)
@@ -264,11 +268,11 @@ public partial class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.Sku, "products_sku_key").IsUnique();
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
             entity.Property(e => e.DefaultCost)
                 .HasPrecision(14, 2)
@@ -296,17 +300,17 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("purchases");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.SupplierId).HasColumnName("supplier_id");
             entity.Property(e => e.PaymentTypeId).HasColumnName("payment_type_id");
-            entity.Property(e => e.PurchaseDate).HasDefaultValueSql("GETDATE()")
-                  .HasColumnType("datetime2")
-                  .HasColumnName("purchase_date");
+            entity.Property(e => e.PurchaseDate)
+                .HasColumnType("date")
+                .HasColumnName("purchase_date");
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
 
             entity.HasOne(d => d.Supplier).WithMany(p => p.Purchases)
@@ -326,7 +330,7 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("purchase_lines");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.PurchaseId).HasColumnName("purchase_id");
@@ -352,7 +356,7 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("stock_movements");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.MovementTypeId).HasColumnName("movement_type_id");
@@ -364,8 +368,8 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.UnitPrice)
                 .HasPrecision(14, 4)
                 .HasColumnName("unit_price");
-            entity.Property(e => e.MovementDate).HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+            entity.Property(e => e.MovementDate)
+                .HasColumnType("date")
                 .HasColumnName("movement_date");
 
             entity.HasOne(d => d.Product).WithMany(p => p.StockMovements)
@@ -391,7 +395,7 @@ public partial class ApplicationDbContext : DbContext
             entity.ToTable("transactions");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.ClientId).HasColumnName("client_id");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
@@ -403,13 +407,12 @@ public partial class ApplicationDbContext : DbContext
                 .HasPrecision(14, 2)
                 .HasColumnName("amount");
             entity.Property(e => e.TransDate)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasColumnType("date")
                 .HasColumnName("trans_date");
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
 
             entity.HasOne(d => d.Client).WithMany(p => p.Transactions)
@@ -452,14 +455,14 @@ public partial class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.Name, "users_name_key");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.Email).HasColumnName("email");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
@@ -474,12 +477,12 @@ public partial class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("user_roles_pkey");
             entity.ToTable("user_roles");
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
         });
 
@@ -487,14 +490,14 @@ public partial class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("logins_pkey");
             entity.ToTable("logins");
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.Username).HasColumnName("username");
             entity.Property(e => e.Password).HasColumnName("password");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
             entity.HasOne(d => d.User).WithOne()
                 .HasForeignKey<Login>(d => d.UserId)
@@ -506,12 +509,12 @@ public partial class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("order_statuses_pkey");
             entity.ToTable("order_statuses");
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
         });
 
@@ -519,12 +522,12 @@ public partial class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("payment_types_pkey");
             entity.ToTable("payment_types");
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
         });
 
@@ -532,12 +535,12 @@ public partial class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("trans_categories_pkey");
             entity.ToTable("trans_categories");
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
         });
 
@@ -545,12 +548,12 @@ public partial class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("trans_modes_pkey");
             entity.ToTable("trans_modes");
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
         });
 
@@ -558,12 +561,12 @@ public partial class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("trans_types_pkey");
             entity.ToTable("trans_types");
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
         });
 
@@ -571,12 +574,12 @@ public partial class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("payment_directions_pkey");
             entity.ToTable("payment_directions");
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
         });
 
@@ -584,12 +587,12 @@ public partial class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("movement_types_pkey");
             entity.ToTable("movement_types");
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
         });
 
@@ -597,12 +600,25 @@ public partial class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("movement_sources_pkey");
             entity.ToTable("movement_sources");
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("NEWID()")
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("GETDATE()")
-                .HasColumnType("datetime2")
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<ExpenseType>(entity => {
+            entity.HasKey(e => e.Id).HasName("expense_types_pkey");
+            entity.ToTable("expense_types");
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
                 .HasColumnName("created_at");
         });
 
@@ -612,7 +628,9 @@ public partial class ApplicationDbContext : DbContext
                 .HasNoKey()
                 .ToView("v_client_balance");
 
-            entity.Property(e => e.Balance).HasColumnName("balance");
+            entity.Property(e => e.Balance)
+                .HasPrecision(14, 2)
+                .HasColumnName("balance");
             entity.Property(e => e.ClientId).HasColumnName("client_id");
             entity.Property(e => e.Name).HasColumnName("name");
         });
@@ -623,12 +641,22 @@ public partial class ApplicationDbContext : DbContext
                 .HasNoKey()
                 .ToView("v_monthly_profit_loss");
 
-            entity.Property(e => e.GrossProfit).HasColumnName("gross_profit");
+            entity.Property(e => e.GrossProfit)
+                .HasPrecision(14, 2)
+                .HasColumnName("gross_profit");
             entity.Property(e => e.Month).HasColumnName("month");
-            entity.Property(e => e.NetProfit).HasColumnName("net_profit");
-            entity.Property(e => e.TotalExpenses).HasColumnName("total_expenses");
-            entity.Property(e => e.TotalPurchases).HasColumnName("total_purchases");
-            entity.Property(e => e.TotalSales).HasColumnName("total_sales");
+            entity.Property(e => e.NetProfit)
+                .HasPrecision(14, 2)
+                .HasColumnName("net_profit");
+            entity.Property(e => e.TotalExpenses)
+                .HasPrecision(14, 2)
+                .HasColumnName("total_expenses");
+            entity.Property(e => e.TotalPurchases)
+                .HasPrecision(14, 2)
+                .HasColumnName("total_purchases");
+            entity.Property(e => e.TotalSales)
+                .HasPrecision(14, 2)
+                .HasColumnName("total_sales");
         });
 
         OnModelCreatingPartial(modelBuilder);

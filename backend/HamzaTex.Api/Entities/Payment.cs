@@ -7,7 +7,7 @@ public partial class Payment
 {
     public Guid Id { get; set; }
 
-    public Guid PartyClientId { get; set; }
+    public Guid? PartyClientId { get; set; }
 
     public Guid? PaymentDirectionId { get; set; }
 
@@ -21,7 +21,7 @@ public partial class Payment
 
     public DateTime? CreatedAt { get; set; }
 
-    public virtual Client PartyClient { get; set; } = null!;
-    public virtual PaymentDirection PaymentDirection { get; set; } = null!;
-    public virtual TransMode TransMode { get; set; } = null!;
+    public virtual Client? PartyClient { get; set; }
+    public virtual PaymentDirection? PaymentDirection { get; set; }
+    public virtual TransMode? TransMode { get; set; }
 }
