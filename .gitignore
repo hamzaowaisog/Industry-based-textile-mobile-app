@@ -213,3 +213,6 @@ logs/
 .idea/dictionaries/
 .idea/shelf/
 *.iml
+
+*.md
+!README.md
