@@ -20,7 +20,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Register services
 // builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
-
+builder.Services.AddScoped<IClientTypeService, ClientTypeService>();
 // Add CORS
 builder.Services.AddCors(options =>
 {
