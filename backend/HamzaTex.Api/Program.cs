@@ -1,4 +1,6 @@
 using HamzaTex.Api.Data;
+using HamzaTex.Api.Services;
+
 // using HamzaTex.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
@@ -17,7 +19,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Register services
 // builder.Services.AddScoped<IItemService, ItemService>();
-
+builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+builder.Services.AddScoped<IClientTypeService, ClientTypeService>();
 // Add CORS
 builder.Services.AddCors(options =>
 {
