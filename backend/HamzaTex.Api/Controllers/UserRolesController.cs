@@ -48,7 +48,7 @@ public class UserRolesController : ControllerBase
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetUserRoleById(Guid id)
+    public async Task<IActionResult> GetUserRoleById(int id)
     {
         var response = await _userRoleService.GetByIdAsync(id);
         return ToActionResult(response);
@@ -58,7 +58,7 @@ public class UserRolesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateUserRole(Guid id, [FromBody] UpdateUserRoleViewModel model)
+    public async Task<IActionResult> UpdateUserRole(int id, [FromBody] UpdateUserRoleViewModel model)
     {
         if (id != model.Id)
         {
@@ -82,7 +82,7 @@ public class UserRolesController : ControllerBase
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteUserRole(Guid id)
+    public async Task<IActionResult> DeleteUserRole(int id)
     {
         var response = await _userRoleService.DeleteAsync(id);
 

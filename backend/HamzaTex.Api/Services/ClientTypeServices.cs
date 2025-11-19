@@ -9,10 +9,10 @@ namespace HamzaTex.Api.Services;
 
 public interface IClientTypeService {
     Task<Response<ClientTypeDto>> CreateAsync(CreateClientTypeDto model);
-    Task<Response<ClientTypeDto>> GetByIdAsync(Guid id);
+    Task<Response<ClientTypeDto>> GetByIdAsync(int id);
     Task<Response<List<ClientTypeDto>>> GetAllAsync();
-    Task<Response<ClientTypeDto>> UpdateByIdAsync(Guid id, UpdateClientTypeByIdDto model);
-    Task<Response> DeleteByIdAsync(Guid id);
+    Task<Response<ClientTypeDto>> UpdateByIdAsync(int id, UpdateClientTypeByIdDto model);
+    Task<Response> DeleteByIdAsync(int id);
 }
 
 public class ClientTypeService : IClientTypeService 
@@ -46,7 +46,7 @@ public class ClientTypeService : IClientTypeService
         return Response<List<ClientTypeDto>>.SuccessResponse(types, "Client types fetched successfully.");
     }
 
-    public async Task<Response<ClientTypeDto>> GetByIdAsync (Guid id){
+    public async Task<Response<ClientTypeDto>> GetByIdAsync (int id){
         var clientType = await _dbContext.ClientTypes.Where(
             type => 
             type.Id == id).FirstOrDefaultAsync();
@@ -57,7 +57,7 @@ public class ClientTypeService : IClientTypeService
         return Response<ClientTypeDto>.SuccessResponse(ToDto(clientType), "Client type fetched successfully.");
     }
 
-    public async Task<Response<ClientTypeDto>> UpdateByIdAsync (Guid id , UpdateClientTypeByIdDto model){
+    public async Task<Response<ClientTypeDto>> UpdateByIdAsync (int id , UpdateClientTypeByIdDto model){
         var validationResult = await ValidateNameAsync(model.Name, id);
         if (validationResult is not null){
             return validationResult;
@@ -76,7 +76,7 @@ public class ClientTypeService : IClientTypeService
         
     }
 
-    public async Task<Response> DeleteByIdAsync (Guid id){
+    public async Task<Response> DeleteByIdAsync (int id){
         var entity = await _dbContext.ClientTypes.Where(
             type => type.Id == id).FirstOrDefaultAsync();
             
@@ -87,7 +87,7 @@ public class ClientTypeService : IClientTypeService
         await _dbContext.SaveChangesAsync();
         return Response.SuccessResponse("Client type deleted.");
     }
-    private async Task<Response<ClientTypeDto>?> ValidateNameAsync(string name, Guid? excludeId = null)
+    private async Task<Response<ClientTypeDto>?> ValidateNameAsync(string name, int? excludeId = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {

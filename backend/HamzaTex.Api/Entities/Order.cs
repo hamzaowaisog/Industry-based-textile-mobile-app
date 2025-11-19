@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
@@ -12,13 +14,15 @@ namespace HamzaTex.Api.Entities;
 [Index(nameof(StatusId), nameof(OrderDate), Name = "IX_orders_status_date")]
 public partial class Order
 {
-    public Guid Id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
-    public Guid? ClientId { get; set; }
+    public int? ClientId { get; set; }
 
-    public Guid? StatusId { get; set; }
+    public int? StatusId { get; set; }
     
-    public Guid? PaymentTypeId { get; set; }
+    public int? PaymentTypeId { get; set; }
 
     public DateOnly OrderDate { get; set; }
 

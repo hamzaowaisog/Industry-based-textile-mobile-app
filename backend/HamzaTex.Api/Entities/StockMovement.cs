@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
@@ -11,13 +13,15 @@ namespace HamzaTex.Api.Entities;
 [Index(nameof(ProductId), nameof(MovementDate), Name = "IX_stock_movements_product_date")]
 public partial class StockMovement
 {
-    public Guid Id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
-    public Guid? ProductId { get; set; }
+    public int? ProductId { get; set; }
 
-    public Guid? MovementTypeId { get; set; }
+    public int? MovementTypeId { get; set; }
 
-    public Guid? MovementSourceId { get; set; }
+    public int? MovementSourceId { get; set; }
 
     public int Qty { get; set; }
 

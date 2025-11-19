@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
@@ -10,7 +12,9 @@ namespace HamzaTex.Api.Entities;
 [Index(nameof(IsActive), nameof(Name), Name = "IX_products_is_active_name")]
 public partial class Product
 {
-    public Guid Id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
     public string Name { get; set; } = null!;
 

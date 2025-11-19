@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
@@ -16,19 +18,21 @@ namespace HamzaTex.Api.Entities;
 [Index(nameof(UserId), nameof(TransDate), Name = "IX_transactions_user_date")]
 public partial class Transaction
 {
-    public Guid Id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
-    public Guid? ClientId { get; set; }
+    public int? ClientId { get; set; }
 
-    public Guid? ProductId { get; set; }
+    public int? ProductId { get; set; }
 
-    public Guid? UserId { get; set; }
+    public int? UserId { get; set; }
 
-    public Guid? TransTypeId { get; set; }
+    public int? TransTypeId { get; set; }
 
-    public Guid? TransModeId { get; set; }
+    public int? TransModeId { get; set; }
 
-    public Guid? TransCategoryId { get; set; }
+    public int? TransCategoryId { get; set; }
 
     public decimal Amount { get; set; }
 

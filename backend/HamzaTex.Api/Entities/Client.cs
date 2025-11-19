@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
@@ -9,11 +11,13 @@ namespace HamzaTex.Api.Entities;
 [Index(nameof(Phone), Name = "IX_clients_phone")]
 public partial class Client
 {
-    public Guid Id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
     public string Name { get; set; } = null!;
 
-    public Guid? ClientTypeId { get; set; }
+    public int? ClientTypeId { get; set; }
 
     public string? Phone { get; set; }
 

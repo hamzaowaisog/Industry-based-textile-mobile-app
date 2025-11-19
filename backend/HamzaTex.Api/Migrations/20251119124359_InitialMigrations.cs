@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HamzaTex.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMySqlMigration : Migration
+    public partial class InitialMigrations : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,7 +19,8 @@ namespace HamzaTex.Api.Migrations
                 name: "client_types",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     name = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "NOW()")
@@ -33,7 +35,8 @@ namespace HamzaTex.Api.Migrations
                 name: "expense_types",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     name = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "NOW()")
@@ -48,7 +51,8 @@ namespace HamzaTex.Api.Migrations
                 name: "movement_sources",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     name = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "NOW()")
@@ -63,7 +67,8 @@ namespace HamzaTex.Api.Migrations
                 name: "movement_types",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     name = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "NOW()")
@@ -78,7 +83,8 @@ namespace HamzaTex.Api.Migrations
                 name: "order_statuses",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     name = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "NOW()")
@@ -93,7 +99,8 @@ namespace HamzaTex.Api.Migrations
                 name: "payment_directions",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     name = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "NOW()")
@@ -108,7 +115,8 @@ namespace HamzaTex.Api.Migrations
                 name: "payment_types",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     name = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "NOW()")
@@ -123,8 +131,9 @@ namespace HamzaTex.Api.Migrations
                 name: "products",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    name = table.Column<string>(type: "longtext", nullable: false)
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    name = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     sku = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -146,7 +155,8 @@ namespace HamzaTex.Api.Migrations
                 name: "trans_categories",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     name = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "NOW()")
@@ -161,7 +171,8 @@ namespace HamzaTex.Api.Migrations
                 name: "trans_modes",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     name = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "NOW()")
@@ -176,7 +187,8 @@ namespace HamzaTex.Api.Migrations
                 name: "trans_types",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     name = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "NOW()")
@@ -191,7 +203,8 @@ namespace HamzaTex.Api.Migrations
                 name: "user_roles",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     name = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "NOW()")
@@ -206,11 +219,13 @@ namespace HamzaTex.Api.Migrations
                 name: "clients",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    name = table.Column<string>(type: "longtext", nullable: false)
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    name = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    client_type_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    phone = table.Column<int>(type: "int", nullable: false),
+                    client_type_id = table.Column<int>(type: "int", nullable: true),
+                    phone = table.Column<string>(type: "varchar(255)", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     address = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     credit_limit = table.Column<decimal>(type: "decimal(14,2)", precision: 14, scale: 2, nullable: true),
@@ -236,10 +251,11 @@ namespace HamzaTex.Api.Migrations
                 name: "stock_movements",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    product_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    movement_type_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    movement_source_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    product_id = table.Column<int>(type: "int", nullable: true),
+                    movement_type_id = table.Column<int>(type: "int", nullable: true),
+                    movement_source_id = table.Column<int>(type: "int", nullable: true),
                     qty = table.Column<int>(type: "int", nullable: false),
                     unit_cost = table.Column<decimal>(type: "decimal(14,4)", precision: 14, scale: 4, nullable: true),
                     unit_price = table.Column<decimal>(type: "decimal(14,4)", precision: 14, scale: 4, nullable: true),
@@ -273,10 +289,11 @@ namespace HamzaTex.Api.Migrations
                 name: "expenses",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    expense_type_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    expense_type_id = table.Column<int>(type: "int", nullable: true),
                     amount = table.Column<decimal>(type: "decimal(14,2)", precision: 14, scale: 2, nullable: false),
-                    trans_mode_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    trans_mode_id = table.Column<int>(type: "int", nullable: true),
                     expense_date = table.Column<DateOnly>(type: "date", nullable: false),
                     notes = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -304,12 +321,13 @@ namespace HamzaTex.Api.Migrations
                 name: "users",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     name = table.Column<string>(type: "varchar(255)", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    email = table.Column<string>(type: "longtext", nullable: true)
+                    email = table.Column<string>(type: "varchar(255)", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    role_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    role_id = table.Column<int>(type: "int", nullable: true),
                     is_active = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: true),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "NOW()")
                 },
@@ -329,10 +347,11 @@ namespace HamzaTex.Api.Migrations
                 name: "orders",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    client_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    status_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    payment_type_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    client_id = table.Column<int>(type: "int", nullable: true),
+                    status_id = table.Column<int>(type: "int", nullable: true),
+                    payment_type_id = table.Column<int>(type: "int", nullable: true),
                     order_date = table.Column<DateOnly>(type: "date", nullable: false),
                     notes = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -366,16 +385,17 @@ namespace HamzaTex.Api.Migrations
                 name: "payments",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    party_client_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    payment_direction_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    trans_mode_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    party_client_id = table.Column<int>(type: "int", nullable: true),
+                    payment_direction_id = table.Column<int>(type: "int", nullable: true),
+                    trans_mode_id = table.Column<int>(type: "int", nullable: true),
                     amount = table.Column<decimal>(type: "decimal(14,2)", precision: 14, scale: 2, nullable: false),
                     payment_date = table.Column<DateOnly>(type: "date", nullable: false),
                     notes = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "NOW()"),
-                    PaymentTypeId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci")
+                    PaymentTypeId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -410,9 +430,10 @@ namespace HamzaTex.Api.Migrations
                 name: "purchases",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    supplier_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    payment_type_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    supplier_id = table.Column<int>(type: "int", nullable: true),
+                    payment_type_id = table.Column<int>(type: "int", nullable: true),
                     purchase_date = table.Column<DateOnly>(type: "date", nullable: false),
                     notes = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -440,9 +461,10 @@ namespace HamzaTex.Api.Migrations
                 name: "logins",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    user_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    username = table.Column<string>(type: "longtext", nullable: true)
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    user_id = table.Column<int>(type: "int", nullable: false),
+                    username = table.Column<string>(type: "varchar(255)", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     password = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -464,13 +486,14 @@ namespace HamzaTex.Api.Migrations
                 name: "transactions",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    client_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    product_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    user_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    trans_type_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    trans_mode_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    trans_category_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    client_id = table.Column<int>(type: "int", nullable: true),
+                    product_id = table.Column<int>(type: "int", nullable: true),
+                    user_id = table.Column<int>(type: "int", nullable: true),
+                    trans_type_id = table.Column<int>(type: "int", nullable: true),
+                    trans_mode_id = table.Column<int>(type: "int", nullable: true),
+                    trans_category_id = table.Column<int>(type: "int", nullable: true),
                     amount = table.Column<decimal>(type: "decimal(14,2)", precision: 14, scale: 2, nullable: false),
                     trans_date = table.Column<DateOnly>(type: "date", nullable: false),
                     notes = table.Column<string>(type: "longtext", nullable: true)
@@ -523,9 +546,10 @@ namespace HamzaTex.Api.Migrations
                 name: "order_lines",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    order_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    product_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    order_id = table.Column<int>(type: "int", nullable: false),
+                    product_id = table.Column<int>(type: "int", nullable: true),
                     qty = table.Column<int>(type: "int", nullable: false),
                     unit_price = table.Column<decimal>(type: "decimal(14,2)", precision: 14, scale: 2, nullable: false)
                 },
@@ -551,9 +575,10 @@ namespace HamzaTex.Api.Migrations
                 name: "purchase_lines",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    purchase_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    product_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    purchase_id = table.Column<int>(type: "int", nullable: false),
+                    product_id = table.Column<int>(type: "int", nullable: true),
                     qty = table.Column<int>(type: "int", nullable: false),
                     unit_cost = table.Column<decimal>(type: "decimal(14,2)", precision: 14, scale: 2, nullable: false)
                 },
@@ -581,6 +606,26 @@ namespace HamzaTex.Api.Migrations
                 column: "client_type_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_clients_is_active",
+                table: "clients",
+                column: "is_active");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_clients_name",
+                table: "clients",
+                column: "name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_clients_phone",
+                table: "clients",
+                column: "phone");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_expenses_expense_date",
+                table: "expenses",
+                column: "expense_date");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_expenses_expense_type_id",
                 table: "expenses",
                 column: "expense_type_id");
@@ -591,9 +636,20 @@ namespace HamzaTex.Api.Migrations
                 column: "trans_mode_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_expenses_type_date",
+                table: "expenses",
+                columns: new[] { "expense_type_id", "expense_date" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_logins_user_id",
                 table: "logins",
                 column: "user_id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_logins_username",
+                table: "logins",
+                column: "username",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -607,9 +663,19 @@ namespace HamzaTex.Api.Migrations
                 column: "product_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_orders_client_date",
+                table: "orders",
+                columns: new[] { "client_id", "order_date" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_orders_client_id",
                 table: "orders",
                 column: "client_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_orders_order_date",
+                table: "orders",
+                column: "order_date");
 
             migrationBuilder.CreateIndex(
                 name: "IX_orders_payment_type_id",
@@ -617,14 +683,29 @@ namespace HamzaTex.Api.Migrations
                 column: "payment_type_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_orders_status_date",
+                table: "orders",
+                columns: new[] { "status_id", "order_date" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_orders_status_id",
                 table: "orders",
                 column: "status_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_payments_client_date",
+                table: "payments",
+                columns: new[] { "party_client_id", "payment_date" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_payments_party_client_id",
                 table: "payments",
                 column: "party_client_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_payments_payment_date",
+                table: "payments",
+                column: "payment_date");
 
             migrationBuilder.CreateIndex(
                 name: "IX_payments_payment_direction_id",
@@ -640,6 +721,21 @@ namespace HamzaTex.Api.Migrations
                 name: "IX_payments_trans_mode_id",
                 table: "payments",
                 column: "trans_mode_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_products_is_active",
+                table: "products",
+                column: "is_active");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_products_is_active_name",
+                table: "products",
+                columns: new[] { "is_active", "name" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_products_name",
+                table: "products",
+                column: "name");
 
             migrationBuilder.CreateIndex(
                 name: "products_sku_key",
@@ -663,9 +759,24 @@ namespace HamzaTex.Api.Migrations
                 column: "payment_type_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_purchases_purchase_date",
+                table: "purchases",
+                column: "purchase_date");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_purchases_supplier_date",
+                table: "purchases",
+                columns: new[] { "supplier_id", "purchase_date" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_purchases_supplier_id",
                 table: "purchases",
                 column: "supplier_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_stock_movements_movement_date",
+                table: "stock_movements",
+                column: "movement_date");
 
             migrationBuilder.CreateIndex(
                 name: "IX_stock_movements_movement_source_id",
@@ -678,9 +789,19 @@ namespace HamzaTex.Api.Migrations
                 column: "movement_type_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_stock_movements_product_date",
+                table: "stock_movements",
+                columns: new[] { "product_id", "movement_date" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_stock_movements_product_id",
                 table: "stock_movements",
                 column: "product_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_transactions_client_date",
+                table: "transactions",
+                columns: new[] { "client_id", "trans_date" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_transactions_client_id",
@@ -698,6 +819,11 @@ namespace HamzaTex.Api.Migrations
                 column: "trans_category_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_transactions_trans_date",
+                table: "transactions",
+                column: "trans_date");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_transactions_trans_mode_id",
                 table: "transactions",
                 column: "trans_mode_id");
@@ -708,9 +834,34 @@ namespace HamzaTex.Api.Migrations
                 column: "trans_type_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_transactions_type_date",
+                table: "transactions",
+                columns: new[] { "trans_type_id", "trans_date" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_transactions_user_date",
+                table: "transactions",
+                columns: new[] { "user_id", "trans_date" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_transactions_user_id",
                 table: "transactions",
                 column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_users_email",
+                table: "users",
+                column: "email");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_users_is_active",
+                table: "users",
+                column: "is_active");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_users_is_active_created_at",
+                table: "users",
+                columns: new[] { "is_active", "created_at" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_users_role_id",

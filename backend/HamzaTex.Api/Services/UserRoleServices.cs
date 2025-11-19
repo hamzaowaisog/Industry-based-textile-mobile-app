@@ -9,10 +9,10 @@ namespace HamzaTex.Api.Services;
 public interface IUserRoleService
 {
     Task<Response<UserRoleDto>> CreateAsync(CreateUserRoleDto model);
-    Task<Response<UserRoleDto>> GetByIdAsync(Guid id);
+    Task<Response<UserRoleDto>> GetByIdAsync(int id);
     Task<Response<List<UserRoleDto>>> GetAllAsync();
-    Task<Response<UserRoleDto>> UpdateAsync(Guid id, UpdateUserRoleDto model);
-    Task<Response> DeleteAsync(Guid id);
+    Task<Response<UserRoleDto>> UpdateAsync(int id, UpdateUserRoleDto model);
+    Task<Response> DeleteAsync(int id);
 }
 
 public class UserRoleService : IUserRoleService
@@ -45,7 +45,7 @@ public class UserRoleService : IUserRoleService
         return Response<UserRoleDto>.SuccessResponse(ToDto(entity), "User role created.");
     }
 
-    public async Task<Response<UserRoleDto>> GetByIdAsync(Guid id)
+    public async Task<Response<UserRoleDto>> GetByIdAsync(int id)
     {
         var entity = await _dbContext.UserRoles.AsNoTracking().FirstOrDefaultAsync(role => role.Id == id);
 
@@ -68,7 +68,7 @@ public class UserRoleService : IUserRoleService
         return Response<List<UserRoleDto>>.SuccessResponse(roles);
     }
 
-    public async Task<Response<UserRoleDto>> UpdateAsync(Guid id, UpdateUserRoleDto model)
+    public async Task<Response<UserRoleDto>> UpdateAsync(int id, UpdateUserRoleDto model)
     {
         var validationResult = await ValidateNameAsync(model.Name, id);
         if (validationResult is not null)
@@ -88,7 +88,7 @@ public class UserRoleService : IUserRoleService
         return Response<UserRoleDto>.SuccessResponse(ToDto(entity), "User role updated.");
     }
 
-    public async Task<Response> DeleteAsync(Guid id)
+    public async Task<Response> DeleteAsync(int id)
     {
         var entity = await _dbContext.UserRoles.FirstOrDefaultAsync(role => role.Id == id);
 
@@ -103,7 +103,7 @@ public class UserRoleService : IUserRoleService
         return Response.SuccessResponse("User role deleted.");
     }
 
-    private async Task<Response<UserRoleDto>?> ValidateNameAsync(string name, Guid? excludeId = null)
+    private async Task<Response<UserRoleDto>?> ValidateNameAsync(string name, int? excludeId = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {

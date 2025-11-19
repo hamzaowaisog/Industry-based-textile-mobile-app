@@ -45,7 +45,7 @@ public class ClientTypeController : ControllerBase {
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetClientTypeById(Guid id){
+    public async Task<IActionResult> GetClientTypeById(int id){
         var response = await _clientTypeService.GetByIdAsync(id);
         return ToActionResult(response);
     }
@@ -55,7 +55,7 @@ public class ClientTypeController : ControllerBase {
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateClientTypeById(Guid id, [FromBody] ClientTypeUpdateViewModel model){
+    public async Task<IActionResult> UpdateClientTypeById(int id, [FromBody] ClientTypeUpdateViewModel model){
         if (id != model.Id){
             ModelState.AddModelError(nameof(model.Id), "Route id must match payload id.");
         }   
@@ -73,7 +73,7 @@ public class ClientTypeController : ControllerBase {
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteClientTypeById(Guid id){
+    public async Task<IActionResult> DeleteClientTypeById(int id){
         var response = await _clientTypeService.DeleteByIdAsync(id);
         
         if (!response.Success && IsNotFound(response.Message))
