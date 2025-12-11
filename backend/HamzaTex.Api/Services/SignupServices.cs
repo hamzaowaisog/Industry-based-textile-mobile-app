@@ -33,7 +33,7 @@ public class SignupService : ISignupService {
         if (validationpasswordResult is not null){
             return validationpasswordResult;
         }   
-        var validationconfirmpasswordResult = ValidateConfirmPasswordAsync(model.ConfirmPassword);
+        var validationconfirmpasswordResult = ValidateConfirmPasswordAsync(model.ConfirmPassword, model.Password);
         if (validationconfirmpasswordResult is not null){
             return validationconfirmpasswordResult;
         }
@@ -56,24 +56,71 @@ public class SignupService : ISignupService {
 
     
     private Response<SignupDto>? ValidatePasswordAsync(string password){
-        if (string.IsNullOrWhiteSpace(password)){
-            return Response<SignupDto>.ErrorResponse("Validation failed", "Password is required.");
-        }
-        var trimmedPassword = password.Trim();
-        if (trimmedPassword.Length > 255){
-            return Response<SignupDto>.ErrorResponse("Validation failed", "Password must be less than 255 characters.");
-        }
-        return null;
+    if (string.IsNullOrWhiteSpace(password)){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Password is required.");
     }
-    private Response<SignupDto>? ValidateConfirmPasswordAsync(string confirmPassword){
-        if (string.IsNullOrWhiteSpace(confirmPassword)){
-            return Response<SignupDto>.ErrorResponse("Validation failed", "Confirm password is required.");
-        }
-        var trimmedConfirmPassword = confirmPassword.Trim();
-        if (trimmedConfirmPassword.Length > 255){
-            return Response<SignupDto>.ErrorResponse("Validation failed", "Confirm password must be less than 255 characters.");
-        }
-        return null;
+    var trimmedPassword = password.Trim();
+    
+    if (trimmedPassword.Length < 8){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Password must be at least 8 characters long.");
+    }
+    
+    if (trimmedPassword.Length > 255){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Password must be less than 255 characters.");
+    }
+    
+    if (!trimmedPassword.Any(char.IsUpper)){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Password must contain at least one uppercase letter.");
+    }
+    
+    if (!trimmedPassword.Any(char.IsLower)){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Password must contain at least one lowercase letter.");
+    }
+    
+    if (!trimmedPassword.Any(char.IsDigit)){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Password must contain at least one digit.");
+    }
+    
+    if (!trimmedPassword.Any(ch => !char.IsLetterOrDigit(ch) && !char.IsWhiteSpace(ch))){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Password must contain at least one special character.");
+    }
+    
+    return null;
+    }
+    private Response<SignupDto>? ValidateConfirmPasswordAsync(string confirmPassword, string password){
+    if (string.IsNullOrWhiteSpace(password)){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Confirm password is required.");
+    }
+    var trimmedConfirmPassword = confirmPassword.Trim();
+    
+    if (trimmedConfirmPassword.Length < 8){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Confirm password must be at least 8 characters long.");
+    }
+    
+    if (trimmedConfirmPassword.Length > 255){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Confirm password must be less than 255 characters.");
+    }
+    
+    if (!trimmedConfirmPassword.Any(char.IsUpper)){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Confirm password must contain at least one uppercase letter.");
+    }
+    
+    if (!trimmedConfirmPassword.Any(char.IsLower)){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Confirm password must contain at least one lowercase letter.");
+    }
+    
+    if (!trimmedConfirmPassword.Any(char.IsDigit)){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Confirm password must contain at least one digit.");
+    }
+    
+    if (!trimmedConfirmPassword.Any(ch => !char.IsLetterOrDigit(ch) && !char.IsWhiteSpace(ch))){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Confirm password must contain at least one special character.");
+    }
+
+    if (trimmedConfirmPassword != password){
+        return Response<SignupDto>.ErrorResponse("Validation failed", "Confirm password and password do not match.");
+    }
+    return null;
     }
     private async Task<Response<SignupDto>?> ValidateEmailAsync(string email){
         if (string.IsNullOrWhiteSpace(email)){
