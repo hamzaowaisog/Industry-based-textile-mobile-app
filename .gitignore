@@ -88,10 +88,10 @@ StyleCopReport.xml
 *.nuget.targets
 
 # Azure / AppSettings
-appsettings.Development.json
-appsettings.Production.json
-appsettings.*.json
-!appsettings.json
+# appsettings.Development.json
+# appsettings.Production.json
+# appsettings.*.json
+# !appsettings.json
 
 # Database
 *.db
