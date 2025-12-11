@@ -1,13 +1,14 @@
 using HamzaTex.Api.Models;
 using HamzaTex.Api.Services;
 using HamzaTex.Api.Services.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HamzaTex.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-
+[Authorize(Policy = "Authenticated")]  
 public class ClientController : ControllerBase 
 {
 
@@ -19,6 +20,7 @@ public class ClientController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "AdminOnly")]  
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     
@@ -45,6 +47,7 @@ public class ClientController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = "Authenticated")]  
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllClients(){
         var response = await _clientService.GetAllAsync();
@@ -53,6 +56,7 @@ public class ClientController : ControllerBase
     
 
     [HttpGet("{id}")]
+    [Authorize(Policy = "Authenticated")]  
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetClientById(int id){
@@ -60,6 +64,7 @@ public class ClientController : ControllerBase
         return ToActionResult(response);
     }
     [HttpPut("{id}")]
+    [Authorize(Policy = "AdminOrStaff")]  
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -84,6 +89,7 @@ public class ClientController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Policy = "AdminOnly")]  
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteClientById (int id){

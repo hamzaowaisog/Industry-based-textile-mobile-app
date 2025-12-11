@@ -3,6 +3,7 @@ using HamzaTex.Api.Entities;
 using HamzaTex.Api.Models;
 using HamzaTex.Api.Services;
 using HamzaTex.Api.Services.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,7 +12,7 @@ namespace HamzaTex.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-
+[Authorize(Policy = "AdminOnly")]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;

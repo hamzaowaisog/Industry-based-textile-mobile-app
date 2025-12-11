@@ -2,12 +2,14 @@ using System;
 using HamzaTex.Api.Models;
 using HamzaTex.Api.Services;
 using HamzaTex.Api.Services.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HamzaTex.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Policy = "AdminOnly")]
 public class UserRolesController : ControllerBase
 {
     private readonly IUserRoleService _userRoleService;

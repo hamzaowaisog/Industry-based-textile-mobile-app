@@ -1,13 +1,14 @@
 using HamzaTex.Api.Models;
 using HamzaTex.Api.Services.ViewModel;
 using HamzaTex.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HamzaTex.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-
+[AllowAnonymous]
 public class SignUpController : ControllerBase
 {
     private readonly ISignupService _signupService;
