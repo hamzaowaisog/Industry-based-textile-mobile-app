@@ -94,11 +94,6 @@ public class ClientService : IClientService {
             return Response<ClientDto>.ErrorResponse("Validation failed", "Name must be less than 255 characters.");
         }
 
-        if (trimmedName.Contains(' '))
-        {
-            return Response<ClientDto>.ErrorResponse("Validation failed", "Name must not contain spaces.");
-        }
-
         var query = _dbContext.Clients.AsNoTracking().Where(client => client.Name == trimmedName);
 
         if (excludeId.HasValue)
