@@ -123,6 +123,10 @@ public partial class ApplicationDbContext : DbContext
                 .HasForeignKey(d => d.ClientTypeId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("clients_client_type_id_fkey");
+            entity.HasOne(d => d.User).WithMany(p => p.Clients)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("clients_user_id_fkey");
         });
 
         modelBuilder.Entity<Expense>(entity =>

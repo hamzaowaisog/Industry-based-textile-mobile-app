@@ -358,6 +358,15 @@ CREATE INDEX `users_name_key` ON `users` (`name`);
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20251119124359_InitialMigrations', '9.0.10');
 
+ALTER TABLE `clients` ADD `UserId` int NULL;
+
+CREATE INDEX `IX_clients_UserId` ON `clients` (`UserId`);
+
+ALTER TABLE `clients` ADD CONSTRAINT `clients_user_id_fkey` FOREIGN KEY (`UserId`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20251212151946_AddedUserAsaForeignKeyInClient', '9.0.10');
+
 COMMIT;
 
 

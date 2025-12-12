@@ -29,4 +29,5 @@ public partial class User
     public virtual UserRole? Role { get; set; }
 
     public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+    public virtual ICollection<Client> Clients { get; set; } = new List<Client>();
 }
