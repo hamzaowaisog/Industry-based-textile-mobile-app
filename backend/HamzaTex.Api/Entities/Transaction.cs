@@ -53,4 +53,6 @@ public partial class Transaction
     public virtual TransMode? TransMode { get; set; }
 
     public virtual TransCategory? TransCategory { get; set; }
+
+    public virtual ICollection<Expense> Expenses { get; set; } = new List<Expense>();
 }

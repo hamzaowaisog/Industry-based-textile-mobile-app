@@ -13,7 +13,6 @@ public partial class Client
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    [ForeignKey(nameof(UserId))]
     public int Id { get; set; }
 
     public string Name { get; set; } = null!;

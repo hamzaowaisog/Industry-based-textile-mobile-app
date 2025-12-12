@@ -14,6 +14,7 @@ public partial class Expense
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    
     public int Id { get; set; }
 
     public int? ExpenseTypeId { get; set; }
@@ -21,6 +22,12 @@ public partial class Expense
     public decimal Amount { get; set; }
 
     public int? TransModeId { get; set; }
+
+    public int? UserId { get; set; }
+
+    public int? TransCategoryId { get; set; }
+
+    public int? TransactionId { get; set; }
 
     public DateOnly ExpenseDate { get; set; }
 
@@ -31,5 +38,12 @@ public partial class Expense
     public virtual ExpenseType? ExpenseType { get; set; }
 
     public virtual TransMode? TransMode { get; set; }
+
+    public virtual User? User { get; set; }
+
+    public virtual TransCategory? TransCategory { get; set; }
+
+    public virtual Transaction? Transaction { get; set; }
+
 
 }

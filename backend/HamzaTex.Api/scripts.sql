@@ -367,6 +367,31 @@ ALTER TABLE `clients` ADD CONSTRAINT `clients_user_id_fkey` FOREIGN KEY (`UserId
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20251212151946_AddedUserAsaForeignKeyInClient', '9.0.10');
 
+ALTER TABLE `clients` RENAME COLUMN `UserId` TO `user_id`;
+
+ALTER TABLE `clients` RENAME INDEX `IX_clients_UserId` TO `IX_clients_user_id`;
+
+ALTER TABLE `expenses` ADD `trans_category_id` int NULL;
+
+ALTER TABLE `expenses` ADD `transaction_id` int NULL;
+
+ALTER TABLE `expenses` ADD `user_id` int NULL;
+
+CREATE INDEX `IX_expenses_trans_category_id` ON `expenses` (`trans_category_id`);
+
+CREATE INDEX `IX_expenses_transaction_id` ON `expenses` (`transaction_id`);
+
+CREATE INDEX `IX_expenses_user_id` ON `expenses` (`user_id`);
+
+ALTER TABLE `expenses` ADD CONSTRAINT `expenses_trans_category_id_fkey` FOREIGN KEY (`trans_category_id`) REFERENCES `trans_categories` (`id`) ON DELETE SET NULL;
+
+ALTER TABLE `expenses` ADD CONSTRAINT `expenses_transaction_id_fkey` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `expenses` ADD CONSTRAINT `expenses_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20251212155145_AddedExpensesForeingKeys', '9.0.10');
+
 COMMIT;
 
 

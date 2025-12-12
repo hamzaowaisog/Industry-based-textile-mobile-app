@@ -103,6 +103,7 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.ClientTypeId).HasColumnName("client_type_id");
             entity.Property(e => e.Phone).HasColumnName("phone");
             entity.Property(e => e.Address).HasColumnName("address");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.CreditLimit)
                 .HasPrecision(14, 2)
                 .HasColumnName("credit_limit");
@@ -143,6 +144,9 @@ public partial class ApplicationDbContext : DbContext
                 .HasPrecision(14, 2)
                 .HasColumnName("amount");
             entity.Property(e => e.TransModeId).HasColumnName("trans_mode_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.TransCategoryId).HasColumnName("trans_category_id");
+            entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
             entity.Property(e => e.ExpenseDate)
                 .HasColumnType("date")
                 .HasColumnName("expense_date");
@@ -160,6 +164,18 @@ public partial class ApplicationDbContext : DbContext
                 .HasForeignKey(d => d.TransModeId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("expenses_trans_mode_id_fkey");
+            entity.HasOne(d => d.User).WithMany(p => p.Expenses)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("expenses_user_id_fkey");
+            entity.HasOne(d => d.TransCategory).WithMany(p => p.Expenses)
+                .HasForeignKey(d => d.TransCategoryId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("expenses_trans_category_id_fkey");
+            entity.HasOne(d => d.Transaction).WithMany(p => p.Expenses)
+                .HasForeignKey(d => d.TransactionId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("expenses_transaction_id_fkey");
         });
 
         modelBuilder.Entity<Order>(entity =>
