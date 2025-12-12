@@ -30,6 +30,13 @@ public class ClientService : IClientService {
             return validationResult;
         }
 
+        if (model.UserId is not null){
+            var user = await _dbContext.Users.Where(user => user.Id == model.UserId).FirstOrDefaultAsync();
+            if (user is null){
+                return Response<ClientDto>.ErrorResponse("Not found", $"User with id '{model.UserId}' was not found.");
+            }
+        }
+
         var entity = ToEntity(model);
         await _dbContext.Clients.AddAsync(entity);
         await _dbContext.SaveChangesAsync();
@@ -38,14 +45,20 @@ public class ClientService : IClientService {
 
     }
     public async Task<Response<ClientDto>> GetByIdAsync(int id){
-        var client = await _dbContext.Clients.Where(client => client.Id == id ).FirstOrDefaultAsync();
+        var client = await _dbContext.Clients
+            .Where(client => client.Id == id && (client.UserId != null && _dbContext.Users.Any(user => user.Id == client.UserId)))
+            .FirstOrDefaultAsync();
         if (client is null){
             return Response<ClientDto>.ErrorResponse("Not found", $"Client with id '{id}' was not found.");
         }
         return Response<ClientDto>.SuccessResponse(ToDto(client), "Client fetched successfully.");
     }
     public async Task<Response<List<ClientDto>>> GetAllAsync(){
-        var clients = await _dbContext.Clients.Select(client => ToDto(client)).ToListAsync();
+        var clients = await _dbContext.Clients
+            .Include(client => client.User)
+            .Where(client => client.UserId != null && _dbContext.Users.Any(user => user.Id == client.UserId))
+            .Select(client => ToDto(client))
+            .ToListAsync();
         return Response<List<ClientDto>>.SuccessResponse(clients, "Clients fetched successfully.");
     }
     public async Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model){
@@ -55,6 +68,12 @@ public class ClientService : IClientService {
         }
 
         var entity = await _dbContext.Clients.Where(client => client.Id == id).FirstOrDefaultAsync();
+        if (model.UserId is not null){
+            var user = await _dbContext.Users.Where(user => user.Id == model.UserId).FirstOrDefaultAsync();
+            if (user is null){
+                return Response<ClientDto>.ErrorResponse("Not found", $"User with id '{model.UserId}' was not found.");
+            }
+        }
         if (entity is null) {
             return Response<ClientDto>.ErrorResponse("Not found", $"Client with id '{id}' was not found.");
         }
@@ -115,6 +134,7 @@ public class ClientService : IClientService {
             Id = entity.Id,
             Name = entity.Name ?? string.Empty,
             ClientTypeId = entity.ClientTypeId ?? 0,
+            UserId = entity.UserId ?? 0,
             Phone = entity.Phone ?? string.Empty,
             Address = entity.Address ?? string.Empty,
             CreditLimit = entity.CreditLimit ?? 0,
@@ -129,6 +149,7 @@ public class ClientService : IClientService {
         {
             Name = model.Name.Trim(),
             ClientTypeId = model.ClientTypeId,
+            UserId = model.UserId,
             Phone = model.Phone?.Trim(),
             Address = model.Address?.Trim(),
             CreditLimit = model.CreditLimit,

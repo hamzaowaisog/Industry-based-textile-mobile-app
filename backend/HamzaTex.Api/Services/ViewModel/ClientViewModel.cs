@@ -3,6 +3,7 @@ namespace HamzaTex.Api.Services.ViewModel;
 public class ClientCreateViewModel {
     public string Name { get; set; } = string.Empty;
     public int ClientTypeId { get; set; }
+    public int? UserId { get; set; }
     public string? Phone { get; set; }
     public string? Address { get; set; }
     public decimal? CreditLimit { get; set; }
@@ -16,6 +17,7 @@ public class ClientUpdateViewModel {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public int ClientTypeId { get; set; }
+    public int? UserId { get; set; }
     public string? Phone { get; set; }
     public string? Address { get; set; }
     public decimal? CreditLimit { get; set; }
