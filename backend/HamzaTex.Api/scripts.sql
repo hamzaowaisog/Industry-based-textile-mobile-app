@@ -392,6 +392,44 @@ ALTER TABLE `expenses` ADD CONSTRAINT `expenses_user_id_fkey` FOREIGN KEY (`user
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20251212155145_AddedExpensesForeingKeys', '9.0.10');
 
+
+                CREATE VIEW v_client_balance AS
+                SELECT
+                    c.id                             AS client_id,
+                    c.name                           AS name,
+                    (COALESCE(c.opening_balance, 0)
+                    + COALESCE(SUM(t.amount), 0))   AS balance
+                FROM clients c
+                LEFT JOIN transactions t
+                    ON t.client_id = c.id
+                GROUP BY c.id, c.name, c.opening_balance;
+            
+
+
+                CREATE VIEW v_monthly_profit_loss AS
+                SELECT
+                    ROW_NUMBER() OVER (ORDER BY month)                AS id,
+                    month,
+                    total_sales,
+                    total_purchases,
+                    total_expenses,
+                    (total_sales - total_purchases)                   AS gross_profit,
+                    (total_sales - total_purchases - total_expenses)  AS net_profit
+                FROM (
+                    SELECT
+                        DATE_FORMAT(t.trans_date, '%Y-%m-01') AS month,
+                        SUM(CASE WHEN tt.name = 'Sale'     THEN t.amount ELSE 0 END) AS total_sales,
+                        SUM(CASE WHEN tt.name = 'Purchase' THEN t.amount ELSE 0 END) AS total_purchases,
+                        0 AS total_expenses  -- or join expenses table if you want
+                    FROM transactions t
+                    LEFT JOIN trans_types tt ON t.trans_type_id = tt.id
+                    GROUP BY DATE_FORMAT(t.trans_date, '%Y-%m-01')
+                ) x;
+            
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20251215131335_AddViews', '9.0.10');
+
 COMMIT;
 
 
