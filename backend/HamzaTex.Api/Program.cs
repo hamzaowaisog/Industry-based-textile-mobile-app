@@ -31,6 +31,7 @@ builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISignupService, SignupService>();
 builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<IChangePasswordService, ChangePasswordService>();
 
 JwtHelper.Configure(builder.Configuration);
 
