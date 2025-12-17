@@ -12,7 +12,7 @@ namespace HamzaTex.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Policy = "AdminOnly")]
+[AllowAnonymous]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;

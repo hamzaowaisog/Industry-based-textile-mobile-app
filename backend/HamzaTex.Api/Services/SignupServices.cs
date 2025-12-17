@@ -47,11 +47,7 @@ public class SignupService : ISignupService {
         await _dbContext.Users.AddAsync(userEntity);
         await _dbContext.SaveChangesAsync();
         
-        var loginEntity = ToLoginEntity(model, userEntity.Id);
-        await _dbContext.Logins.AddAsync(loginEntity);
-        await _dbContext.SaveChangesAsync();
-        
-        return Response<SignupDto>.SuccessResponse(ToDto(userEntity, loginEntity), "User created successfully.");
+        return Response<SignupDto>.SuccessResponse(ToDto(userEntity), "User created successfully.");
     }
 
     
@@ -151,11 +147,11 @@ public class SignupService : ISignupService {
         }
 
 
-        var query = _dbContext.Logins.AsNoTracking().Where(login => login.Username == trimmedName);
+        var query = _dbContext.Users.AsNoTracking().Where(user => user.UserName == trimmedName);
 
         if (excludeId.HasValue)
         {
-            query = query.Where(login => login.Id != excludeId.Value);
+            query = query.Where(user => user.Id != excludeId.Value);
         }
 
         if (await query.AnyAsync())
@@ -170,26 +166,19 @@ public class SignupService : ISignupService {
         new()
         {
             Name = model.Name.Trim(),
+            UserName = model.UserName.Trim(),
             Email = model.Email.Trim(),
+            Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
             RoleId = model.RoleId,
             IsActive = true,
             CreatedAt = model.CreatedAt
         };
 
-    private static Login ToLoginEntity(SignupDto model, int userId) =>
-        new()
-        {
-            UserId = userId,
-            Username = model.UserName.Trim(),
-            Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
-            CreatedAt = model.CreatedAt
-        };
-
-    private static SignupDto ToDto(User userEntity, Login loginEntity) =>
+    private static SignupDto ToDto(User userEntity) =>
         new()
         {
             Name = userEntity.Name ?? string.Empty,
-            UserName = loginEntity.Username ?? string.Empty,
+            UserName = userEntity.UserName ?? string.Empty,
             Email = userEntity.Email ?? string.Empty,
             Password = string.Empty,
             ConfirmPassword = string.Empty,

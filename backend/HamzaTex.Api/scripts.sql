@@ -430,6 +430,15 @@ VALUES ('20251212155145_AddedExpensesForeingKeys', '9.0.10');
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20251215131335_AddViews', '9.0.10');
 
+DROP TABLE `logins`;
+
+ALTER TABLE `users` ADD `password` longtext CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `users` ADD `user_name` longtext CHARACTER SET utf8mb4 NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20251217152509_removeLoginTable', '9.0.10');
+
 COMMIT;
 
 

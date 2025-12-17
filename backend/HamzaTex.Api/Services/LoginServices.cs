@@ -24,29 +24,22 @@ public class LoginService : ILoginService {
         var username = model.UserName.Trim();
         var password = model.Password.Trim();
 
-        var login = await _dbContext.Logins
-            .Include(l => l.User)
-                .ThenInclude(u => u.Role)
-            .FirstOrDefaultAsync(l => l.Username == username);
+        var user = await _dbContext.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.UserName == username);
             
-        if (login is null) {
+        if (user is null) {
             return Response<LoginResponseDto>.ErrorResponse("Invalid username or password");
         }
         
-        if (string.IsNullOrEmpty(login.Password))
+        if (string.IsNullOrEmpty(user.Password))
         {
             return Response<LoginResponseDto>.ErrorResponse("Invalid username or password");
         }
         
-        var isValidPassword = BCrypt.Net.BCrypt.Verify(password, login.Password);
+        var isValidPassword = BCrypt.Net.BCrypt.Verify(password, user.Password);
         if (!isValidPassword) {
             return Response<LoginResponseDto>.ErrorResponse("Invalid username or password");
-        }
-        
-        var user = login.User;
-        if (user is null)
-        {
-            return Response<LoginResponseDto>.ErrorResponse("User account not found");
         }
         
         if (!user.RoleId.HasValue)
@@ -64,7 +57,7 @@ public class LoginService : ILoginService {
         
         return Response<LoginResponseDto>.SuccessResponse(new LoginResponseDto {
             UserId = user.Id,
-            UserName = login.Username ?? string.Empty,
+            UserName = user.UserName ?? string.Empty,
             Email = user.Email ?? string.Empty,
             RoleId = user.RoleId.Value, 
             IsActive = user.IsActive,

@@ -20,8 +20,6 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<ClientType> ClientTypes { get; set; }
 
-    public virtual DbSet<Login> Logins { get; set; }
-
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
     public virtual DbSet<ExpenseType> ExpenseTypes { get; set; }
@@ -478,6 +476,8 @@ public partial class ApplicationDbContext : DbContext
                 .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.UserName).HasColumnName("user_name");
+            entity.Property(e => e.Password).HasColumnName("password");
             entity.Property(e => e.Email).HasColumnName("email");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.CreatedAt)
@@ -504,26 +504,6 @@ public partial class ApplicationDbContext : DbContext
                 .HasDefaultValueSql("NOW()")
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
-        });
-
-        modelBuilder.Entity<Login>(entity => {
-            entity.HasKey(e => e.Id).HasName("logins_pkey");
-            entity.ToTable("logins");
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("id");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.Username).HasColumnName("username");
-            entity.HasIndex(e => e.Username, "IX_logins_username").IsUnique();
-            entity.Property(e => e.Password).HasColumnName("password");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("NOW()")
-                .HasColumnType("datetime")
-                .HasColumnName("created_at");
-            entity.HasOne(d => d.User).WithOne()
-                .HasForeignKey<Login>(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("logins_user_id_fkey");
         });
 
         modelBuilder.Entity<OrderStatus>(entity => {

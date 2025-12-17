@@ -26,12 +26,11 @@ public class ChangePasswordService : IChangePasswordService
             return Response<ChangePasswordResponseDto>.ErrorResponse("Not Found", $"User was not found.");
         }
 
-        var login = await _dbContext.Logins.Where(login => login.UserId == model.UserId).FirstOrDefaultAsync();
-        if (login is null){
-            return Response<ChangePasswordResponseDto>.ErrorResponse("Not Found", $"Login was not found.");
+        if (string.IsNullOrEmpty(user.Password)){
+            return Response<ChangePasswordResponseDto>.ErrorResponse("Not Found", $"User password was not found.");
         }
 
-        var isValidOldPassword = BCrypt.Net.BCrypt.Verify(model.OldPassword, login.Password);
+        var isValidOldPassword = BCrypt.Net.BCrypt.Verify(model.OldPassword, user.Password);
         if (!isValidOldPassword){
             return Response<ChangePasswordResponseDto>.ErrorResponse("Unauthorized", $"Old password is incorrect.");
         }
@@ -55,7 +54,7 @@ public class ChangePasswordService : IChangePasswordService
             return Response<ChangePasswordResponseDto>.ErrorResponse("Validation failed", "New password and confirm password do not match.");
         }
 
-        login.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
         await _dbContext.SaveChangesAsync();
         return Response<ChangePasswordResponseDto>.SuccessResponse(new ChangePasswordResponseDto {
             UserId = user.Id,
