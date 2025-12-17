@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using HamzaTex.Api.Data;
 using HamzaTex.Api.Entities;
 using HamzaTex.Api.Models;
@@ -57,13 +58,18 @@ public class UsersController : ControllerBase
         return ToActionResult(response);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateUserById(int id, [FromBody] UserUpdateViewModel model){
+    public async Task<IActionResult> UpdateUserById( [FromBody] UserUpdateViewModel model){
         if (!ModelState.IsValid){
             return ValidationProblem(ModelState);
+        }
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
+            return Unauthorized("User identifier is missing or invalid in the token.");
         }
         var dto = new UpdateUserByIdDto{
             Name = model.Name,
@@ -72,7 +78,7 @@ public class UsersController : ControllerBase
             RoleId = model.RoleId,
             IsActive = model.IsActive
         };
-        var response = await _userService.UpdateByIdAsync(id, dto);
+        var response = await _userService.UpdateByIdAsync(userId, dto);
         return ToActionResult(response);
     }
 

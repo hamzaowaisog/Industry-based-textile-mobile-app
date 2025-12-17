@@ -37,7 +37,6 @@ public class UserService : IUserService {
     }
 
     public async Task<Response<UserDto>> UpdateByIdAsync(int id , UpdateUserByIdDto model){
-        Console.WriteLine("UserName: " + model.UserName);
         var validationResult = await ValidateNameAsync<UserDto>(model.UserName, id);
         if (validationResult is not null){
             return validationResult;
