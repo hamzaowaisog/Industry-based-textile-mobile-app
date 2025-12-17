@@ -31,11 +31,14 @@ public class UsersController : ControllerBase
         var dto = new CreateUserDto{
             Name = model.Name,
             Email = model.Email,
+            UserName = model.UserName,
+            Password = model.Password,
+            ConfirmPassword = model.ConfirmPassword,
             RoleId = model.RoleId,
             IsActive = model.IsActive,
             CreatedAt = model.CreatedAt
         };
-        var response = await _userService.CreateAsync(dto);
+        var response = await _userService.SignupAsync(dto);
         return ToActionResult(response);
     }
 
@@ -65,6 +68,7 @@ public class UsersController : ControllerBase
         var dto = new UpdateUserByIdDto{
             Name = model.Name,
             Email = model.Email,
+            UserName = model.UserName,
             RoleId = model.RoleId,
             IsActive = model.IsActive
         };
