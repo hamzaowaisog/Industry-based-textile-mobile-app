@@ -11,6 +11,7 @@ public interface IClientService{
     Task<Response<ClientDto>> CreateAsync(CreateClientDto model);
     Task<Response<ClientDto>> GetByIdAsync(int id);
     Task<Response<List<ClientDto>>> GetAllAsync();
+    Task<Response<List<ClientDto>>> GetAllByUserIdAsync(int userId);
     Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model);
     Task<Response> DeleteByIdAsync(int id);
 }
@@ -46,7 +47,7 @@ public class ClientService : IClientService {
     }
     public async Task<Response<ClientDto>> GetByIdAsync(int id){
         var client = await _dbContext.Clients
-            .Where(client => client.Id == id && (client.UserId != null && _dbContext.Users.Any(user => user.Id == client.UserId)))
+            .Where(client => client.Id == id && client.UserId != null && _dbContext.Users.Any(user => user.Id == client.UserId))
             .FirstOrDefaultAsync();
         if (client is null){
             return Response<ClientDto>.ErrorResponse("Not found", $"Client with id '{id}' was not found.");
@@ -60,6 +61,17 @@ public class ClientService : IClientService {
             .Select(client => ToDto(client))
             .ToListAsync();
         return Response<List<ClientDto>>.SuccessResponse(clients, "Clients fetched successfully.");
+    }
+    
+    public async Task<Response<List<ClientDto>>> GetAllByUserIdAsync(int userId){
+        var clients = await _dbContext.Clients.Where(
+            client => client.UserId == userId 
+            && _dbContext.Users.Any(
+                user => user.Id == userId
+            )).Select(client => ToDto(client))
+            .ToListAsync();
+        return Response<List<ClientDto>>.SuccessResponse(clients, "Clients fetched successfully.");
+
     }
     public async Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model){
         var validationResult = await ValidateNameAsync(model.Name, id);
