@@ -37,6 +37,7 @@ public class UsersController : ControllerBase
             ConfirmPassword = model.ConfirmPassword,
             RoleId = model.RoleId,
             IsActive = model.IsActive,
+            PhoneNumber = model.PhoneNumber,
             CreatedAt = model.CreatedAt
         };
         var response = await _userService.SignupAsync(dto);
@@ -76,7 +77,8 @@ public class UsersController : ControllerBase
             Email = model.Email,
             UserName = model.UserName,
             RoleId = model.RoleId,
-            IsActive = model.IsActive
+            IsActive = model.IsActive,
+            PhoneNumber = model.PhoneNumber
         };
         var response = await _userService.UpdateByIdAsync(userId, dto);
         return ToActionResult(response);

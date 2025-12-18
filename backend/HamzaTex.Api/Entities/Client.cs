@@ -37,7 +37,7 @@ public partial class Client
 
     public virtual ClientType? ClientType { get; set; }
 
-    public virtual User? User { get; set; }
+    public virtual ApplicationUser? User { get; set; }
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 

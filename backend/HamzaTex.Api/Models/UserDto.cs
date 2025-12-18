@@ -6,6 +6,7 @@ public class UserDto {
     public string Email { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
     public int RoleId { get; set; }
+    public string? PhoneNumber { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
@@ -18,6 +19,7 @@ public class CreateUserDto {
     public string ConfirmPassword { get; set; } = string.Empty;
     public int RoleId { get; set; }
     public bool IsActive { get; set; }
+    public string? PhoneNumber { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
@@ -27,4 +29,5 @@ public class UpdateUserByIdDto {
     public string UserName { get; set; } = string.Empty;
     public int RoleId { get; set; }
     public bool IsActive { get; set; }
+    public string? PhoneNumber { get; set; } = string.Empty;
 }

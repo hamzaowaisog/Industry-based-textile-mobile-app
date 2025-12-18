@@ -1,11 +1,13 @@
 using HamzaTex.Api.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 
 namespace HamzaTex.Api.Data;
 
-public partial class ApplicationDbContext : DbContext
+public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
 {
     public ApplicationDbContext()
     {
@@ -58,7 +60,6 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<Transaction> Transactions { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<VClientBalance> VClientBalances { get; set; }
 
@@ -66,6 +67,8 @@ public partial class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         // Configure DateOnly to map to MySQL 'date' type
         // EF Core 9.0+ supports DateOnly natively when mapped to 'date' type
         
@@ -464,21 +467,16 @@ public partial class ApplicationDbContext : DbContext
                 .HasConstraintName("transactions_trans_category_id_fkey");
         });
 
-        modelBuilder.Entity<User>(entity =>
+        modelBuilder.Entity<ApplicationUser>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("users_pkey");
-
             entity.ToTable("users");
 
             entity.HasIndex(e => e.Name, "users_name_key");
+            entity.HasIndex(e => e.Email, "IX_users_email");
+            entity.HasIndex(e => e.IsActive, "IX_users_is_active");
+            entity.HasIndex(e => new { e.IsActive, e.CreatedAt }, "IX_users_is_active_created_at");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
-            entity.Property(e => e.UserName).HasColumnName("user_name");
-            entity.Property(e => e.Password).HasColumnName("password");
-            entity.Property(e => e.Email).HasColumnName("email");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
@@ -487,12 +485,65 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
-            entity.HasOne(d => d.Role).WithMany(p => p.Users)
+
+            // Map Identity properties to existing column names
+            entity.Property(e => e.UserName).HasColumnName("user_name");
+            entity.Property(e => e.Email).HasColumnName("email");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
+            entity.Property(e => e.SecurityStamp).HasColumnName("security_stamp");
+            entity.Property(e => e.ConcurrencyStamp).HasColumnName("concurrency_stamp");
+            entity.Property(e => e.PhoneNumber).HasColumnName("phone_number");
+            entity.Property(e => e.PhoneNumberConfirmed).HasColumnName("phone_number_confirmed");
+            entity.Property(e => e.TwoFactorEnabled).HasColumnName("two_factor_enabled");
+            entity.Property(e => e.LockoutEnd).HasColumnName("lockout_end");
+            entity.Property(e => e.LockoutEnabled).HasColumnName("lockout_enabled");
+            entity.Property(e => e.AccessFailedCount).HasColumnName("access_failed_count");
+            entity.Property(e => e.EmailConfirmed).HasColumnName("email_confirmed");
+            entity.Property(e => e.NormalizedEmail).HasColumnName("normalized_email");
+            entity.Property(e => e.NormalizedUserName).HasColumnName("normalized_user_name");
+
+            entity.HasOne(d => d.Role).WithMany(r => r.Users)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("users_role_id_fkey");
-        }
-        );
+        });
+
+        // Configure Identity Role to use custom table name (optional - if you want to use Identity roles)
+        modelBuilder.Entity<IdentityRole<int>>(entity =>
+        {
+            entity.ToTable("aspnet_roles");
+        });
+
+        // Configure Identity UserRole (many-to-many) to use custom table name
+        modelBuilder.Entity<IdentityUserRole<int>>(entity =>
+        {
+            entity.ToTable("aspnet_user_roles");
+        });
+
+        // Configure Identity UserClaim
+        modelBuilder.Entity<IdentityUserClaim<int>>(entity =>
+        {
+            entity.ToTable("aspnet_user_claims");
+        });
+
+        // Configure Identity UserLogin
+        modelBuilder.Entity<IdentityUserLogin<int>>(entity =>
+        {
+            entity.ToTable("aspnet_user_logins");
+        });
+
+        // Configure Identity UserToken
+        modelBuilder.Entity<IdentityUserToken<int>>(entity =>
+        {
+            entity.ToTable("aspnet_user_tokens");
+        });
+
+        // Configure Identity RoleClaim
+        modelBuilder.Entity<IdentityRoleClaim<int>>(entity =>
+        {
+            entity.ToTable("aspnet_role_claims");
+        });
         modelBuilder.Entity<UserRole>(entity => {
             entity.HasKey(e => e.Id).HasName("user_roles_pkey");
             entity.ToTable("user_roles");

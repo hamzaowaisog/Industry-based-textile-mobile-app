@@ -439,6 +439,209 @@ ALTER TABLE `users` ADD `user_name` longtext CHARACTER SET utf8mb4 NULL;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20251217152509_removeLoginTable', '9.0.10');
 
+DROP PROCEDURE IF EXISTS `POMELO_BEFORE_DROP_PRIMARY_KEY`;
+DELIMITER //
+CREATE PROCEDURE `POMELO_BEFORE_DROP_PRIMARY_KEY`(IN `SCHEMA_NAME_ARGUMENT` VARCHAR(255), IN `TABLE_NAME_ARGUMENT` VARCHAR(255))
+BEGIN
+	DECLARE HAS_AUTO_INCREMENT_ID TINYINT(1);
+	DECLARE PRIMARY_KEY_COLUMN_NAME VARCHAR(255);
+	DECLARE PRIMARY_KEY_TYPE VARCHAR(255);
+	DECLARE SQL_EXP VARCHAR(1000);
+	SELECT COUNT(*)
+		INTO HAS_AUTO_INCREMENT_ID
+		FROM `information_schema`.`COLUMNS`
+		WHERE `TABLE_SCHEMA` = (SELECT IFNULL(SCHEMA_NAME_ARGUMENT, SCHEMA()))
+			AND `TABLE_NAME` = TABLE_NAME_ARGUMENT
+			AND `Extra` = 'auto_increment'
+			AND `COLUMN_KEY` = 'PRI'
+			LIMIT 1;
+	IF HAS_AUTO_INCREMENT_ID THEN
+		SELECT `COLUMN_TYPE`
+			INTO PRIMARY_KEY_TYPE
+			FROM `information_schema`.`COLUMNS`
+			WHERE `TABLE_SCHEMA` = (SELECT IFNULL(SCHEMA_NAME_ARGUMENT, SCHEMA()))
+				AND `TABLE_NAME` = TABLE_NAME_ARGUMENT
+				AND `COLUMN_KEY` = 'PRI'
+			LIMIT 1;
+		SELECT `COLUMN_NAME`
+			INTO PRIMARY_KEY_COLUMN_NAME
+			FROM `information_schema`.`COLUMNS`
+			WHERE `TABLE_SCHEMA` = (SELECT IFNULL(SCHEMA_NAME_ARGUMENT, SCHEMA()))
+				AND `TABLE_NAME` = TABLE_NAME_ARGUMENT
+				AND `COLUMN_KEY` = 'PRI'
+			LIMIT 1;
+		SET SQL_EXP = CONCAT('ALTER TABLE `', (SELECT IFNULL(SCHEMA_NAME_ARGUMENT, SCHEMA())), '`.`', TABLE_NAME_ARGUMENT, '` MODIFY COLUMN `', PRIMARY_KEY_COLUMN_NAME, '` ', PRIMARY_KEY_TYPE, ' NOT NULL;');
+		SET @SQL_EXP = SQL_EXP;
+		PREPARE SQL_EXP_EXECUTE FROM @SQL_EXP;
+		EXECUTE SQL_EXP_EXECUTE;
+		DEALLOCATE PREPARE SQL_EXP_EXECUTE;
+	END IF;
+END //
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS `POMELO_AFTER_ADD_PRIMARY_KEY`;
+DELIMITER //
+CREATE PROCEDURE `POMELO_AFTER_ADD_PRIMARY_KEY`(IN `SCHEMA_NAME_ARGUMENT` VARCHAR(255), IN `TABLE_NAME_ARGUMENT` VARCHAR(255), IN `COLUMN_NAME_ARGUMENT` VARCHAR(255))
+BEGIN
+	DECLARE HAS_AUTO_INCREMENT_ID INT(11);
+	DECLARE PRIMARY_KEY_COLUMN_NAME VARCHAR(255);
+	DECLARE PRIMARY_KEY_TYPE VARCHAR(255);
+	DECLARE SQL_EXP VARCHAR(1000);
+	SELECT COUNT(*)
+		INTO HAS_AUTO_INCREMENT_ID
+		FROM `information_schema`.`COLUMNS`
+		WHERE `TABLE_SCHEMA` = (SELECT IFNULL(SCHEMA_NAME_ARGUMENT, SCHEMA()))
+			AND `TABLE_NAME` = TABLE_NAME_ARGUMENT
+			AND `COLUMN_NAME` = COLUMN_NAME_ARGUMENT
+			AND `COLUMN_TYPE` LIKE '%int%'
+			AND `COLUMN_KEY` = 'PRI';
+	IF HAS_AUTO_INCREMENT_ID THEN
+		SELECT `COLUMN_TYPE`
+			INTO PRIMARY_KEY_TYPE
+			FROM `information_schema`.`COLUMNS`
+			WHERE `TABLE_SCHEMA` = (SELECT IFNULL(SCHEMA_NAME_ARGUMENT, SCHEMA()))
+				AND `TABLE_NAME` = TABLE_NAME_ARGUMENT
+				AND `COLUMN_NAME` = COLUMN_NAME_ARGUMENT
+				AND `COLUMN_TYPE` LIKE '%int%'
+				AND `COLUMN_KEY` = 'PRI';
+		SELECT `COLUMN_NAME`
+			INTO PRIMARY_KEY_COLUMN_NAME
+			FROM `information_schema`.`COLUMNS`
+			WHERE `TABLE_SCHEMA` = (SELECT IFNULL(SCHEMA_NAME_ARGUMENT, SCHEMA()))
+				AND `TABLE_NAME` = TABLE_NAME_ARGUMENT
+				AND `COLUMN_NAME` = COLUMN_NAME_ARGUMENT
+				AND `COLUMN_TYPE` LIKE '%int%'
+				AND `COLUMN_KEY` = 'PRI';
+		SET SQL_EXP = CONCAT('ALTER TABLE `', (SELECT IFNULL(SCHEMA_NAME_ARGUMENT, SCHEMA())), '`.`', TABLE_NAME_ARGUMENT, '` MODIFY COLUMN `', PRIMARY_KEY_COLUMN_NAME, '` ', PRIMARY_KEY_TYPE, ' NOT NULL AUTO_INCREMENT;');
+		SET @SQL_EXP = SQL_EXP;
+		PREPARE SQL_EXP_EXECUTE FROM @SQL_EXP;
+		EXECUTE SQL_EXP_EXECUTE;
+		DEALLOCATE PREPARE SQL_EXP_EXECUTE;
+	END IF;
+END //
+DELIMITER ;
+
+ALTER TABLE `clients` DROP FOREIGN KEY `clients_user_id_fkey`;
+
+ALTER TABLE `expenses` DROP FOREIGN KEY `expenses_user_id_fkey`;
+
+ALTER TABLE `transactions` DROP FOREIGN KEY `transactions_user_id_fkey`;
+
+CALL POMELO_BEFORE_DROP_PRIMARY_KEY(NULL, 'users');
+ALTER TABLE `users` DROP PRIMARY KEY;
+
+ALTER TABLE `users` DROP COLUMN `password`;
+
+ALTER TABLE `users` MODIFY COLUMN `user_name` varchar(256) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `users` MODIFY COLUMN `email` varchar(256) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `users` ADD `access_failed_count` int NOT NULL DEFAULT 0;
+
+ALTER TABLE `users` ADD `concurrency_stamp` longtext CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `users` ADD `email_confirmed` tinyint(1) NOT NULL DEFAULT FALSE;
+
+ALTER TABLE `users` ADD `lockout_enabled` tinyint(1) NOT NULL DEFAULT FALSE;
+
+ALTER TABLE `users` ADD `lockout_end` datetime(6) NULL;
+
+ALTER TABLE `users` ADD `normalized_email` varchar(256) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `users` ADD `normalized_user_name` varchar(256) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `users` ADD `password_hash` longtext CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `users` ADD `security_stamp` longtext CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `users` ADD `phone_number` longtext CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `users` ADD `phone_number_confirmed` tinyint(1) NOT NULL DEFAULT FALSE;
+
+ALTER TABLE `users` ADD `two_factor_enabled` tinyint(1) NOT NULL DEFAULT FALSE;
+
+ALTER TABLE `users` ADD CONSTRAINT `PK_users` PRIMARY KEY (`id`);
+CALL POMELO_AFTER_ADD_PRIMARY_KEY(NULL, 'users', 'id');
+
+CREATE TABLE `aspnet_roles` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `Name` varchar(256) CHARACTER SET utf8mb4 NULL,
+    `NormalizedName` varchar(256) CHARACTER SET utf8mb4 NULL,
+    `ConcurrencyStamp` longtext CHARACTER SET utf8mb4 NULL,
+    CONSTRAINT `PK_aspnet_roles` PRIMARY KEY (`Id`)
+) CHARACTER SET=utf8mb4;
+
+CREATE TABLE `aspnet_user_claims` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `UserId` int NOT NULL,
+    `ClaimType` longtext CHARACTER SET utf8mb4 NULL,
+    `ClaimValue` longtext CHARACTER SET utf8mb4 NULL,
+    CONSTRAINT `PK_aspnet_user_claims` PRIMARY KEY (`Id`),
+    CONSTRAINT `FK_aspnet_user_claims_users_UserId` FOREIGN KEY (`UserId`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET=utf8mb4;
+
+CREATE TABLE `aspnet_user_logins` (
+    `LoginProvider` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+    `ProviderKey` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+    `ProviderDisplayName` longtext CHARACTER SET utf8mb4 NULL,
+    `UserId` int NOT NULL,
+    CONSTRAINT `PK_aspnet_user_logins` PRIMARY KEY (`LoginProvider`, `ProviderKey`),
+    CONSTRAINT `FK_aspnet_user_logins_users_UserId` FOREIGN KEY (`UserId`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET=utf8mb4;
+
+CREATE TABLE `aspnet_user_tokens` (
+    `UserId` int NOT NULL,
+    `LoginProvider` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+    `Name` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+    `Value` longtext CHARACTER SET utf8mb4 NULL,
+    CONSTRAINT `PK_aspnet_user_tokens` PRIMARY KEY (`UserId`, `LoginProvider`, `Name`),
+    CONSTRAINT `FK_aspnet_user_tokens_users_UserId` FOREIGN KEY (`UserId`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET=utf8mb4;
+
+CREATE TABLE `aspnet_role_claims` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `RoleId` int NOT NULL,
+    `ClaimType` longtext CHARACTER SET utf8mb4 NULL,
+    `ClaimValue` longtext CHARACTER SET utf8mb4 NULL,
+    CONSTRAINT `PK_aspnet_role_claims` PRIMARY KEY (`Id`),
+    CONSTRAINT `FK_aspnet_role_claims_aspnet_roles_RoleId` FOREIGN KEY (`RoleId`) REFERENCES `aspnet_roles` (`Id`) ON DELETE CASCADE
+) CHARACTER SET=utf8mb4;
+
+CREATE TABLE `aspnet_user_roles` (
+    `UserId` int NOT NULL,
+    `RoleId` int NOT NULL,
+    CONSTRAINT `PK_aspnet_user_roles` PRIMARY KEY (`UserId`, `RoleId`),
+    CONSTRAINT `FK_aspnet_user_roles_aspnet_roles_RoleId` FOREIGN KEY (`RoleId`) REFERENCES `aspnet_roles` (`Id`) ON DELETE CASCADE,
+    CONSTRAINT `FK_aspnet_user_roles_users_UserId` FOREIGN KEY (`UserId`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET=utf8mb4;
+
+CREATE INDEX `EmailIndex` ON `users` (`normalized_email`);
+
+CREATE UNIQUE INDEX `UserNameIndex` ON `users` (`normalized_user_name`);
+
+CREATE INDEX `IX_aspnet_role_claims_RoleId` ON `aspnet_role_claims` (`RoleId`);
+
+CREATE UNIQUE INDEX `RoleNameIndex` ON `aspnet_roles` (`NormalizedName`);
+
+CREATE INDEX `IX_aspnet_user_claims_UserId` ON `aspnet_user_claims` (`UserId`);
+
+CREATE INDEX `IX_aspnet_user_logins_UserId` ON `aspnet_user_logins` (`UserId`);
+
+CREATE INDEX `IX_aspnet_user_roles_RoleId` ON `aspnet_user_roles` (`RoleId`);
+
+ALTER TABLE `clients` ADD CONSTRAINT `clients_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+ALTER TABLE `expenses` ADD CONSTRAINT `expenses_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+ALTER TABLE `transactions` ADD CONSTRAINT `transactions_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20251218141453_UpdatedUserTable', '9.0.10');
+
+DROP PROCEDURE `POMELO_BEFORE_DROP_PRIMARY_KEY`;
+
+DROP PROCEDURE `POMELO_AFTER_ADD_PRIMARY_KEY`;
+
 COMMIT;
 
 

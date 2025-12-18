@@ -39,7 +39,7 @@ public partial class Expense
 
     public virtual TransMode? TransMode { get; set; }
 
-    public virtual User? User { get; set; }
+    public virtual ApplicationUser? User { get; set; }
 
     public virtual TransCategory? TransCategory { get; set; }
 

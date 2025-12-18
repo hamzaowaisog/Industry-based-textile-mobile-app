@@ -1,7 +1,8 @@
-using BCrypt.Net;
 using HamzaTex.Api.Data;
+using HamzaTex.Api.Entities;
 using HamzaTex.Api.Models;
 using HamzaTex.Api.Services.ViewModel;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Services;
@@ -13,87 +14,46 @@ public interface IChangePasswordService
 
 public class ChangePasswordService : IChangePasswordService
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public ChangePasswordService(ApplicationDbContext dbContext)
+    public ChangePasswordService(UserManager<ApplicationUser> userManager)
     {
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
     }
 
     public async Task<Response<ChangePasswordResponseDto>> changePasswordAsync(ChangePasswordDto model){
-        var user = await _dbContext.Users.Where(user => user.Id == model.UserId).FirstOrDefaultAsync();
+        var user = await _userManager.Users
+            .FirstOrDefaultAsync(u => u.Id == model.UserId);
         if (user is null){
             return Response<ChangePasswordResponseDto>.ErrorResponse("Not Found", $"User was not found.");
         }
 
-        if (string.IsNullOrEmpty(user.Password)){
-            return Response<ChangePasswordResponseDto>.ErrorResponse("Not Found", $"User password was not found.");
-        }
-
-        var isValidOldPassword = BCrypt.Net.BCrypt.Verify(model.OldPassword, user.Password);
+        var isValidOldPassword = await _userManager.CheckPasswordAsync(user, model.OldPassword);
         if (!isValidOldPassword){
             return Response<ChangePasswordResponseDto>.ErrorResponse("Unauthorized", $"Old password is incorrect.");
         }
 
         var newPassword = model.NewPassword.Trim();
-        var ConfirmPassword = model.ConfirmPassword.Trim();
+        var confirmPassword = model.ConfirmPassword.Trim();
 
-        if (ValidatePasswordAsync(newPassword) is not null){
-            return Response<ChangePasswordResponseDto>.ErrorResponse("Validation failed", "New password is not valid.");
-        }
-
-        if (ValidatePasswordAsync(ConfirmPassword) is not null){
-            return Response<ChangePasswordResponseDto>.ErrorResponse("Validation failed", "Confirm password is not valid.");
+        if (newPassword != confirmPassword){
+            return Response<ChangePasswordResponseDto>.ErrorResponse("Validation failed", "New password and confirm password do not match.");
         }
 
         if (newPassword == model.OldPassword){
             return Response<ChangePasswordResponseDto>.ErrorResponse("Validation failed", "New password cannot be the same as the old password.");
         }
 
-        if (newPassword != ConfirmPassword){
-            return Response<ChangePasswordResponseDto>.ErrorResponse("Validation failed", "New password and confirm password do not match.");
+        var result = await _userManager.ChangePasswordAsync(user, model.OldPassword, newPassword);
+        
+        if (!result.Succeeded){
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            return Response<ChangePasswordResponseDto>.ErrorResponse("Validation failed", errors);
         }
 
-        user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
-        await _dbContext.SaveChangesAsync();
         return Response<ChangePasswordResponseDto>.SuccessResponse(new ChangePasswordResponseDto {
             UserId = user.Id,
             Message = "Password changed successfully.",
         }, "Password changed successfully.");
-
     }
-
-    private Response<ChangePasswordResponseDto>? ValidatePasswordAsync(string password){
-    if (string.IsNullOrWhiteSpace(password)){
-        return Response<ChangePasswordResponseDto>.ErrorResponse("Validation failed", "Password is required.");
-    }
-    var trimmedPassword = password.Trim();
-    
-    if (trimmedPassword.Length < 8){
-        return Response<ChangePasswordResponseDto>.ErrorResponse("Validation failed", "Password must be at least 8 characters long.");
-    }
-    
-    if (trimmedPassword.Length > 255){
-        return Response<ChangePasswordResponseDto>.ErrorResponse("Validation failed", "Password must be less than 255 characters.");
-    }
-    
-    if (!trimmedPassword.Any(char.IsUpper)){
-        return Response<ChangePasswordResponseDto>.ErrorResponse("Validation failed", "Password must contain at least one uppercase letter.");
-    }
-    
-    if (!trimmedPassword.Any(char.IsLower)){
-        return Response<ChangePasswordResponseDto>.ErrorResponse("Validation failed", "Password must contain at least one lowercase letter.");
-    }
-    
-    if (!trimmedPassword.Any(char.IsDigit)){
-        return Response<ChangePasswordResponseDto>.ErrorResponse("Validation failed", "Password must contain at least one digit.");
-    }
-    
-    if (!trimmedPassword.Any(ch => !char.IsLetterOrDigit(ch) && !char.IsWhiteSpace(ch))){
-        return Response<ChangePasswordResponseDto>.ErrorResponse("Validation failed", "Password must contain at least one special character.");
-    }
-    
-    return null;
-    }
-    
 }

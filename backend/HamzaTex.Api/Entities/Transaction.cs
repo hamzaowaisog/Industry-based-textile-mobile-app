@@ -46,7 +46,7 @@ public partial class Transaction
 
     public virtual Product? Product { get; set; }
 
-    public virtual User? User { get; set; }
+    public virtual ApplicationUser? User { get; set; }
 
     public virtual TransType? TransType { get; set; }
 
