@@ -1,6 +1,7 @@
 namespace HamzaTex.Api.Models;
 
-public class UserDto {
+public class UserDto
+{
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
@@ -11,7 +12,8 @@ public class UserDto {
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
-public class CreateUserDto {
+public class CreateUserDto
+{
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
@@ -23,7 +25,8 @@ public class CreateUserDto {
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
-public class UpdateUserByIdDto {
+public class UpdateUserByIdDto
+{
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;

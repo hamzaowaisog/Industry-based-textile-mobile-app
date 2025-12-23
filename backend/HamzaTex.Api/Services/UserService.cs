@@ -7,7 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Services;
 
-public interface IUserService {
+public interface IUserService
+{
     Task<Response<CreateUserDto>> SignupAsync(CreateUserDto model);
     Task<Response<UserDto>> GetByIdAsync(int id);
     Task<Response<List<UserDto>>> GetAllAsync();
@@ -15,7 +16,8 @@ public interface IUserService {
     Task<Response> DeleteByIdAsync(int id);
 }
 
-public class UserService : IUserService {
+public class UserService : IUserService
+{
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ApplicationDbContext _dbContext;
 
@@ -25,39 +27,51 @@ public class UserService : IUserService {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    public async Task<Response<UserDto>> GetByIdAsync(int id){
+    public async Task<Response<UserDto>> GetByIdAsync(int id)
+    {
         var user = await _userManager.Users
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Id == id);
-        if (user is null){
+
+        if (user is null)
+        {
             return Response<UserDto>.ErrorResponse("Not found", $"User with id '{id}' was not found.");
         }
+
         return Response<UserDto>.SuccessResponse(ToDto(user), "User fetched successfully.");
     }
 
-    public async Task<Response<List<UserDto>>> GetAllAsync(){
+    public async Task<Response<List<UserDto>>> GetAllAsync()
+    {
         var users = await _userManager.Users
             .Include(u => u.Role)
             .ToListAsync();
+
         var userDtos = users.Select(user => ToDto(user)).ToList();
+
         return Response<List<UserDto>>.SuccessResponse(userDtos, "Users fetched successfully.");
     }
 
-    public async Task<Response<UserDto>> UpdateByIdAsync(int id , UpdateUserByIdDto model){
+    public async Task<Response<UserDto>> UpdateByIdAsync(int id, UpdateUserByIdDto model)
+    {
         var user = await _userManager.Users
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Id == id);
-        if (user is null){
+
+        if (user is null)
+        {
             return Response<UserDto>.ErrorResponse("Not found", $"User with id '{id}' was not found.");
         }
 
         var existingUser = await _userManager.FindByNameAsync(model.UserName.Trim());
-        if (existingUser != null && existingUser.Id != id){
+        if (existingUser != null && existingUser.Id != id)
+        {
             return Response<UserDto>.ErrorResponse("Validation failed", "Username already exists.");
         }
 
         var existingEmailUser = await _userManager.FindByEmailAsync(model.Email.Trim());
-        if (existingEmailUser != null && existingEmailUser.Id != id){
+        if (existingEmailUser != null && existingEmailUser.Id != id)
+        {
             return Response<UserDto>.ErrorResponse("Validation failed", "Email already exists.");
         }
 
@@ -69,10 +83,11 @@ public class UserService : IUserService {
         user.RoleId = model.RoleId;
         user.IsActive = model.IsActive;
         user.PhoneNumber = !string.IsNullOrWhiteSpace(model.PhoneNumber) ? model.PhoneNumber.Trim() : null;
-        user.PhoneNumberConfirmed = !string.IsNullOrWhiteSpace(model.PhoneNumber); 
+        user.PhoneNumberConfirmed = !string.IsNullOrWhiteSpace(model.PhoneNumber);
 
         var result = await _userManager.UpdateAsync(user);
-        if (!result.Succeeded){
+        if (!result.Succeeded)
+        {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
             return Response<UserDto>.ErrorResponse("Update failed", errors);
         }
@@ -80,15 +95,19 @@ public class UserService : IUserService {
         return Response<UserDto>.SuccessResponse(ToDto(user), "User updated successfully.");
     }
 
-    public async Task<Response> DeleteByIdAsync(int id){
+    public async Task<Response> DeleteByIdAsync(int id)
+    {
         var user = await _userManager.Users
             .FirstOrDefaultAsync(u => u.Id == id);
-        if (user is null){
+
+        if (user is null)
+        {
             return Response.ErrorResponse("Not found", $"User with id '{id}' was not found.");
         }
 
         var result = await _userManager.DeleteAsync(user);
-        if (!result.Succeeded){
+        if (!result.Succeeded)
+        {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
             return Response.ErrorResponse("Delete failed", errors);
         }
@@ -96,14 +115,17 @@ public class UserService : IUserService {
         return Response.SuccessResponse("User deleted successfully.");
     }
 
-    public async Task<Response<CreateUserDto>> SignupAsync(CreateUserDto model){
+    public async Task<Response<CreateUserDto>> SignupAsync(CreateUserDto model)
+    {
         var existingUser = await _userManager.FindByEmailAsync(model.Email.Trim());
-        if (existingUser != null){
+        if (existingUser != null)
+        {
             return Response<CreateUserDto>.ErrorResponse("Validation failed", "Email already exists.");
         }
 
         var existingUserName = await _userManager.FindByNameAsync(model.UserName.Trim());
-        if (existingUserName != null){
+        if (existingUserName != null)
+        {
             return Response<CreateUserDto>.ErrorResponse("Validation failed", "Username already exists.");
         }
 
@@ -120,18 +142,19 @@ public class UserService : IUserService {
             RoleId = model.RoleId,
             IsActive = model.IsActive,
             CreatedAt = model.CreatedAt,
-            EmailConfirmed = true, 
+            EmailConfirmed = true,
             PhoneNumber = !string.IsNullOrWhiteSpace(model.PhoneNumber) ? model.PhoneNumber.Trim() : null,
             PhoneNumberConfirmed = !string.IsNullOrWhiteSpace(model.PhoneNumber)
         };
 
         var result = await _userManager.CreateAsync(user, model.Password);
-        
-        if (!result.Succeeded){
+
+        if (!result.Succeeded)
+        {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
             return Response<CreateUserDto>.ErrorResponse("Validation failed", errors);
         }
-        
+
         return Response<CreateUserDto>.SuccessResponse(model, "User created successfully.");
     }
 

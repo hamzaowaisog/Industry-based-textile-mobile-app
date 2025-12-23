@@ -1,6 +1,7 @@
 namespace HamzaTex.Api.Services.ViewModel;
 
-public class ClientCreateViewModel {
+public class ClientCreateViewModel
+{
     public string Name { get; set; } = string.Empty;
     public int ClientTypeId { get; set; }
     public string? Phone { get; set; }
@@ -12,7 +13,8 @@ public class ClientCreateViewModel {
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
-public class ClientUpdateViewModel {
+public class ClientUpdateViewModel
+{
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public int ClientTypeId { get; set; }

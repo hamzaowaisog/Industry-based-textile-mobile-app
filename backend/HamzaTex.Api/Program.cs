@@ -63,9 +63,14 @@ builder.Services.AddScoped<IChangePasswordService, ChangePasswordService>();
 
 JwtHelper.Configure(builder.Configuration);
 
-var jwtKey = builder.Configuration["Jwt:Key"] ;
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ;
-var jwtAudience = builder.Configuration["Jwt:Audience"] ;
+var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+
+if (string.IsNullOrEmpty(jwtKey))
+{
+    throw new InvalidOperationException("JWT Key is not configured.");
+}
 
 builder.Services.AddAuthentication(options =>
 {
@@ -83,9 +88,9 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtIssuer,
         ValidAudience = jwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-        ClockSkew = TimeSpan.Zero, 
-        RoleClaimType = ClaimTypes.Role, 
-        NameClaimType = ClaimTypes.NameIdentifier 
+        ClockSkew = TimeSpan.Zero,
+        RoleClaimType = ClaimTypes.Role,
+        NameClaimType = ClaimTypes.NameIdentifier
     };
     
     options.MapInboundClaims = true;
@@ -101,18 +106,18 @@ builder.Services.AddAuthorization(options =>
             return roleId;
         }
         
-        var roleClaim = context.User.FindFirst(ClaimTypes.Role) 
+        var roleClaim = context.User.FindFirst(ClaimTypes.Role)
                      ?? context.User.FindFirst("role")
                      ?? context.User.FindFirst("http://schemas.microsoft.com/ws/2008/06/identity/claims/role");
-        
+
         if (roleClaim != null && int.TryParse(roleClaim.Value, out var roleIdFromRole))
         {
             return roleIdFromRole;
         }
-        
+
         return null;
     }
-    
+
     options.AddPolicy("AdminOnly", policy =>
     {
         policy.RequireAuthenticatedUser();
@@ -122,10 +127,10 @@ builder.Services.AddAuthorization(options =>
                 return false;
             
             var roleId = GetRoleId(context);
-            return roleId == 1; 
+            return roleId == 1;
         });
     });
-    
+
     options.AddPolicy("StaffOnly", policy =>
     {
         policy.RequireAuthenticatedUser();
@@ -135,10 +140,10 @@ builder.Services.AddAuthorization(options =>
                 return false;
             
             var roleId = GetRoleId(context);
-            return roleId == 2; 
+            return roleId == 2;
         });
     });
-    
+
     options.AddPolicy("AdminOrStaff", policy =>
     {
         policy.RequireAuthenticatedUser();
@@ -148,10 +153,10 @@ builder.Services.AddAuthorization(options =>
                 return false;
             
             var roleId = GetRoleId(context);
-            return roleId == 1 || roleId == 2; 
+            return roleId == 1 || roleId == 2;
         });
     });
-    
+
     options.AddPolicy("Authenticated", policy =>
     {
         policy.RequireAuthenticatedUser();
@@ -171,9 +176,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() 
-    { 
-        Title = "Hamza Tex API", 
+    c.SwaggerDoc("v1", new()
+    {
+        Title = "Hamza Tex API",
         Version = "v1",
         Description = "A full-stack application API for Hamza Tex"
     });

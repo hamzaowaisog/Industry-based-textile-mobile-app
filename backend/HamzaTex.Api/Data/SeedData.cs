@@ -42,7 +42,6 @@ public static class SeedData
             Name = "Cash",
             CreatedAt = DateTime.UtcNow
         },
-        
         new PaymentType
         {
             Id = 2,
@@ -67,7 +66,8 @@ public static class SeedData
         }
     ];
     
-    private static readonly IReadOnlyList<ClientType> ClientTypeSeeds = [
+    private static readonly IReadOnlyList<ClientType> ClientTypeSeeds =
+    [
         new ClientType
         {
             Id = 1,
@@ -81,8 +81,9 @@ public static class SeedData
             CreatedAt = DateTime.UtcNow
         }
     ];
-    
-    private static readonly IReadOnlyList<TransType> TransTypeSeeds = [
+
+    private static readonly IReadOnlyList<TransType> TransTypeSeeds =
+    [
         new TransType
         {
             Id = 1,
@@ -97,7 +98,8 @@ public static class SeedData
         }
     ];
 
-    private static readonly IReadOnlyList<TransMode> TransModeSeeds = [
+    private static readonly IReadOnlyList<TransMode> TransModeSeeds =
+    [
         new TransMode
         {
             Id = 1,
@@ -118,7 +120,8 @@ public static class SeedData
         }
     ];
 
-    private static readonly IReadOnlyList<TransCategory> TransCategorySeeds = [
+    private static readonly IReadOnlyList<TransCategory> TransCategorySeeds =
+    [
         new TransCategory
         {
             Id = 1,
@@ -169,7 +172,8 @@ public static class SeedData
         }
     ];
 
-    private static readonly IReadOnlyList<ExpenseType> ExpenseTypeSeeds = [
+    private static readonly IReadOnlyList<ExpenseType> ExpenseTypeSeeds =
+    [
         new ExpenseType
         {
             Id = 1,
@@ -184,7 +188,8 @@ public static class SeedData
         }
     ];
 
-    private static readonly IReadOnlyList<MovementType> MovementTypeSeeds = [
+    private static readonly IReadOnlyList<MovementType> MovementTypeSeeds =
+    [
         new MovementType
         {
             Id = 1,
@@ -205,14 +210,14 @@ public static class SeedData
         }
     ];
 
-    private static readonly IReadOnlyList<MovementSource> MovementSourceSeeds = [
+    private static readonly IReadOnlyList<MovementSource> MovementSourceSeeds =
+    [
         new MovementSource
         {
             Id = 1,
             Name = "Purchase",
             CreatedAt = DateTime.UtcNow
         },
-    
         new MovementSource
         {
             Id = 2,
@@ -273,7 +278,7 @@ public static class SeedData
             TransTypeSeeds,
             StringComparer.OrdinalIgnoreCase,
             cancellationToken);
-            
+
         await SeedLookupAsync(
             context,
             context.TransModes,

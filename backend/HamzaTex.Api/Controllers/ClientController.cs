@@ -9,10 +9,9 @@ namespace HamzaTex.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Policy = "Authenticated")]  
-public class ClientController : ControllerBase 
+[Authorize(Policy = "Authenticated")]
+public class ClientController : ControllerBase
 {
-
     private readonly IClientService _clientService;
 
     public ClientController(IClientService clientService)
@@ -21,12 +20,13 @@ public class ClientController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = "Authenticated")]  
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    
-    public async Task<IActionResult> CreateClient([FromBody] ClientCreateViewModel model){
-        if (!ModelState.IsValid){
+    public async Task<IActionResult> CreateClient([FromBody] ClientCreateViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
             return ValidationProblem(ModelState);
         }
 
@@ -36,7 +36,8 @@ public class ClientController : ControllerBase
             return Unauthorized("User identifier is missing or invalid in the token.");
         }
 
-        var dto = new CreateClientDto {
+        var dto = new CreateClientDto
+        {
             Name = model.Name,
             ClientTypeId = model.ClientTypeId,
             UserId = userId,
@@ -47,7 +48,6 @@ public class ClientController : ControllerBase
             Notes = model.Notes,
             IsActive = model.IsActive,
             CreatedAt = model.CreatedAt
-
         };
 
         var response = await _clientService.CreateAsync(dto);
@@ -55,43 +55,48 @@ public class ClientController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]  
+    [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllClients(){
+    public async Task<IActionResult> GetAllClients()
+    {
         var response = await _clientService.GetAllAsync();
         return ToActionResult(response);
     }
 
     [HttpGet("users")]
-    [Authorize(Policy = "Authenticated")]  
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllClientsByUserId(){
+    public async Task<IActionResult> GetAllClientsByUserId()
+    {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
         {
             return Unauthorized("User identifier is missing or invalid in the token.");
         }
+
         var response = await _clientService.GetAllByUserIdAsync(userId);
         return ToActionResult(response);
     }
 
     [HttpGet("{id}")]
-    [Authorize(Policy = "Authenticated")]  
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetClientById(int id){
+    public async Task<IActionResult> GetClientById(int id)
+    {
         var response = await _clientService.GetByIdAsync(id);
         return ToActionResult(response);
     }
 
-
     [HttpPut("{id}")]
-    [Authorize(Policy = "AdminOrStaff")]  
+    [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateClientById(int id, [FromBody] ClientUpdateViewModel model){
-        if (!ModelState.IsValid){
+    public async Task<IActionResult> UpdateClientById(int id, [FromBody] ClientUpdateViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
             return ValidationProblem(ModelState);
         }
 
@@ -100,8 +105,9 @@ public class ClientController : ControllerBase
         {
             return Unauthorized("User identifier is missing or invalid in the token.");
         }
-        
-        var dto = new UpdateClientByIdDto {
+
+        var dto = new UpdateClientByIdDto
+        {
             Name = model.Name,
             ClientTypeId = model.ClientTypeId,
             UserId = userId,
@@ -118,12 +124,13 @@ public class ClientController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "AdminOnly")]  
+    [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteClientById (int id){
+    public async Task<IActionResult> DeleteClientById(int id)
+    {
         var response = await _clientService.DeleteByIdAsync(id);
-        
+
         if (!response.Success && IsNotFound(response.Message))
         {
             return NotFound(response);
@@ -137,9 +144,7 @@ public class ClientController : ControllerBase
         return Ok(response);
     }
 
-
-
-private IActionResult ToActionResult<T>(Response<T> response)
+    private IActionResult ToActionResult<T>(Response<T> response)
     {
         if (response.Success)
         {
@@ -154,6 +159,6 @@ private IActionResult ToActionResult<T>(Response<T> response)
         return BadRequest(response);
     }
 
-private static bool IsNotFound(string message) =>
+    private static bool IsNotFound(string message) =>
         string.Equals(message, "Not found", StringComparison.OrdinalIgnoreCase);
 }

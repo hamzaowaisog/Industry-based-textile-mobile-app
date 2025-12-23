@@ -22,10 +22,10 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
 
     public virtual DbSet<ClientType> ClientTypes { get; set; }
 
-    public virtual DbSet<UserRole> UserRoles { get; set; }
+    public new virtual DbSet<UserRole> UserRoles { get; set; }
 
     public virtual DbSet<ExpenseType> ExpenseTypes { get; set; }
-    
+
     public virtual DbSet<MovementSource> MovementSources { get; set; }
     
     public virtual DbSet<MovementType> MovementTypes { get; set; }
@@ -544,7 +544,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
         {
             entity.ToTable("aspnet_role_claims");
         });
-        modelBuilder.Entity<UserRole>(entity => {
+        modelBuilder.Entity<UserRole>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("user_roles_pkey");
             entity.ToTable("user_roles");
             entity.Property(e => e.Id)
@@ -557,7 +558,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<OrderStatus>(entity => {
+        modelBuilder.Entity<OrderStatus>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("order_statuses_pkey");
             entity.ToTable("order_statuses");
             entity.Property(e => e.Id)
@@ -570,7 +572,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<PaymentType>(entity => {
+        modelBuilder.Entity<PaymentType>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("payment_types_pkey");
             entity.ToTable("payment_types");
             entity.Property(e => e.Id)
@@ -583,7 +586,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<TransCategory>(entity => {
+        modelBuilder.Entity<TransCategory>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("trans_categories_pkey");
             entity.ToTable("trans_categories");
             entity.Property(e => e.Id)
@@ -596,7 +600,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<TransMode>(entity => {
+        modelBuilder.Entity<TransMode>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("trans_modes_pkey");
             entity.ToTable("trans_modes");
             entity.Property(e => e.Id)
@@ -609,7 +614,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<TransType>(entity => {
+        modelBuilder.Entity<TransType>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("trans_types_pkey");
             entity.ToTable("trans_types");
             entity.Property(e => e.Id)
@@ -622,7 +628,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<PaymentDirection>(entity => {
+        modelBuilder.Entity<PaymentDirection>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("payment_directions_pkey");
             entity.ToTable("payment_directions");
             entity.Property(e => e.Id)
@@ -635,7 +642,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<MovementType>(entity => {
+        modelBuilder.Entity<MovementType>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("movement_types_pkey");
             entity.ToTable("movement_types");
             entity.Property(e => e.Id)
@@ -648,7 +656,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<MovementSource>(entity => {
+        modelBuilder.Entity<MovementSource>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("movement_sources_pkey");
             entity.ToTable("movement_sources");
             entity.Property(e => e.Id)
@@ -661,7 +670,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<ExpenseType>(entity => {
+        modelBuilder.Entity<ExpenseType>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("expense_types_pkey");
             entity.ToTable("expense_types");
             entity.Property(e => e.Id)

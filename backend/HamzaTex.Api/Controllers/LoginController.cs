@@ -9,7 +9,8 @@ namespace HamzaTex.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [AllowAnonymous]
-public class LoginController : ControllerBase {
+public class LoginController : ControllerBase
+{
     private readonly ILoginService _loginService;
 
     public LoginController(ILoginService loginService)
@@ -26,22 +27,27 @@ public class LoginController : ControllerBase {
         {
             return ValidationProblem(ModelState);
         }
-        var dto = new LoginDto {
+
+        var dto = new LoginDto
+        {
             UserName = model.UserName,
             Password = model.Password
         };
+
         var response = await _loginService.LoginAsync(dto);
         return ToActionResult(response);
-
     }
+
     private IActionResult ToActionResult<T>(Response<T> response)
     {
         if (response.Success)
         {
             return Ok(response);
         }
+
         return BadRequest(response);
     }
+
     private static bool IsNotFound(string message) =>
         string.Equals(message, "Not found", StringComparison.OrdinalIgnoreCase);
 }

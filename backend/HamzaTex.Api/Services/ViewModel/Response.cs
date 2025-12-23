@@ -14,7 +14,7 @@ public class Response<T>
             Success = true,
             Message = message,
             Data = data,
-            Errors = null,
+            Errors = null
         };
     }
 
@@ -53,7 +53,7 @@ public class Response
         {
             Success = true,
             Message = message,
-            Errors = null,
+            Errors = null
         };
     }
 
@@ -63,7 +63,7 @@ public class Response
         {
             Success = false,
             Message = message,
-            Errors = errors ?? null,
+            Errors = errors ?? new List<string>()
         };
     }
 
@@ -73,7 +73,7 @@ public class Response
         {
             Success = false,
             Message = message,
-            Errors = new List<string> { error } ?? null,
+            Errors = new List<string> { error }
         };
     }
 }

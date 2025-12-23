@@ -10,11 +10,11 @@ namespace HamzaTex.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = "AdminOnly")]
-public class ClientTypeController : ControllerBase {
-
+public class ClientTypeController : ControllerBase
+{
     private readonly IClientTypeService _clientTypeService;
 
-    public ClientTypeController (IClientTypeService clientTypeService)
+    public ClientTypeController(IClientTypeService clientTypeService)
     {
         _clientTypeService = clientTypeService;
     }
@@ -22,12 +22,15 @@ public class ClientTypeController : ControllerBase {
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-
-    public async Task<IActionResult> CreateClientType ([FromBody] ClientTypeCreateViewModel model){
-        if (!ModelState.IsValid){
+    public async Task<IActionResult> CreateClientType([FromBody] ClientTypeCreateViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
             return ValidationProblem(ModelState);
         }
-        var dto = new CreateClientTypeDto{
+
+        var dto = new CreateClientTypeDto
+        {
             Name = model.Name,
             CreatedAt = model.CreatedAt
         };
@@ -35,32 +38,35 @@ public class ClientTypeController : ControllerBase {
         var response = await _clientTypeService.CreateAsync(dto);
         return ToActionResult(response);
     }
-    
+
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllClientTypes(){
+    public async Task<IActionResult> GetAllClientTypes()
+    {
         var response = await _clientTypeService.GetAllAsync();
-
         return ToActionResult(response);
     }
 
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetClientTypeById(int id){
+    public async Task<IActionResult> GetClientTypeById(int id)
+    {
         var response = await _clientTypeService.GetByIdAsync(id);
         return ToActionResult(response);
     }
 
-
-    [HttpPut("{id}")]    
+    [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateClientTypeById(int id, [FromBody] ClientTypeUpdateViewModel model){
-        if (id != model.Id){
+    public async Task<IActionResult> UpdateClientTypeById(int id, [FromBody] ClientTypeUpdateViewModel model)
+    {
+        if (id != model.Id)
+        {
             ModelState.AddModelError(nameof(model.Id), "Route id must match payload id.");
-        }   
+        }
+
         if (!ModelState.IsValid)
         {
             return ValidationProblem(ModelState);
@@ -75,9 +81,10 @@ public class ClientTypeController : ControllerBase {
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteClientTypeById(int id){
+    public async Task<IActionResult> DeleteClientTypeById(int id)
+    {
         var response = await _clientTypeService.DeleteByIdAsync(id);
-        
+
         if (!response.Success && IsNotFound(response.Message))
         {
             return NotFound(response);
@@ -90,7 +97,8 @@ public class ClientTypeController : ControllerBase {
 
         return Ok(response);
     }
-      private IActionResult ToActionResult<T>(Response<T> response)
+
+    private IActionResult ToActionResult<T>(Response<T> response)
     {
         if (response.Success)
         {

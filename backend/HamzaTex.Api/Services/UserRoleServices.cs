@@ -24,7 +24,6 @@ public class UserRoleService : IUserRoleService
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-        
     public async Task<Response<UserRoleDto>> CreateAsync(CreateUserRoleDto model)
     {
         var validationResult = await ValidateNameAsync(model.Name);

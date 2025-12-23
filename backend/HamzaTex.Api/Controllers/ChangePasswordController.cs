@@ -10,14 +10,12 @@ namespace HamzaTex.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = "Authenticated")]
-
-
-public class ChangePasswordController : ControllerBase 
+public class ChangePasswordController : ControllerBase
 {
-
     private readonly IChangePasswordService _changePasswordService;
 
-    public ChangePasswordController(IChangePasswordService changePasswordService){
+    public ChangePasswordController(IChangePasswordService changePasswordService)
+    {
         _changePasswordService = changePasswordService;
     }
 
@@ -26,7 +24,8 @@ public class ChangePasswordController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordViewModel model)
     {
-        if (!ModelState.IsValid){
+        if (!ModelState.IsValid)
+        {
             return ValidationProblem(ModelState);
         }
 
@@ -36,25 +35,28 @@ public class ChangePasswordController : ControllerBase
             return Unauthorized("User identifier is missing or invalid in the token.");
         }
 
-        var toDto = new ChangePasswordDto{
+        var dto = new ChangePasswordDto
+        {
             UserId = userId,
             OldPassword = model.OldPassword,
             NewPassword = model.NewPassword,
             ConfirmPassword = model.ConfirmPassword
         };
 
-        var response = await _changePasswordService.changePasswordAsync(toDto);
+        var response = await _changePasswordService.ChangePasswordAsync(dto);
         return ToActionResult(response);
-        
     }
+
     private IActionResult ToActionResult<T>(Response<T> response)
     {
         if (response.Success)
         {
             return Ok(response);
         }
+
         return BadRequest(response);
     }
+
     private static bool IsNotFound(string message) =>
         string.Equals(message, "Not found", StringComparison.OrdinalIgnoreCase);
 }
