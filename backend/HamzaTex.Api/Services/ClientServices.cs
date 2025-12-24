@@ -74,10 +74,11 @@ public class ClientService : IClientService
             // TODO: behavior
             .Where(client => client.UserId != null && _dbContext.Users.Any(user => user.Id == client.UserId))
             // TODO: check behavior
-            .Select(client => ToDto(client))
             .ToListAsync();
 
-        return Response<List<ClientDto>>.SuccessResponse(clients, "Clients fetched successfully.");
+        var clientDtos = clients.Select(client => ToDto(client)).ToList();
+
+        return Response<List<ClientDto>>.SuccessResponse(clientDtos, "Clients fetched successfully.");
     }
 
     // TODO: what to do on FE and BE
@@ -86,10 +87,11 @@ public class ClientService : IClientService
         var clients = await _dbContext.Clients
             .Where(client => client.UserId == userId
                 && _dbContext.Users.Any(user => user.Id == userId))
-            .Select(client => ToDto(client))
             .ToListAsync();
 
-        return Response<List<ClientDto>>.SuccessResponse(clients, "Clients fetched successfully.");
+        var clientDtos = clients.Select(client => ToDto(client)).ToList();
+
+        return Response<List<ClientDto>>.SuccessResponse(clientDtos, "Clients fetched successfully.");
     }
 
     // TODO: make a object with a child as list
