@@ -27,7 +27,8 @@ public class ClientController : ControllerBase
     {
         if (!ModelState.IsValid)
         {
-            return ValidationProblem(ModelState);
+            var validationResponse = ToValidationResponseFromModelState<ClientDto>();
+            return ToActionResult(validationResponse);
         }
 
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -97,7 +98,8 @@ public class ClientController : ControllerBase
     {
         if (!ModelState.IsValid)
         {
-            return ValidationProblem(ModelState);
+            var validationResponse = ToValidationResponseFromModelState<ClientDto>();
+            return ToActionResult(validationResponse);
         }
 
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -161,4 +163,15 @@ public class ClientController : ControllerBase
 
     private static bool IsNotFound(string message) =>
         string.Equals(message, "Not found", StringComparison.OrdinalIgnoreCase);
+
+    private Response<T> ToValidationResponseFromModelState<T>()
+    {
+        var errors = ModelState
+            .Where(x => x.Value?.Errors.Count > 0)
+            .SelectMany(x => x.Value!.Errors)
+            .Select(x => x.ErrorMessage)
+            .ToList();
+
+        return Response<T>.ErrorResponse("Validation failed", errors);
+    }
 }

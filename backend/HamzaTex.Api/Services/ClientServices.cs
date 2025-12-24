@@ -2,6 +2,7 @@ using HamzaTex.Api.Data;
 using HamzaTex.Api.Entities;
 using HamzaTex.Api.Models;
 using HamzaTex.Api.Services.ViewModel;
+using HamzaTex.Api.Validation;
 using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Services;
@@ -30,21 +31,8 @@ public class ClientService : IClientService
 
     public async Task<Response<ClientDto>> CreateAsync(CreateClientDto model)
     {
-        var validationResult = await ValidateNameAsync(model.Name);
-        if (validationResult is not null)
-        {
-            return validationResult;
-        }
 
-        if (model.UserId is not null)
-        {
-            var user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == model.UserId);
-            if (user is null)
-            {
-                return Response<ClientDto>.ErrorResponse("Not found", $"User with id '{model.UserId}' was not found.");
-            }
-        }
-
+        var user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == model.UserId);
         var entity = ToEntity(model);
         await _dbContext.Clients.AddAsync(entity);
         await _dbContext.SaveChangesAsync();
