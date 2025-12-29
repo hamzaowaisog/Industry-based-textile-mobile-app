@@ -1,5 +1,6 @@
 using HamzaTex.Api.Data;
 using HamzaTex.Api.Entities;
+using HamzaTex.Api.Helpers;
 using HamzaTex.Api.Models;
 using HamzaTex.Api.Services.ViewModel;
 using Microsoft.EntityFrameworkCore;
@@ -14,9 +15,7 @@ public interface IClientService
     Task<Response<List<ClientDto>>> GetAllByUserIdAsync(int userId);
     Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model);
     Task<Response> DeleteByIdAsync(int id);
-
-    // TODO: add a listing call for pagination
-    // Task<Response<List<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize);
+    Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize);
 }
 
 public class ClientService : IClientService
@@ -26,6 +25,12 @@ public class ClientService : IClientService
     public ClientService(ApplicationDbContext dbContext)
     {
         _dbContext = dbContext;
+    }
+
+    public async Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize){
+        var query = _dbContext.Clients.AsNoTracking().Select(client => ToDto(client));
+        var pagedList = await PagedList<ClientDto>.CreateAsync(query, page, pageSize);
+        return Response<PagedList<ClientDto>>.SuccessResponse(pagedList, "Clients fetched successfully.");
     }
 
     public async Task<Response<ClientDto>> CreateAsync(CreateClientDto model)
@@ -59,6 +64,11 @@ public class ClientService : IClientService
             .Include(client => client.User)
             .Where(client => client.User != null)
             .ToListAsync();
+        
+        if (clients is null)
+        {
+            return Response<List<ClientDto>>.ErrorResponse("Not found", "No clients found.");
+        }
 
         var clientDtos = clients.Select(client => ToDto(client)).ToList();
 
@@ -70,6 +80,11 @@ public class ClientService : IClientService
         var clients = await _dbContext.Clients
             .Where(client => client.UserId == userId)
             .ToListAsync();
+
+        if (clients is null)
+        {
+            return Response<List<ClientDto>>.ErrorResponse("Not found", "No clients found.");
+        }
 
         var clientDtos = clients.Select(client => ToDto(client)).ToList();
 

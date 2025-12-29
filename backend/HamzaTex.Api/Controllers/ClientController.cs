@@ -19,6 +19,15 @@ public class ClientController : ControllerBase
         _clientService = clientService;
     }
 
+    [HttpGet("Filtered")]
+    [Authorize(Policy = "Authenticated")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllClientsFiltered(int page =1 , int pageSize = 5)
+    {
+        var response = await _clientService.GetAllPaginatedAsync(page, pageSize);
+        return ToActionResult(response);
+    }
+
     [HttpPost]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
