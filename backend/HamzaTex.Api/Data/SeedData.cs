@@ -232,6 +232,28 @@ public static class SeedData
         }
     ];
 
+    private static readonly IReadOnlyList<PaymentDirection> PaymentDirectionSeeds =
+    [
+        new PaymentDirection
+        {
+            Id = 1,
+            Name = "Received",
+            CreatedAt = DateTime.UtcNow
+        },
+        new PaymentDirection
+        {
+            Id = 2,
+            Name = "Paid",
+            CreatedAt = DateTime.UtcNow
+        },
+        new PaymentDirection
+        {
+            Id = 3,
+            Name = "Adjustment",
+            CreatedAt = DateTime.UtcNow
+        }
+    ];
+
     public static async Task EnsureSeedDataAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
     {
         await SeedStatusesAsync(context, cancellationToken);
@@ -316,6 +338,14 @@ public static class SeedData
             context.MovementSources,
             source => source.Name!,
             MovementSourceSeeds,
+            StringComparer.OrdinalIgnoreCase,
+            cancellationToken);
+
+        await SeedLookupAsync(
+            context,
+            context.PaymentDirections,
+            direction => direction.Name!,
+            PaymentDirectionSeeds,
             StringComparer.OrdinalIgnoreCase,
             cancellationToken);
     }
