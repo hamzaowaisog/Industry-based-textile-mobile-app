@@ -60,6 +60,7 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
 
     public virtual DbSet<Transaction> Transactions { get; set; }
 
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public virtual DbSet<VClientBalance> VClientBalances { get; set; }
 
@@ -719,6 +720,46 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.TotalSales)
                 .HasPrecision(14, 2)
                 .HasColumnName("total_sales");
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("refresh_tokens_pkey");
+            entity.ToTable("refresh_tokens");
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id");
+            entity.Property(e => e.Token)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("token");
+            entity.Property(e => e.UserId)
+                .IsRequired()
+                .HasColumnName("user_id");
+            entity.Property(e => e.ExpiresAt)
+                .IsRequired()
+                .HasColumnType("datetime")
+                .HasColumnName("expires_at");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime");
+            entity.Property(e => e.RevokedAt)
+                .HasColumnName("revoked_at");
+            entity.Property(e => e.RevokedByIp)
+                .HasColumnName("revoked_by_ip");
+            entity.Property(e => e.ReplacedByToken)
+                .HasMaxLength(255)
+                .HasColumnName("replaced_by_token");
+
+            entity.HasIndex(e => e.Token).HasDatabaseName("idx_refresh_tokens_token");
+            entity.HasIndex(e => e.UserId).HasDatabaseName("idx_refresh_tokens_user_id");
+
+            entity.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("refresh_tokens_user_id_fkey");
+
         });
 
         OnModelCreatingPartial(modelBuilder);

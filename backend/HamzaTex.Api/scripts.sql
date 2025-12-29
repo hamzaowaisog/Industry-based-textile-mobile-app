@@ -642,6 +642,31 @@ DROP PROCEDURE `POMELO_BEFORE_DROP_PRIMARY_KEY`;
 
 DROP PROCEDURE `POMELO_AFTER_ADD_PRIMARY_KEY`;
 
+CREATE TABLE `refresh_tokens` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `token` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+    `user_id` int NOT NULL,
+    `expires_at` datetime NOT NULL,
+    `CreatedAt` datetime NOT NULL DEFAULT NOW(),
+    `revoked_at` datetime(6) NOT NULL,
+    `revoked_by_ip` longtext CHARACTER SET utf8mb4 NULL,
+    `replaced_by_token` varchar(255) CHARACTER SET utf8mb4 NULL,
+    CONSTRAINT `refresh_tokens_pkey` PRIMARY KEY (`id`),
+    CONSTRAINT `refresh_tokens_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET=utf8mb4;
+
+CREATE INDEX `idx_refresh_tokens_token` ON `refresh_tokens` (`token`);
+
+CREATE INDEX `idx_refresh_tokens_user_id` ON `refresh_tokens` (`user_id`);
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20251229140200_RefreshTokenTable', '9.0.10');
+
+ALTER TABLE `refresh_tokens` MODIFY COLUMN `revoked_at` datetime(6) NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20251229142101_MakeRevokedAtNullable', '9.0.10');
+
 COMMIT;
 
 

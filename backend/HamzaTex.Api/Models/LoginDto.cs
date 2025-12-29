@@ -19,3 +19,13 @@ public class LoginResponseDto
     public DateTime ExpiresAt { get; set; } = DateTime.UtcNow;
     public DateTime RefreshTokenExpiresAt { get; set; } = DateTime.UtcNow;
 }
+
+public class RefreshTokenRequest
+{
+    public string RefreshToken { get; set; } = string.Empty;
+}
+
+public class LogoutRequest
+{
+    public string? RefreshToken { get; set; }
+}
