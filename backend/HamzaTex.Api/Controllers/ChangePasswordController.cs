@@ -4,13 +4,14 @@ using HamzaTex.Api.Services;
 using HamzaTex.Api.Services.ViewModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HamzaTex.Api.Helpers;
 
 namespace HamzaTex.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = "Authenticated")]
-public class ChangePasswordController : ControllerBase
+public class ChangePasswordController : BaseController
 {
     private readonly IChangePasswordService _changePasswordService;
 
@@ -46,17 +47,4 @@ public class ChangePasswordController : ControllerBase
         var response = await _changePasswordService.ChangePasswordAsync(dto);
         return ToActionResult(response);
     }
-
-    private IActionResult ToActionResult<T>(Response<T> response)
-    {
-        if (response.Success)
-        {
-            return Ok(response);
-        }
-
-        return BadRequest(response);
-    }
-
-    private static bool IsNotFound(string message) =>
-        string.Equals(message, "Not found", StringComparison.OrdinalIgnoreCase);
 }

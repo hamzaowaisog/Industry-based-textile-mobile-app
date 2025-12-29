@@ -1,4 +1,4 @@
-namespace HamzaTex.Api.Services.ViewModel;
+namespace HamzaTex.Api.Helpers;
 
 public class Response<T>
 {

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using HamzaTex.Api.Helpers;
 using HamzaTex.Api.Models;
 using HamzaTex.Api.Services;
 using HamzaTex.Api.Services.ViewModel;
@@ -10,7 +11,7 @@ namespace HamzaTex.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = "Authenticated")]
-public class ClientController : ControllerBase
+public class ClientController : BaseController
 {
     private readonly IClientService _clientService;
 
@@ -134,6 +135,7 @@ public class ClientController : ControllerBase
         return ToActionResult(response);
     }
 
+
     [HttpDelete("{id}")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -141,46 +143,7 @@ public class ClientController : ControllerBase
     public async Task<IActionResult> DeleteClientById(int id)
     {
         var response = await _clientService.DeleteByIdAsync(id);
-
-        if (!response.Success && IsNotFound(response.Message))
-        {
-            return NotFound(response);
-        }
-
-        if (!response.Success)
-        {
-            return BadRequest(response);
-        }
-
-        return Ok(response);
+        return ToActionResult(response);
     }
 
-    private IActionResult ToActionResult<T>(Response<T> response)
-    {
-        if (response.Success)
-        {
-            return Ok(response);
-        }
-
-        if (IsNotFound(response.Message))
-        {
-            return NotFound(response);
-        }
-
-        return BadRequest(response);
-    }
-
-    private static bool IsNotFound(string message) =>
-        string.Equals(message, "Not found", StringComparison.OrdinalIgnoreCase);
-
-    private Response<T> ToValidationResponseFromModelState<T>()
-    {
-        var errors = ModelState
-            .Where(x => x.Value?.Errors.Count > 0)
-            .SelectMany(x => x.Value!.Errors)
-            .Select(x => x.ErrorMessage)
-            .ToList();
-
-        return Response<T>.ErrorResponse("Validation failed", errors);
-    }
 }

@@ -2,6 +2,7 @@ using System;
 using HamzaTex.Api.Models;
 using HamzaTex.Api.Services;
 using HamzaTex.Api.Services.ViewModel;
+using HamzaTex.Api.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +11,7 @@ namespace HamzaTex.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = "AdminOnly")]
-public class ClientTypeController : ControllerBase
+public class ClientTypeController : BaseController
 {
     private readonly IClientTypeService _clientTypeService;
 
@@ -84,35 +85,6 @@ public class ClientTypeController : ControllerBase
     public async Task<IActionResult> DeleteClientTypeById(int id)
     {
         var response = await _clientTypeService.DeleteByIdAsync(id);
-
-        if (!response.Success && IsNotFound(response.Message))
-        {
-            return NotFound(response);
-        }
-
-        if (!response.Success)
-        {
-            return BadRequest(response);
-        }
-
-        return Ok(response);
+        return ToActionResult(response);
     }
-
-    private IActionResult ToActionResult<T>(Response<T> response)
-    {
-        if (response.Success)
-        {
-            return Ok(response);
-        }
-
-        if (IsNotFound(response.Message))
-        {
-            return NotFound(response);
-        }
-
-        return BadRequest(response);
-    }
-
-    private static bool IsNotFound(string message) =>
-        string.Equals(message, "Not found", StringComparison.OrdinalIgnoreCase);
 }

@@ -1,16 +1,17 @@
 using System;
 using HamzaTex.Api.Models;
 using HamzaTex.Api.Services;
-using HamzaTex.Api.Services.ViewModel;
+using HamzaTex.Api.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HamzaTex.Api.Services.ViewModel;
 
 namespace HamzaTex.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = "AdminOnly")]
-public class UserRolesController : ControllerBase
+public class UserRolesController : BaseController
 {
     private readonly IUserRoleService _userRoleService;
 
@@ -87,35 +88,7 @@ public class UserRolesController : ControllerBase
     public async Task<IActionResult> DeleteUserRole(int id)
     {
         var response = await _userRoleService.DeleteAsync(id);
-
-        if (!response.Success && IsNotFound(response.Message))
-        {
-            return NotFound(response);
-        }
-
-        if (!response.Success)
-        {
-            return BadRequest(response);
-        }
-
-        return Ok(response);
+        return ToActionResult(response);
     }
 
-    private IActionResult ToActionResult<T>(Response<T> response)
-    {
-        if (response.Success)
-        {
-            return Ok(response);
-        }
-
-        if (IsNotFound(response.Message))
-        {
-            return NotFound(response);
-        }
-
-        return BadRequest(response);
-    }
-
-    private static bool IsNotFound(string message) =>
-        string.Equals(message, "Not found", StringComparison.OrdinalIgnoreCase);
 }
