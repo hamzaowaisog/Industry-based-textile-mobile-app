@@ -9,7 +9,7 @@ namespace HamzaTex.Api.Services;
 
 public interface IRefreshTokenService
 {
-    Task<(RefreshToken Entity, string PlainToken)> CreateRefreshTokenAsync(int userId, string? ipAddress = null);
+    Task<(RefreshToken? Entity, string? PlainToken)> CreateRefreshTokenAsync(int userId, string? ipAddress = null);
     Task<RefreshToken?> GetRefreshTokenByTokenAsync(string token);
     Task RevokeRefreshTokenAsync(string token, string? ipAddress = null);
     Task RevokeAllUserTokensAsync(int userId, string? ipAddress = null);
@@ -26,11 +26,17 @@ public class RefreshTokenService : IRefreshTokenService
         _dbContext = dbContext;
     }
 
-    public async Task<(RefreshToken Entity, string PlainToken)> CreateRefreshTokenAsync(int userId, string? ipAddress = null)
+    public async Task<(RefreshToken? Entity, string? PlainToken)> CreateRefreshTokenAsync(int userId, string? ipAddress = null)
     {
         var plainToken = JwtHelper.GenerateRefreshToken();
         
         var hashedToken = HashToken(plainToken);
+
+        var request = IsRefreshTokenValidAsync(plainToken);
+        if (!await request)
+        {
+            return (null, null);
+        }
         
         var refreshToken = new RefreshToken
         {
@@ -105,12 +111,7 @@ public class RefreshTokenService : IRefreshTokenService
             return false; 
         }
 
-        if (!refreshToken.IsActive)
-        {
-            return false;
-        }
-
-        if (refreshToken.User != null && !refreshToken.User.IsActive)
+        if (!refreshToken.IsActive || refreshToken.RevokedAt != null)
         {
             return false;
         }

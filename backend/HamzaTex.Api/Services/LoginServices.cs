@@ -73,11 +73,17 @@ public class LoginService : ILoginService
         }
 
         var token = JwtHelper.GenerateToken(user.Id, user.Email, user.RoleId.Value);
+
         
         var (refreshTokenEntity, plainRefreshToken) = await _refreshTokenService.CreateRefreshTokenAsync(
             user.Id, 
-            null // IP address can be passed from HttpContext if needed
+            null
         );
+
+        if (refreshTokenEntity == null || plainRefreshToken == null){
+            await LogoutAllAsync(user.Id);
+            return Response<LoginResponseDto>.ErrorResponse("You are logged out. Please login again.");
+        }
 
         return Response<LoginResponseDto>.SuccessResponse(new LoginResponseDto
         {
