@@ -9,11 +9,11 @@ namespace HamzaTex.Api.Services;
 
 public interface IRefreshTokenService
 {
-    Task<(RefreshToken? Entity, string? PlainToken)> CreateRefreshTokenAsync(int userId, string? ipAddress = null);
+    Task<(RefreshToken? Entity, string? PlainToken)> CreateRefreshTokenAsync(int userId, string ipAddress);
     Task<RefreshToken?> GetRefreshTokenByTokenAsync(string token);
-    Task RevokeRefreshTokenAsync(string token, string? ipAddress = null);
-    Task RevokeAllUserTokensAsync(int userId, string? ipAddress = null);
-    Task<bool> IsRefreshTokenValidAsync(string token);
+    Task RevokeRefreshTokenAsync(string token, string ipAddress);
+    Task RevokeAllUserTokensAsync(int userId, string ipAddress);
+    Task<bool> IsRefreshTokenValidAsync(string token, bool checkinRefresh = false);
     Task CleanupExpiredTokensAsync();
 }
 
@@ -26,13 +26,13 @@ public class RefreshTokenService : IRefreshTokenService
         _dbContext = dbContext;
     }
 
-    public async Task<(RefreshToken? Entity, string? PlainToken)> CreateRefreshTokenAsync(int userId, string? ipAddress = null)
+    public async Task<(RefreshToken? Entity, string? PlainToken)> CreateRefreshTokenAsync(int userId, string ipAddress)
     {
         var plainToken = JwtHelper.GenerateRefreshToken();
         
         var hashedToken = HashToken(plainToken);
 
-        var request = IsRefreshTokenValidAsync(plainToken);
+        var request = IsRefreshTokenValidAsync(plainToken, true);
         if (!await request)
         {
             return (null, null);
@@ -44,6 +44,7 @@ public class RefreshTokenService : IRefreshTokenService
             UserId = userId,
             ExpiresAt = JwtHelper.GetRefreshTokenExpiration(),
             CreatedAt = DateTime.UtcNow,
+            CreatedByIp = ipAddress,
             RevokedAt = null,
             RevokedByIp = null,
             ReplacedByToken = null
@@ -66,7 +67,7 @@ public class RefreshTokenService : IRefreshTokenService
         return refreshToken;
     }
 
-    public async Task RevokeRefreshTokenAsync(string token, string? ipAddress = null)
+    public async Task RevokeRefreshTokenAsync(string token, string ipAddress)
     {
         var refreshToken = await GetRefreshTokenByTokenAsync(token);
         
@@ -81,7 +82,7 @@ public class RefreshTokenService : IRefreshTokenService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task RevokeAllUserTokensAsync(int userId, string? ipAddress = null)
+    public async Task RevokeAllUserTokensAsync(int userId, string ipAddress)
     {
         var revokedAt = DateTime.UtcNow;
         var activeTokens = await _dbContext.RefreshTokens
@@ -102,16 +103,24 @@ public class RefreshTokenService : IRefreshTokenService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<bool> IsRefreshTokenValidAsync(string token)
+    public async Task<bool> IsRefreshTokenValidAsync(string token , bool checkinRefresh = false)
     {
+        
         var refreshToken = await GetRefreshTokenByTokenAsync(token);
         
         if (refreshToken == null)
         {
+            if (checkinRefresh){
+                return true;
+            }
             return false; 
         }
 
-        if (!refreshToken.IsActive || refreshToken.RevokedAt != null)
+        if (!refreshToken.IsActive)
+        {
+            return false;
+        }
+        if (refreshToken.RevokedAt != null)
         {
             return false;
         }

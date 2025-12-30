@@ -7,6 +7,7 @@ public class RefreshToken
     public int UserId { get; set; }
     public DateTime ExpiresAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    public String? CreatedByIp { get; set; }
     public DateTime? RevokedAt { get; set; }
     public String? RevokedByIp { get; set; }
     public String? ReplacedByToken { get; set; }

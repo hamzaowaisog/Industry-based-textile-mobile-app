@@ -743,6 +743,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
                 .HasColumnType("datetime");
+            entity.Property(e => e.CreatedByIp)
+                .HasColumnName("created_by_ip");
             entity.Property(e => e.RevokedAt)
                 .HasColumnName("revoked_at");
             entity.Property(e => e.RevokedByIp)
