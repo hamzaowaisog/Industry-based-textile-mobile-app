@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,7 +77,10 @@ builder.Services.AddScoped<IChangePasswordService, ChangePasswordService>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.Configure<SmtpOptionsDto>(builder.Configuration.GetSection("Smtp"));
 builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSenderService>();
-
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromHours(int.Parse(builder.Configuration["App:EmailConfirmationTokenExpirationHours"] ?? "1"));
+});
 JwtHelper.Configure(builder.Configuration);
 
 var jwtKey = builder.Configuration["Jwt:Key"];

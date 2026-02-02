@@ -1,9 +1,11 @@
 using System.Security.Claims;
+using HamzaTex.Api.Entities;
 using HamzaTex.Api.Helpers;
 using HamzaTex.Api.Models;
 using HamzaTex.Api.Services;
 using HamzaTex.Api.Services.ViewModel;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HamzaTex.Api.Controllers;
@@ -16,15 +18,18 @@ public class AuthController : BaseController
     private readonly IUserService _userService;
     private readonly ILoginService _loginService;
     private readonly IChangePasswordService _changePasswordService;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public AuthController(
         IUserService userService,
         ILoginService loginService,
-        IChangePasswordService changePasswordService)
+        IChangePasswordService changePasswordService,
+        UserManager<ApplicationUser> userManager)
     {
         _userService = userService;
         _loginService = loginService;
         _changePasswordService = changePasswordService;
+        _userManager = userManager;
     }
 
     [HttpPost("register")]
@@ -140,5 +145,22 @@ public class AuthController : BaseController
 
         var response = await _changePasswordService.ChangePasswordAsync(dto);
         return ToActionResult(response);
+    }
+
+    [HttpGet("confirm-email")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ConfirmEmail([FromQuery] int userId, [FromQuery] string code) 
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null) return NotFound("User not found");
+
+        var token = Uri.UnescapeDataString(code);
+        var result = await _userManager.ConfirmEmailAsync(user, token);
+        
+        if (!result.Succeeded) return BadRequest(result.Errors);
+        return Ok("Email confirmed successfully");
     }
 }
