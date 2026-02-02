@@ -60,7 +60,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
     options.Lockout.AllowedForNewUsers = true;
 
     // Sign-in settings
-    options.SignIn.RequireConfirmedEmail = false; // Set to true if you want email confirmation
+    options.SignIn.RequireConfirmedEmail = true; // Set to true if you want email confirmation
     options.SignIn.RequireConfirmedPhoneNumber = false;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -74,6 +74,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IChangePasswordService, ChangePasswordService>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+builder.Services.Configure<SmtpOptionsDto>(builder.Configuration.GetSection("Smtp"));
+builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSenderService>();
 
 JwtHelper.Configure(builder.Configuration);
 

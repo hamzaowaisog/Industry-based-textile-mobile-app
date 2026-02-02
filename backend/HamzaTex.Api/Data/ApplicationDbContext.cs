@@ -500,7 +500,7 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.LockoutEnd).HasColumnName("lockout_end");
             entity.Property(e => e.LockoutEnabled).HasColumnName("lockout_enabled");
             entity.Property(e => e.AccessFailedCount).HasColumnName("access_failed_count");
-            entity.Property(e => e.EmailConfirmed).HasColumnName("email_confirmed");
+            entity.Property(e => e.EmailConfirmed).HasDefaultValue(false).HasColumnName("email_confirmed");
             entity.Property(e => e.NormalizedEmail).HasColumnName("normalized_email");
             entity.Property(e => e.NormalizedUserName).HasColumnName("normalized_user_name");
 

@@ -672,6 +672,11 @@ ALTER TABLE `refresh_tokens` ADD `created_by_ip` longtext CHARACTER SET utf8mb4 
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20251230072829_AddCreatedByIpToRefreshToken', '9.0.10');
 
+ALTER TABLE `users` MODIFY COLUMN `email_confirmed` tinyint(1) NOT NULL DEFAULT FALSE;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260202123952_AddedDefaultValueForEmailConfirmation', '9.0.10');
+
 COMMIT;
 
 

@@ -4,6 +4,7 @@ using HamzaTex.Api.Models;
 using HamzaTex.Api.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace HamzaTex.Api.Services;
 
@@ -20,11 +21,15 @@ public class UserService : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ApplicationDbContext _dbContext;
+    private readonly IConfiguration _configuration;
+    private readonly IEmailSender _emailSender;
 
-    public UserService(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext)
+    public UserService(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IConfiguration configuration, IEmailSender emailSender)
     {
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        _emailSender = emailSender ?? throw new ArgumentNullException(nameof(emailSender));
     }
 
     public async Task<Response<UserDto>> GetByIdAsync(int id)
@@ -142,7 +147,7 @@ public class UserService : IUserService
             RoleId = model.RoleId,
             IsActive = model.IsActive,
             CreatedAt = model.CreatedAt,
-            EmailConfirmed = true,
+            EmailConfirmed = false,
             PhoneNumber = !string.IsNullOrWhiteSpace(model.PhoneNumber) ? model.PhoneNumber.Trim() : null,
             PhoneNumberConfirmed = !string.IsNullOrWhiteSpace(model.PhoneNumber)
         };
@@ -155,7 +160,15 @@ public class UserService : IUserService
             return Response<CreateUserDto>.ErrorResponse("Validation failed", errors);
         }
 
-        return Response<CreateUserDto>.SuccessResponse(model, "User created successfully.");
+        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        var code = Uri.EscapeDataString(token);
+
+        var baseUrl = _configuration["App:PublicBaseUrl"];
+        var link = $"{baseUrl}/api/auth/confirm-email?userId={user.Id}&code={code}";
+
+        await _emailSender.SendEmailAsync(email: user.Email, subject: "Confirm your email", htmlMessage: $"<p>Confirm your account by clicking this link:</p><p><a href=\"{link}\">Confirm Email</a></p>");
+
+        return Response<CreateUserDto>.SuccessResponse(model, "Registration successful. Please check your email for confirmation.");
     }
 
     private static UserDto ToDto(ApplicationUser user) =>

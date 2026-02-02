@@ -10,7 +10,6 @@ namespace HamzaTex.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[AllowAnonymous]
 public class UsersController : BaseController
 {
     private readonly IUserService _userService;
@@ -20,34 +19,8 @@ public class UsersController : BaseController
         _userService = userService;
     }
 
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateUser([FromBody] UserCreateViewModel model)
-    {
-        if (!ModelState.IsValid)
-        {
-            return ValidationProblem(ModelState);
-        }
-
-        var dto = new CreateUserDto
-        {
-            Name = model.Name,
-            Email = model.Email,
-            UserName = model.UserName,
-            Password = model.Password,
-            ConfirmPassword = model.ConfirmPassword,
-            RoleId = model.RoleId,
-            IsActive = model.IsActive,
-            PhoneNumber = model.PhoneNumber,
-            CreatedAt = model.CreatedAt
-        };
-
-        var response = await _userService.SignupAsync(dto);
-        return ToActionResult(response);
-    }
-
     [HttpGet("{id}")]
+    [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserById(int id)
@@ -57,6 +30,7 @@ public class UsersController : BaseController
     }
 
     [HttpGet]
+    [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -65,6 +39,7 @@ public class UsersController : BaseController
     }
 
     [HttpPut]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -96,6 +71,7 @@ public class UsersController : BaseController
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteUserById(int id)
