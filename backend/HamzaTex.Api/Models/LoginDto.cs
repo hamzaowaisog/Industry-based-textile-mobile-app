@@ -29,3 +29,8 @@ public class LogoutRequest
 {
     public string? RefreshToken { get; set; }
 }
+
+public class ResendEmailConfirmationRequest
+{
+    public string Email { get; set; } = string.Empty;
+}

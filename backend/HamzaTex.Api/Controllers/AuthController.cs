@@ -163,4 +163,15 @@ public class AuthController : BaseController
         if (!result.Succeeded) return BadRequest(result.Errors);
         return Ok("Email confirmed successfully");
     }
+
+
+    [HttpPost("resend-email-confirmation")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResendEmailConfirmation([FromBody] ResendEmailConfirmationRequest request)
+    {
+        var response = await _userService.ResendEmailConfirmationAsync(request.Email);
+        return ToActionResult(response);
+    }
 }
