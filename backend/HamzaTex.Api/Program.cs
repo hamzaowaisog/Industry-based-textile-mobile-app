@@ -79,7 +79,11 @@ builder.Services.Configure<SmtpOptionsDto>(builder.Configuration.GetSection("Smt
 builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSenderService>();
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
 {
-    options.TokenLifespan = TimeSpan.FromHours(int.Parse(builder.Configuration["App:EmailConfirmationTokenExpirationHours"] ?? "1"));
+    options.TokenLifespan = TimeSpan.FromMinutes(int.Parse(builder.Configuration["App:EmailConfirmationTokenExpirationMinutes"] ?? "10"));
+});
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromMinutes(int.Parse(builder.Configuration["App:PasswordResetTokenExpirationMinutes"] ?? "10"));
 });
 JwtHelper.Configure(builder.Configuration);
 

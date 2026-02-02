@@ -154,14 +154,13 @@ public class AuthController : BaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ConfirmEmail([FromQuery] int userId, [FromQuery] string code) 
     {
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user is null) return NotFound("User not found");
-
-        var token = Uri.UnescapeDataString(code);
-        var result = await _userManager.ConfirmEmailAsync(user, token);
-        
-        if (!result.Succeeded) return BadRequest(result.Errors);
-        return Ok("Email confirmed successfully");
+        var dto = new EmailConfirmationDto
+        {
+            UserId = userId,
+            Code = code
+        };
+        var response = await _userService.EmailConfirmationTokenAsync(dto);
+        return ToActionResult(response);
     }
 
 
@@ -174,4 +173,36 @@ public class AuthController : BaseController
         var response = await _userService.ResendEmailConfirmationAsync(request.Email);
         return ToActionResult(response);
     }
+
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordViewModel model)
+    {
+        var dto = new ForgetPasswordDto
+        {
+            Email = model.Email
+        };
+        var response = await _userService.ForgotPasswordAsync(dto);
+        return ToActionResult(response);
+    }
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordViewModel model)
+    {
+        var dto = new ResetPasswordDto
+        {
+            Email = model.Email,
+            Token = model.Token,
+            NewPassword = model.NewPassword,
+            ConfirmPassword = model.ConfirmPassword
+        };
+        var response = await _userService.ResetPasswordAsync(dto);
+        return ToActionResult(response);
+    }
+
 }
