@@ -38,7 +38,7 @@ public class UsersController : BaseController
         return ToActionResult(response);
     }
 
-    [HttpPut]
+    [HttpPut("me")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

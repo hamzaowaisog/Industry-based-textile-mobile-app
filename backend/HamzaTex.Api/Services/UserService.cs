@@ -169,147 +169,8 @@ public class UserService : IUserService
 
         var baseUrl = _configuration["App:PublicBaseUrl"];
         var link = $"{baseUrl}/api/auth/confirm-email?userId={user.Id}&code={code}";
-        var htmlMessage = $@"
-        <!DOCTYPE html>
-        <html lang='en'>
-        <head>
-            <meta charset='UTF-8'>
-            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <title>Confirm Your Email</title>
-            <style>
-                body {{
-                    font-family: 'Arial', sans-serif;
-                    background-color: #f9f9f9;
-                    color: #333;
-                    margin: 0;
-                    padding: 0;
-                }}
-                table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                }}
-                .container {{
-                    max-width: 600px;
-                    margin: 0 auto;
-                    background-color: #ffffff;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-                }}
-                .header {{
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 40px;
-                    text-align: center;
-                    border-radius: 8px 8px 0 0;
-                }}
-                .header h1 {{
-                    font-size: 30px;
-                    font-weight: 700;
-                    margin: 0;
-                }}
-                .header p {{
-                    font-size: 16px;
-                    margin-top: 8px;
-                    opacity: 0.85;
-                }}
-                .body {{
-                    padding: 40px;
-                    font-size: 16px;
-                    color: #4a5568;
-                }}
-                .body h2 {{
-                    font-size: 26px;
-                    color: #2d3748;
-                    margin-bottom: 20px;
-                    font-weight: 600;
-                }}
-                .cta-button {{
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    padding: 16px 40px;
-                    border-radius: 6px;
-                    text-align: center;
-                    margin-top: 30px;
-                }}
-                .cta-button a {{
-                    color: #ffffff;
-                    text-decoration: none;
-                    font-size: 16px;
-                    font-weight: 600;
-                }}
-                .footer {{
-                    background-color: #f7fafc;
-                    color: #718096;
-                    padding: 32px 40px;
-                    border-top: 1px solid #e2e8f0;
-                    font-size: 13px;
-                    text-align: center;
-                }}
-                .footer a {{
-                    color: #667eea;
-                    text-decoration: none;
-                }}
-                .brand-footer {{
-                    background-color: #ffffff;
-                    text-align: center;
-                    padding: 24px 40px;
-                    font-size: 12px;
-                    color: #a0aec0;
-                }}
-                .link-box {{
-                    background-color: #f7fafc;
-                    padding: 12px;
-                    border-radius: 4px;
-                    word-wrap: break-word;
-                    margin-top: 20px;
-                }}
-                .link-box a {{
-                    font-size: 13px;
-                    color: #667eea;
-                }}
-            </style>
-        </head>
-        <body>
-
-            <table role='presentation'>
-                <tr>
-                    <td style='padding: 40px 20px;'>
-                        <div class='container'>
-                            <!-- Header -->
-                            <div class='header'>
-                                <h1>HamzaTex</h1>
-                                <p>Premium Textile Solutions</p>
-                            </div>
-
-                            <!-- Body -->
-                            <div class='body'>
-                                <h2>Welcome to HamzaTex!</h2>
-                                <p>Thank you for joining our textile community. We're thrilled to have you with us!</p>
-                                <p>To get started, please confirm your email address by clicking the button below:</p>
-                                
-                                <!-- CTA Button -->
-                                <div class='cta-button'>
-                                    <a href='{link}'>Confirm Email Address</a>
-                                </div>
-                            </div>
-
-                            <!-- Footer -->
-                            <div class='footer'>
-                                <p>This link will expire in {_configuration["App:EmailConfirmationTokenExpirationMinutes"]} minutes for security reasons.</p>
-                                <p>If you didn't create an account with HamzaTex, you can safely ignore this email.</p>
-                            </div>
-
-                            <!-- Brand Footer -->
-                            <div class='brand-footer'>
-                                <p>© 2026 HamzaTex. All rights reserved.</p>
-                            </div>
-
-                        </div>
-                    </td>
-                </tr>
-            </table>
-
-        </body>
-        </html>";
+        var expirationMinutes = _configuration["App:EmailConfirmationTokenExpirationMinutes"] ?? "10";
+        var htmlMessage = AuthHtmlHelper.GetConfirmEmailTemplateHtml(link, expirationMinutes);
         await _emailSender.SendEmailAsync(email: user.Email, subject: "Confirm your email", htmlMessage: htmlMessage);
 
         return Response<CreateUserDto>.SuccessResponse(model, "Registration successful. Please check your email for confirmation.");
@@ -333,154 +194,15 @@ public class UserService : IUserService
         var user = await _userManager.FindByEmailAsync(email);
 
         if (user is null) return Response.ErrorResponse("Not found", $"User with email '{email}' was not found.");
+        if (await _userManager.IsEmailConfirmedAsync(user)) return Response.SuccessResponse("Email already confirmed");
 
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         var code = Uri.EscapeDataString(token);
 
         var baseUrl = _configuration["App:PublicBaseUrl"];
         var link = $"{baseUrl}/api/auth/confirm-email?userId={user.Id}&code={code}";
-        var htmlMessage = $@"
-        <!DOCTYPE html>
-        <html lang='en'>
-        <head>
-            <meta charset='UTF-8'>
-            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <title>Confirm Your Email</title>
-            <style>
-                body {{
-                    font-family: 'Arial', sans-serif;
-                    background-color: #f9f9f9;
-                    color: #333;
-                    margin: 0;
-                    padding: 0;
-                }}
-                table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                }}
-                .container {{
-                    max-width: 600px;
-                    margin: 0 auto;
-                    background-color: #ffffff;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-                }}
-                .header {{
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 40px;
-                    text-align: center;
-                    border-radius: 8px 8px 0 0;
-                }}
-                .header h1 {{
-                    font-size: 30px;
-                    font-weight: 700;
-                    margin: 0;
-                }}
-                .header p {{
-                    font-size: 16px;
-                    margin-top: 8px;
-                    opacity: 0.85;
-                }}
-                .body {{
-                    padding: 40px;
-                    font-size: 16px;
-                    color: #4a5568;
-                }}
-                .body h2 {{
-                    font-size: 26px;
-                    color: #2d3748;
-                    margin-bottom: 20px;
-                    font-weight: 600;
-                }}
-                .cta-button {{
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    padding: 16px 40px;
-                    border-radius: 6px;
-                    text-align: center;
-                    margin-top: 30px;
-                }}
-                .cta-button a {{
-                    color: #ffffff;
-                    text-decoration: none;
-                    font-size: 16px;
-                    font-weight: 600;
-                }}
-                .footer {{
-                    background-color: #f7fafc;
-                    color: #718096;
-                    padding: 32px 40px;
-                    border-top: 1px solid #e2e8f0;
-                    font-size: 13px;
-                    text-align: center;
-                }}
-                .footer a {{
-                    color: #667eea;
-                    text-decoration: none;
-                }}
-                .brand-footer {{
-                    background-color: #ffffff;
-                    text-align: center;
-                    padding: 24px 40px;
-                    font-size: 12px;
-                    color: #a0aec0;
-                }}
-                .link-box {{
-                    background-color: #f7fafc;
-                    padding: 12px;
-                    border-radius: 4px;
-                    word-wrap: break-word;
-                    margin-top: 20px;
-                }}
-                .link-box a {{
-                    font-size: 13px;
-                    color: #667eea;
-                }}
-            </style>
-        </head>
-        <body>
-
-            <table role='presentation'>
-                <tr>
-                    <td style='padding: 40px 20px;'>
-                        <div class='container'>
-                            <!-- Header -->
-                            <div class='header'>
-                                <h1>HamzaTex</h1>
-                                <p>Premium Textile Solutions</p>
-                            </div>
-
-                            <!-- Body -->
-                            <div class='body'>
-                                <h2>Welcome to HamzaTex!</h2>
-                                <p>Thank you for joining our textile community. We're thrilled to have you with us!</p>
-                                <p>To get started, please confirm your email address by clicking the button below:</p>
-                                
-                                <!-- CTA Button -->
-                                <div class='cta-button'>
-                                    <a href='{link}'>Confirm Email Address</a>
-                                </div>
-                            </div>
-
-                            <!-- Footer -->
-                            <div class='footer'>
-                                <p>This link will expire in {_configuration["App:EmailConfirmationTokenExpirationMinutes"]} minutes for security reasons.</p>
-                                <p>If you didn't create an account with HamzaTex, you can safely ignore this email.</p>
-                            </div>
-
-                            <!-- Brand Footer -->
-                            <div class='brand-footer'>
-                                <p>© 2026 HamzaTex. All rights reserved.</p>
-                            </div>
-
-                        </div>
-                    </td>
-                </tr>
-            </table>
-
-        </body>
-        </html>";
-
+        var expirationMinutes = _configuration["App:EmailConfirmationTokenExpirationMinutes"] ?? "10";
+        var htmlMessage = AuthHtmlHelper.GetConfirmEmailTemplateHtml(link, expirationMinutes);
         await _emailSender.SendEmailAsync(email: user.Email, subject: "Confirm your email", htmlMessage: htmlMessage);
 
         return Response.SuccessResponse("Email confirmation link sent to your email");
@@ -500,153 +222,13 @@ public class UserService : IUserService
 
         var baseUrl = _configuration["App:PublicBaseUrl"];
         var link = $"{baseUrl}/api/auth/reset-password?email={Uri.EscapeDataString(user.Email)}&code={code}";
-        var htmlMessage = $@"
-        <!DOCTYPE html>
-        <html lang='en'>
-        <head>
-            <meta charset='UTF-8'>
-            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <title>Reset Your Password</title>
-            <style>
-                body {{
-                    font-family: 'Arial', sans-serif;
-                    background-color: #f9f9f9;
-                    color: #333;
-                    margin: 0;
-                    padding: 0;
-                }}
-                table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                }}
-                .container {{
-                    max-width: 600px;
-                    margin: 0 auto;
-                    background-color: #ffffff;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-                }}
-                .header {{
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 40px;
-                    text-align: center;
-                    border-radius: 8px 8px 0 0;
-                }}
-                .header h1 {{
-                    font-size: 30px;
-                    font-weight: 700;
-                    margin: 0;
-                }}
-                .header p {{
-                    font-size: 16px;
-                    margin-top: 8px;
-                    opacity: 0.85;
-                }}
-                .body {{
-                    padding: 40px;
-                    font-size: 16px;
-                    color: #4a5568;
-                }}
-                .body h2 {{
-                    font-size: 26px;
-                    color: #2d3748;
-                    margin-bottom: 20px;
-                    font-weight: 600;
-                }}
-                .cta-button {{
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    padding: 16px 40px;
-                    border-radius: 6px;
-                    text-align: center;
-                    margin-top: 30px;
-                }}
-                .cta-button a {{
-                    color: #ffffff;
-                    text-decoration: none;
-                    font-size: 16px;
-                    font-weight: 600;
-                }}
-                .footer {{
-                    background-color: #f7fafc;
-                    color: #718096;
-                    padding: 32px 40px;
-                    border-top: 1px solid #e2e8f0;
-                    font-size: 13px;
-                    text-align: center;
-                }}
-                .footer a {{
-                    color: #667eea;
-                    text-decoration: none;
-                }}
-                .brand-footer {{
-                    background-color: #ffffff;
-                    text-align: center;
-                    padding: 24px 40px;
-                    font-size: 12px;
-                    color: #a0aec0;
-                }}
-                .link-box {{
-                    background-color: #f7fafc;
-                    padding: 12px;
-                    border-radius: 4px;
-                    word-wrap: break-word;
-                    margin-top: 20px;
-                }}
-                .link-box a {{
-                    font-size: 13px;
-                    color: #667eea;
-                }}
-            </style>
-        </head>
-        <body>
-
-            <table role='presentation'>
-                <tr>
-                    <td style='padding: 40px 20px;'>
-                        <div class='container'>
-                            <!-- Header -->
-                            <div class='header'>
-                                <h1>HamzaTex</h1>
-                                <p>Premium Textile Solutions</p>
-                            </div>
-
-                            <!-- Body -->
-                            <div class='body'>
-                                <h2>Password Reset Request 🔒</h2>
-                                <p>We received a request to reset your password for your HamzaTex account.</p>
-                                <p>If you didn’t make this request, please ignore this email. Otherwise, you can reset your password by clicking the button below:</p>
-                                
-                                <!-- CTA Button -->
-                                <div class='cta-button'>
-                                    <a href='{link}'>Reset Your Password</a>
-                                </div>
-                            </div>
-
-                            <!-- Footer -->
-                            <div class='footer'>
-                                <p>This link will expire in {_configuration["App:PasswordResetTokenExpirationMinutes"]} minutes for security reasons.</p>
-                                <p>If you didn’t request a password reset, you can safely ignore this email.</p>
-                            </div>
-
-                            <!-- Brand Footer -->
-                            <div class='brand-footer'>
-                                <p>© 2026 HamzaTex. All rights reserved.</p>
-                            </div>
-
-                        </div>
-                    </td>
-                </tr>
-            </table>
-
-        </body>
-        </html>";
-
+        var expirationMinutes = _configuration["App:PasswordResetTokenExpirationMinutes"] ?? "10";
+        var htmlMessage = AuthHtmlHelper.GetResetPasswordEmailTemplateHtml(link, expirationMinutes);
         await _emailSender.SendEmailAsync(email: user.Email, subject: "Reset your password", htmlMessage: htmlMessage);
 
         return Response.SuccessResponse("Password reset link sent to your email");
     }
-    
+
     public async Task<Response> ResetPasswordAsync(ResetPasswordDto model)
     {
         var user = await _userManager.FindByEmailAsync(model.Email);
@@ -659,8 +241,8 @@ public class UserService : IUserService
         if (!result.Succeeded) return Response.ErrorResponse("Validation failed", string.Join(", ", result.Errors.Select(e => e.Description)));
 
         return Response.SuccessResponse("Password reset successfully");
-
     }
+
     private static UserDto ToDto(ApplicationUser user) =>
         new()
         {

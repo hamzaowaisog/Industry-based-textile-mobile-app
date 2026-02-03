@@ -109,7 +109,7 @@ public class AuthController : BaseController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.RefreshToken))
+        if (request == null || string.IsNullOrWhiteSpace(request.RefreshToken))
         {
             return BadRequest("Refresh token is required");
         }
@@ -160,9 +160,12 @@ public class AuthController : BaseController
             Code = code
         };
         var response = await _userService.EmailConfirmationTokenAsync(dto);
-        return ToActionResult(response);
+        if (response.Success)
+        {
+            return Content(AuthHtmlHelper.GetConfirmEmailHtml(true, "Email confirmed successfully! You can close this page and return to the app."), "text/html");
+        }
+        return Content(AuthHtmlHelper.GetConfirmEmailHtml(false, response.Message ?? "Confirmation failed. The link may have expired."), "text/html");
     }
-
 
     [HttpPost("resend-email-confirmation")]
     [AllowAnonymous]
@@ -170,6 +173,10 @@ public class AuthController : BaseController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResendEmailConfirmation([FromBody] ResendEmailConfirmationRequest request)
     {
+        if (request == null || string.IsNullOrWhiteSpace(request.Email))
+        {
+            return BadRequest("Email is required");
+        }
         var response = await _userService.ResendEmailConfirmationAsync(request.Email);
         return ToActionResult(response);
     }
@@ -188,6 +195,18 @@ public class AuthController : BaseController
         return ToActionResult(response);
     }
 
+    [HttpGet("reset-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult ResetPasswordPage([FromQuery] string? email, [FromQuery] string? code)
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(code))
+        {
+            return Content(AuthHtmlHelper.GetResetPasswordPageHtml(error: "Invalid or expired reset link. Please request a new password reset."), "text/html");
+        }
+        return Content(AuthHtmlHelper.GetResetPasswordPageHtml(email: email, code: code), "text/html");
+    }
+
     [HttpPost("reset-password")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -204,5 +223,4 @@ public class AuthController : BaseController
         var response = await _userService.ResetPasswordAsync(dto);
         return ToActionResult(response);
     }
-
 }

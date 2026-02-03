@@ -74,7 +74,7 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
-    [HttpGet("users")]
+    [HttpGet("me")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllClientsByUserId()
