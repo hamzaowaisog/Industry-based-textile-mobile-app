@@ -14,7 +14,7 @@ public interface IClientService
     Task<Response<List<ClientDto>>> GetAllByUserIdAsync(int userId);
     Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model);
     Task<Response> DeleteByIdAsync(int id);
-    Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize);
+    Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId);
 }
 
 public class ClientService : IClientService
@@ -26,8 +26,12 @@ public class ClientService : IClientService
         _dbContext = dbContext;
     }
 
-    public async Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize){
-        var query = _dbContext.Clients.AsNoTracking().Select(client => ToDto(client));
+    public async Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId)
+    {
+        var query = _dbContext.Clients
+            .AsNoTracking()
+            .Where(client => client.UserId == userId)
+            .Select(client => ToDto(client));
         var pagedList = await PagedList<ClientDto>.CreateAsync(query, page, pageSize);
         return Response<PagedList<ClientDto>>.SuccessResponse(pagedList, "Clients fetched successfully.");
     }

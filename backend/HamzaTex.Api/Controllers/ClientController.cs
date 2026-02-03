@@ -23,9 +23,15 @@ public class ClientController : BaseController
     [HttpGet("Filtered")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllClientsFiltered(int page =1 , int pageSize = 5)
+    public async Task<IActionResult> GetAllClientsFiltered(int page = 1, int pageSize = 5)
     {
-        var response = await _clientService.GetAllPaginatedAsync(page, pageSize);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
+            return Unauthorized("User identifier is missing or invalid in the token.");
+        }
+
+        var response = await _clientService.GetAllPaginatedAsync(page, pageSize, userId);
         return ToActionResult(response);
     }
 
