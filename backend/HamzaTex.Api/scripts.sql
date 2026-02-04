@@ -677,6 +677,53 @@ ALTER TABLE `users` MODIFY COLUMN `email_confirmed` tinyint(1) NOT NULL DEFAULT 
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260202123952_AddedDefaultValueForEmailConfirmation', '9.0.10');
 
+DROP VIEW IF EXISTS v_monthly_profit_loss;
+
+CREATE VIEW v_monthly_profit_loss AS
+                SELECT
+                    ROW_NUMBER() OVER (ORDER BY month)                AS id,
+                    month,
+                    total_sales,
+                    total_purchases,
+                    total_expenses,
+                    (total_sales - total_purchases)                   AS gross_profit,
+                    (total_sales - total_purchases - total_expenses)  AS net_profit
+                FROM (
+                    SELECT
+                        DATE_FORMAT(t.trans_date, '%Y-%m-01') AS month,
+                        SUM(CASE WHEN tt.name = 'Sale'     THEN t.amount ELSE 0 END) AS total_sales,
+                        SUM(CASE WHEN tt.name = 'Purchase' THEN t.amount ELSE 0 END) AS total_purchases,
+                        SUM(CASE WHEN tt.name like '%Expense%' THEN t.amount ELSE 0 END) AS total_expenses  -- or join expenses table if you want
+                    FROM transactions t
+                    LEFT JOIN trans_categories tt ON t.trans_category_id = tt.id
+                    GROUP BY DATE_FORMAT(t.trans_date, '%Y-%m-01')
+                ) x;
+
+DROP VIEW IF EXISTS v_monthly_credit_debit;
+
+CREATE VIEW v_monthly_credit_debit AS
+                SELECT
+                    ROW_NUMBER() OVER (ORDER BY month)                AS id,
+                    month,
+                    total_credit,
+                    total_debit,
+                    (total_credit - total_debit)                   AS balance
+                FROM (
+                    SELECT
+                        DATE_FORMAT(t.trans_date, '%Y-%m-01') AS month,
+                        SUM(CASE WHEN tt.name = 'Credit'     THEN t.amount ELSE 0 END) AS total_credit,
+                        SUM(CASE WHEN tt.name = 'Debit' THEN t.amount ELSE 0 END) AS total_debit
+                    FROM transactions t
+                    LEFT JOIN trans_types tt ON t.trans_type_id = tt.id
+                    GROUP BY DATE_FORMAT(t.trans_date, '%Y-%m-01')
+                ) x;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260204131656_UpdateMonthlyProfitLossView', '9.0.10');
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260204140443_UpdateMonthlyCreditDebit', '9.0.10');
+
 COMMIT;
 
 

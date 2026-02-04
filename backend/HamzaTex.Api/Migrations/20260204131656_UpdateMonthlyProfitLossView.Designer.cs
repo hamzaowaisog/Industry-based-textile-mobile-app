@@ -4,6 +4,7 @@ using HamzaTex.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HamzaTex.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260204131656_UpdateMonthlyProfitLossView")]
+    partial class UpdateMonthlyProfitLossView
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1064,37 +1067,6 @@ namespace HamzaTex.Api.Migrations
                     b.ToTable((string)null);
 
                     b.ToView("v_client_balance", (string)null);
-                });
-
-            modelBuilder.Entity("HamzaTex.Api.Entities.VMonthlyCreditDebit", b =>
-                {
-                    b.Property<decimal?>("Balance")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
-                        .HasColumnName("balance");
-
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime?>("Month")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("month");
-
-                    b.Property<decimal?>("TotalCredit")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
-                        .HasColumnName("total_credit");
-
-                    b.Property<decimal?>("TotalDebit")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
-                        .HasColumnName("total_debit");
-
-                    b.ToTable((string)null);
-
-                    b.ToView("v_monthly_credit_debit", (string)null);
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.VMonthlyProfitLoss", b =>

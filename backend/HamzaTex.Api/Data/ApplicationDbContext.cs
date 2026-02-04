@@ -66,6 +66,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
 
     public virtual DbSet<VMonthlyProfitLoss> VMonthlyProfitLosses { get; set; }
 
+    public virtual DbSet<VMonthlyCreditDebit> VMonthlyCreditDebits { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -720,6 +722,24 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.TotalSales)
                 .HasPrecision(14, 2)
                 .HasColumnName("total_sales");
+        });
+
+        modelBuilder.Entity<VMonthlyCreditDebit>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("v_monthly_credit_debit");
+            entity.Property(e => e.Balance)
+                .HasPrecision(14, 2)
+                .HasColumnName("balance");
+            entity.Property(e => e.Month).HasColumnName("month");
+            entity.Property(e => e.TotalCredit)
+                .HasPrecision(14, 2)
+                .HasColumnName("total_credit");
+            entity.Property(e => e.TotalDebit)
+                .HasPrecision(14, 2)
+                .HasColumnName("total_debit");
+            entity.Property(e => e.Id).HasColumnName("id");
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>
