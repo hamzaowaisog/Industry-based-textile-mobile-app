@@ -68,6 +68,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
 
     public virtual DbSet<VMonthlyCreditDebit> VMonthlyCreditDebits { get; set; }
 
+    public virtual DbSet<ProductUser> ProductUsers { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -782,6 +784,27 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("refresh_tokens_user_id_fkey");
 
+        });
+        modelBuilder.Entity<ProductUser>(entity =>
+        {
+            entity.HasKey(e => new { e.ProductId, e.UserId}).HasName("product_users_pkey"); 
+            entity.ToTable("product_users");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Date)
+                .HasColumnType("date")
+                .HasColumnName("date");
+
+            entity.HasOne(d => d.Product)
+                .WithMany(p => p.ProductUsers)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("product_users_product_id_fkey");
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.ProductUsers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("product_users_user_id_fkey");
         });
 
         OnModelCreatingPartial(modelBuilder);

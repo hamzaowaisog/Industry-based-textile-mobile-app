@@ -724,6 +724,20 @@ VALUES ('20260204131656_UpdateMonthlyProfitLossView', '9.0.10');
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260204140443_UpdateMonthlyCreditDebit', '9.0.10');
 
+CREATE TABLE `product_users` (
+    `product_id` int NOT NULL,
+    `user_id` int NOT NULL,
+    `date` date NOT NULL,
+    CONSTRAINT `product_users_pkey` PRIMARY KEY (`product_id`, `user_id`),
+    CONSTRAINT `product_users_product_id_fkey` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `product_users_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET=utf8mb4;
+
+CREATE INDEX `IX_product_users_user_id` ON `product_users` (`user_id`);
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260205223359_ProductUserTableCreated', '9.0.10');
+
 COMMIT;
 
 
