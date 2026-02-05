@@ -738,6 +738,11 @@ CREATE INDEX `IX_product_users_user_id` ON `product_users` (`user_id`);
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260205223359_ProductUserTableCreated', '9.0.10');
 
+DROP TABLE `user`;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260205224336_DroppingUserTable', '9.0.10');
+
 COMMIT;
 
 
