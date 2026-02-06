@@ -45,6 +45,7 @@ public class ProductController : BaseController
             Unit = model.Unit,
             DefaultCost = model.DefaultCost,
             DefaultPrice = model.DefaultPrice,
+            Quantity = model.Quantity,
             ReorderLevel = model.ReorderLevel,
             IsActive = model.IsActive,
             CreatedAt = model.CreatedAt

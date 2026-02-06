@@ -90,6 +90,7 @@ public class ProductService : IProductService
         Unit = entity.Unit,
         DefaultCost = entity.DefaultCost,
         DefaultPrice = entity.DefaultPrice,
+        Quantity = entity.Quantity,
         ReorderLevel = entity.ReorderLevel,
         IsActive = entity.IsActive,
         CreatedAt = entity.CreatedAt
@@ -103,6 +104,7 @@ public class ProductService : IProductService
         Unit = model.Unit.Trim(),
         DefaultCost = model.DefaultCost,
         DefaultPrice = model.DefaultPrice,
+        Quantity = model.Quantity,
         ReorderLevel = model.ReorderLevel,
         IsActive = model.IsActive,
         CreatedAt = DateTime.UtcNow
