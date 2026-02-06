@@ -743,6 +743,15 @@ DROP TABLE `user`;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260205224336_DroppingUserTable', '9.0.10');
 
+ALTER TABLE `expenses` DROP COLUMN `UserId1`;
+
+ALTER TABLE `transactions` DROP COLUMN `UserId1`;
+
+ALTER TABLE `clients` DROP COLUMN `UserId1`;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260206144641_RemovalOfUserId1fromTables', '9.0.10');
+
 COMMIT;
 
 
