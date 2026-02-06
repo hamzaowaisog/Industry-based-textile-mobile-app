@@ -7,6 +7,7 @@ public class ProductCreateViewModel
     public string Unit { get; set; } = string.Empty;
     public decimal? DefaultCost { get; set; }
     public decimal? DefaultPrice { get; set; }
+    public decimal? Quantity { get; set; }
     public int? ReorderLevel { get; set; }
     public bool? IsActive { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -20,6 +21,7 @@ public class ProductUpdateViewModel
     public string Unit { get; set; } = string.Empty;
     public decimal? DefaultCost { get; set; }
     public decimal? DefaultPrice { get; set; }
+    public decimal? Quantity { get; set; }
     public int? ReorderLevel { get; set; }
     public bool? IsActive { get; set; }
 }

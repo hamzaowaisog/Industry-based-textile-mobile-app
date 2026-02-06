@@ -308,6 +308,10 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasPrecision(14, 2)
                 .HasDefaultValueSql("0")
                 .HasColumnName("default_price");
+            entity.Property(e => e.Quantity)
+                .HasPrecision(14, 2)
+                .HasDefaultValueSql("0")
+                .HasColumnName("quantity");
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");

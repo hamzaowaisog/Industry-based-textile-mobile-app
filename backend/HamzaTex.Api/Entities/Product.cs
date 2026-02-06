@@ -26,6 +26,8 @@ public partial class Product
 
     public decimal? DefaultPrice { get; set; }
 
+    public decimal? Quantity { get; set; }
+
     public int? ReorderLevel { get; set; }
 
     public bool? IsActive { get; set; }

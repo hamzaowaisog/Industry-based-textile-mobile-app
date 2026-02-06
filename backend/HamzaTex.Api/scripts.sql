@@ -752,6 +752,11 @@ ALTER TABLE `clients` DROP COLUMN `UserId1`;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260206144641_RemovalOfUserId1fromTables', '9.0.10');
 
+ALTER TABLE `products` ADD `quantity` decimal(14,2) NULL DEFAULT 0;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260206191253_ProductQuantityAdded', '9.0.10');
+
 COMMIT;
 
 
