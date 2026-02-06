@@ -36,6 +36,17 @@ public class ProductService : IProductService
                 return Response<ProductDto>.ErrorResponse("Validation failed", "Product is required.");
             }
 
+            var existingProductSku = await _dbContext.Products
+                                     .AsNoTracking()
+                                     .FirstOrDefaultAsync(p => p.Sku == entity.Sku 
+                                     && p.ProductUsers.Any(pu => pu.UserId == userId));
+                                     
+            if (existingProductSku != null)
+            {
+                await transaction.RollbackAsync();
+                return Response<ProductDto>.ErrorResponse("Duplication error", "This SKU is already in use by another user or this user already has this product.");
+            }
+
             await _dbContext.Products.AddAsync(entity);
             await _dbContext.SaveChangesAsync();
 
