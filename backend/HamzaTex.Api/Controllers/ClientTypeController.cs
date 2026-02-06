@@ -63,11 +63,6 @@ public class ClientTypeController : BaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateClientTypeById(int id, [FromBody] ClientTypeUpdateViewModel model)
     {
-        if (id != model.Id)
-        {
-            ModelState.AddModelError(nameof(model.Id), "Route id must match payload id.");
-        }
-
         if (!ModelState.IsValid)
         {
             return ValidationProblem(ModelState);

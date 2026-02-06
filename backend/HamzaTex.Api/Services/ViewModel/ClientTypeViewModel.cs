@@ -8,6 +8,5 @@ public class ClientTypeCreateViewModel
 
 public class ClientTypeUpdateViewModel
 {
-    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
 }

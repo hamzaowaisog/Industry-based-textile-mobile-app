@@ -22,10 +22,6 @@ public sealed class ClientUpdateViewModelValidation : AbstractValidator<ClientUp
 {
     public ClientUpdateViewModelValidation()
     {
-        RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Id is required")
-            .GreaterThan(0).WithMessage("Id must be greater than 0");
-        
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name is required")
             .MaximumLength(255).WithMessage("Name must be less than 255 characters")

@@ -63,11 +63,6 @@ public class UserRolesController : BaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateUserRole(int id, [FromBody] UpdateUserRoleViewModel model)
     {
-        if (id != model.Id)
-        {
-            ModelState.AddModelError(nameof(model.Id), "Route id must match payload id.");
-        }
-
         if (!ModelState.IsValid)
         {
             return ValidationProblem(ModelState);

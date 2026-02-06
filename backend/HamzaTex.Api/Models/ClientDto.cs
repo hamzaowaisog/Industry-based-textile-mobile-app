@@ -31,7 +31,6 @@ public class CreateClientDto
 
 public class UpdateClientByIdDto
 {
-    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public int ClientTypeId { get; set; }
     public int? UserId { get; set; }
