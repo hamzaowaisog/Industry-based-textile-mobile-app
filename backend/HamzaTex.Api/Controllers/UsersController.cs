@@ -13,10 +13,12 @@ namespace HamzaTex.Api.Controllers;
 public class UsersController : BaseController
 {
     private readonly IUserService _userService;
+    private readonly IPdfService _pdfService;
 
-    public UsersController(IUserService userService)
+    public UsersController(IUserService userService, IPdfService pdfService)
     {
         _userService = userService;
+        _pdfService = pdfService;
     }
 
     [HttpGet("{id}")]
@@ -80,4 +82,17 @@ public class UsersController : BaseController
         return ToActionResult(response);
     }
 
+    [HttpGet("pdf")]
+    [Authorize(Policy = "AdminOrStaff")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllUsersPdf()
+    {
+        var response = await _userService.GetAllAsync();
+        if (!response.Success)
+            return BadRequest(response.Message);
+
+        var users = response.Data ?? new List<UserDto>();
+        var pdfBytes = _pdfService.CreatePdf("Users", "List of users", users, EntityPdfConfigs.User);
+        return File(pdfBytes, "application/pdf", "users.pdf");
+    }
 }

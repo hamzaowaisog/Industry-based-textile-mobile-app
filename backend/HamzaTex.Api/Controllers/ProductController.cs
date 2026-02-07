@@ -14,10 +14,12 @@ namespace HamzaTex.Api.Controllers;
 public class ProductController : BaseController
 {
     private readonly IProductService _productService;
+    private readonly IPdfService _pdfService;
 
-    public ProductController(IProductService productService)
+    public ProductController(IProductService productService, IPdfService pdfService)
     {
         _productService = productService;
+        _pdfService = pdfService;
     }
 
     [HttpPost]
@@ -151,5 +153,25 @@ public class ProductController : BaseController
 
         var response = await _productService.GetAllPaginatedAsync(page, pageSize, userId);
         return ToActionResult(response);
+    }
+
+    [HttpGet("pdf")]
+    [Authorize(Policy = "Authenticated")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllProductsPdf()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
+            return Unauthorized("User identifier is missing or invalid in the token.");
+        }
+        var response = await _productService.GetAllAsync(userId);
+        if (!response.Success)
+        {
+            return BadRequest(response.Message);
+        }
+        var products = response.Data ?? new List<ProductDto>();
+        var pdfBytes = _pdfService.CreatePdf("Products", "Cost and price are per meter. Quantity is in meters.", products, EntityPdfConfigs.Product, new PdfOptions { SummaryProperty = "DefaultPrice", SummaryMultiplierProperty = "Quantity", SummaryLabel = "Total Value (Qty × Price)" });
+        return File(pdfBytes, "application/pdf", "products.pdf");
     }
 }

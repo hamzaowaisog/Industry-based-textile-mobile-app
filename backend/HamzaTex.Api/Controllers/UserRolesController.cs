@@ -14,10 +14,12 @@ namespace HamzaTex.Api.Controllers;
 public class UserRolesController : BaseController
 {
     private readonly IUserRoleService _userRoleService;
+    private readonly IPdfService _pdfService;
 
-    public UserRolesController(IUserRoleService userRoleService)
+    public UserRolesController(IUserRoleService userRoleService, IPdfService pdfService)
     {
         _userRoleService = userRoleService;
+        _pdfService = pdfService;
     }
 
     [HttpPost]
@@ -86,4 +88,16 @@ public class UserRolesController : BaseController
         return ToActionResult(response);
     }
 
+    [HttpGet("pdf")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllUserRolesPdf()
+    {
+        var response = await _userRoleService.GetAllAsync();
+        if (!response.Success)
+            return BadRequest(response.Message);
+
+        var roles = response.Data ?? new List<UserRoleDto>();
+        var pdfBytes = _pdfService.CreatePdf("User Roles", "List of user roles", roles, EntityPdfConfigs.UserRole);
+        return File(pdfBytes, "application/pdf", "user-roles.pdf");
+    }
 }

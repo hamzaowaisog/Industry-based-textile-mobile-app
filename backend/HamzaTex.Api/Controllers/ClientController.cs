@@ -14,10 +14,12 @@ namespace HamzaTex.Api.Controllers;
 public class ClientController : BaseController
 {
     private readonly IClientService _clientService;
+    private readonly IPdfService _pdfService;
 
-    public ClientController(IClientService clientService)
+    public ClientController(IClientService clientService, IPdfService pdfService)
     {
         _clientService = clientService;
+        _pdfService = pdfService;
     }
 
     [HttpGet("Filtered")]
@@ -152,4 +154,21 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
+    [HttpGet("pdf")]
+    [Authorize(Policy = "Authenticated")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllClientsPdf()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized("User identifier is missing or invalid in the token.");
+
+        var response = await _clientService.GetAllByUserIdAsync(userId);
+        if (!response.Success)
+            return BadRequest(response.Message);
+
+        var clients = response.Data ?? new List<ClientDto>();
+        var pdfBytes = _pdfService.CreatePdf("Clients", "List of clients. All amounts in PKR.", clients, EntityPdfConfigs.Client, new PdfOptions { SummaryProperty = "OpeningBalance", SummaryLabel = "Total Opening Balance (PKR)" });
+        return File(pdfBytes, "application/pdf", "clients.pdf");
+    }
 }

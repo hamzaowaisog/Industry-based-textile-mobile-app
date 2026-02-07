@@ -14,10 +14,12 @@ namespace HamzaTex.Api.Controllers;
 public class ClientTypeController : BaseController
 {
     private readonly IClientTypeService _clientTypeService;
+    private readonly IPdfService _pdfService;
 
-    public ClientTypeController(IClientTypeService clientTypeService)
+    public ClientTypeController(IClientTypeService clientTypeService, IPdfService pdfService)
     {
         _clientTypeService = clientTypeService;
+        _pdfService = pdfService;
     }
 
     [HttpPost]
@@ -81,5 +83,18 @@ public class ClientTypeController : BaseController
     {
         var response = await _clientTypeService.DeleteByIdAsync(id);
         return ToActionResult(response);
+    }
+
+    [HttpGet("pdf")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllClientTypesPdf()
+    {
+        var response = await _clientTypeService.GetAllAsync();
+        if (!response.Success)
+            return BadRequest(response.Message);
+
+        var clientTypes = response.Data ?? new List<ClientTypeDto>();
+        var pdfBytes = _pdfService.CreatePdf("Client Types", "List of client types", clientTypes, EntityPdfConfigs.ClientType);
+        return File(pdfBytes, "application/pdf", "client-types.pdf");
     }
 }
