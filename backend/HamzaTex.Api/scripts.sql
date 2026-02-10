@@ -757,6 +757,11 @@ ALTER TABLE `products` ADD `quantity` decimal(14,2) NULL DEFAULT 0;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260206191253_ProductQuantityAdded', '9.0.10');
 
+ALTER TABLE `stock_movements` MODIFY COLUMN `qty` decimal(14,2) NULL DEFAULT 0;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260210103142_ChangedQuantityColumnType', '9.0.10');
+
 COMMIT;
 
 

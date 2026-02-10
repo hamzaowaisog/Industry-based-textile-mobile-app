@@ -391,7 +391,10 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.MovementTypeId).HasColumnName("movement_type_id");
             entity.Property(e => e.MovementSourceId).HasColumnName("movement_source_id");
-            entity.Property(e => e.Qty).HasColumnName("qty");
+            entity.Property(e => e.Qty)
+                .HasPrecision(14, 2)
+                .HasColumnName("qty")
+                .HasDefaultValueSql("0");
             entity.Property(e => e.UnitCost)
                 .HasPrecision(14, 4)
                 .HasColumnName("unit_cost");
