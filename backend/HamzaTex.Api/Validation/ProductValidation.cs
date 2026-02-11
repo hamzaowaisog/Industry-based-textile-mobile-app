@@ -1,3 +1,4 @@
+using System.Data;
 using FluentValidation;
 using HamzaTex.Api.Services.ViewModel;
 
@@ -12,6 +13,11 @@ public sealed class ProductCreateViewModelValidation : AbstractValidator<Product
             .WithMessage("Name is required")
             .MaximumLength(255)
             .WithMessage("Name is Name must be less than 255 characters");
+        RuleFor(x => x.Quantity)
+            .NotEmpty()
+            .WithMessage("Quantity is required")
+            .GreaterThan(0)
+            .WithMessage("Quantity must be greater than 0");
         RuleFor(x => x.Sku)
             .NotEmpty()
             .WithMessage("SKU is required")

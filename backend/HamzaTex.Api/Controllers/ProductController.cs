@@ -48,6 +48,12 @@ public class ProductController : BaseController
             DefaultCost = model.DefaultCost,
             DefaultPrice = model.DefaultPrice,
             Quantity = model.Quantity,
+            AverageCost = model.DefaultCost,
+            AveragePrice = null,
+            CostChangeCount = 1,
+            PriceChangeCount = 0,
+            TotalQuantityPurchased = model.Quantity,
+            TotalQuantitySold = 0,
             ReorderLevel = model.ReorderLevel,
             IsActive = model.IsActive,
             CreatedAt = model.CreatedAt
@@ -115,6 +121,12 @@ public class ProductController : BaseController
             DefaultCost = model.DefaultCost,
             DefaultPrice = model.DefaultPrice,
             Quantity = model.Quantity,
+            AverageCost = model.AverageCost,
+            AveragePrice = model.AveragePrice,
+            CostChangeCount = model.CostChangeCount,
+            PriceChangeCount = model.PriceChangeCount,
+            TotalQuantitySold = model.TotalQuantitySold,
+            TotalQuantityPurchased = model.TotalQuantityPurchased,
             ReorderLevel = model.ReorderLevel,
             IsActive = model.IsActive
         };

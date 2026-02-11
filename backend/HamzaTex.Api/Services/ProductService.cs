@@ -71,6 +71,22 @@ public class ProductService : IProductService
 
             await _dbContext.SaveChangesAsync();
 
+
+            var initialStockMovement = new StockMovement
+            {
+                ProductId = entity.Id,
+                MovementSourceId = 1,
+                MovementTypeId = 1,
+                Qty = entity.Quantity,
+                UnitCost = entity.DefaultCost,
+                UnitPrice = entity.DefaultPrice,
+                AverageCostAtMovement = entity.DefaultCost,
+                AveragePriceAtMovement = null,
+                MovementDate = DateOnly.FromDateTime(DateTime.UtcNow)
+            };
+            await _dbContext.StockMovements.AddAsync(initialStockMovement);
+            await _dbContext.SaveChangesAsync();
+
             await transaction.CommitAsync();
             return Response<ProductDto>.SuccessResponse(ToDto(entity), "Product created successfully.");
         }
@@ -131,11 +147,19 @@ public class ProductService : IProductService
         product.Name = model.Name.Trim();
         product.Sku = model.Sku.Trim();
         product.Unit = model.Unit.Trim();
-        product.DefaultCost = model.DefaultCost;
-        product.DefaultPrice = model.DefaultPrice;
         product.Quantity = model.Quantity;
         product.ReorderLevel = model.ReorderLevel;
         product.IsActive = model.IsActive;
+
+        product.DefaultCost = model.DefaultCost;
+        product.DefaultPrice = model.DefaultPrice;
+
+        if (model.AverageCost.HasValue) product.AverageCost = model.AverageCost;
+        if (model.AveragePrice.HasValue) product.AveragePrice = model.AveragePrice;
+        if (model.CostChangeCount.HasValue) product.CostChangeCount = model.CostChangeCount.Value;
+        if (model.PriceChangeCount.HasValue) product.PriceChangeCount = model.PriceChangeCount.Value;
+        if (model.TotalQuantitySold.HasValue) product.TotalQuantitySold = model.TotalQuantitySold.Value;
+        if (model.TotalQuantityPurchased.HasValue) product.TotalQuantityPurchased = model.TotalQuantityPurchased.Value;
 
         await _dbContext.SaveChangesAsync();
         return Response<ProductDto>.SuccessResponse(ToDto(product), "Product updated successfully.");
@@ -179,6 +203,12 @@ public class ProductService : IProductService
         DefaultCost = entity.DefaultCost,
         DefaultPrice = entity.DefaultPrice,
         Quantity = entity.Quantity,
+        AverageCost = entity.AverageCost,
+        AveragePrice = entity.AveragePrice,
+        CostChangeCount = entity.CostChangeCount,
+        PriceChangeCount = entity.PriceChangeCount,
+        TotalQuantityPurchased = entity.TotalQuantityPurchased,
+        TotalQuantitySold = entity.TotalQuantitySold,
         ReorderLevel = entity.ReorderLevel,
         IsActive = entity.IsActive,
         CreatedAt = entity.CreatedAt
@@ -193,6 +223,12 @@ public class ProductService : IProductService
         DefaultCost = model.DefaultCost,
         DefaultPrice = model.DefaultPrice,
         Quantity = model.Quantity,
+        AverageCost = model.AverageCost,
+        AveragePrice = model.AveragePrice,
+        CostChangeCount = model.CostChangeCount ?? 0,
+        PriceChangeCount = model.PriceChangeCount ?? 0,
+        TotalQuantityPurchased = model.TotalQuantityPurchased,
+        TotalQuantitySold = model.TotalQuantitySold,
         ReorderLevel = model.ReorderLevel,
         IsActive = model.IsActive,
         CreatedAt = DateTime.UtcNow

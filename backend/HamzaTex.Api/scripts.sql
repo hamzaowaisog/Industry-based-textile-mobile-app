@@ -762,6 +762,32 @@ ALTER TABLE `stock_movements` MODIFY COLUMN `qty` decimal(14,2) NULL DEFAULT 0;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260210103142_ChangedQuantityColumnType', '9.0.10');
 
+ALTER TABLE `stock_movements` ADD `average_cost_at_movement` decimal(14,4) NULL;
+
+ALTER TABLE `stock_movements` ADD `average_price_at_movement` decimal(14,4) NULL;
+
+ALTER TABLE `products` ADD `TotalQuantitySold` decimal(65,30) NULL;
+
+ALTER TABLE `products` ADD `average_cost` decimal(14,4) NULL;
+
+ALTER TABLE `products` ADD `average_price` decimal(14,4) NULL;
+
+ALTER TABLE `products` ADD `cost_change_count` int NOT NULL DEFAULT 0;
+
+ALTER TABLE `products` ADD `price_change_count` int NOT NULL DEFAULT 0;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260210205002_AddTotalQuantityInProductTable', '9.0.10');
+
+ALTER TABLE `products` RENAME COLUMN `TotalQuantitySold` TO `total_quantity_sold`;
+
+ALTER TABLE `products` MODIFY COLUMN `total_quantity_sold` decimal(14,2) NULL DEFAULT 0;
+
+ALTER TABLE `products` ADD `total_quantity_purchased` decimal(14,2) NULL DEFAULT 0;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260211083915_AddTotalQuantityPurchasedColumnAdded', '9.0.10');
+
 COMMIT;
 
 

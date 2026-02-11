@@ -312,6 +312,26 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasPrecision(14, 2)
                 .HasDefaultValueSql("0")
                 .HasColumnName("quantity");
+            entity.Property(e => e.AverageCost)
+                .HasPrecision(14, 4)
+                .HasColumnName("average_cost");
+            entity.Property(e => e.AveragePrice)
+                .HasPrecision(14, 4)
+                .HasColumnName("average_price");
+            entity.Property(e => e.CostChangeCount)
+                .HasDefaultValue(0)
+                .HasColumnName("cost_change_count");
+            entity.Property(e => e.PriceChangeCount)
+                .HasDefaultValue(0)
+                .HasColumnName("price_change_count");
+            entity.Property(e => e.TotalQuantityPurchased)
+                .HasPrecision(14, 2)
+                .HasDefaultValueSql("0")
+                .HasColumnName("total_quantity_purchased");
+            entity.Property(e => e.TotalQuantitySold)
+                .HasPrecision(14, 2)
+                .HasDefaultValueSql("0")
+                .HasColumnName("total_quantity_sold");
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
@@ -401,6 +421,12 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.UnitPrice)
                 .HasPrecision(14, 4)
                 .HasColumnName("unit_price");
+            entity.Property(e => e.AverageCostAtMovement)
+                .HasPrecision(14, 4)
+                .HasColumnName("average_cost_at_movement");
+            entity.Property(e => e.AveragePriceAtMovement)
+                .HasPrecision(14, 4)
+                .HasColumnName("average_price_at_movement");
             entity.Property(e => e.MovementDate)
                 .HasColumnType("date")
                 .HasColumnName("movement_date");

@@ -21,6 +21,12 @@ public class ProductUpdateViewModel
     public decimal? DefaultCost { get; set; }
     public decimal? DefaultPrice { get; set; }
     public decimal? Quantity { get; set; }
+    public decimal? AverageCost { get; set; }
+    public decimal? AveragePrice { get; set; }
+    public int? CostChangeCount { get; set; }
+    public int? PriceChangeCount { get; set; }
+    public decimal? TotalQuantitySold { get; set; }
+    public decimal? TotalQuantityPurchased { get; set; }
     public int? ReorderLevel { get; set; }
     public bool? IsActive { get; set; }
 }

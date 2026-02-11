@@ -4,6 +4,7 @@ using HamzaTex.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HamzaTex.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260210205002_AddTotalQuantityInProductTable")]
+    partial class AddTotalQuantityInProductTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -683,19 +686,8 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("varchar(255)")
                         .HasColumnName("sku");
 
-                    b.Property<decimal?>("TotalQuantityPurchased")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
-                        .HasColumnName("total_quantity_purchased")
-                        .HasDefaultValueSql("0");
-
                     b.Property<decimal?>("TotalQuantitySold")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
-                        .HasColumnName("total_quantity_sold")
-                        .HasDefaultValueSql("0");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<string>("Unit")
                         .IsRequired()

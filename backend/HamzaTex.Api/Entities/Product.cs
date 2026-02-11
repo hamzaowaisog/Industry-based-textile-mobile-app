@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -27,6 +27,18 @@ public partial class Product
     public decimal? DefaultPrice { get; set; }
 
     public decimal? Quantity { get; set; }
+
+    public decimal? AverageCost { get; set; }
+
+    public decimal? AveragePrice { get; set; }
+
+    public int CostChangeCount { get; set; }
+
+    public int PriceChangeCount { get; set; }
+    
+    public decimal? TotalQuantityPurchased { get; set; }
+    
+    public decimal? TotalQuantitySold { get; set; }
 
     public int? ReorderLevel { get; set; }
 
