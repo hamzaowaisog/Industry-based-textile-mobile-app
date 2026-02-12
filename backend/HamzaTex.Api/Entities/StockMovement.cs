@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -23,11 +23,15 @@ public partial class StockMovement
 
     public int? MovementSourceId { get; set; }
 
-    public int Qty { get; set; }
+    public decimal? Qty { get; set; }
 
     public decimal? UnitCost { get; set; }
 
     public decimal? UnitPrice { get; set; }
+
+    public decimal? AverageCostAtMovement { get; set; }
+
+    public decimal? AveragePriceAtMovement { get; set; }
 
     public DateOnly MovementDate { get; set; }
 
