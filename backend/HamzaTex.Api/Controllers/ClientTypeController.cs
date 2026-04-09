@@ -8,9 +8,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HamzaTex.Api.Controllers;
 
+/// <summary>Client type management (Customer, Supplier). Admin only. Seeded values: Customer (1), Supplier (2).</summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = "AdminOnly")]
+[Produces("application/json")]
 public class ClientTypeController : BaseController
 {
     private readonly IClientTypeService _clientTypeService;
@@ -22,6 +24,7 @@ public class ClientTypeController : BaseController
         _pdfService = pdfService;
     }
 
+    /// <summary>Create a new client type.</summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -42,6 +45,7 @@ public class ClientTypeController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Get all client types.</summary>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllClientTypes()
@@ -50,6 +54,7 @@ public class ClientTypeController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Get a single client type by ID.</summary>
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -59,6 +64,7 @@ public class ClientTypeController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Update a client type by ID.</summary>
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -76,6 +82,7 @@ public class ClientTypeController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Delete a client type by ID.</summary>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -85,6 +92,7 @@ public class ClientTypeController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Download all client types as a PDF report.</summary>
     [HttpGet("pdf")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllClientTypesPdf()

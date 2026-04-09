@@ -6,12 +6,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Services;
 
+/// <summary>CRUD operations for user roles. Seeded values: Admin (1), Staff (2).</summary>
 public interface IUserRoleService
 {
+    /// <summary>Create a new user role. Name must be unique and contain no spaces.</summary>
     Task<Response<UserRoleDto>> CreateAsync(CreateUserRoleDto model);
+    /// <summary>Get a user role by ID.</summary>
     Task<Response<UserRoleDto>> GetByIdAsync(int id);
+    /// <summary>Get all user roles ordered by creation date.</summary>
     Task<Response<List<UserRoleDto>>> GetAllAsync();
+    /// <summary>Update a user role name by ID.</summary>
     Task<Response<UserRoleDto>> UpdateAsync(int id, UpdateUserRoleDto model);
+    /// <summary>Delete a user role by ID.</summary>
     Task<Response> DeleteAsync(int id);
 }
 

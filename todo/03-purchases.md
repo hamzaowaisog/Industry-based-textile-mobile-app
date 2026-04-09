@@ -64,11 +64,30 @@
 
 ## Business Logic Notes
 
-- `SupplierId` is a `Client.Id` where `ClientTypeId = 2` (Supplier) — validate this
-- On `CreateAsync` for each purchase line:
-  1. Add a `StockMovement` (MovementType=In, MovementSource=Purchase, UnitCost, Qty)
-  2. Recalculate `Product.AverageCost` using weighted average: `(oldAvgCost * oldQty + newUnitCost * newQty) / (oldQty + newQty)`
-  3. Update `Product.TotalQuantityPurchased += newQty`
-  4. Update `Product.Quantity += newQty`
-  5. Increment `Product.CostChangeCount`
-- This logic should be coordinated with `IProductService.UpdateByIdAsync` or a dedicated method
+### Stock movements (CRITICAL — read before implementing)
+`PurchaseService` must inject `IStockMovementsService` and call `CreateAsync` per purchase line. Do NOT reimplement quantity or weighted average logic — it all lives in `StockMovementsService.CreateAsync`. The service automatically:
+- Sets `MovementType = In (1)` (auto-derived from `MovementSource = Purchase`)
+- Increases `Product.Quantity`
+- Recalculates `Product.AverageCost` using weighted average
+- Updates `Product.TotalQuantityPurchased` and `CostChangeCount`
+
+```csharp
+// For each purchase line — MovementType is omitted; auto-derived to In (1) by the service
+var movResult = await _stockMovementsService.CreateAsync(new CreateStockMovementsDto {
+    ProductId      = line.ProductId,
+    MovementSource = 1,           // Purchase — auto-sets MovementType to In
+    Qty            = line.Qty,
+    UnitCost       = line.UnitCost,
+    MovementDate   = DateOnly.FromDateTime(model.PurchaseDate)
+}, userId);
+
+if (!movResult.Success)
+{
+    await transaction.RollbackAsync();
+    return Response<PurchaseDto>.ErrorResponse(movResult.Message);
+}
+```
+
+### Other rules
+- `SupplierId` must reference a `Client.Id` where `ClientTypeId = 2 (Supplier)` — validate in `PurchaseService.CreateAsync`
+- Wrap the entire purchase create (header + lines + stock movements) in a single DB transaction

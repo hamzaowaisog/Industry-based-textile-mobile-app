@@ -6,14 +6,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Services;
 
+/// <summary>CRUD and query operations for clients. Clients with ClientTypeId=2 are Suppliers used in Purchases.</summary>
 public interface IClientService
 {
+    /// <summary>Create a new client linked to a user.</summary>
     Task<Response<ClientDto>> CreateAsync(CreateClientDto model);
+    /// <summary>Get a client by ID.</summary>
     Task<Response<ClientDto>> GetByIdAsync(int id);
+    /// <summary>Get all clients across all users. Admin use only.</summary>
     Task<Response<List<ClientDto>>> GetAllAsync();
+    /// <summary>Get all clients belonging to a specific user.</summary>
     Task<Response<List<ClientDto>>> GetAllByUserIdAsync(int userId);
+    /// <summary>Update a client by ID.</summary>
     Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model);
+    /// <summary>Delete a client by ID.</summary>
     Task<Response> DeleteByIdAsync(int id);
+    /// <summary>Get paginated clients for a specific user.</summary>
     Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId);
 }
 

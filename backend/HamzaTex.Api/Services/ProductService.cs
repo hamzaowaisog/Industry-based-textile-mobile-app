@@ -6,13 +6,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Services;
 
+/// <summary>Product catalogue management. All methods are scoped to userId via the ProductUser join table.</summary>
 public interface IProductService
 {
+    /// <summary>Create a product, link it to the user, and record an initial stock movement for the opening quantity.</summary>
     Task<Response<ProductDto>> CreateWithUserIdAsync(CreateProductDto model, int userId);
-    Task<Response<ProductDto>> GetByIdAsync(int id , int userId);
+    /// <summary>Get a product by ID scoped to the given user.</summary>
+    Task<Response<ProductDto>> GetByIdAsync(int id, int userId);
+    /// <summary>Get all products for the given user.</summary>
     Task<Response<List<ProductDto>>> GetAllAsync(int userId);
+    /// <summary>Update product details. Does not adjust stock — use StockMovementsService for inventory changes.</summary>
     Task<Response<ProductDto>> UpdateByIdAsync(int id, UpdateProductByIdDto model, int userId);
+    /// <summary>Delete a product by ID.</summary>
     Task<Response> DeleteByIdAsync(int id, int userId);
+    /// <summary>Get paginated products for the given user.</summary>
     Task<Response<PagedList<ProductDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId);
 }
 

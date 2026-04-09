@@ -8,25 +8,24 @@ public sealed class StockMovementsCreateViewModelValidation : AbstractValidator<
     public StockMovementsCreateViewModelValidation()
     {
         RuleFor(x => x.ProductId)
-            .NotEmpty()
-            .WithMessage("Product is required")
             .GreaterThan(0)
-            .WithMessage("Product must be greater than 0");
+            .WithMessage("Product is required.");
+
         RuleFor(x => x.MovementSource)
-            .NotEmpty()
-            .WithMessage("Movement source is required")
-            .GreaterThan(0)
-            .WithMessage("Movement source must be greater than 0");
+            .InclusiveBetween(1, 3)
+            .WithMessage("Movement source must be 1 (Purchase), 2 (Sale), or 3 (Manual).");
+
+        // MovementType is only required when source is Manual (3)
         RuleFor(x => x.MovementType)
-            .NotEmpty()
-            .WithMessage("Movement type is required")
-            .GreaterThan(0)
-            .WithMessage("Movement type must be greater than 0");
+            .NotNull()
+            .WithMessage("Movement type is required when source is Manual.")
+            .InclusiveBetween(1, 3)
+            .WithMessage("Movement type must be 1 (In), 2 (Out), or 3 (Adjustment).")
+            .When(x => x.MovementSource == 3);
+
         RuleFor(x => x.Qty)
-            .NotEmpty()
-            .WithMessage("Quantity is required")
             .GreaterThan(0)
-            .WithMessage("Quantity must be greater than 0");
+            .WithMessage("Quantity must be greater than 0.");
     }
 }
 
@@ -35,34 +34,23 @@ public sealed class StockMovementsUpdateViewModelValidation : AbstractValidator<
     public StockMovementsUpdateViewModelValidation()
     {
         RuleFor(x => x.ProductId)
-            .NotEmpty()
-            .WithMessage("Product is required")
             .GreaterThan(0)
-            .WithMessage("Product must be greater than 0");
+            .WithMessage("Product is required.");
+
         RuleFor(x => x.MovementSource)
-            .NotEmpty()
-            .WithMessage("Movement source is required")
-            .GreaterThan(0)
-            .WithMessage("Movement source must be greater than 0");
+            .InclusiveBetween(1, 3)
+            .WithMessage("Movement source must be 1 (Purchase), 2 (Sale), or 3 (Manual).");
+
+        // MovementType required only for Manual source
         RuleFor(x => x.MovementType)
-            .NotEmpty()
-            .WithMessage("Movement type is required")
-            .GreaterThan(0)
-            .WithMessage("Movement type must be greater than 0");
+            .NotNull()
+            .WithMessage("Movement type is required when source is Manual.")
+            .InclusiveBetween(1, 3)
+            .WithMessage("Movement type must be 1 (In), 2 (Out), or 3 (Adjustment).")
+            .When(x => x.MovementSource == 3);
+
         RuleFor(x => x.Qty)
-            .NotEmpty()
-            .WithMessage("Quantity is required")
             .GreaterThan(0)
-            .WithMessage("Quantity must be greater than 0");
-        RuleFor(x => x.UnitCost)
-            .NotEmpty()
-            .WithMessage("Unit cost is required")
-            .GreaterThan(0)
-            .WithMessage("Unit cost must be greater than 0");
-        RuleFor(x => x.UnitPrice)
-            .NotEmpty()
-            .WithMessage("Unit price is required")
-            .GreaterThan(0)
-            .WithMessage("Unit price must be greater than 0");
+            .WithMessage("Quantity must be greater than 0.");
     }
 }

@@ -10,9 +10,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HamzaTex.Api.Controllers;
 
+/// <summary>Authentication — register, login, logout, token refresh, password management, and email confirmation. All endpoints are public (no token required).</summary>
 [ApiController]
 [Route("api/[controller]")]
 [AllowAnonymous]
+[Produces("application/json")]
 public class AuthController : BaseController
 {
     private readonly IUserService _userService;
@@ -32,6 +34,7 @@ public class AuthController : BaseController
         _userManager = userManager;
     }
 
+    /// <summary>Register a new user account. Sends an email confirmation link before login is allowed.</summary>
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -59,6 +62,7 @@ public class AuthController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Login with username and password. Returns a JWT access token and a refresh token.</summary>
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -79,6 +83,7 @@ public class AuthController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Logout. If a refresh token is provided, revokes that token only. Otherwise revokes all tokens for the current user.</summary>
     [HttpPost("logout")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -104,6 +109,7 @@ public class AuthController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Exchange a valid refresh token for a new JWT access token and rotated refresh token.</summary>
     [HttpPost("refresh")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -118,6 +124,7 @@ public class AuthController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Change the current user's password. Requires the existing password for verification.</summary>
     [HttpPost("change-password")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -147,6 +154,7 @@ public class AuthController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Confirm a user's email address using the token sent in the confirmation email. Returns an HTML page.</summary>
     [HttpGet("confirm-email")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -167,6 +175,7 @@ public class AuthController : BaseController
         return Content(AuthHtmlHelper.GetConfirmEmailHtml(false, response.Message ?? "Confirmation failed. The link may have expired."), "text/html");
     }
 
+    /// <summary>Resend the email confirmation link to the given email address.</summary>
     [HttpPost("resend-email-confirmation")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -181,6 +190,7 @@ public class AuthController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Send a password reset link to the given email address.</summary>
     [HttpPost("forgot-password")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -195,6 +205,7 @@ public class AuthController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Renders the reset password HTML page. Called by the link in the forgot-password email — not for direct API use.</summary>
     [HttpGet("reset-password")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -207,6 +218,7 @@ public class AuthController : BaseController
         return Content(AuthHtmlHelper.GetResetPasswordPageHtml(email: email, code: code), "text/html");
     }
 
+    /// <summary>Submit a new password using the token from the reset email.</summary>
     [HttpPost("reset-password")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]

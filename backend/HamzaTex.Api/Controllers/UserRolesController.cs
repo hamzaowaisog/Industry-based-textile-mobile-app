@@ -8,9 +8,11 @@ using HamzaTex.Api.Services.ViewModel;
 
 namespace HamzaTex.Api.Controllers;
 
+/// <summary>User role management. Admin only. Seeded values: Admin (1), Staff (2).</summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = "AdminOnly")]
+[Produces("application/json")]
 public class UserRolesController : BaseController
 {
     private readonly IUserRoleService _userRoleService;
@@ -22,6 +24,7 @@ public class UserRolesController : BaseController
         _pdfService = pdfService;
     }
 
+    /// <summary>Create a new user role.</summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -42,6 +45,7 @@ public class UserRolesController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Get all user roles.</summary>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllUserRoles()
@@ -50,6 +54,7 @@ public class UserRolesController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Get a single user role by ID.</summary>
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -59,6 +64,7 @@ public class UserRolesController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Update a user role by ID.</summary>
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -79,6 +85,7 @@ public class UserRolesController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Delete a user role by ID.</summary>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -88,6 +95,7 @@ public class UserRolesController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Download all user roles as a PDF report.</summary>
     [HttpGet("pdf")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllUserRolesPdf()

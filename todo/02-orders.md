@@ -66,7 +66,40 @@
 
 ## Business Logic Notes
 
-- When an order is created: optionally create a `StockMovement` (MovementType=Out, MovementSource=Sale) per line
-- `Client.ClientTypeId` should be 1 (Customer) for orders — consider validating this
+### Stock movements (CRITICAL — read before implementing)
+`OrderService` must inject `IStockMovementsService` and call `CreateAsync` per order line. Do NOT reimplement quantity or average logic — it all lives in `StockMovementsService.CreateAsync`.
+
+```csharp
+// For each order line — MovementType is omitted; auto-derived to Out (2) by the service
+var movResult = await _stockMovementsService.CreateAsync(new CreateStockMovementsDto {
+    ProductId      = line.ProductId,
+    MovementSource = 2,           // Sale — auto-sets MovementType to Out
+    Qty            = line.Qty,
+    UnitPrice      = line.UnitPrice,
+    MovementDate   = DateOnly.FromDateTime(model.OrderDate)
+}, userId);
+
+if (!movResult.Success)
+{
+    // Insufficient stock — roll back entire order transaction
+    await transaction.RollbackAsync();
+    return Response<OrderDto>.ErrorResponse(movResult.Message);
+}
+```
+
+### Cancellation reversal
+When `StatusId` is updated to `4 (Cancelled)`, reverse each line's stock movement using Manual In:
+```csharp
+await _stockMovementsService.CreateAsync(new CreateStockMovementsDto {
+    ProductId      = line.ProductId,
+    MovementSource = 3,   // Manual
+    MovementType   = 1,   // In — puts stock back
+    Qty            = line.Qty,
+    MovementDate   = DateOnly.FromDateTime(DateTime.UtcNow)
+}, userId);
+```
+
+### Other rules
+- `Client.ClientTypeId` must be `1 (Customer)` for orders — validate in `OrderService.CreateAsync`
 - `PaymentType` is a shared lookup (Cash/Credit) used by both Orders and Purchases
-- `StatusId` 4 (Cancelled) should reverse stock movement if stock was already deducted
+- Wrap the entire order create (header + lines + stock movements) in a single DB transaction

@@ -29,7 +29,7 @@ dotnet ef migrations add <MigrationName>          # add EF migration
 dotnet ef database update                         # apply migrations manually
 ```
 
-Swagger UI: `http://localhost:5000/swagger` (dev only). Auto-migrates and seeds on startup.
+Swagger UI: `http://localhost:5000/swagger`. OpenAPI JSON spec: `http://localhost:5000/swagger/v1/swagger.json`. Download spec for Orval: `GET /api/App/spec`. Auto-migrates and seeds on startup.
 
 ### Frontend
 
@@ -154,10 +154,38 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
 
 ### Key Business Rules
 
-- **Weighted average cost:** When a `Purchase` is created, update `Product.AverageCost = (oldAvgCost * oldQty + newUnitCost * newQty) / (oldQty + newQty)`, increment `TotalQuantityPurchased` and `CostChangeCount`
-- **Stock levels:** Creating an `Order` should create a `StockMovement` (Out/Sale); creating a `Purchase` should create a `StockMovement` (In/Purchase). `StockMovementsService.CreateAsync` validates sufficient stock before outbound movements
+- **Stock movement source drives direction — never set MovementType manually for Purchase/Sale:**
+  - `MovementSource = 1 (Purchase)` → `MovementType` is auto-set to `1 (In)`, stock increases, weighted avg cost recalculated
+  - `MovementSource = 2 (Sale)` → `MovementType` is auto-set to `2 (Out)`, stock decreases, weighted avg price recalculated
+  - `MovementSource = 3 (Manual)` → caller must supply `MovementType`: `1 (In)`, `2 (Out)`, or `3 (Adjustment)`
+  - `MovementType = 3 (Adjustment)` records the event but makes no automatic qty or average change
+  - `CreateStockMovementsDto.MovementType` is `int?` — null is valid for Purchase and Sale sources
+- **Weighted average cost:** Handled inside `StockMovementsService.CreateAsync` for In movements: `AverageCost = (oldAvgCost * oldQty + newUnitCost * newQty) / (oldQty + newQty)`. Increments `TotalQuantityPurchased` and `CostChangeCount` on the product.
+- **Weighted average price:** Handled inside `StockMovementsService.CreateAsync` for Out movements: `AveragePrice = (totalSoldBefore * prevAvgPrice + qty * unitPrice) / totalSoldNow`. Increments `TotalQuantitySold` and `PriceChangeCount`.
+- **Calling StockMovementsService from other services (Orders, Purchases):** Inject `IStockMovementsService` and call `CreateAsync` with the correct `MovementSource`. Do NOT duplicate the quantity/average logic — it all lives in `StockMovementsService.CreateAsync`.
+  ```csharp
+  // From PurchaseService — MovementType omitted, auto-derived to In
+  await _stockMovementsService.CreateAsync(new CreateStockMovementsDto {
+      ProductId = line.ProductId, MovementSource = 1,
+      Qty = line.Qty, UnitCost = line.UnitCost, MovementDate = purchaseDate
+  }, userId);
+
+  // From OrderService — MovementType omitted, auto-derived to Out
+  await _stockMovementsService.CreateAsync(new CreateStockMovementsDto {
+      ProductId = line.ProductId, MovementSource = 2,
+      Qty = line.Qty, UnitPrice = line.UnitPrice, MovementDate = orderDate
+  }, userId);
+
+  // Cancel reversal (Manual In to put stock back)
+  await _stockMovementsService.CreateAsync(new CreateStockMovementsDto {
+      ProductId = line.ProductId, MovementSource = 3, MovementType = 1,
+      Qty = line.Qty, MovementDate = DateOnly.FromDateTime(DateTime.UtcNow)
+  }, userId);
+  ```
+- **Insufficient stock guard:** `StockMovementsService.CreateAsync` returns `ErrorResponse("Insufficient stock")` for Out movements when `Qty > Product.Quantity`. OrderService must check this and roll back the order.
+- **Snapshot fields:** `AverageCostAtMovement` and `AveragePriceAtMovement` on `StockMovement` are computed at create time and stored as a historical snapshot. They are NOT recalculated on `UpdateByIdAsync` unless explicitly provided.
 - **Supplier is a Client:** `Purchase.SupplierId` references `Client.Id` where `ClientTypeId = 2`
-- **UserId scoping:** Products and Clients are scoped to their owner `UserId`; admins see all, staff see their own
+- **UserId scoping:** Products and Clients are scoped to their owner `UserId`; admins see all, staff see their own. Stock movements are scoped through `Product.ProductUsers`.
 
 ---
 
@@ -181,6 +209,24 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 
 Add PDF config to `EntityPdfConfigs` in `Models/PdfConfig.cs` for every new entity that has a list endpoint.
 
+**Controller requirements** — every controller must have:
+- `[Produces("application/json")]` on the class
+- `/// <summary>` XML doc comment on the class and every action method
+- `[ProducesResponseType(...)]` on every action
+
+**Controller userId extraction pattern** — use a private helper (established in `StockMovementsController`):
+```csharp
+private int? GetUserId()
+{
+    var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+    return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
+}
+```
+
+**Service interface requirements** — every `IService` interface must have `/// <summary>` on the interface itself and on every method signature.
+
+**Lookup / enum tables** — all accessible via `GET /api/Meta/{type}` (switch-case dispatch). Frontend calls `GET /api/Meta/all` on app startup and caches locally. Do not create separate controllers for read-only lookups — add to `ILookupService.GetByTypeAsync` switch instead.
+
 ---
 
 ## Existing Services Summary
@@ -195,8 +241,9 @@ Add PDF config to `EntityPdfConfigs` in `Models/PdfConfig.cs` for every new enti
 | `IClientService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllByUserIdAsync, UpdateByIdAsync, DeleteByIdAsync, GetAllPaginatedAsync |
 | `IClientTypeService` | CreateAsync, GetByIdAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync |
 | `IProductService` | CreateWithUserIdAsync, GetByIdAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync, GetAllPaginatedAsync |
-| `IStockMovementsService` | CreateAsync only — read/update/delete methods missing (see `todo/01`) |
-| `IPdfService` | GeneratePdf |
+| `IStockMovementsService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
+| `ILookupService` | GetAllAsync, GetByTypeAsync, GetOrderStatusesAsync, GetPaymentTypesAsync, GetPaymentDirectionsAsync, GetTransTypesAsync, GetTransModesAsync, GetTransCategoriesAsync, GetExpenseTypesAsync, GetMovementTypesAsync, GetMovementSourcesAsync, GetClientTypesAsync, GetUserRolesAsync |
+| `IPdfService` | CreatePdf |
 
 ---
 
@@ -210,7 +257,9 @@ Add PDF config to `EntityPdfConfigs` in `Models/PdfConfig.cs` for every new enti
 | `ClientController` | POST, GET all (AdminOnly), GET /me (scoped), GET /Filtered, GET /{id}, PUT /{id}, DELETE /{id}, GET /pdf |
 | `ClientTypeController` | POST, GET all, GET /{id}, PUT /{id}, DELETE /{id}, GET /pdf |
 | `ProductController` | POST, GET /{id}, GET all, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf |
-| `StockMovementsController` | POST (create) only |
+| `StockMovementsController` | POST, GET (paginated), GET /{id}, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf |
+| `MetaController` | GET /all, GET /{type} (switch-case dispatch for all 11 lookup tables) |
+| `AppController` | GET /health, GET /info, GET /spec (downloads OpenAPI JSON for Orval) |
 
 **Not yet created:** OrderController, PurchaseController, PaymentController, ExpenseController, TransactionController, ReportController, InvoiceController, SyncController, DeviceController
 
@@ -235,7 +284,7 @@ See `todo/` for detailed task breakdowns:
 
 | File | Area |
 |---|---|
-| `todo/01-stock-movements-read.md` | StockMovements read/update/delete (DTOs exist, just need service methods + endpoints) |
+| `todo/01-stock-movements-read.md` | ✅ Complete |
 | `todo/02-orders.md` | Full Orders API — entity exists, nothing else |
 | `todo/03-purchases.md` | Full Purchases API — entity exists, nothing else |
 | `todo/04-payments.md` | Full Payments API — entity exists, nothing else |

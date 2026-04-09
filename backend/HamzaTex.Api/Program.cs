@@ -77,6 +77,7 @@ builder.Services.AddScoped<IChangePasswordService, ChangePasswordService>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IStockMovementsService, StockMovementsService>();
+builder.Services.AddScoped<ILookupService, LookupService>();
 builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.Configure<SmtpOptionsDto>(builder.Configuration.GetSection("Smtp"));
 builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSenderService>();
@@ -205,20 +206,18 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new()
     {
-        Title = "Hamza Tex API",
+        Title = "HamzaTex API",
         Version = "v1",
-        Description = "A full-stack application API for Hamza Tex"
+        Description = "Textile ERP — staff mobile + admin backend. All endpoints require a JWT Bearer token except Auth."
     });
-    
+
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
-        Name = "Authorization",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        Type        = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme      = "bearer",
+        BearerFormat = "JWT",
+        Description = "Enter your JWT access token (without the 'Bearer ' prefix)."
     });
-    
     c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
         {
@@ -227,13 +226,27 @@ builder.Services.AddSwaggerGen(c =>
                 Reference = new Microsoft.OpenApi.Models.OpenApiReference
                 {
                     Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
+                    Id   = "Bearer"
                 }
             },
             Array.Empty<string>()
         }
     });
-    
+
+    c.CustomOperationIds(e =>
+    {
+        var controller = e.ActionDescriptor.RouteValues["controller"]!;
+        var action     = e.ActionDescriptor.RouteValues["action"]!;
+        var ctrlCamel  = char.ToLower(controller[0]) + controller[1..];
+        var actCamel   = char.ToLower(action[0]) + action[1..];
+        return $"{ctrlCamel}_{actCamel}";
+    });
+
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+        c.IncludeXmlComments(xmlPath);
+
     c.SchemaFilter<EmptyStringSchemaFilter>();
 });
 
@@ -243,6 +256,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownNetworks.Clear();
     options.KnownProxies.Clear();
 });
+
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -255,19 +270,21 @@ using (var scope = app.Services.CreateScope())
     await SeedData.EnsureSeedDataAsync(dbContext);
 }
 
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Hamza Tex API v1");
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "HamzaTex API v1");
+    c.RoutePrefix = "swagger";
+    c.DocumentTitle = "HamzaTex API";
+});
 
 app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHealthChecks("/health").AllowAnonymous();
+
 
 app.MapControllers();
 

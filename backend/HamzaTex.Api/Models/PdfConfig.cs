@@ -76,6 +76,18 @@ public static class EntityPdfConfigs
         PdfColumnConfig.Create("CreatedAt", "Created", PdfColumnFormat.Date),
     ];
 
+    public static readonly PdfColumnConfig[] StockMovement = [
+        PdfColumnConfig.Create("ProductName", "Product"),
+        PdfColumnConfig.Create("MovementTypeName", "Type"),
+        PdfColumnConfig.Create("MovementSourceName", "Source"),
+        PdfColumnConfig.Create("Qty", "Quantity"),
+        PdfColumnConfig.Create("UnitCost", "Unit Cost (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("UnitPrice", "Unit Price (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("AverageCostAtMovement", "Avg Cost Snapshot (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("AveragePriceAtMovement", "Avg Price Snapshot (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("MovementDate", "Date", PdfColumnFormat.Date),
+    ];
+
     /// <summary>
     /// Returns only the columns matching the given property names. Use to include a subset of columns in PDF.
     /// </summary>

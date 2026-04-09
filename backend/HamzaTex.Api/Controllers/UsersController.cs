@@ -8,8 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HamzaTex.Api.Controllers;
 
+/// <summary>User account management. GET and DELETE require Admin or Staff. PUT /me allows any authenticated user to update their own profile.</summary>
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class UsersController : BaseController
 {
     private readonly IUserService _userService;
@@ -21,6 +23,7 @@ public class UsersController : BaseController
         _pdfService = pdfService;
     }
 
+    /// <summary>Get a user by ID.</summary>
     [HttpGet("{id}")]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -31,6 +34,7 @@ public class UsersController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Get all users.</summary>
     [HttpGet]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -40,6 +44,7 @@ public class UsersController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Update the authenticated user's own profile (name, email, username, phone).</summary>
     [HttpPut("me")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -72,6 +77,7 @@ public class UsersController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Delete a user by ID. Admin only.</summary>
     [HttpDelete("{id}")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -82,6 +88,7 @@ public class UsersController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Download all users as a PDF report.</summary>
     [HttpGet("pdf")]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(StatusCodes.Status200OK)]

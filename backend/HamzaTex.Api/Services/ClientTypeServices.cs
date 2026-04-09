@@ -7,12 +7,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Services;
 
+/// <summary>CRUD operations for client types (Customer, Supplier).</summary>
 public interface IClientTypeService
 {
+    /// <summary>Create a new client type. Name must be unique and contain no spaces.</summary>
     Task<Response<ClientTypeDto>> CreateAsync(CreateClientTypeDto model);
+    /// <summary>Get a client type by ID.</summary>
     Task<Response<ClientTypeDto>> GetByIdAsync(int id);
+    /// <summary>Get all client types.</summary>
     Task<Response<List<ClientTypeDto>>> GetAllAsync();
+    /// <summary>Update a client type name by ID.</summary>
     Task<Response<ClientTypeDto>> UpdateByIdAsync(int id, UpdateClientTypeByIdDto model);
+    /// <summary>Delete a client type by ID.</summary>
     Task<Response> DeleteByIdAsync(int id);
 }
 

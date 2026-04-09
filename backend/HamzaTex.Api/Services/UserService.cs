@@ -8,16 +8,26 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace HamzaTex.Api.Services;
 
+/// <summary>User account management — signup, profile, password reset, and email confirmation.</summary>
 public interface IUserService
 {
+    /// <summary>Register a new user and send an email confirmation link.</summary>
     Task<Response<CreateUserDto>> SignupAsync(CreateUserDto model);
+    /// <summary>Get a user by ID including their role.</summary>
     Task<Response<UserDto>> GetByIdAsync(int id);
+    /// <summary>Get all users.</summary>
     Task<Response<List<UserDto>>> GetAllAsync();
+    /// <summary>Update a user's profile fields by ID.</summary>
     Task<Response<UserDto>> UpdateByIdAsync(int id, UpdateUserByIdDto model);
+    /// <summary>Delete a user by ID.</summary>
     Task<Response> DeleteByIdAsync(int id);
+    /// <summary>Resend the email confirmation link to the given address.</summary>
     Task<Response> ResendEmailConfirmationAsync(string email);
+    /// <summary>Send a password reset link to the given email address.</summary>
     Task<Response> ForgotPasswordAsync(ForgetPasswordDto model);
+    /// <summary>Reset a user's password using the token from the reset email.</summary>
     Task<Response> ResetPasswordAsync(ResetPasswordDto model);
+    /// <summary>Confirm a user's email address using the token from the confirmation email.</summary>
     Task<Response> EmailConfirmationTokenAsync(EmailConfirmationDto model);
 }
 

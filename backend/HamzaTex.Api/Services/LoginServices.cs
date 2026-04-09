@@ -8,11 +8,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Services;
 
+/// <summary>Authentication — login, token refresh, and logout.</summary>
 public interface ILoginService
 {
+    /// <summary>Validate credentials and return a JWT access token + refresh token.</summary>
     Task<Response<LoginResponseDto>> LoginAsync(LoginDto model);
+    /// <summary>Exchange a valid refresh token for a new access token and rotated refresh token.</summary>
     Task<Response<LoginResponseDto>> RefreshTokenAsync(string refreshToken);
+    /// <summary>Revoke a specific refresh token (logout current device).</summary>
     Task<Response> LogoutAsync(string refreshToken);
+    /// <summary>Revoke all refresh tokens for a user (logout all devices).</summary>
     Task<Response> LogoutAllAsync(int userId);
 }
 

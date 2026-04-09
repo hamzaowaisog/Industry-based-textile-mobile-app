@@ -8,9 +8,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HamzaTex.Api.Controllers;
 
+/// <summary>Client management — customers and suppliers. Staff see their own clients; Admin sees all.</summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = "Authenticated")]
+[Produces("application/json")]
 public class ClientController : BaseController
 {
     private readonly IClientService _clientService;
@@ -22,6 +24,7 @@ public class ClientController : BaseController
         _pdfService = pdfService;
     }
 
+    /// <summary>Get paginated clients for the authenticated user.</summary>
     [HttpGet("Filtered")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -37,6 +40,7 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Create a new client (customer or supplier) for the authenticated user.</summary>
     [HttpPost]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -73,6 +77,7 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Get all clients across all users. Admin only.</summary>
     [HttpGet]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -82,6 +87,7 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Get all clients belonging to the authenticated user.</summary>
     [HttpGet("me")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -97,6 +103,7 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Get a single client by ID.</summary>
     [HttpGet("{id}")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -107,6 +114,7 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Update a client by ID.</summary>
     [HttpPut("{id}")]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -144,6 +152,7 @@ public class ClientController : BaseController
     }
 
 
+    /// <summary>Delete a client by ID. Admin only.</summary>
     [HttpDelete("{id}")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -154,6 +163,7 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Download the authenticated user's client list as a PDF report.</summary>
     [HttpGet("pdf")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]

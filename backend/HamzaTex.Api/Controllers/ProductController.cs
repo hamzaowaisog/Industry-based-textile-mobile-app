@@ -8,9 +8,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HamzaTex.Api.Controllers;
 
+/// <summary>Product catalogue and inventory. Products are scoped to the authenticated user via ProductUser. All stock quantity and weighted averages are managed automatically through StockMovements — do not edit Quantity or AverageCost directly.</summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = "Authenticated")]
+[Produces("application/json")]
 public class ProductController : BaseController
 {
     private readonly IProductService _productService;
@@ -22,6 +24,7 @@ public class ProductController : BaseController
         _pdfService = pdfService;
     }
 
+    /// <summary>Create a new product and link it to the authenticated user. Records an initial stock movement for the opening quantity.</summary>
     [HttpPost]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -63,6 +66,7 @@ public class ProductController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Get a single product by ID scoped to the authenticated user.</summary>
     [HttpGet("{id}")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -79,6 +83,7 @@ public class ProductController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Get all products for the authenticated user.</summary>
     [HttpGet]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -95,6 +100,7 @@ public class ProductController : BaseController
     }
 
 
+    /// <summary>Update product details. Do not use this to adjust stock — create a Manual StockMovement instead.</summary>
     [HttpPut("{id}")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -136,6 +142,7 @@ public class ProductController : BaseController
     }
 
 
+    /// <summary>Delete a product by ID.</summary>
     [HttpDelete("{id}")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -152,6 +159,7 @@ public class ProductController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Get paginated products for the authenticated user.</summary>
     [HttpGet("filtered")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -167,6 +175,7 @@ public class ProductController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Download the authenticated user's product list as a PDF report. Summary shows total inventory value (Qty × Price).</summary>
     [HttpGet("pdf")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
