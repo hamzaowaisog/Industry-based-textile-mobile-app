@@ -63,6 +63,15 @@ public class OrderService : IOrderService
         if (client.ClientTypeId != ClientTypeCustomer)
             return Response<OrderDto>.ErrorResponse("Validation failed", "Orders can only be created for Customers (ClientTypeId=1), not Suppliers.");
 
+        var requestedProductIds = model.Lines.Select(l => l.ProductId).Distinct().ToList();
+        var existingProductIds = await _dbContext.Products
+            .Where(p => requestedProductIds.Contains(p.Id))
+            .Select(p => p.Id)
+            .ToListAsync();
+        var missingProductId = requestedProductIds.FirstOrDefault(id => !existingProductIds.Contains(id));
+        if (missingProductId != default)
+            return Response<OrderDto>.ErrorResponse("Not found", $"Product with ID {missingProductId} does not exist.");
+
         var order = new Order
         {
             ClientId = model.ClientId,
@@ -289,7 +298,7 @@ public class OrderService : IOrderService
                 ClientId = order.ClientId,
                 OrderId = order.Id,
                 UserId = userId,
-                TransTypeId = TransTypeDebit,
+                TransTypeId = TransTypeCredit,
                 TransModeId = transMode,
                 TransCategoryId = TransCategorySales,
                 Amount = orderTotal,
@@ -355,7 +364,7 @@ public class OrderService : IOrderService
                     ClientId = order.ClientId,
                     OrderId = order.Id,
                     UserId = userId,
-                    TransTypeId = TransTypeCredit,
+                    TransTypeId = TransTypeDebit,
                     TransModeId = transMode,
                     TransCategoryId = TransCategorySales,
                     Amount = -orderTotal,

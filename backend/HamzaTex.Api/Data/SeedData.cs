@@ -6,6 +6,14 @@ namespace HamzaTex.Api.Data;
 
 public static class SeedData
 {
+    private static readonly IReadOnlyList<PurchaseStatus> PurchaseStatusSeeds =
+    [
+        new PurchaseStatus { Id = 1, Name = "Pending",      CreatedAt = DateTime.UtcNow },
+        new PurchaseStatus { Id = 2, Name = "InProgressed", CreatedAt = DateTime.UtcNow },
+        new PurchaseStatus { Id = 3, Name = "Delivered",    CreatedAt = DateTime.UtcNow },
+        new PurchaseStatus { Id = 4, Name = "Cancelled",    CreatedAt = DateTime.UtcNow },
+    ];
+
     private static readonly IReadOnlyList<OrderStatus> OrderStatusSeeds =
     [
         new OrderStatus
@@ -261,6 +269,14 @@ public static class SeedData
 
     private static async Task SeedStatusesAsync(ApplicationDbContext context, CancellationToken cancellationToken)
     {
+        await SeedLookupAsync(
+            context,
+            context.PurchaseStatuses,
+            status => status.Name!,
+            PurchaseStatusSeeds,
+            StringComparer.OrdinalIgnoreCase,
+            cancellationToken);
+
         await SeedLookupAsync(
             context,
             context.OrderStatuses,

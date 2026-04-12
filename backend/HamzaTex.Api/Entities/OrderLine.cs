@@ -15,7 +15,7 @@ public partial class OrderLine
 
     public int? ProductId { get; set; }
 
-    public int Qty { get; set; }
+    public decimal Qty { get; set; }
 
     public decimal UnitPrice { get; set; }
 

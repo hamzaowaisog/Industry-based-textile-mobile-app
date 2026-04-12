@@ -1,4 +1,4 @@
-﻿CREATE TABLE IF NOT EXISTS `__EFMigrationsHistory` (
+CREATE TABLE IF NOT EXISTS `__EFMigrationsHistory` (
     `MigrationId` varchar(150) CHARACTER SET utf8mb4 NOT NULL,
     `ProductVersion` varchar(32) CHARACTER SET utf8mb4 NOT NULL,
     CONSTRAINT `PK___EFMigrationsHistory` PRIMARY KEY (`MigrationId`)
@@ -829,5 +829,44 @@ ALTER TABLE `transactions` ADD CONSTRAINT `FK_transactions_purchases_PurchaseId`
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260412175014_AddOrderIdPurchaseIdToTransaction', '9.0.10');
 
+ALTER TABLE `transactions` DROP FOREIGN KEY `FK_transactions_orders_OrderId`;
+
+ALTER TABLE `transactions` DROP FOREIGN KEY `FK_transactions_purchases_PurchaseId`;
+
+ALTER TABLE `purchases` ADD `status_id` int NULL;
+
+CREATE TABLE `purchase_statuses` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `name` longtext CHARACTER SET utf8mb4 NULL,
+    `created_at` datetime NULL DEFAULT NOW(),
+    CONSTRAINT `purchase_statuses_pkey` PRIMARY KEY (`id`)
+) CHARACTER SET=utf8mb4;
+
+CREATE INDEX `IX_purchases_status_id` ON `purchases` (`status_id`);
+
+ALTER TABLE `purchases` ADD CONSTRAINT `purchases_status_id_fkey` FOREIGN KEY (`status_id`) REFERENCES `purchase_statuses` (`id`) ON DELETE SET NULL;
+
+ALTER TABLE `transactions` ADD CONSTRAINT `FK_transactions_orders_OrderId` FOREIGN KEY (`OrderId`) REFERENCES `orders` (`id`) ON DELETE SET NULL;
+
+ALTER TABLE `transactions` ADD CONSTRAINT `FK_transactions_purchases_PurchaseId` FOREIGN KEY (`PurchaseId`) REFERENCES `purchases` (`id`) ON DELETE SET NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260412203724_AddPurchaseStatusAndStatusId', '9.0.10');
+
+ALTER TABLE `purchase_lines` MODIFY COLUMN `qty` decimal(14,2) NOT NULL;
+
+ALTER TABLE `order_lines` MODIFY COLUMN `qty` decimal(14,2) NOT NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260412204527_ChangeQtyToDecimalOnOrderAndPurchaseLines', '9.0.10');
+
+ALTER TABLE `purchase_lines` MODIFY COLUMN `unit_cost` decimal(14,4) NOT NULL;
+
+ALTER TABLE `order_lines` MODIFY COLUMN `unit_price` decimal(14,4) NOT NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260412204830_ChangeUnitCostAndPriceToDecimal14x4OnLines', '9.0.10');
+
 COMMIT;
+
 

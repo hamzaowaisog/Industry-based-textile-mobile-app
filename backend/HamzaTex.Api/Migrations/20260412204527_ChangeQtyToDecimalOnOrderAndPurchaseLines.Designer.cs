@@ -4,6 +4,7 @@ using HamzaTex.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HamzaTex.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260412204527_ChangeQtyToDecimalOnOrderAndPurchaseLines")]
+    partial class ChangeQtyToDecimalOnOrderAndPurchaseLines
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -454,8 +457,8 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnName("qty");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasPrecision(14, 4)
-                        .HasColumnType("decimal(14,4)")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
                         .HasColumnName("unit_price");
 
                     b.HasKey("Id")
@@ -814,8 +817,8 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnName("qty");
 
                     b.Property<decimal>("UnitCost")
-                        .HasPrecision(14, 4)
-                        .HasColumnType("decimal(14,4)")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
                         .HasColumnName("unit_cost");
 
                     b.HasKey("Id")

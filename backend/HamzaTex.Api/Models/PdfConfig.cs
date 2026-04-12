@@ -87,6 +87,17 @@ public static class EntityPdfConfigs
         PdfColumnConfig.Create("CreatedAt", "Created", PdfColumnFormat.Date),
     ];
 
+    public static readonly PdfColumnConfig[] Purchase = [
+        PdfColumnConfig.Create("Id", "Purchase #"),
+        PdfColumnConfig.Create("SupplierName", "Supplier"),
+        PdfColumnConfig.Create("StatusName", "Status"),
+        PdfColumnConfig.Create("PaymentTypeName", "Payment Type"),
+        PdfColumnConfig.Create("PurchaseDate", "Purchase Date", PdfColumnFormat.Date),
+        PdfColumnConfig.Create("Total", "Total (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("Notes", "Notes"),
+        PdfColumnConfig.Create("CreatedAt", "Created", PdfColumnFormat.Date),
+    ];
+
     public static readonly PdfColumnConfig[] StockMovement = [
         PdfColumnConfig.Create("ProductName", "Product"),
         PdfColumnConfig.Create("MovementTypeName", "Type"),

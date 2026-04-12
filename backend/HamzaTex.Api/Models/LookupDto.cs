@@ -14,6 +14,7 @@ public class LookupDto
 public class LookupsAllDto
 {
     public List<LookupDto> OrderStatuses { get; set; } = [];
+    public List<LookupDto> PurchaseStatuses { get; set; } = [];
     public List<LookupDto> PaymentTypes { get; set; } = [];
     public List<LookupDto> PaymentDirections { get; set; } = [];
     public List<LookupDto> TransTypes { get; set; } = [];

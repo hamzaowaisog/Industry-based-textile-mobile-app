@@ -10,6 +10,7 @@ public interface ILookupService
     Task<Response<LookupsAllDto>> GetAllAsync();
     Task<Response<List<LookupDto>>> GetByTypeAsync(string type);
     Task<Response<List<LookupDto>>> GetOrderStatusesAsync();
+    Task<Response<List<LookupDto>>> GetPurchaseStatusesAsync();
     Task<Response<List<LookupDto>>> GetPaymentTypesAsync();
     Task<Response<List<LookupDto>>> GetPaymentDirectionsAsync();
     Task<Response<List<LookupDto>>> GetTransTypesAsync();
@@ -38,6 +39,7 @@ public class LookupService : ILookupService
         var result = new LookupsAllDto
         {
             OrderStatuses     = await _dbContext.OrderStatuses.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
+            PurchaseStatuses  = await _dbContext.PurchaseStatuses.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
             PaymentTypes      = await _dbContext.PaymentTypes.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
             PaymentDirections = await _dbContext.PaymentDirections.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
             TransTypes        = await _dbContext.TransTypes.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
@@ -58,6 +60,7 @@ public class LookupService : ILookupService
         return type.ToLowerInvariant() switch
         {
             "orderstatuses"      or "order-statuses"      => await GetOrderStatusesAsync(),
+            "purchasestatuses"   or "purchase-statuses"   => await GetPurchaseStatusesAsync(),
             "paymenttypes"       or "payment-types"       => await GetPaymentTypesAsync(),
             "paymentdirections"  or "payment-directions"  => await GetPaymentDirectionsAsync(),
             "transtypes"         or "trans-types"         => await GetTransTypesAsync(),
@@ -76,6 +79,9 @@ public class LookupService : ILookupService
 
     public async Task<Response<List<LookupDto>>> GetOrderStatusesAsync()
         => Success(await _dbContext.OrderStatuses.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync());
+
+    public async Task<Response<List<LookupDto>>> GetPurchaseStatusesAsync()
+        => Success(await _dbContext.PurchaseStatuses.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync());
 
     public async Task<Response<List<LookupDto>>> GetPaymentTypesAsync()
         => Success(await _dbContext.PaymentTypes.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync());

@@ -32,6 +32,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
 
     public virtual DbSet<OrderStatus> OrderStatuses { get; set; }
 
+    public virtual DbSet<PurchaseStatus> PurchaseStatuses { get; set; }
+
     public virtual DbSet<PaymentDirection> PaymentDirections { get; set; }
 
     public virtual DbSet<PaymentType> PaymentTypes { get; set; }
@@ -230,9 +232,11 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasColumnName("id");
             entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
-            entity.Property(e => e.Qty).HasColumnName("qty");
-            entity.Property(e => e.UnitPrice)
+            entity.Property(e => e.Qty)
                 .HasPrecision(14, 2)
+                .HasColumnName("qty");
+            entity.Property(e => e.UnitPrice)
+                .HasPrecision(14, 4)
                 .HasColumnName("unit_price");
 
             entity.HasOne(d => d.Order).WithMany(p => p.OrderLines)
@@ -363,10 +367,16 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
 
+            entity.Property(e => e.StatusId).HasColumnName("status_id");
+
             entity.HasOne(d => d.Supplier).WithMany(p => p.Purchases)
                 .HasForeignKey(d => d.SupplierId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("purchases_supplier_id_fkey");
+            entity.HasOne(d => d.Status).WithMany(p => p.Purchases)
+                .HasForeignKey(d => d.StatusId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("purchases_status_id_fkey");
             entity.HasOne(d => d.PaymentType).WithMany(p => p.Purchases)
                 .HasForeignKey(d => d.PaymentTypeId)
                 .OnDelete(DeleteBehavior.SetNull)
@@ -384,9 +394,11 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasColumnName("id");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.PurchaseId).HasColumnName("purchase_id");
-            entity.Property(e => e.Qty).HasColumnName("qty");
-            entity.Property(e => e.UnitCost)
+            entity.Property(e => e.Qty)
                 .HasPrecision(14, 2)
+                .HasColumnName("qty");
+            entity.Property(e => e.UnitCost)
+                .HasPrecision(14, 4)
                 .HasColumnName("unit_cost");
 
             entity.HasOne(d => d.Product).WithMany(p => p.PurchaseLines)
@@ -503,6 +515,18 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasForeignKey(d => d.TransCategoryId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("transactions_trans_category_id_fkey");
+
+            entity.Property(e => e.OrderId).HasColumnName("OrderId");
+            entity.HasOne(d => d.Order).WithMany(p => p.Transactions)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_transactions_orders_OrderId");
+
+            entity.Property(e => e.PurchaseId).HasColumnName("PurchaseId");
+            entity.HasOne(d => d.Purchase).WithMany(p => p.Transactions)
+                .HasForeignKey(d => d.PurchaseId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_transactions_purchases_PurchaseId");
         });
 
         modelBuilder.Entity<ApplicationUser>(entity =>
@@ -600,6 +624,20 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
         {
             entity.HasKey(e => e.Id).HasName("order_statuses_pkey");
             entity.ToTable("order_statuses");
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<PurchaseStatus>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("purchase_statuses_pkey");
+            entity.ToTable("purchase_statuses");
             entity.Property(e => e.Id)
                 .ValueGeneratedOnAdd()
                 .HasColumnName("id");

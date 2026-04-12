@@ -4,6 +4,7 @@ using HamzaTex.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HamzaTex.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260412203724_AddPurchaseStatusAndStatusId")]
+    partial class AddPurchaseStatusAndStatusId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -448,14 +451,13 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("int")
                         .HasColumnName("product_id");
 
-                    b.Property<decimal>("Qty")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
+                    b.Property<int>("Qty")
+                        .HasColumnType("int")
                         .HasColumnName("qty");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasPrecision(14, 4)
-                        .HasColumnType("decimal(14,4)")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
                         .HasColumnName("unit_price");
 
                     b.HasKey("Id")
@@ -808,14 +810,13 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("int")
                         .HasColumnName("purchase_id");
 
-                    b.Property<decimal>("Qty")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
+                    b.Property<int>("Qty")
+                        .HasColumnType("int")
                         .HasColumnName("qty");
 
                     b.Property<decimal>("UnitCost")
-                        .HasPrecision(14, 4)
-                        .HasColumnType("decimal(14,4)")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
                         .HasColumnName("unit_cost");
 
                     b.HasKey("Id")
