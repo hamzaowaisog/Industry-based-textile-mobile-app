@@ -6,32 +6,45 @@ using MimeKit;
 
 public sealed class EmailSenderService : IEmailSender
 {
-    private readonly SmtpOptionsDto _smtpOptions;
+    private readonly SmtpOptionsDto _smtp;
+    private readonly ILogger<EmailSenderService> _logger;
 
-    public EmailSenderService(IOptions<SmtpOptionsDto> smtpOptions)
+    public EmailSenderService(IOptions<SmtpOptionsDto> smtpOptions, ILogger<EmailSenderService> logger)
     {
-        _smtpOptions = smtpOptions.Value ?? throw new ArgumentNullException(nameof(smtpOptions));
+        _smtp   = smtpOptions.Value ?? throw new ArgumentNullException(nameof(smtpOptions));
+        _logger = logger;
     }
 
-    public async Task SendEmailAsync(string email , string subject, string htmlMessage)
+    public async Task SendEmailAsync(string email, string subject, string htmlMessage)
     {
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(_smtpOptions.FromName, _smtpOptions.FromEmail));
+        message.From.Add(new MailboxAddress(_smtp.FromName, _smtp.FromEmail));
         message.To.Add(MailboxAddress.Parse(email));
         message.Subject = subject;
-
-        message.Body = new BodyBuilder { HtmlBody = htmlMessage}.ToMessageBody();
+        message.Body = new BodyBuilder { HtmlBody = htmlMessage }.ToMessageBody();
 
         using var client = new SmtpClient();
-        try{
-        await client.ConnectAsync(_smtpOptions.Host , _smtpOptions.Port, SecureSocketOptions.StartTls);
-        await client.AuthenticateAsync(_smtpOptions.User, _smtpOptions.Password);
-        await client.SendAsync(message);
+        try
+        {
+            client.CheckCertificateRevocation = _smtp.CheckCertificateRevocation;
+            // SecureSocketOptions.Auto lets MailKit negotiate the best option
+            // for both port 587 (STARTTLS) and port 465 (SSL/TLS).
+            await client.ConnectAsync(_smtp.Host, _smtp.Port, SecureSocketOptions.Auto);
+            await client.AuthenticateAsync(_smtp.User, _smtp.Password);
+            await client.SendAsync(message);
+            _logger.LogInformation("Email sent to {Email} — subject: {Subject}", email, subject);
         }
-        catch (Exception ex){
-            throw new Exception("Failed to send email", ex);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "SMTP send failed — host:{Host} port:{Port} to:{Email}",
+                _smtp.Host, _smtp.Port, email);
+            throw new InvalidOperationException(
+                $"Failed to send email to {email}. " +
+                $"Check SMTP settings (host: {_smtp.Host}, port: {_smtp.Port}).", ex);
         }
-        finally{
+        finally
+        {
             await client.DisconnectAsync(true);
         }
     }

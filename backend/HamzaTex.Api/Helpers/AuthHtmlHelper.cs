@@ -1,242 +1,572 @@
-using System.Linq;
-
 namespace HamzaTex.Api.Helpers;
-
 
 public static class AuthHtmlHelper
 {
-    #region Email Templates (sent via email)
-    public static string GetConfirmEmailTemplateHtml(string link, string expirationMinutes)
-    {
-        return GetEmailTemplateHtml(
-            title: "Confirm Your Email",
-            heading: "Welcome to HamzaTex!",
-            bodyLines: new[]
-            {
-                "Thank you for joining our textile community. We're thrilled to have you with us!",
-                "To get started, please confirm your email address by clicking the button below:"
-            },
-            buttonText: "Confirm Email Address",
-            link,
-            footerLines: new[]
-            {
-                $"This link will expire in {expirationMinutes} minutes for security reasons.",
-                "If you didn't create an account with HamzaTex, you can safely ignore this email."
-            });
-    }
+    // ── Brand constants ──────────────────────────────────────────────────────
+    private const string Navy     = "#0f172a";
+    private const string NavyMid  = "#1e293b";
+    private const string Teal     = "#0891b2";
+    private const string TealPale = "#e0f2fe";
+    private const string TealText = "#a5f3fc";
+    private const string SlateLight = "#f1f5f9";
+    private const string SlateText  = "#475569";
+    private const string TextDark   = "#0f172a";
+    private const string TextMid    = "#334155";
 
+    // ────────────────────────────────────────────────────────────────────────
+    #region Email Templates
+    // ────────────────────────────────────────────────────────────────────────
 
-    public static string GetResetPasswordEmailTemplateHtml(string link, string expirationMinutes)
-    {
-        return GetEmailTemplateHtml(
-            title: "Reset Your Password",
-            heading: "Password Reset Request",
-            bodyLines: new[]
-            {
-                "We received a request to reset your password for your HamzaTex account.",
-                "If you didn't make this request, please ignore this email. Otherwise, you can reset your password by clicking the button below:"
-            },
-            buttonText: "Reset Your Password",
-            link,
-            footerLines: new[]
-            {
-                $"This link will expire in {expirationMinutes} minutes for security reasons.",
-                "If you didn't request a password reset, you can safely ignore this email."
-            });
-    }
+    public static string GetConfirmEmailTemplateHtml(string link, string expirationMinutes) =>
+        BuildEmailTemplate(
+            title:       "Confirm Your Email – Hamza Tex",
+            heading:     "Welcome to Hamza Tex!",
+            bodyLines: [
+                "Thank you for joining our textile community. We're excited to have you on board.",
+                "To activate your account, confirm your email address by clicking the button below:"
+            ],
+            buttonText:  "Confirm Email Address",
+            buttonColor: Teal,
+            link:        link,
+            noticeLines: [
+                $"⏱  This link expires in <strong>{expirationMinutes} minutes</strong>.",
+                "If you didn't create a Hamza Tex account, you can safely ignore this email."
+            ]);
 
-    private static string GetEmailTemplateHtml(
-        string title,
-        string heading,
+    public static string GetResetPasswordEmailTemplateHtml(string link, string expirationMinutes) =>
+        BuildEmailTemplate(
+            title:       "Reset Your Password – Hamza Tex",
+            heading:     "Password Reset Request",
+            bodyLines: [
+                "We received a request to reset the password for your Hamza Tex account.",
+                "Click the button below to choose a new password. If you did not request this, no action is needed."
+            ],
+            buttonText:  "Reset My Password",
+            buttonColor: "#dc2626",   // Red — signals a security action
+            link:        link,
+            noticeLines: [
+                $"⏱  This link expires in <strong>{expirationMinutes} minutes</strong>.",
+                "If you didn't request a password reset, your account is safe — ignore this email."
+            ]);
+
+    private static string BuildEmailTemplate(
+        string   title,
+        string   heading,
         string[] bodyLines,
-        string buttonText,
-        string link,
-        string[] footerLines)
+        string   buttonText,
+        string   buttonColor,
+        string   link,
+        string[] noticeLines)
     {
-        var bodyHtml = string.Join("", bodyLines.Select(l => $"<p>{l}</p>"));
-        var footerHtml = string.Join("", footerLines.Select(l => $"<p>{l}</p>"));
+        var bodyHtml   = string.Concat(bodyLines.Select(l =>
+            $"<p style=\"margin:0 0 12px;font-size:15px;color:{TextMid};line-height:1.7;\">{l}</p>"));
+        var noticeHtml = string.Concat(noticeLines.Select(l =>
+            $"<p style=\"margin:0 0 6px;font-size:12px;color:#0369a1;line-height:1.6;\">{l}</p>"));
 
         return $@"<!DOCTYPE html>
-<html lang='en'>
+<html lang=""en"">
 <head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>{title}</title>
-    <style>
-        body {{ font-family: 'Arial', sans-serif; background-color: #f9f9f9; color: #333; margin: 0; padding: 0; }}
-        table {{ width: 100%; border-collapse: collapse; }}
-        .container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }}
-        .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; text-align: center; border-radius: 8px 8px 0 0; }}
-        .header h1 {{ font-size: 30px; font-weight: 700; margin: 0; }}
-        .header p {{ font-size: 16px; margin-top: 8px; opacity: 0.85; }}
-        .body {{ padding: 40px; font-size: 16px; color: #4a5568; }}
-        .body h2 {{ font-size: 26px; color: #2d3748; margin-bottom: 20px; font-weight: 600; }}
-        .cta-button {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px 40px; border-radius: 6px; text-align: center; margin-top: 30px; }}
-        .cta-button a {{ color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; }}
-        .footer {{ background-color: #f7fafc; color: #718096; padding: 32px 40px; border-top: 1px solid #e2e8f0; font-size: 13px; text-align: center; }}
-        .footer a {{ color: #667eea; text-decoration: none; }}
-        .brand-footer {{ background-color: #ffffff; text-align: center; padding: 24px 40px; font-size: 12px; color: #a0aec0; }}
-    </style>
+  <meta charset=""UTF-8"">
+  <meta name=""viewport"" content=""width=device-width,initial-scale=1.0"">
+  <title>{title}</title>
 </head>
-<body>
-    <table role='presentation'>
-        <tr>
-            <td style='padding: 40px 20px;'>
-                <div class='container'>
-                    <div class='header'>
-                        <h1>HamzaTex</h1>
-                        <p>Premium Textile Solutions</p>
-                    </div>
-                    <div class='body'>
-                        <h2>{heading}</h2>
-                        {bodyHtml}
-                        <div class='cta-button'>
-                            <a href='{link}'>{buttonText}</a>
-                        </div>
-                    </div>
-                    <div class='footer'>
-                        {footerHtml}
-                    </div>
-                    <div class='brand-footer'>
-                        <p>© 2026 HamzaTex. All rights reserved.</p>
-                    </div>
-                </div>
+<body style=""margin:0;padding:0;background-color:{SlateLight};font-family:Arial,Helvetica,sans-serif;"">
+
+  <table width=""100%"" cellpadding=""0"" cellspacing=""0"" bgcolor=""{SlateLight}"">
+    <tr>
+      <td align=""center"" style=""padding:48px 20px;"">
+
+        <!-- ── Card ── -->
+        <table width=""600"" cellpadding=""0"" cellspacing=""0""
+               style=""max-width:600px;width:100%;border-radius:12px;overflow:hidden;
+                       box-shadow:0 8px 32px rgba(0,0,0,0.12);"">
+
+          <!-- ── Header: navy ── -->
+          <tr>
+            <td bgcolor=""{Navy}"" style=""padding:32px 40px 20px;background-color:{Navy};"">
+              <table width=""100%"" cellpadding=""0"" cellspacing=""0"">
+                <tr>
+                  <td valign=""middle"">
+                    <span style=""font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;"">Hamza Tex</span>
+                    <br>
+                    <span style=""font-size:11px;color:{TealText};font-style:italic;"">Weaving Quality. Delivering Trust.</span>
+                  </td>
+                  <td align=""right"" valign=""top"">
+                    <span style=""display:inline-block;border:1.5px solid {Teal};padding:5px 9px;
+                                   font-size:8px;font-weight:700;color:{TealText};letter-spacing:1.2px;"">
+                      OFFICIAL
+                    </span>
+                  </td>
+                </tr>
+              </table>
             </td>
-        </tr>
-    </table>
+          </tr>
+
+          <!-- ── Teal rule ── -->
+          <tr>
+            <td height=""4"" bgcolor=""{Teal}""
+                style=""background-color:{Teal};font-size:0;line-height:0;"">&nbsp;</td>
+          </tr>
+
+          <!-- ── Body ── -->
+          <tr>
+            <td bgcolor=""#ffffff"" style=""padding:40px 40px 8px;background-color:#ffffff;"">
+              <h2 style=""margin:0 0 20px;font-size:22px;font-weight:700;color:{TextDark};"">
+                {heading}
+              </h2>
+              {bodyHtml}
+            </td>
+          </tr>
+
+          <!-- ── CTA button ── -->
+          <tr>
+            <td bgcolor=""#ffffff"" style=""padding:24px 40px 32px;background-color:#ffffff;"">
+              <table width=""100%"" cellpadding=""0"" cellspacing=""0"">
+                <tr>
+                  <td align=""center"">
+                    <a href=""{link}""
+                       style=""display:inline-block;background-color:{buttonColor};color:#ffffff;
+                               text-decoration:none;font-size:15px;font-weight:700;
+                               padding:15px 48px;border-radius:8px;letter-spacing:0.3px;"">
+                      {buttonText}
+                    </a>
+                  </td>
+                </tr>
+                <tr>
+                  <td align=""center"" style=""padding-top:16px;"">
+                    <span style=""font-size:11px;color:#94a3b8;"">
+                      Button not working?&nbsp;
+                      <a href=""{link}"" style=""color:{Teal};word-break:break-all;font-size:11px;"">
+                        Copy this link
+                      </a>
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── Notice panel ── -->
+          <tr>
+            <td bgcolor=""#ffffff"" style=""padding:0 40px 36px;background-color:#ffffff;"">
+              <table width=""100%"" cellpadding=""0"" cellspacing=""0"">
+                <tr>
+                  <td bgcolor=""{TealPale}""
+                      style=""background-color:{TealPale};border:1px solid #bae6fd;
+                               border-radius:8px;padding:16px 20px;"">
+                    {noticeHtml}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── Divider ── -->
+          <tr>
+            <td bgcolor=""#ffffff"" style=""padding:0 40px;"">
+              <table width=""100%"" cellpadding=""0"" cellspacing=""0"">
+                <tr>
+                  <td height=""1"" bgcolor=""#e2e8f0""
+                      style=""background-color:#e2e8f0;font-size:0;line-height:0;"">&nbsp;</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── Footer: navy ── -->
+          <tr>
+            <td bgcolor=""{Navy}"" style=""padding:28px 40px;background-color:{Navy};"">
+              <table width=""100%"" cellpadding=""0"" cellspacing=""0"">
+                <tr>
+                  <td>
+                    <span style=""font-size:12px;color:#64748b;"">
+                      G.T. 6/18/19, Old Town, Kagzi Bazar, Karachi, Pakistan
+                    </span><br>
+                    <span style=""font-size:12px;color:#64748b;"">
+                      0313-2039333&nbsp;&nbsp;|&nbsp;&nbsp;hamzatex007@gmail.com
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td height=""1"" bgcolor=""{NavyMid}""
+                      style=""background-color:{NavyMid};font-size:0;line-height:0;padding-top:16px;"">&nbsp;</td>
+                </tr>
+                <tr>
+                  <td style=""padding-top:14px;"" align=""center"">
+                    <span style=""font-size:11px;color:#475569;"">
+                      &copy; {DateTime.Now.Year} Hamza Tex. All rights reserved.
+                    </span>
+                    &nbsp;&middot;&nbsp;
+                    <span style=""font-size:11px;color:#475569;"">
+                      Automated message — do not reply.
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+        <!-- /Card -->
+
+        <p style=""color:#94a3b8;font-size:11px;text-align:center;margin-top:20px;"">
+          You received this email because an action was performed on your Hamza Tex account.
+        </p>
+
+      </td>
+    </tr>
+  </table>
+
 </body>
 </html>";
     }
 
     #endregion
 
-    #region Web Pages (returned when user clicks link)
+    // ────────────────────────────────────────────────────────────────────────
+    #region Web Pages (shown when user clicks email links)
+    // ────────────────────────────────────────────────────────────────────────
 
     public static string GetConfirmEmailHtml(bool success, string message)
     {
-        var color = success ? "#22c55e" : "#ef4444";
-        var title = success ? "Email Confirmed" : "Confirmation Failed";
+        var iconBg    = success ? "#dcfce7" : "#fee2e2";
+        var iconColor = success ? "#16a34a" : "#dc2626";
+        var icon      = success ? "✓" : "✕";
+        var heading   = success ? "Email Confirmed!" : "Confirmation Failed";
+
         return $@"<!DOCTYPE html>
-<html>
+<html lang=""en"">
 <head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>{title} - HamzaTex</title>
-    <style>
-        body {{ font-family: system-ui, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f9fafb; }}
-        .box {{ text-align: center; padding: 2rem; max-width: 400px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }}
-        .message {{ color: {color}; font-size: 1.1rem; margin-bottom: 1rem; }}
-        h1 {{ font-size: 1.5rem; color: #1f2937; margin-bottom: 0.5rem; }}
-    </style>
+  <meta charset=""UTF-8"">
+  <meta name=""viewport"" content=""width=device-width,initial-scale=1.0"">
+  <title>{heading} – Hamza Tex</title>
+  <style>
+    *, *::before, *::after {{ box-sizing: border-box; }}
+    body {{
+      margin: 0; padding: 0;
+      background: {SlateLight};
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }}
+    .card {{
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      padding: 0;
+      max-width: 460px;
+      width: 90%;
+      overflow: hidden;
+    }}
+    .card-header {{
+      background: {Navy};
+      padding: 28px 36px;
+      border-bottom: 4px solid {Teal};
+    }}
+    .brand {{ font-size: 22px; font-weight: 700; color: #fff; }}
+    .tagline {{ font-size: 11px; color: {TealText}; font-style: italic; margin-top: 2px; }}
+    .card-body {{
+      padding: 40px 36px;
+      text-align: center;
+    }}
+    .icon-circle {{
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: {iconBg};
+      color: {iconColor};
+      font-size: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }}
+    .heading {{ font-size: 22px; font-weight: 700; color: {TextDark}; margin: 0 0 12px; }}
+    .message-text {{ font-size: 15px; color: {SlateText}; line-height: 1.6; margin: 0 0 28px; }}
+    .note {{ font-size: 12px; color: #94a3b8; }}
+    .card-footer {{
+      background: {SlateLight};
+      padding: 16px 36px;
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+      border-top: 1px solid #e2e8f0;
+    }}
+  </style>
 </head>
 <body>
-    <div class='box'>
-        <h1>{title}</h1>
-        <p class='message'>{message}</p>
-        <p style='color:#6b7280; font-size:0.9rem;'>You can close this page and return to the HamzaTex app.</p>
+  <div class=""card"">
+    <div class=""card-header"">
+      <div class=""brand"">Hamza Tex</div>
+      <div class=""tagline"">Weaving Quality. Delivering Trust.</div>
     </div>
+    <div class=""card-body"">
+      <div class=""icon-circle"">{icon}</div>
+      <h1 class=""heading"">{heading}</h1>
+      <p class=""message-text"">{message}</p>
+      <p class=""note"">You can close this page and return to the Hamza Tex app.</p>
+    </div>
+    <div class=""card-footer"">
+      &copy; {DateTime.Now.Year} Hamza Tex &nbsp;&middot;&nbsp; hamzatex007@gmail.com
+    </div>
+  </div>
 </body>
 </html>";
     }
+
     public static string GetResetPasswordPageHtml(string? email = null, string? code = null, string? error = null)
     {
         if (error != null)
-        {
-            return $@"<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Reset Password - HamzaTex</title>
-    <style>
-        body {{ font-family: system-ui, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f9fafb; }}
-        .box {{ text-align: center; padding: 2rem; max-width: 400px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }}
-        .error {{ color: #ef4444; font-size: 1rem; }}
-    </style>
-</head>
-<body>
-    <div class='box'>
-        <h1>Invalid Link</h1>
-        <p class='error'>{error}</p>
-    </div>
-</body>
-</html>";
-        }
+            return BuildResetErrorPage(error);
 
         var emailSafe = System.Net.WebUtility.HtmlEncode(email ?? "");
-        var codeSafe = System.Net.WebUtility.HtmlEncode(code ?? "");
+        var codeSafe  = System.Net.WebUtility.HtmlEncode(code  ?? "");
 
         return $@"<!DOCTYPE html>
-<html>
+<html lang=""en"">
 <head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Reset Password - HamzaTex</title>
-    <style>
-        body {{ font-family: system-ui, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f9fafb; }}
-        .box {{ padding: 2rem; max-width: 400px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }}
-        h1 {{ font-size: 1.5rem; color: #1f2937; margin-bottom: 1rem; }}
-        input {{ width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; }}
-        button {{ width: 100%; padding: 0.75rem; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; }}
-        button:disabled {{ opacity: 0.6; cursor: not-allowed; }}
-        .message {{ margin-top: 1rem; padding: 0.5rem; border-radius: 4px; }}
-        .success {{ color: #22c55e; background: #dcfce7; }}
-        .error {{ color: #ef4444; background: #fee2e2; }}
-    </style>
+  <meta charset=""UTF-8"">
+  <meta name=""viewport"" content=""width=device-width,initial-scale=1.0"">
+  <title>Reset Password – Hamza Tex</title>
+  <style>
+    *, *::before, *::after {{ box-sizing: border-box; }}
+    body {{
+      margin: 0; padding: 0;
+      background: {SlateLight};
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }}
+    .card {{
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      max-width: 440px;
+      width: 90%;
+      overflow: hidden;
+    }}
+    .card-header {{
+      background: {Navy};
+      padding: 28px 36px;
+      border-bottom: 4px solid {Teal};
+    }}
+    .brand {{ font-size: 22px; font-weight: 700; color: #fff; }}
+    .tagline {{ font-size: 11px; color: {TealText}; font-style: italic; margin-top: 2px; }}
+    .card-body {{ padding: 36px; }}
+    .card-body h1 {{
+      font-size: 20px; font-weight: 700;
+      color: {TextDark}; margin: 0 0 6px;
+    }}
+    .card-body .subtitle {{
+      font-size: 13px; color: {SlateText}; margin: 0 0 28px; line-height: 1.5;
+    }}
+    label {{
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: {TextMid};
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }}
+    input[type=""password""] {{
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      transition: border-color 0.2s;
+      color: {TextDark};
+      background: #fff;
+      outline: none;
+    }}
+    input[type=""password""]:focus {{ border-color: {Teal}; box-shadow: 0 0 0 3px {TealPale}; }}
+    button[type=""submit""] {{
+      width: 100%;
+      padding: 13px;
+      background: {Teal};
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: background 0.2s;
+    }}
+    button[type=""submit""]:hover {{ background: #0e7490; }}
+    button[type=""submit""]:disabled {{ opacity: 0.6; cursor: not-allowed; }}
+    .msg {{
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      display: none;
+    }}
+    .msg.success {{ background: #dcfce7; color: #15803d; border: 1px solid #86efac; }}
+    .msg.error   {{ background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }}
+    .card-footer {{
+      background: {SlateLight};
+      padding: 14px 36px;
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+      border-top: 1px solid #e2e8f0;
+    }}
+  </style>
 </head>
 <body>
-    <div class='box'>
-        <h1>Reset Your Password</h1>
-        <p style='color:#6b7280; margin-bottom: 1rem;'>Enter your new password below.</p>
-        <form id='resetForm'>
-            <input type=""hidden"" id=""email"" value=""{emailSafe}"" />
-            <input type=""hidden"" id=""code"" value=""{codeSafe}"" />
-            <input type='password' id='newPassword' placeholder='New password' required minlength='8' />
-            <input type='password' id='confirmPassword' placeholder='Confirm password' required minlength='8' />
-            <button type='submit' id='submitBtn'>Reset Password</button>
-        </form>
-        <div id='message'></div>
+  <div class=""card"">
+    <div class=""card-header"">
+      <div class=""brand"">Hamza Tex</div>
+      <div class=""tagline"">Weaving Quality. Delivering Trust.</div>
     </div>
-    <script>
-        const email = document.getElementById('email').value;
-        const code = document.getElementById('code').value;
-        document.getElementById('resetForm').addEventListener('submit', async (e) => {{
-            e.preventDefault();
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const msgEl = document.getElementById('message');
-            const btn = document.getElementById('submitBtn');
-            if (newPassword !== confirmPassword) {{
-                msgEl.className = 'message error';
-                msgEl.textContent = 'Passwords do not match.';
-                return;
-            }}
-            btn.disabled = true;
-            try {{
-                const res = await fetch('/api/auth/reset-password', {{
-                    method: 'POST',
-                    headers: {{ 'Content-Type': 'application/json' }},
-                    body: JSON.stringify({{ email, token: code, newPassword, confirmPassword }})
-                }});
-                const data = await res.json();
-                if (data.success) {{
-                    msgEl.className = 'message success';
-                    msgEl.textContent = 'Password reset successfully! You can close this page and return to the app.';
-                    document.getElementById('resetForm').style.display = 'none';
-                }} else {{
-                    msgEl.className = 'message error';
-                    msgEl.textContent = data.message || (data.errors && data.errors[0]) || 'Reset failed.';
-                }}
-            }} catch (err) {{
-                msgEl.className = 'message error';
-                msgEl.textContent = 'Something went wrong. Please try again.';
-            }}
-            btn.disabled = false;
+    <div class=""card-body"">
+      <h1>Reset Your Password</h1>
+      <p class=""subtitle"">Enter and confirm your new password below. Minimum 8 characters.</p>
+
+      <form id=""resetForm"" novalidate>
+        <input type=""hidden"" id=""email"" value=""{emailSafe}"">
+        <input type=""hidden"" id=""code""  value=""{codeSafe}"">
+
+        <label for=""newPassword"">New Password</label>
+        <input type=""password"" id=""newPassword"" placeholder=""Enter new password"" required minlength=""8"">
+
+        <label for=""confirmPassword"">Confirm Password</label>
+        <input type=""password"" id=""confirmPassword"" placeholder=""Confirm new password"" required minlength=""8"">
+
+        <button type=""submit"" id=""submitBtn"">Reset Password</button>
+      </form>
+
+      <div id=""msg"" class=""msg""></div>
+    </div>
+    <div class=""card-footer"">
+      &copy; {DateTime.Now.Year} Hamza Tex &nbsp;&middot;&nbsp; hamzatex007@gmail.com
+    </div>
+  </div>
+
+  <script>
+    const form    = document.getElementById('resetForm');
+    const msgEl   = document.getElementById('msg');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {{
+      e.preventDefault();
+      msgEl.style.display = 'none';
+
+      const email   = document.getElementById('email').value;
+      const code    = document.getElementById('code').value;
+      const newPw   = document.getElementById('newPassword').value;
+      const confirm = document.getElementById('confirmPassword').value;
+
+      if (newPw !== confirm) {{
+        showMsg('error', 'Passwords do not match. Please try again.');
+        return;
+      }}
+      if (newPw.length < 8) {{
+        showMsg('error', 'Password must be at least 8 characters.');
+        return;
+      }}
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Resetting…';
+
+      try {{
+        const res  = await fetch('/api/auth/reset-password', {{
+          method:  'POST',
+          headers: {{ 'Content-Type': 'application/json' }},
+          body:    JSON.stringify({{ email, token: code, newPassword: newPw, confirmPassword: confirm }})
         }});
-    </script>
+        const data = await res.json();
+
+        if (data.success) {{
+          form.style.display = 'none';
+          showMsg('success', 'Password reset successfully! You can close this page and return to the app.');
+        }} else {{
+          showMsg('error', data.message || (data.errors && data.errors[0]) || 'Reset failed. Please try again.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Reset Password';
+        }}
+      }} catch {{
+        showMsg('error', 'Something went wrong. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Reset Password';
+      }}
+    }});
+
+    function showMsg(type, text) {{
+      msgEl.className = 'msg ' + type;
+      msgEl.textContent = text;
+      msgEl.style.display = 'block';
+    }}
+  </script>
 </body>
 </html>";
     }
+
+    private static string BuildResetErrorPage(string error) => $@"<!DOCTYPE html>
+<html lang=""en"">
+<head>
+  <meta charset=""UTF-8"">
+  <meta name=""viewport"" content=""width=device-width,initial-scale=1.0"">
+  <title>Invalid Link – Hamza Tex</title>
+  <style>
+    *, *::before, *::after {{ box-sizing: border-box; }}
+    body {{
+      margin: 0; padding: 0;
+      background: {SlateLight};
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+    }}
+    .card {{
+      background: #fff; border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      max-width: 420px; width: 90%; overflow: hidden;
+    }}
+    .card-header {{
+      background: {Navy}; padding: 28px 36px;
+      border-bottom: 4px solid #dc2626;
+    }}
+    .brand {{ font-size: 22px; font-weight: 700; color: #fff; }}
+    .card-body {{ padding: 40px 36px; text-align: center; }}
+    .icon {{
+      width: 64px; height: 64px; border-radius: 50%;
+      background: #fee2e2; color: #dc2626;
+      font-size: 30px; display: flex;
+      align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+    }}
+    h1 {{ font-size: 20px; font-weight: 700; color: {TextDark}; margin: 0 0 12px; }}
+    p  {{ font-size: 14px; color: {SlateText}; margin: 0; line-height: 1.6; }}
+    .card-footer {{
+      background: {SlateLight}; padding: 14px 36px;
+      text-align: center; font-size: 11px; color: #94a3b8;
+      border-top: 1px solid #e2e8f0;
+    }}
+  </style>
+</head>
+<body>
+  <div class=""card"">
+    <div class=""card-header"">
+      <div class=""brand"">Hamza Tex</div>
+    </div>
+    <div class=""card-body"">
+      <div class=""icon"">✕</div>
+      <h1>Invalid or Expired Link</h1>
+      <p>{error}</p>
+    </div>
+    <div class=""card-footer"">
+      &copy; {DateTime.Now.Year} Hamza Tex &nbsp;&middot;&nbsp; hamzatex007@gmail.com
+    </div>
+  </div>
+</body>
+</html>";
 
     #endregion
 }

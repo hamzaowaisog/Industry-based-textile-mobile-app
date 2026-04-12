@@ -5,6 +5,7 @@ using HamzaTex.Api.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.Extensions.Logging;
 
 namespace HamzaTex.Api.Services;
 
@@ -37,13 +38,15 @@ public class UserService : IUserService
     private readonly ApplicationDbContext _dbContext;
     private readonly IConfiguration _configuration;
     private readonly IEmailSender _emailSender;
+    private readonly ILogger<UserService> _logger;
 
-    public UserService(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IConfiguration configuration, IEmailSender emailSender)
+    public UserService(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IConfiguration configuration, IEmailSender emailSender, ILogger<UserService> logger)
     {
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _emailSender = emailSender ?? throw new ArgumentNullException(nameof(emailSender));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<Response<UserDto>> GetByIdAsync(int id)
@@ -181,9 +184,17 @@ public class UserService : IUserService
         var link = $"{baseUrl}/api/auth/confirm-email?userId={user.Id}&code={code}";
         var expirationMinutes = _configuration["App:EmailConfirmationTokenExpirationMinutes"] ?? "10";
         var htmlMessage = AuthHtmlHelper.GetConfirmEmailTemplateHtml(link, expirationMinutes);
-        await _emailSender.SendEmailAsync(email: user.Email, subject: "Confirm your email", htmlMessage: htmlMessage);
-
-        return Response<CreateUserDto>.SuccessResponse(model, "Registration successful. Please check your email for confirmation.");
+        try
+        {
+            await _emailSender.SendEmailAsync(email: user.Email!, subject: "Confirm your email", htmlMessage: htmlMessage);
+            return Response<CreateUserDto>.SuccessResponse(model, "Registration successful. Please check your email to confirm your account.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Confirmation email failed for user {UserId}", user.Id);
+            return Response<CreateUserDto>.SuccessResponse(model,
+                "Account created, but the confirmation email could not be sent. Use 'Resend Confirmation' to try again.");
+        }
     }
 
     public async Task<Response> EmailConfirmationTokenAsync(EmailConfirmationDto model)
@@ -213,9 +224,16 @@ public class UserService : IUserService
         var link = $"{baseUrl}/api/auth/confirm-email?userId={user.Id}&code={code}";
         var expirationMinutes = _configuration["App:EmailConfirmationTokenExpirationMinutes"] ?? "10";
         var htmlMessage = AuthHtmlHelper.GetConfirmEmailTemplateHtml(link, expirationMinutes);
-        await _emailSender.SendEmailAsync(email: user.Email, subject: "Confirm your email", htmlMessage: htmlMessage);
-
-        return Response.SuccessResponse("Email confirmation link sent to your email");
+        try
+        {
+            await _emailSender.SendEmailAsync(email: user.Email!, subject: "Confirm your email", htmlMessage: htmlMessage);
+            return Response.SuccessResponse("Confirmation email sent. Please check your inbox.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Resend confirmation email failed for {Email}", email);
+            return Response.ErrorResponse("Email send failed", "Could not send the confirmation email. Check SMTP settings or try again later.");
+        }
 
     }
 
@@ -234,9 +252,16 @@ public class UserService : IUserService
         var link = $"{baseUrl}/api/auth/reset-password?email={Uri.EscapeDataString(user.Email)}&code={code}";
         var expirationMinutes = _configuration["App:PasswordResetTokenExpirationMinutes"] ?? "10";
         var htmlMessage = AuthHtmlHelper.GetResetPasswordEmailTemplateHtml(link, expirationMinutes);
-        await _emailSender.SendEmailAsync(email: user.Email, subject: "Reset your password", htmlMessage: htmlMessage);
-
-        return Response.SuccessResponse("Password reset link sent to your email");
+        try
+        {
+            await _emailSender.SendEmailAsync(email: user.Email!, subject: "Reset your password", htmlMessage: htmlMessage);
+            return Response.SuccessResponse("Password reset email sent. Please check your inbox.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Password reset email failed for {Email}", model.Email);
+            return Response.ErrorResponse("Email send failed", "Could not send the password reset email. Check SMTP settings or try again later.");
+        }
     }
 
     public async Task<Response> ResetPasswordAsync(ResetPasswordDto model)
