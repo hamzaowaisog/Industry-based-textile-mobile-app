@@ -1,6 +1,6 @@
 # HamzaTex — TODO Tracker
 
-Full scan date: 2026-04-12
+Full scan date: 2026-04-13
 
 ## What IS Done (Backend)
 
@@ -13,6 +13,7 @@ Full scan date: 2026-04-12
 | ClientType (full CRUD + PDF) | ✅ Done |
 | Products (POST, GET all/filtered/by-id, PUT, DELETE, GET /pdf) | ✅ Done |
 | StockMovements (POST, GET paginated, GET by-id, GET filtered, PUT, DELETE, GET /pdf) | ✅ Done |
+| Orders (POST, GET all/me/filtered/by-id, PUT, DELETE, GET /pdf — full lifecycle incl. Delivered/Cancelled ledger + stock) | ✅ Done |
 | Meta (GET /all, GET /{type} — all 11 lookup tables) | ✅ Done |
 | App (GET /health, GET /info, GET /spec) | ✅ Done |
 
@@ -21,7 +22,7 @@ Full scan date: 2026-04-12
 | File | What | Status |
 |------|------|--------|
 | [01-stock-movements-read.md](01-stock-movements-read.md) | StockMovements read + update + delete endpoints | ✅ Done |
-| [02-orders.md](02-orders.md) | Full Orders API (entity exists, no service/controller) | 🔴 Not Started |
+| [02-orders.md](02-orders.md) | Full Orders API — service, controller, ledger, stock lifecycle | ✅ Done |
 | [03-purchases.md](03-purchases.md) | Full Purchases API (entity exists, no service/controller) | 🔴 Not Started |
 | [04-payments.md](04-payments.md) | Full Payments API (entity exists, no service/controller) | 🔴 Not Started |
 | [05-expenses.md](05-expenses.md) | Full Expenses API + ExpenseType controller | 🔴 Not Started |

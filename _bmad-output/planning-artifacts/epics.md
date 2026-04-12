@@ -7,6 +7,19 @@ stepsCompleted:
 inputDocuments:
   - _bmad-output/planning-artifacts/prd.md
   - _bmad-output/planning-artifacts/architecture.md
+implementationStatusLastUpdated: "2026-04-13"
+implementationStatus:
+  epic1_auth: complete
+  epic2_users_roles: partial  # missing POST /api/Users (admin create) — see todo/09
+  epic3_clients: complete
+  epic4_products: complete    # includes StockMovements (full CRUD + PDF)
+  epic5_orders: complete      # full lifecycle: Pending→Delivered (stock+ledger)→Cancelled (reversal)
+  epic6_payments: not_started # Payments, Expenses, Transactions — see todo/04,05,06
+  epic7_sync: not_started     # decision on conflict strategy required first — see todo/10
+  epic8_reports: not_started  # DB views exist; no service/controller yet — see todo/07
+  epic9_invoices: not_started # Invoice entity doesn't exist yet — see todo/08
+  epic10_push: not_started    # push provider decision required first — see todo/11
+  epic11_validation: partial  # FluentValidation in place for all implemented entities only
 ---
 
 # HamzaTex - Epic Breakdown
@@ -105,49 +118,49 @@ This document provides the complete epic and story breakdown for HamzaTex, decom
 
 ## Epic List
 
-### Epic 1: Staff and users can sign in and access the app securely
+### Epic 1: Staff and users can sign in and access the app securely — ✅ Complete
 
 Staff and admins can authenticate with username and password, receive and refresh tokens, and change password; the system enforces role-based access. **FRs covered:** FR1, FR2, FR3, FR4, FR6 (planned).
 
-### Epic 2: Admins can manage users and roles
+### Epic 2: Admins can manage users and roles — ⚠️ Partial
 
-Admins can create, update, and list users, assign roles, and manage role definitions so that access control is configurable. **FRs covered:** FR5, FR24, FR26.
+Admins can create, update, and list users, assign roles, and manage role definitions so that access control is configurable. **FRs covered:** FR5, FR24, FR26. **Gap:** `POST /api/Users` (admin create with auto-confirm) not yet implemented — see `todo/09-users-admin-create.md`.
 
-### Epic 3: Staff can manage clients
+### Epic 3: Staff can manage clients — ✅ Complete
 
 Staff can create, view, and update client records, view a paginated/filtered client list, and classify clients using client types; admins see all clients, staff see scoped clients. **FRs covered:** FR7, FR11, FR12, FR25.
 
-### Epic 4: Staff can manage products
+### Epic 4: Staff can manage products — ✅ Complete
 
-Staff can view and manage products as needed for orders and reporting. **FRs covered:** FR9.
+Staff can view and manage products as needed for orders and reporting; stock movements (full CRUD, weighted avg cost/price, PDF) are also complete. **FRs covered:** FR9.
 
-### Epic 5: Staff can create and manage orders
+### Epic 5: Staff can create and manage orders — ✅ Complete (backend)
 
-Staff can create, view, and update orders and order lines linked to clients and products. **FRs covered:** FR8.
+Staff can create, view, and update orders and order lines linked to clients and products; full lifecycle implemented: Pending → Delivered (stock out + ledger in one DB transaction) → Cancelled (stock reversal + compensating ledger). **FRs covered:** FR8. Mobile UI pending (Epic 7 / frontend).
 
-### Epic 6: Staff can record payments
+### Epic 6: Staff can record payments — 🔴 Not Started
 
-Staff can record payments and link them to clients, orders, and transactions as required by the business. **FRs covered:** FR10.
+Staff can record payments and link them to clients, orders, and transactions as required by the business. **FRs covered:** FR10. See `todo/04-payments.md`, `todo/05-expenses.md`, `todo/06-transactions.md`.
 
-### Epic 7: Staff can work offline and sync data
+### Epic 7: Staff can work offline and sync data — 🔴 Not Started
 
-Staff can capture and edit data offline with local storage; when online, data syncs to the backend; conflicts are handled; staff see sync status or are notified (e.g. via UI or push). **FRs covered:** FR13, FR14, FR15, FR16.
+Staff can capture and edit data offline with local storage; when online, data syncs to the backend; conflicts are handled; staff see sync status or are notified (e.g. via UI or push). **FRs covered:** FR13, FR14, FR15, FR16. Conflict strategy decision required before coding — see `todo/10-sync.md`.
 
-### Epic 8: Accountants and managers get monthly reports
+### Epic 8: Accountants and managers get monthly reports — 🔴 Not Started
 
-Accountants and managers can obtain monthly reports (e.g. P&L, client balances, movements) from the same data; reports are from a single source of truth; export or access to report data is supported. **FRs covered:** FR17, FR18, FR19.
+Accountants and managers can obtain monthly reports (e.g. P&L, client balances, movements) from the same data; reports are from a single source of truth; export or access to report data is supported. **FRs covered:** FR17, FR18, FR19. DB views (`VMonthlyProfitLoss`, `VClientBalance`, `VMonthlyCreditDebit`) exist — no service/controller yet. See `todo/07-reports.md`.
 
-### Epic 9: Invoicing and record-keeping
+### Epic 9: Invoicing and record-keeping — 🔴 Not Started
 
-The system supports invoice generation and storage, auditable records of transactions/clients/orders/payments, and data retention of at least 1 year. **FRs covered:** FR20, FR21, FR22.
+The system supports invoice generation and storage, auditable records of transactions/clients/orders/payments, and data retention of at least 1 year. **FRs covered:** FR20, FR21, FR22. `Invoice` entity does not exist yet. See `todo/08-invoices.md`.
 
-### Epic 10: Push notifications
+### Epic 10: Push notifications — 🔴 Not Started
 
-The system can send push notifications to the mobile app (e.g. sync completion or alerts). **FRs covered:** FR23.
+The system can send push notifications to the mobile app (e.g. sync completion or alerts). **FRs covered:** FR23. Push provider decision required before coding — see `todo/11-push-notifications.md`.
 
-### Epic 11: Data quality and validation
+### Epic 11: Data quality and validation — ⚠️ Partial
 
-The system validates input so incorrect data is rejected or corrected before it affects calculations and reports; reconciliation or checks are supported where feasible. **FRs covered:** FR27, FR28.
+The system validates input so incorrect data is rejected or corrected before it affects calculations and reports; reconciliation or checks are supported where feasible. **FRs covered:** FR27, FR28. FluentValidation in place for all currently implemented entities (Order, StockMovements, Product, Client); remaining entities pending alongside their APIs.
 
 ---
 

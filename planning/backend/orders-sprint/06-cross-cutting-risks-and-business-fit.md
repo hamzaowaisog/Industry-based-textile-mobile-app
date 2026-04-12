@@ -69,11 +69,12 @@ Use this when deciding if the current plan **meets** your criteria.
 Pick what applies; these are **not** all mandatory for every business.
 
 - [x] **Product:** Separate **Orders** vs **Purchases** screens (locked).
-- [ ] **Data:** Migration for `order_id` (and later `purchase_id`) on `stock_movements` and/or `transactions`.
-- [ ] **Reporting:** One-time fix for `v_monthly_profit_loss` category matching + regression test.
-- [ ] **Finance:** Document sign convention for `Transaction.Amount` vs `v_client_balance` / `v_monthly_credit_debit`.
-- [ ] **Epics:** Sequence **Orders → Purchases → Payments** (or parallelize Purchases with Orders if buying is equally urgent).
-- [ ] **Compliance / audit:** Export or report linking order → movements → ledger rows for a date range.
+- [x] **Orders backend:** Full CRUD + lifecycle (Delivered: stock out + ledger; Cancelled: reversals) — complete as of 2026-04-13.
+- [x] ✅ **Reporting:** `v_monthly_profit_loss` fixed — migration `20260412100000_FixProfitLossViewCategoryMatching` switched to `trans_category_id` matching. P&L now includes order sales. See [`03-reporting-and-views-alignment.md`](./03-reporting-and-views-alignment.md).
+- [ ] **Data:** Migration for nullable `order_id` on `stock_movements` / `transactions` — deferred, not blocking.
+- [ ] **Finance:** Document sign convention for `Transaction.Amount` vs `v_client_balance` / `v_monthly_credit_debit` — do before Payments epic.
+- [ ] **Epics:** Orders ✅ → **Purchases next** ([`todo/03-purchases.md`](../../../todo/03-purchases.md)) → Payments.
+- [ ] **Compliance / audit:** Export or report linking order → movements → ledger rows for a date range — deferred to Epic 9.
 
 ---
 

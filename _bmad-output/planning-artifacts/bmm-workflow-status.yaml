@@ -32,4 +32,4 @@ workflow_status:
   create-epics-and-stories: _bmad-output/planning-artifacts/epics.md
   test-design: optional
   implementation-readiness: _bmad-output/planning-artifacts/implementation-readiness-report-2025-01-29.md
-  sprint-planning: required
+  sprint-planning: todo/README.md  # implementation tracking lives in todo/ (12 feature files + README status table)

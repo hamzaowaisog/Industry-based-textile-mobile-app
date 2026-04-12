@@ -1,5 +1,7 @@
 # Orders sprint — implementation kickoff (start coding)
 
+> **Status as of 2026-04-13: ✅ Orders backend complete — one open reporting bug (see below)**
+
 This doc records **what we agreed after reading the pack** and the **order of work** to begin implementation. It is the bridge from planning to [`todo/02-orders.md`](../../../todo/02-orders.md) and code in [`backend/HamzaTex.Api`](../../../backend/HamzaTex.Api).
 
 ---
@@ -35,11 +37,17 @@ Optional follow-ups (do not block first vertical slice unless audit requires): n
 
 ## Suggested coding sequence (backend)
 
-1. Migration or SQL update for **views** + verify against seed data (can be step 1 in its own small PR).
-2. **`OrderDto` / ViewModels / Validation`** — mirror existing feature style (`Client`, `Product`).
-3. **`OrderService`** — create/list/filter/update/delete; **status transition to Delivered** runs stock + ledger; idempotent posting.
-4. **`OrderController`** — routes and policies from [`todo/02-orders.md`](../../../todo/02-orders.md).
-5. **`EntityPdfConfigs`** + Swagger smoke test.
+1. ✅ Migration or SQL update for **views** + verify against seed data — **PARTIALLY DONE: view not fixed yet (see open items below)**
+2. ✅ **`OrderDto` / ViewModels / Validation`** — done.
+3. ✅ **`OrderService`** — done. Full lifecycle: Create → Pending → Delivered (stock out + ledger in one DB transaction) → Cancelled (stock reversal + compensating ledger).
+4. ✅ **`OrderController`** — all 8 endpoints done.
+5. ✅ **`EntityPdfConfigs`** + Swagger — done.
+
+## Open items (unblocking Purchases is safe; these are reporting/audit follow-ups)
+
+- ✅ **`v_monthly_profit_loss` view bug FIXED** — migration `20260412100000_FixProfitLossViewCategoryMatching` rewrote the view to use `trans_category_id` matching. P&L now correctly includes order sales. See [`03-reporting-and-views-alignment.md`](./03-reporting-and-views-alignment.md).
+- ⬜ **Nullable `order_id`** on `transactions` / `stock_movements` — deferred traceability migration (not blocking).
+- ⬜ **Finance sign convention** — `Transaction.Amount` vs `v_client_balance` / `v_monthly_credit_debit` should be documented before Payments epic starts.
 
 Parallel track (separate PR/epic): **Purchases** service/controller when this sprint’s order slice is stable.
 

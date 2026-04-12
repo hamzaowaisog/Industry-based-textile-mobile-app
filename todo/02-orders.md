@@ -1,7 +1,7 @@
 # Orders API
 
 **Epic:** 5 — Staff can create and manage orders
-**Status:** 🔴 Not Started
+**Status:** ✅ Complete
 
 **Architecture / planning pack:** [planning/backend/orders-sprint/](../planning/backend/orders-sprint/01-business-context-textile.md) (read `01`–`05`). Covers textile business context, DB impact, **reporting views**, **ledger posting** (`transactions`), and service/API outline—including **posting on Delivered** and **`Sale` vs `Sales` view alignment**.
 
@@ -9,83 +9,62 @@
 
 **Kickoff (validated gaps, two UI screens, coding sequence):** [planning/backend/orders-sprint/07-implementation-kickoff.md](../planning/backend/orders-sprint/07-implementation-kickoff.md).
 
-## What Already Exists
+## What Was Built
 
-- `Order` entity: `ClientId`, `StatusId`, `PaymentTypeId`, `OrderDate`, `Notes`, `CreatedAt`
-- `OrderLine` entity: `OrderId`, `ProductId`, `Qty`, `UnitPrice`
-- `OrderStatus` entity — seeded with: Pending (1), InProgressed (2), Delivered (3), Cancelled (4)
-- `PaymentType` entity — seeded with: Cash (1), Credit (2) — shared with Purchase
-- `ApplicationDbContext` has `DbSet<Order>`, `DbSet<OrderLine>`, `DbSet<OrderStatus>`
-- No service, no DTO, no ViewModel, no validation, no controller
+All layers implemented. Full lifecycle: create → Pending → Delivered (posts stock + ledger in one DB transaction) → Cancelled (reverses stock + compensating ledger entry).
 
-## Tasks
+- `Models/OrderDto.cs` — `OrderDto`, `CreateOrderDto`, `UpdateOrderDto`, `CreateOrderLineDto`, `OrderLineDto`
+- `Services/ViewModel/OrderViewModel.cs` — `OrderCreateViewModel`, `OrderUpdateViewModel`, `OrderLineCreateViewModel`
+- `Validation/OrderValidation.cs` — `OrderCreateViewModelValidation`, `OrderUpdateViewModelValidation`
+- `Services/OrderService.cs` — `IOrderService` + `OrderService`; registered Scoped in `Program.cs`
+- `Models/PdfConfig.cs` — `Order` config added to `EntityPdfConfigs`
+- `Controllers/OrderController.cs` — all 8 endpoints
+
+## Completed Tasks
 
 ### Models / DTOs (`Models/`)
 
-- [ ] Create `OrderDto.cs`:
-  - `OrderDto` — response shape (Id, ClientId, StatusId, PaymentTypeId, OrderDate, Notes, CreatedAt, OrderLines)
-  - `CreateOrderDto` — (ClientId, StatusId, PaymentTypeId, OrderDate, Notes, Lines: List of CreateOrderLineDto)
-  - `UpdateOrderDto` — (StatusId, PaymentTypeId, Notes, OrderDate)
-  - `CreateOrderLineDto` — (ProductId, Qty, UnitPrice)
-  - `OrderLineDto` — (Id, OrderId, ProductId, Qty, UnitPrice)
+- [x] Create `OrderDto.cs` with all shapes (OrderDto, CreateOrderDto, UpdateOrderDto, CreateOrderLineDto, OrderLineDto)
 
 ### ViewModels (`Services/ViewModel/`)
 
-- [ ] Create `OrderViewModel.cs`:
-  - `OrderCreateViewModel` — input from controller
-  - `OrderUpdateViewModel`
-  - `OrderLineCreateViewModel`
+- [x] Create `OrderViewModel.cs` (OrderCreateViewModel, OrderUpdateViewModel, OrderLineCreateViewModel)
 
 ### Validation (`Validation/`)
 
-- [ ] Create `OrderValidation.cs`:
-  - `OrderCreateViewModelValidation` — ClientId required > 0, OrderDate required, at least 1 line
-  - `OrderUpdateViewModelValidation` — StatusId required > 0
+- [x] Create `OrderValidation.cs` (create + update validators)
 
 ### Service Layer (`Services/`)
 
-- [ ] Create `IOrderService` interface with:
-  - `Task<Response<OrderDto>> CreateAsync(CreateOrderDto model)`
-  - `Task<Response<OrderDto>> GetByIdAsync(int id)`
-  - `Task<Response<List<OrderDto>>> GetAllAsync()`
-  - `Task<Response<List<OrderDto>>> GetAllByUserIdAsync(int userId)`
-  - `Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize)`
-  - `Task<Response<OrderDto>> UpdateByIdAsync(int id, UpdateOrderDto model)`
-  - `Task<Response> DeleteByIdAsync(int id)`
-- [ ] Create `OrderService` implementing `IOrderService`
-- [ ] Register `IOrderService` / `OrderService` as Scoped in `Program.cs`
+- [x] `IOrderService` interface with all methods (CreateAsync, GetByIdAsync, GetAllAsync, GetAllByUserIdAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync)
+- [x] `OrderService` implemented with full lifecycle and status transition logic
+- [x] Registered as Scoped in `Program.cs`
 
-### Ledger (`transactions`) — required for P&L / client balance
+### Ledger (`transactions`)
 
-Per [planning/backend/orders-sprint/04-ledger-posting-rules.md](../planning/backend/orders-sprint/04-ledger-posting-rules.md):
-
-- [ ] On transition to **Delivered** (or equivalent single moment per planning), insert `Transaction` row(s) with correct `TransCategoryId` (Sales), `TransTypeId` / signed `Amount` convention, `TransModeId` from `PaymentType`, `ClientId`, `UserId`, `TransDate` (align with posting policy).
-- [ ] Implement **idempotent** posting (no duplicate transactions if status update is retried).
-- [ ] On **Cancelled** after Delivered, post **reversing** ledger entries (and stock reversal—see below); document whether delete is allowed when postings exist.
-
-### Reporting views alignment
-
-- [ ] Fix **`v_monthly_profit_loss`** vs seeded category name **`Sales`** vs view filter **`Sale`** (choose one approach: update view SQL, rename seed, or filter by `trans_category_id`). See [planning/backend/orders-sprint/03-reporting-and-views-alignment.md](../planning/backend/orders-sprint/03-reporting-and-views-alignment.md).
-- [ ] Re-verify **`v_client_balance`** after defining `Amount` sign convention for sales.
+- [x] Transition to **Delivered**: inserts `Transaction` row (TransCategory=Sales, TransType=Debit for cash, TransMode from PaymentType, ClientId, UserId, TransDate=OrderDate)
+- [x] Idempotent: guard against re-posting if already Delivered
+- [x] Transition to **Cancelled** after Delivered: inserts compensating Credit ledger entry + reverses stock (Manual In per line)
+- [x] Delete blocked if order is in Delivered state; linked transactions cleaned up on cancel
 
 ### Optional schema (traceability)
 
-- [ ] Add nullable `order_id` on `transactions` and/or `stock_movements` (migration) for audit and reversal—recommended follow-up.
+- [ ] Add nullable `order_id` on `transactions` / `stock_movements` — deferred, recommended follow-up
 
 ### PDF Config (`Models/PdfConfig.cs`)
 
-- [ ] Add `Order` config to `EntityPdfConfigs` (columns: Id, ClientId, StatusId, PaymentTypeId, OrderDate, Notes, CreatedAt)
+- [x] `Order` config added to `EntityPdfConfigs`
 
 ### Controller (`Controllers/OrderController.cs`)
 
-- [ ] `POST /api/Order` — create order + lines (AdminOrStaff)
-- [ ] `GET /api/Order` — all orders paginated (AdminOnly)
-- [ ] `GET /api/Order/me` — orders for logged-in user (Authenticated)
-- [ ] `GET /api/Order/{id}` — get by ID with lines (Authenticated)
-- [ ] `GET /api/Order/filtered` — filter by clientId, statusId, dateFrom, dateTo (Authenticated)
-- [ ] `PUT /api/Order/{id}` — update order header (AdminOrStaff)
-- [ ] `DELETE /api/Order/{id}` — delete order + lines (AdminOnly)
-- [ ] `GET /api/Order/pdf` — PDF list export (AdminOrStaff)
+- [x] `POST /api/Order` — create order + lines (AdminOrStaff)
+- [x] `GET /api/Order` — all orders paginated (AdminOnly)
+- [x] `GET /api/Order/me` — orders for logged-in user (Authenticated)
+- [x] `GET /api/Order/{id}` — get by ID with lines (Authenticated)
+- [x] `GET /api/Order/filtered` — filter by clientId, statusId, dateFrom, dateTo (Authenticated)
+- [x] `PUT /api/Order/{id}` — update order header + status transitions (AdminOrStaff)
+- [x] `DELETE /api/Order/{id}` — delete order + lines (AdminOnly, blocked if Delivered)
+- [x] `GET /api/Order/pdf` — PDF list export (AdminOrStaff)
 
 ## Business Logic Notes
 

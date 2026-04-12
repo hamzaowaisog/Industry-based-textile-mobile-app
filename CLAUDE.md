@@ -242,6 +242,7 @@ private int? GetUserId()
 | `IClientTypeService` | CreateAsync, GetByIdAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync |
 | `IProductService` | CreateWithUserIdAsync, GetByIdAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync, GetAllPaginatedAsync |
 | `IStockMovementsService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
+| `IOrderService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllByUserIdAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
 | `ILookupService` | GetAllAsync, GetByTypeAsync, GetOrderStatusesAsync, GetPaymentTypesAsync, GetPaymentDirectionsAsync, GetTransTypesAsync, GetTransModesAsync, GetTransCategoriesAsync, GetExpenseTypesAsync, GetMovementTypesAsync, GetMovementSourcesAsync, GetClientTypesAsync, GetUserRolesAsync |
 | `IPdfService` | CreatePdf |
 
@@ -258,10 +259,11 @@ private int? GetUserId()
 | `ClientTypeController` | POST, GET all, GET /{id}, PUT /{id}, DELETE /{id}, GET /pdf |
 | `ProductController` | POST, GET /{id}, GET all, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf |
 | `StockMovementsController` | POST, GET (paginated), GET /{id}, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf |
+| `OrderController` | POST, GET (paginated), GET /me, GET /{id}, GET /filtered, PUT /{id} (status transitions: Delivered→stock+ledger, Cancelled→reversal), DELETE /{id}, GET /pdf |
 | `MetaController` | GET /all, GET /{type} (switch-case dispatch for all 11 lookup tables) |
 | `AppController` | GET /health, GET /info, GET /spec (downloads OpenAPI JSON for Orval) |
 
-**Not yet created:** OrderController, PurchaseController, PaymentController, ExpenseController, TransactionController, ReportController, InvoiceController, SyncController, DeviceController
+**Not yet created:** PurchaseController, PaymentController, ExpenseController, TransactionController, ReportController, InvoiceController, SyncController, DeviceController
 
 ---
 
@@ -285,7 +287,7 @@ See `todo/` for detailed task breakdowns:
 | File | Area |
 |---|---|
 | `todo/01-stock-movements-read.md` | ✅ Complete |
-| `todo/02-orders.md` | Full Orders API — entity exists, nothing else |
+| `todo/02-orders.md` | ✅ Complete — full Orders API incl. Delivered/Cancelled lifecycle, ledger, stock |
 | `todo/03-purchases.md` | Full Purchases API — entity exists, nothing else |
 | `todo/04-payments.md` | Full Payments API — entity exists, nothing else |
 | `todo/05-expenses.md` | Full Expenses API + ExpenseType controller |

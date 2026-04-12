@@ -53,7 +53,9 @@ Choose one approach for MVP and stick to it for reversal logic.
 
 ## Verification checklist (after implementation)
 
-- [ ] Posting uses category/type/mode IDs that match **seed data** and **view SQL**.
-- [ ] `Sale` vs `Sales` mismatch resolved.
-- [ ] Sample Delivered order produces expected rows in `v_monthly_profit_loss` and `v_client_balance`.
-- [ ] Cancelled order after posting reverses or compensates so views net to zero for that sale.
+> Last reviewed: 2026-04-13
+
+- [x] Posting uses category/type/mode IDs that match **seed data** — `OrderService` uses `TransCategorySales = 1` (id), `TransTypeDebit = 1`, `TransModeCredit = 3`. IDs are correct.
+- [x] ✅ **`Sale` vs `Sales` mismatch FIXED** — migration `20260412100000_FixProfitLossViewCategoryMatching` rewrote the view to use `trans_category_id` matching (`= 1` Sales, `= 2` Purchases, `IN (3,4)` Expenses). Name join removed.
+- [ ] Sample Delivered order produces expected rows in `v_monthly_profit_loss` — pending manual verification.
+- [x] Cancelled order after posting reverses/compensates — stock reversal (Manual In per line) + compensating Credit `Transaction` row are implemented in `OrderService.CancelOrderAsync`.

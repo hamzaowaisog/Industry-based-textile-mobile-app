@@ -14,9 +14,9 @@ This folder holds **feature- and sprint-level architecture notes** for HamzaTex:
 
 ### Backend
 
-| Pack | Description |
-|------|-------------|
-| [Orders sprint](./backend/orders-sprint/01-business-context-textile.md) | Textile business context, lifecycle, cash vs credit. Read `01`–`05` for design; [`06`](./backend/orders-sprint/06-cross-cutting-risks-and-business-fit.md) for cross-cutting risks and business fit; [`07`](./backend/orders-sprint/07-implementation-kickoff.md) for **locked UI split (Orders vs Purchases)** and **order of work to start coding**. |
+| Pack | Status | Description |
+|------|--------|-------------|
+| [Orders sprint](./backend/orders-sprint/01-business-context-textile.md) | ✅ Complete | Textile business context, lifecycle, cash vs credit. Backend fully implemented. `v_monthly_profit_loss` view bug fixed in migration `20260412100000_FixProfitLossViewCategoryMatching`. |
 
 ### Trackers
 
