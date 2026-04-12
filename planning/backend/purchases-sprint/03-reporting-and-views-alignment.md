@@ -1,33 +1,42 @@
 # Purchases — reporting and database views
 
+**Status: ✅ Resolved** — All view alignment issues fixed.
+
 ## Views involved
 
-### `v_monthly_profit_loss`
+### `v_monthly_profit_loss` ✅ Fixed
 
-[`UpdateMonthlyProfitLossView`](../../../backend/HamzaTex.Api/Migrations/20260204131656_UpdateMonthlyProfitLossView.cs) buckets **purchase spend** with:
+Latest migration [`FixProfitLossViewCategoryMatching`](../../../backend/HamzaTex.Api/Migrations/20260412100000_FixProfitLossViewCategoryMatching.cs) uses **id-based** matching — no more name drift:
 
 ```sql
-SUM(CASE WHEN tt.name = 'Purchase' THEN t.amount ELSE 0 END)
+SUM(CASE WHEN t.trans_category_id = 1 THEN t.amount ELSE 0 END) AS total_sales
+SUM(CASE WHEN t.trans_category_id = 2 THEN t.amount ELSE 0 END) AS total_purchases
+SUM(CASE WHEN t.trans_category_id IN (3, 4) THEN t.amount ELSE 0 END) AS total_expenses
 ```
 
-**Seeded category** in [`SeedData`](../../../backend/HamzaTex.Api/Data/SeedData.cs): id **2**, name **`Purchases`** (plural).
+`Purchase Delivered` posts `TransCategoryId = 2` → appears correctly in `total_purchases`.
 
-Same class of bug as sales: **view says `Purchase`, seed says `Purchases`**. Fix in the **same spirit** as orders: align view SQL, or rename seed, or filter by **`trans_category_id = 2`**.
+### `v_client_balance` ✅ Convention confirmed
 
-### `v_client_balance`
+```sql
+(COALESCE(c.opening_balance, 0) + COALESCE(SUM(t.amount), 0)) AS balance
+```
 
-Sums **`transactions.amount`** per **`client_id`**. Supplier rows affect the **supplier’s** balance (payables vs prepayments depending on sign convention). Define **one convention** in [04-ledger-posting-rules.md](./04-ledger-posting-rules.md) and match **Orders** posting docs so finance does not flip meaning between customer and supplier.
+Raw sum of `transaction.amount` — no TransType filtering. Sign is in the amount:
+- Purchase Delivered → `Amount = +total` → supplier balance increases (we owe them more)
+- Purchase Cancelled reversal → `Amount = -total` → reduces what we owe
 
-## Line-level vs header-level posting
+### `v_monthly_credit_debit` ✅ Fixed
 
-Choose one approach and mirror **orders** if possible: one `Transaction` per purchase (header total) vs one per line (product-level `ProductId` on `Transaction`).
+Uses `trans_type_id`. **TransType was backwards** in original implementation — corrected:
 
-## Verification checklist
+- **Sales (Order Delivered):** `TransTypeId = Credit (2)` → adds to `total_credit` (money in)
+- **Purchases (Purchase Delivered):** `TransTypeId = Debit (1)` → adds to `total_debit` (money out)
+- `balance = total_credit - total_debit` = Sales − Purchases (positive for profitable month)
 
-- [ ] Posted purchase appears in **`total_purchases`** for the correct month.
-- [ ] Supplier balance in **`v_client_balance`** matches expectations for cash vs credit sample rows.
-- [ ] Naming/id alignment resolved (`Purchase` vs `Purchases`).
+## Verification checklist ✅
 
-## Related
-
-On **greenfield deploy**, seeds + view definitions in migrations must match — [08-seed-correction-and-greenfield-deployment.md](./08-seed-correction-and-greenfield-deployment.md).
+- [x] Posted purchase appears in `total_purchases` for the correct month (`trans_category_id = 2`)
+- [x] Supplier balance in `v_client_balance` reflects correct sign (positive = we owe them)
+- [x] `v_monthly_credit_debit` balance is positive for profitable months (Sales > Purchases)
+- [x] Naming/id alignment resolved — view uses `trans_category_id`, no `Purchase` vs `Purchases` drift

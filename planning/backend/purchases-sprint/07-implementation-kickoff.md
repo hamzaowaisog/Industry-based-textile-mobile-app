@@ -1,38 +1,45 @@
-# Purchases epic — implementation kickoff (start coding)
+# Purchases epic — implementation kickoff
 
-Bridge to [`todo/03-purchases.md`](../../../todo/03-purchases.md) and [`backend/HamzaTex.Api`](../../../backend/HamzaTex.Api).
+**Status: ✅ Complete** — All phases delivered. See [`todo/03-purchases.md`](../../../todo/03-purchases.md) for full checklist.
 
-## Preconditions
+## What was built (in order)
 
-- **Orders** patterns: `Response<T>`, **Delivered**-style posting, **`Transaction.OrderId`** usage — mirror for **`Transaction.PurchaseId`**.
-- **Two screens** (Orders vs Purchases): [`../orders-sprint/06-cross-cutting-risks-and-business-fit.md`](../orders-sprint/06-cross-cutting-risks-and-business-fit.md).
+| Phase | Work | Status |
+|-------|------|--------|
+| 1 | `PurchaseStatus` entity + `purchase_statuses` table + `Purchase.StatusId` FK + `Transaction → Order/Purchase` nav wiring | ✅ |
+| 2 | Seed `purchase_statuses` (ids 1–4) + views aligned (id-based P&L) | ✅ |
+| 3 | Ledger convention fixed: Sales=Credit(2), Purchases=Debit(1) | ✅ |
+| 4 | `PurchaseService`: Create (Pending), Delivered (stock In + ledger, idempotent), Cancelled (reversal) | ✅ |
+| 5 | Controller (8 endpoints) + `EntityPdfConfigs.Purchase` + DI + LookupService extension | ✅ |
 
-## What we fix first (causes)
+## Bugs fixed during implementation
 
-| Priority | Work |
-|----------|------|
-| 1 | **Schema:** `purchase_statuses` + **`purchases.status_id`** + confirm **`transactions.purchase_id`** FK in migrations ([09](./09-purchase-status-workflow.md)). |
-| 2 | **Seed + views:** canonical **`trans_categories`** and **`v_monthly_profit_loss`** (id- or name-based) per [08](./08-seed-correction-and-greenfield-deployment.md) and [03](./03-reporting-and-views-alignment.md). |
-| 3 | **Ledger convention:** supplier **`Amount`** / types aligned with orders. |
-| 4 | **`PurchaseService`:** status transitions; **Delivered** → stock + `transactions` with **`PurchaseId`**. |
-| 5 | **Controller** + Meta (`PurchaseStatuses`) + PDF + DI. |
+- `OrderLine.Qty` and `PurchaseLine.Qty` changed `int` → `decimal(14,2)`
+- `unit_price` / `unit_cost` bumped to `decimal(14,4)` to match `stock_movements` precision
+- Product existence validation added to both `OrderService.CreateAsync` and `PurchaseService.CreateAsync`
+- `TransTypeId` was backwards in `OrderService` — corrected alongside `PurchaseService`
+- `Transaction → Order` and `Transaction → Purchase` navigation configs were missing from `ApplicationDbContext.OnModelCreating`
 
-## Suggested coding sequence
+## Migrations applied
 
-1. EF migration: **`PurchaseStatus`** entity, **`DbSet`**, seed, **`Purchase.StatusId`**, FK **`Transaction.PurchaseId`** if not already migrated.
-2. **`LookupService` / `Meta/all`:** expose purchase statuses (mirror order statuses).
-3. View fix for P&L **Purchase** bucket if still mismatched ([03](./03-reporting-and-views-alignment.md)).
-4. DTOs / ViewModels / Validation (include **`StatusId`**).
-5. **`PurchaseService`:** create as **Pending**; **Update** to **Delivered** runs movements + ledger; **Cancelled** reversals.
-6. **`PurchaseController`**; `EntityPdfConfigs`; `Program.cs`.
+| Migration name | Change |
+|----------------|--------|
+| `AddPurchaseStatusAndStatusId` | `purchase_statuses` table, `purchases.status_id` FK, `Transaction → Order/Purchase` FKs wired |
+| `ChangeQtyToDecimalOnOrderAndPurchaseLines` | Both `qty` columns → `decimal(14,2)` |
+| `ChangeUnitCostAndPriceToDecimal14x4OnLines` | `unit_price` / `unit_cost` → `decimal(14,4)` |
 
-## Greenfield server deploy
+## Preconditions (satisfied)
 
-Migrations + **`SeedData`** produce a correct DB from empty—no reliance on local-only fixes ([08](./08-seed-correction-and-greenfield-deployment.md)).
+- Orders patterns mirrored: `Response<T>`, Delivered-style posting, `Transaction.OrderId` → now `Transaction.PurchaseId`
+- Two dedicated screens confirmed: Orders vs Purchases are separate UI flows
 
-## Out of scope unless requested
+## Out of scope (deferred)
 
-Full **Payments** to suppliers, full **Transactions** CRUD, **sync**.
+- Full Payments to suppliers
+- Full Transactions CRUD
+- `stock_movements.purchase_id` optional FK
+- Line-level ledger posting (currently header-level)
+- Sync
 
 ## Related
 

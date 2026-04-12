@@ -1,64 +1,60 @@
 # Purchases — data model and database impact
 
+**Status: ✅ Implemented** — All migrations applied.
+
 ## Core tables
 
 ### `purchases`
 
-[`Purchase`](../../../backend/HamzaTex.Api/Entities/Purchase.cs): `SupplierId`, `PaymentTypeId`, `PurchaseDate`, `Notes`, `CreatedAt`.
+[`Purchase`](../../../backend/HamzaTex.Api/Entities/Purchase.cs): `SupplierId`, `StatusId`, `PaymentTypeId`, `PurchaseDate`, `Notes`, `CreatedAt`.
 
-**Planned (see [09](./09-purchase-status-workflow.md)):** `StatusId` → `purchase_statuses` (mirror `orders.status_id` → `order_statuses`). **No `UserId`** — scope via **`clients.user_id`** on the supplier.
-
-Indexes include `supplier_id`, `purchase_date`, `(supplier_id, purchase_date)`; add **`status_id`** index when the column exists.
+- `StatusId` → `purchase_statuses` FK implemented (migration `AddPurchaseStatusAndStatusId`)
+- Index `IX_purchases_status_id` added
 
 ### `purchase_lines`
 
-[`PurchaseLine`](../../../backend/HamzaTex.Api/Entities/PurchaseLine.cs): `PurchaseId`, `ProductId`, `Qty`, `UnitCost`. Line total: `Qty * UnitCost`.
+[`PurchaseLine`](../../../backend/HamzaTex.Api/Entities/PurchaseLine.cs): `PurchaseId`, `ProductId`, `Qty`, `UnitCost`.
 
-### `purchase_statuses` (planned)
+- `Qty` — `decimal(14,2)` (was `int` — fixed in migration `ChangeQtyToDecimalOnOrderAndPurchaseLines`)
+- `UnitCost` — `decimal(14,4)` matching `stock_movements` precision (fixed in migration `ChangeUnitCostAndPriceToDecimal14x4OnLines`)
 
-Same pattern as [`OrderStatus`](../../../backend/HamzaTex.Api/Entities/OrderStatus.cs): `Id`, `Name`, `CreatedAt`; seeded ids **1–4** (Pending, InProgressed, Delivered, Cancelled). See [09](./09-purchase-status-workflow.md).
+### `purchase_statuses` ✅ Created
 
-## Validation rules (domain)
+Same pattern as [`OrderStatus`](../../../backend/HamzaTex.Api/Entities/OrderStatus.cs): `Id`, `Name`, `CreatedAt`; seeded ids **1–4** (Pending, InProgressed, Delivered, Cancelled). Migration: `AddPurchaseStatusAndStatusId`.
 
-- **`SupplierId`** → **`Client`** with **`ClientTypeId = 2` (Supplier)**.
-- Lines: positive qty and unit cost.
-- **Status:** valid `StatusId` FK when column exists; **Delivered** triggers stock + ledger.
+## Validation rules (implemented)
+
+- **`SupplierId`** → `Client` with `ClientTypeId = 2 (Supplier)` — validated in `PurchaseService.CreateAsync`
+- **ProductId existence** — all line product IDs validated in a single bulk DB query before saving
+- Lines: positive qty and unit cost — FluentValidation in `PurchaseCreateViewModelValidation`
+- **Delivered** transition guarded by idempotency check (existing transactions for `PurchaseId`)
 
 ## Related entities
 
 ### Stock movements
 
-**`MovementSource = Purchase (1)`** → **In**; all math in `StockMovementsService.CreateAsync`.
+`MovementSource = Purchase (1)` → In; all math in `StockMovementsService.CreateAsync`. Called per line on Delivered transition.
 
-**Traceability:** optional future **`purchase_id`** on `stock_movements` (not the same as **`Transaction.PurchaseId`**).
+### Transactions (ledger) ✅
 
-### Transactions (ledger)
+[`Transaction`](../../../backend/HamzaTex.Api/Entities/Transaction.cs):
 
-[`Transaction`](../../../backend/HamzaTex.Api/Entities/Transaction.cs) includes:
+- `PurchaseId` (nullable FK → `purchases`) — **set on every purchase-generated ledger row**
+- Navigation `Transaction → Purchase` wired in `ApplicationDbContext.OnModelCreating` (was missing, fixed)
+- Navigation `Transaction → Order` also wired at the same time
 
-- **`PurchaseId`** (nullable FK → `purchases`) — **set on every purchase-generated ledger row** for audit, idempotency, and joins.
-- **`OrderId`** — used for sales; keep mutually exclusive for automated postings (purchase vs sale).
+### `OrderLine` fix (same migration)
 
-Use **`TransCategoryId`** = **Purchases** (seed id **2**) for P&L. Rules: [04](./04-ledger-posting-rules.md).
+`order_lines.qty` and `order_lines.unit_price` updated to `decimal(14,2)` / `decimal(14,4)` for consistency.
 
-### Shared lookups
+## Application transaction boundaries ✅
 
-[`PaymentType`](../../../backend/HamzaTex.Api/Entities/PaymentType.cs) shared with **Orders**.
+On **Delivered** transition: status update + stock movements + transaction with `PurchaseId` — all in one EF Core `BeginTransactionAsync` block with rollback on any failure.
 
-## Application transaction boundaries
+## Migrations applied
 
-On **Delivered** transition: **status update + stock movements + `transactions` with `PurchaseId`** in **one** EF Core database transaction.
-
-## Migrations (summary)
-
-| Change | Purpose |
-|--------|---------|
-| `purchase_statuses` + seed | Lookup table |
-| `purchases.status_id` FK | Lifecycle |
-| `transactions.purchase_id` FK | Already in entity when migration applied — links ledger to document |
-| Optional `stock_movements.purchase_id` | Stronger inventory audit |
-
-## Related
-
-- [09-purchase-status-workflow.md](./09-purchase-status-workflow.md)
-- [08-seed-correction-and-greenfield-deployment.md](./08-seed-correction-and-greenfield-deployment.md)
+| Migration | Change |
+|---|---|
+| `AddPurchaseStatusAndStatusId` | `purchase_statuses` table, `purchases.status_id` FK, rewired `Transaction→Order/Purchase` FKs |
+| `ChangeQtyToDecimalOnOrderAndPurchaseLines` | `order_lines.qty` + `purchase_lines.qty` → `decimal(14,2)` |
+| `ChangeUnitCostAndPriceToDecimal14x4OnLines` | `order_lines.unit_price` + `purchase_lines.unit_cost` → `decimal(14,4)` |

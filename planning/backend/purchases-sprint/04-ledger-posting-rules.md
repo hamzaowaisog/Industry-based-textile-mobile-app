@@ -1,50 +1,63 @@
 # Purchases — ledger posting rules (`transactions`)
 
+**Status: ✅ Implemented** — Ledger posting correct and verified against all three reporting views.
+
 Aligned with **orders**: post **stock** and **`transactions`** when the purchase becomes **Delivered** (goods received), not on initial **Pending** save. See [09-purchase-status-workflow.md](./09-purchase-status-workflow.md).
 
 ## When to post
 
-- **Transition to `StatusId = Delivered` (3):** In one DB transaction: per line **`StockMovementsService`** with **`MovementSource = Purchase (1)`**, then insert **`Transaction`** row(s) with **`PurchaseId`** set to this purchase’s id.
+- **Transition to `StatusId = Delivered` (3):** In one DB transaction: per line **`StockMovementsService`** with **`MovementSource = Purchase (1)`**, then insert **`Transaction`** row with **`PurchaseId`** set to this purchase's id.
 - **Pending / InProgressed:** no stock movement, no purchase-category ledger rows for this document.
 
-## `PurchaseId` on every posting
+## `PurchaseId` on every posting ✅
 
-[`Transaction.PurchaseId`](../../../backend/HamzaTex.Api/Entities/Transaction.cs) must be populated for automated purchase postings so:
+[`Transaction.PurchaseId`](../../../backend/HamzaTex.Api/Entities/Transaction.cs) is populated on every purchase-related posting:
 
-- Idempotency checks can query “existing transaction for this purchase”.
-- Reports and support can trace **ledger ↔ purchase** without guessing by date.
+- FK wired in `ApplicationDbContext.OnModelCreating` (`FK_transactions_purchases_PurchaseId`)
+- Navigation `Transaction → Purchase` and `Purchase → Transactions` both configured
+- Index `IX_transactions_purchase_id` enables fast idempotency lookups
 
-## Amounts
+## Amounts ✅
 
-- Header total: **`Σ (Qty × UnitCost)`** (or sum of line postings if posting per line).
+Header total: **`Σ (Qty × UnitCost)`** across all lines — calculated in service, posted as one `Transaction` per purchase.
 
-## Category and modes
+## Category and modes ✅ (confirmed correct)
 
-- **`TransCategoryId`:** **Purchases** — seed id **2** ([`SeedData`](../../../backend/HamzaTex.Api/Data/SeedData.cs)).
-- **`TransTypeId` / `Amount` sign:** Must match **`v_monthly_profit_loss`** and **`v_client_balance`** for suppliers—align with **orders** convention ([`../orders-sprint/04-ledger-posting-rules.md`](../orders-sprint/04-ledger-posting-rules.md)).
-- **`TransModeId`:** From **`PaymentType`** (Cash vs Credit).
-- **`ClientId`:** Supplier client id.
-- **`UserId`:** Acting user.
+| Field | Value | Reason |
+|-------|-------|--------|
+| `TransCategoryId` | **2** (Purchases) | id-based — no `Purchase` vs `Purchases` name drift |
+| `TransTypeId` | **1** (Debit) | money **out** — we pay the supplier |
+| `Amount` | **+total** (positive) | raw sum in `v_client_balance`; positive = we owe supplier more |
+| `TransModeId` | From `PaymentType` (Cash=1, Credit=3) | |
+| `ClientId` | Supplier `Client.Id` | |
+| `UserId` | Acting user | |
 
-## Idempotency
+**Critical fix applied:** `TransTypeId` was **backwards** in original implementation (Credit for purchases). Corrected to **Debit (1)** for purchases so `v_monthly_credit_debit` balance = `total_credit − total_debit` = Sales − Purchases is positive for profitable months.
 
-- Moving to **Delivered** must not duplicate **`transactions`** if the client retries—use **`PurchaseId`** + existence check or unique constraint strategy.
+## Idempotency ✅
 
-## Cancelled (status 4)
+Guard: `AnyAsync(t => t.PurchaseId == id)` in `PurchaseService.TransitionToDelivered`. If transactions already exist for this `PurchaseId`, skip re-posting. Entire Delivered transition (status + stock In + ledger) wrapped in `BeginTransactionAsync` with rollback.
 
-If **Delivered** was posted: reverse stock (policy: Manual **Out** or equivalent) and post **compensating** `Transaction` rows linked with same **`PurchaseId`** / notes. If never **Delivered**, typically no purchase stock or P&L rows to reverse.
+## Cancelled reversal ✅
 
-## Delete / correction
+If **Delivered** was posted: per-line Manual Out (`MovementSource=3, MovementType=2`) to reverse stock + one compensating `Transaction`:
+- `TransTypeId = Credit (2)` (opposite of Debit used on Delivered)
+- `Amount = -total` (negative)
+- `PurchaseId` set (same purchase — linked for audit)
 
-Prefer **disallow delete** after **Delivered**, or **reversal** flow—not silent delete.
+If **never Delivered**: no stock or ledger to reverse; status update only.
 
-## Order of operations (Delivered transition)
+## Delete policy ✅
 
-1. Validate supplier, lines, stock eligibility.
-2. Update **`Purchase.StatusId`** to **Delivered**.
-3. Stock movements per line.
-4. Insert **`Transaction`**(s) with **`PurchaseId`**.
-5. Commit.
+`DeleteByIdAsync` rejects delete with error if `StatusId == Delivered (3)`. Use Cancelled reversal flow instead.
+
+## Order of operations (Delivered transition) ✅
+
+1. Idempotency check — existing transactions for `PurchaseId`?
+2. Update `Purchase.StatusId` to Delivered.
+3. Stock In per line via `StockMovementsService(MovementSource=1)`.
+4. Insert single `Transaction` with `PurchaseId`, `TransTypeId=1`, `TransCategoryId=2`, `Amount=+total`.
+5. Commit (or rollback all on any failure).
 
 ## References
 

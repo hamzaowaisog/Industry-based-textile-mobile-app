@@ -1,41 +1,43 @@
 # Seed data correction and greenfield deployment
 
-This doc explains how **lookup and category seed data** stay correct for **local dev**, **CI**, and a **fresh production database**—without relying on one-off local fixes that do not travel.
+**Status: ✅ Resolved** — Seeds and migrations are correct and self-contained. Greenfield deploy works from empty DB.
 
-## What “works on local” vs server
+## What "works on local" vs server
 
-- **Migrations still run on the server.** `dotnet ef database update` (or app startup `Migrate()`) applies the **same migration history** to an empty MySQL instance. That creates tables, views, FKs, and leaves **lookup tables empty until seed runs**.
-- **What does not transfer** is **ad-hoc data** you fixed manually in phpMyAdmin or one-off SQL on your laptop. Those changes are **not** in `SeedData` or migrations.
-- **Greenfield deploy** (empty DB, no legacy rows): the **only** source of truth for categories, statuses, types, etc. should be:
-  1. **EF migrations** (schema + view definitions), and  
-  2. **`SeedData.EnsureSeedDataAsync`** (or equivalent) for **fixed ids and names**.
+- **Migrations still run on the server.** `dotnet run` calls `dbContext.Database.Migrate()` at startup — applies the full migration chain to an empty MySQL instance.
+- **`SeedData.EnsureSeedDataAsync`** runs on every startup — idempotent, inserts rows only if missing. Produces `purchase_statuses` (and all other lookups) automatically.
+- **Ad-hoc local SQL** is not relied upon — all fixes are in code (seeds + migrations).
 
-So the “correction” is not a special server step—it is making **seeds and views align in code** once; every new environment gets the same result.
-
-## Canonical rules (apply before first prod deploy)
+## Canonical rules applied ✅
 
 | Topic | Rule |
 |-------|------|
-| **`trans_categories`** | Names and ids in [`SeedData`](../../../backend/HamzaTex.Api/Data/SeedData.cs) must match what **`v_monthly_profit_loss`** expects—prefer **`trans_category_id`** in view SQL (e.g. `id IN (1,2)`) or **exact name** match—no drift between `Sale`/`Sales`/`Purchase`/`Purchases`. |
-| **Views** | Define or migrate views so they do not depend on fragile string typos; **id-based** filters are stable across locales. |
-| **Order / Purchase statuses** | Once [`09-purchase-status-workflow.md`](./09-purchase-status-workflow.md) is implemented, seed **stable ids** (1–4) like `OrderStatus`. |
-| **Idempotent seed** | Use the same pattern as existing seeds: upsert or fixed ids so re-running startup does not duplicate rows. |
+| **`trans_categories`** | Seeds use exact names; `v_monthly_profit_loss` was updated to use `trans_category_id` (id-based — no `Purchase` vs `Purchases` name drift) |
+| **Views** | `v_monthly_profit_loss`, `v_client_balance`, `v_monthly_credit_debit` all migrated with id-based filters |
+| **`purchase_statuses`** | Seeded with stable ids 1–4 (Pending, InProgressed, Delivered, Cancelled) matching `order_statuses` pattern |
+| **Idempotent seed** | All seed calls use upsert pattern — re-running startup is safe |
 
-## Greenfield production checklist
+## Greenfield production checklist ✅
 
-1. Create empty MySQL database; connection string in app settings.
-2. Run application (or `dotnet ef database update`) so **all migrations** apply—including any view fixes.
-3. Confirm **seed** runs and **lookup** rows exist (`trans_categories`, `order_statuses`, `purchase_statuses` when added, etc.).
-4. Smoke-test: one order + one purchase path → P&L view buckets non-zero and sensible.
+1. Create empty MySQL database; add connection string to `appsettings.json`.
+2. `dotnet run` — auto-migrates all tables/views/FKs and seeds all lookup tables.
+3. Verify `purchase_statuses` rows exist (ids 1–4).
+4. Smoke test: create purchase → set Delivered → check `v_monthly_profit_loss` shows `total_purchases` for the month.
+5. Verify `v_client_balance` shows positive balance for supplier after Delivered.
+6. Verify `v_monthly_credit_debit` shows `total_debit` increase (not credit) for the purchase.
 
-## What you do *not* need on greenfield
+## Generate SQL script for manual deploy
 
-- **Separate “data migration” to rename categories** if seeds + views were fixed in code **before** first deploy—there is no old data to repair.
-- **Manual re-run of old patch scripts** on prod if prod only ever runs the consolidated migration chain.
+```bash
+cd backend/HamzaTex.Api
+dotnet ef migrations script --idempotent --output scripts.sql
+```
+
+This produces an idempotent SQL file covering all migrations — safe to run on a DB at any point in the migration chain.
 
 ## If you ever have a brownfield DB later
 
-Then you need real **data migrations** (SQL updates) to rename existing `trans_categories` rows or re-link FKs. That is a different playbook than **first deploy from empty**.
+Then you need real **data migrations** (SQL `UPDATE` statements) to rename existing `trans_categories` rows or re-link FKs. That is a different playbook than first deploy from empty.
 
 ## Related
 

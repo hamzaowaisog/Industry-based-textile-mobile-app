@@ -105,6 +105,7 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
 | `UserRole` | Admin (1), Staff (2) |
 | `ClientType` | Customer (1), Supplier (2) |
 | `OrderStatus` | Pending (1), InProgressed (2), Delivered (3), Cancelled (4) |
+| `PurchaseStatus` | Pending (1), InProgressed (2), Delivered (3), Cancelled (4) |
 | `PaymentType` | Cash (1), Credit (2) |
 | `PaymentDirection` | Received (1), Paid (2), Adjustment (3) |
 | `TransType` | Debit (1), Credit (2) |
@@ -139,13 +140,14 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
 - `OrderLine` — `OrderId`, `ProductId`, `Qty`, `UnitPrice`
 
 **Purchases (Procurement)**
-- `Purchase` — `SupplierId` (FK → `Client` where `ClientTypeId=2`), `PaymentTypeId`, `PurchaseDate`, `Notes`, `CreatedAt`
-- `PurchaseLine` — `PurchaseId`, `ProductId`, `Qty`, `UnitCost`
+- `Purchase` — `SupplierId` (FK → `Client` where `ClientTypeId=2`), `StatusId` (FK → `PurchaseStatus`), `PaymentTypeId`, `PurchaseDate`, `Notes`, `CreatedAt`
+- `PurchaseLine` — `PurchaseId`, `ProductId`, `Qty` (decimal 14,2), `UnitCost` (decimal 14,4)
+- `PurchaseStatus` — lookup (Pending=1, InProgressed=2, Delivered=3, Cancelled=4); seeded on startup
 
 **Financials**
 - `Payment` — `PartyClientId` (FK → Client), `PaymentDirectionId`, `TransModeId`, `Amount`, `PaymentDate`, `Notes`, `CreatedAt`
 - `Expense` — `ExpenseTypeId`, `Amount`, `TransModeId`, `UserId`, `TransCategoryId`, `TransactionId` (optional link), `ExpenseDate` (DateOnly), `Notes`, `CreatedAt`
-- `Transaction` — `ClientId?`, `ProductId?`, `UserId`, `TransTypeId`, `TransModeId`, `TransCategoryId`, `Amount`, `TransDate` (DateOnly), `Notes`, `CreatedAt`; owns `Expense[]`
+- `Transaction` — `ClientId?`, `ProductId?`, `UserId`, `OrderId?` (FK → Order), `PurchaseId?` (FK → Purchase), `TransTypeId`, `TransModeId`, `TransCategoryId`, `Amount`, `TransDate` (DateOnly), `Notes`, `CreatedAt`; owns `Expense[]`
 
 **Reporting Views (read-only)**
 - `VMonthlyProfitLoss` — `Month`, `TotalSales`, `TotalPurchases`, `TotalExpenses`, `GrossProfit`, `NetProfit`
@@ -186,6 +188,15 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
 - **Snapshot fields:** `AverageCostAtMovement` and `AveragePriceAtMovement` on `StockMovement` are computed at create time and stored as a historical snapshot. They are NOT recalculated on `UpdateByIdAsync` unless explicitly provided.
 - **Supplier is a Client:** `Purchase.SupplierId` references `Client.Id` where `ClientTypeId = 2`
 - **UserId scoping:** Products and Clients are scoped to their owner `UserId`; admins see all, staff see their own. Stock movements are scoped through `Product.ProductUsers`.
+- **Ledger posting convention (critical — affects all 3 views):**
+  - `v_monthly_profit_loss` uses `trans_category_id` (id-based): `1=Sales`, `2=Purchases`, `3/4=Expenses`. Amount is always positive.
+  - `v_client_balance` sums raw `amount` per `client_id` — sign is in the amount value itself.
+  - `v_monthly_credit_debit` uses `trans_type_id`: Credit=money in, Debit=money out.
+  - **Order Delivered:** `TransCategoryId=1`, `TransTypeId=2 (Credit)`, `Amount=+total`, `OrderId` set
+  - **Order Cancelled reversal:** `TransCategoryId=1`, `TransTypeId=1 (Debit)`, `Amount=-total`, `OrderId` set
+  - **Purchase Delivered:** `TransCategoryId=2`, `TransTypeId=1 (Debit)`, `Amount=+total`, `PurchaseId` set
+  - **Purchase Cancelled reversal:** `TransCategoryId=2`, `TransTypeId=2 (Credit)`, `Amount=-total`, `PurchaseId` set
+- **Line qty and price precision:** `order_lines.qty` / `purchase_lines.qty` = `decimal(14,2)`. `order_lines.unit_price` / `purchase_lines.unit_cost` = `decimal(14,4)` matching `stock_movements`.
 
 ---
 
@@ -243,7 +254,8 @@ private int? GetUserId()
 | `IProductService` | CreateWithUserIdAsync, GetByIdAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync, GetAllPaginatedAsync |
 | `IStockMovementsService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
 | `IOrderService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllByUserIdAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
-| `ILookupService` | GetAllAsync, GetByTypeAsync, GetOrderStatusesAsync, GetPaymentTypesAsync, GetPaymentDirectionsAsync, GetTransTypesAsync, GetTransModesAsync, GetTransCategoriesAsync, GetExpenseTypesAsync, GetMovementTypesAsync, GetMovementSourcesAsync, GetClientTypesAsync, GetUserRolesAsync |
+| `IPurchaseService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllByUserIdAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
+| `ILookupService` | GetAllAsync, GetByTypeAsync, GetOrderStatusesAsync, GetPurchaseStatusesAsync, GetPaymentTypesAsync, GetPaymentDirectionsAsync, GetTransTypesAsync, GetTransModesAsync, GetTransCategoriesAsync, GetExpenseTypesAsync, GetMovementTypesAsync, GetMovementSourcesAsync, GetClientTypesAsync, GetUserRolesAsync |
 | `IPdfService` | CreatePdf |
 
 ---
@@ -260,10 +272,11 @@ private int? GetUserId()
 | `ProductController` | POST, GET /{id}, GET all, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf |
 | `StockMovementsController` | POST, GET (paginated), GET /{id}, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf |
 | `OrderController` | POST, GET (paginated), GET /me, GET /{id}, GET /filtered, PUT /{id} (status transitions: Delivered→stock+ledger, Cancelled→reversal), DELETE /{id}, GET /pdf |
-| `MetaController` | GET /all, GET /{type} (switch-case dispatch for all 11 lookup tables) |
+| `PurchaseController` | POST, GET (paginated), GET /me, GET /{id}, GET /filtered, PUT /{id} (status transitions: Delivered→stock In+ledger, Cancelled→reversal), DELETE /{id}, GET /pdf |
+| `MetaController` | GET /all, GET /{type} (switch-case dispatch for all 12 lookup tables incl. purchasestatuses) |
 | `AppController` | GET /health, GET /info, GET /spec (downloads OpenAPI JSON for Orval) |
 
-**Not yet created:** PurchaseController, PaymentController, ExpenseController, TransactionController, ReportController, InvoiceController, SyncController, DeviceController
+**Not yet created:** PaymentController, ExpenseController, TransactionController, ReportController, InvoiceController, SyncController, DeviceController
 
 ---
 
@@ -288,7 +301,7 @@ See `todo/` for detailed task breakdowns:
 |---|---|
 | `todo/01-stock-movements-read.md` | ✅ Complete |
 | `todo/02-orders.md` | ✅ Complete — full Orders API incl. Delivered/Cancelled lifecycle, ledger, stock |
-| `todo/03-purchases.md` | Full Purchases API — entity exists, nothing else |
+| `todo/03-purchases.md` | ✅ Complete — full Purchases API incl. Delivered/Cancelled lifecycle, ledger, stock, PurchaseStatus |
 | `todo/04-payments.md` | Full Payments API — entity exists, nothing else |
 | `todo/05-expenses.md` | Full Expenses API + ExpenseType controller |
 | `todo/06-transactions.md` | Full Transactions API + lookup read endpoints |
