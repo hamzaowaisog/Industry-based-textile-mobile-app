@@ -16,11 +16,12 @@ This folder holds **feature- and sprint-level architecture notes** for HamzaTex:
 
 | Pack | Status | Description |
 |------|--------|-------------|
-| [Orders sprint](./backend/orders-sprint/01-business-context-textile.md) | ✅ Complete | Textile business context, lifecycle, cash vs credit. Backend fully implemented. `v_monthly_profit_loss` view bug fixed in migration `20260412100000_FixProfitLossViewCategoryMatching`. |
+| [Orders sprint](./backend/orders-sprint/01-business-context-textile.md) | ✅ Complete | Textile business context, lifecycle, cash vs credit. Backend fully implemented. `v_monthly_profit_loss` view bug fixed in migration `20260412100000_FixProfitLossViewCategoryMatching`. Cross-cutting: [`06`](./backend/orders-sprint/06-cross-cutting-risks-and-business-fit.md); kickoff: [`07`](./backend/orders-sprint/07-implementation-kickoff.md). |
+| [Purchases sprint](./backend/purchases-sprint/01-business-context-procurement.md) | 🟡 Planning | Procurement: **`PurchaseStatus`** (same routine as orders), **`Transaction.PurchaseId`**, seed + [**greenfield deploy**](./backend/purchases-sprint/08-seed-correction-and-greenfield-deployment.md), workflow [**09**](./backend/purchases-sprint/09-purchase-status-workflow.md). Read `01`–`09`; kickoff [`07`](./backend/purchases-sprint/07-implementation-kickoff.md). |
 
 ### Trackers
 
-Implementation checklists live under [`../todo/`](../todo/). Example: [Orders API](../todo/02-orders.md) links to this pack.
+Implementation checklists live under [`../todo/`](../todo/). [Orders API](../todo/02-orders.md); [Purchases API](../todo/03-purchases.md).
 
 ## Conventions
 
