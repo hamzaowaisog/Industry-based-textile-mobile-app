@@ -4,6 +4,7 @@ using HamzaTex.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HamzaTex.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260412100000_FixProfitLossViewCategoryMatching")]
+    partial class FixProfitLossViewCategoryMatching
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1048,15 +1051,9 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("longtext")
                         .HasColumnName("notes");
 
-                    b.Property<int?>("OrderId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("ProductId")
                         .HasColumnType("int")
                         .HasColumnName("product_id");
-
-                    b.Property<int?>("PurchaseId")
-                        .HasColumnType("int");
 
                     b.Property<int?>("TransCategoryId")
                         .HasColumnType("int")
@@ -1085,11 +1082,7 @@ namespace HamzaTex.Api.Migrations
 
                     b.HasIndex(new[] { "ClientId" }, "IX_transactions_client_id");
 
-                    b.HasIndex(new[] { "OrderId" }, "IX_transactions_order_id");
-
                     b.HasIndex(new[] { "ProductId" }, "IX_transactions_product_id");
-
-                    b.HasIndex(new[] { "PurchaseId" }, "IX_transactions_purchase_id");
 
                     b.HasIndex(new[] { "TransCategoryId" }, "IX_transactions_trans_category_id");
 
@@ -1615,19 +1608,11 @@ namespace HamzaTex.Api.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("transactions_client_id_fkey");
 
-                    b.HasOne("HamzaTex.Api.Entities.Order", "Order")
-                        .WithMany()
-                        .HasForeignKey("OrderId");
-
                     b.HasOne("HamzaTex.Api.Entities.Product", "Product")
                         .WithMany("Transactions")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("transactions_product_id_fkey");
-
-                    b.HasOne("HamzaTex.Api.Entities.Purchase", "Purchase")
-                        .WithMany()
-                        .HasForeignKey("PurchaseId");
 
                     b.HasOne("HamzaTex.Api.Entities.TransCategory", "TransCategory")
                         .WithMany("Transactions")
@@ -1655,11 +1640,7 @@ namespace HamzaTex.Api.Migrations
 
                     b.Navigation("Client");
 
-                    b.Navigation("Order");
-
                     b.Navigation("Product");
-
-                    b.Navigation("Purchase");
 
                     b.Navigation("TransCategory");
 

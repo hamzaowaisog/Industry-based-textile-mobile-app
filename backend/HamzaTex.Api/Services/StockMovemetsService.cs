@@ -48,7 +48,12 @@ public class StockMovementsService : IStockMovementsService
 
     public async Task<Response<StockMovementsDto>> CreateAsync(CreateStockMovementsDto model, int userId)
     {
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        // If a transaction is already active (e.g. called from OrderService), participate in it.
+        // Otherwise own the transaction ourselves.
+        var ownTransaction = _dbContext.Database.CurrentTransaction == null;
+        await using var transaction = ownTransaction
+            ? await _dbContext.Database.BeginTransactionAsync()
+            : null;
         try
         {
             // ── Derive MovementType from MovementSource ───────────────────────
@@ -66,14 +71,14 @@ public class StockMovementsService : IStockMovementsService
                 case 3: // Manual
                     if (model.MovementType is null)
                     {
-                        await transaction.RollbackAsync();
+                        if (ownTransaction) await transaction!.RollbackAsync();
                         return Response<StockMovementsDto>.ErrorResponse("Validation failed",
                             "MovementType is required for Manual movements. Use 1 (In), 2 (Out), or 3 (Adjustment).");
                     }
                     resolvedMovementType = model.MovementType.Value;
                     break;
                 default:
-                    await transaction.RollbackAsync();
+                    if (ownTransaction) await transaction!.RollbackAsync();
                     return Response<StockMovementsDto>.ErrorResponse("Invalid movement source",
                         "MovementSource must be 1 (Purchase), 2 (Sale), or 3 (Manual).");
             }
@@ -81,7 +86,7 @@ public class StockMovementsService : IStockMovementsService
             var product = await _productService.GetByIdAsync(model.ProductId, userId);
             if (product is null || product.Data is null)
             {
-                await transaction.RollbackAsync();
+                if (ownTransaction) await transaction!.RollbackAsync();
                 return Response<StockMovementsDto>.ErrorResponse("Product not found");
             }
 
@@ -102,7 +107,7 @@ public class StockMovementsService : IStockMovementsService
                 var currentQty = productData.Quantity ?? 0;
                 if (model.Qty > currentQty)
                 {
-                    await transaction.RollbackAsync();
+                    if (ownTransaction) await transaction!.RollbackAsync();
                     return Response<StockMovementsDto>.ErrorResponse("Insufficient stock",
                         $"Available: {currentQty} {productData.Unit}, Requested: {model.Qty} {productData.Unit}");
                 }
@@ -167,14 +172,14 @@ public class StockMovementsService : IStockMovementsService
             var updateResult = await _productService.UpdateByIdAsync(model.ProductId, updateDto, userId);
             if (!updateResult.Success)
             {
-                await transaction.RollbackAsync();
+                if (ownTransaction) await transaction!.RollbackAsync();
                 return Response<StockMovementsDto>.ErrorResponse("Failed to update product", updateResult.Message);
             }
 
             var entity = ToEntity(model, resolvedMovementType, unitCost, unitPrice, snapshotAvgCost, snapshotAvgPrice);
             await _dbContext.StockMovements.AddAsync(entity);
             await _dbContext.SaveChangesAsync();
-            await transaction.CommitAsync();
+            if (ownTransaction) await transaction!.CommitAsync();
 
             // Reload with navigation properties so names are populated in the response
             var saved = await _dbContext.StockMovements
@@ -191,7 +196,7 @@ public class StockMovementsService : IStockMovementsService
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            if (ownTransaction && transaction != null) await transaction.RollbackAsync();
             return Response<StockMovementsDto>.ErrorResponse("Internal server error", ex.Message);
         }
     }

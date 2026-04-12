@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS `__EFMigrationsHistory` (
+﻿CREATE TABLE IF NOT EXISTS `__EFMigrationsHistory` (
     `MigrationId` varchar(150) CHARACTER SET utf8mb4 NOT NULL,
     `ProductVersion` varchar(32) CHARACTER SET utf8mb4 NOT NULL,
     CONSTRAINT `PK___EFMigrationsHistory` PRIMARY KEY (`MigrationId`)
@@ -788,6 +788,46 @@ ALTER TABLE `products` ADD `total_quantity_purchased` decimal(14,2) NULL DEFAULT
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260211083915_AddTotalQuantityPurchasedColumnAdded', '9.0.10');
 
-COMMIT;
+DROP VIEW IF EXISTS v_monthly_profit_loss;
 
+
+                CREATE VIEW v_monthly_profit_loss AS
+                SELECT
+                    ROW_NUMBER() OVER (ORDER BY month) AS id,
+                    month,
+                    total_sales,
+                    total_purchases,
+                    total_expenses,
+                    (total_sales - total_purchases)                  AS gross_profit,
+                    (total_sales - total_purchases - total_expenses)  AS net_profit
+                FROM (
+                    SELECT
+                        DATE_FORMAT(t.trans_date, '%Y-%m-01') AS month,
+                        SUM(CASE WHEN t.trans_category_id = 1 THEN t.amount ELSE 0 END) AS total_sales,
+                        SUM(CASE WHEN t.trans_category_id = 2 THEN t.amount ELSE 0 END) AS total_purchases,
+                        SUM(CASE WHEN t.trans_category_id IN (3, 4) THEN t.amount ELSE 0 END) AS total_expenses
+                    FROM transactions t
+                    GROUP BY DATE_FORMAT(t.trans_date, '%Y-%m-01')
+                ) x;
+            
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260412100000_FixProfitLossViewCategoryMatching', '9.0.10');
+
+ALTER TABLE `transactions` ADD `OrderId` int NULL;
+
+ALTER TABLE `transactions` ADD `PurchaseId` int NULL;
+
+CREATE INDEX `IX_transactions_order_id` ON `transactions` (`OrderId`);
+
+CREATE INDEX `IX_transactions_purchase_id` ON `transactions` (`PurchaseId`);
+
+ALTER TABLE `transactions` ADD CONSTRAINT `FK_transactions_orders_OrderId` FOREIGN KEY (`OrderId`) REFERENCES `orders` (`id`);
+
+ALTER TABLE `transactions` ADD CONSTRAINT `FK_transactions_purchases_PurchaseId` FOREIGN KEY (`PurchaseId`) REFERENCES `purchases` (`id`);
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260412175014_AddOrderIdPurchaseIdToTransaction', '9.0.10');
+
+COMMIT;
 
