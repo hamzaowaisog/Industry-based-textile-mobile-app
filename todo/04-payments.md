@@ -1,67 +1,70 @@
 # Payments API
 
 **Epic:** 6 — Staff can record payments
-**Status:** 🔴 Not Started
+**Status:** ✅ Complete
 
-## What Already Exists
+## What Was Built
 
-- `Payment` entity: `PartyClientId` (FK → Client), `PaymentDirectionId`, `TransModeId`, `Amount`, `PaymentDate`, `Notes`, `CreatedAt`
-- `PaymentDirection` — seeded: Received (1), Paid (2), Adjustment (3)
-- `TransMode` — seeded: Cash (1), Bank (2), Credit (3) — shared with Transactions and Expenses
-- `ApplicationDbContext` has `DbSet<Payment>`, `DbSet<PaymentDirection>`
-- No service, no DTO, no ViewModel, no validation, no controller
+### New Entities
+- `PaymentAllocation` — join table linking a Payment to one or more Orders/Purchases with an allocated amount
+- `Payment` — extended with `UserId`, `IsReversed`, `ReversedByPaymentId`, `OriginalPaymentId`, `TransactionId`
 
-## Tasks
+### Migrations Applied
+1. `AddPaymentAllocationTable` — creates `payment_allocations` table
+2. `AddFieldsToPayment` — adds reversal chain + user + transaction FK fields to `payments`
+3. `UpdateVClientBalanceView` — redesigns `v_client_balance` to read from payments table for accurate outstanding balances
 
-### Models / DTOs (`Models/`)
+### Models / DTOs (`Models/PaymentDto.cs`)
+- `PaymentAllocationDto` — (Id, PaymentId, OrderId, PurchaseId, AllocatedAmount)
+- `PaymentDto` — (Id, PartyClientId, PartyClientName, PaymentDirectionId, PaymentDirectionName, TransModeId, TransModeName, Amount, PaymentDate, Notes, CreatedAt, RecordedByName, IsReversed, IsCashSettled, Allocations)
+- `AllocationItemDto` — (OrderId, PurchaseId, AllocatedAmount)
+- `CreatePaymentDto` — (PartyClientId, PaymentDirectionId, TransModeId, Amount, PaymentDate, Notes, Allocations)
+- `UpdatePaymentDto` — (TransModeId, PaymentDate, Notes) — amount and client are immutable after creation
+- `ReverseAndCorrectPaymentDto` — (CorrectClientId, Notes)
+- `UnallocatedCreditDto` — (ClientId, ClientName, UnallocatedAmount)
 
-- [ ] Create `PaymentDto.cs`:
-  - `PaymentDto` — (Id, PartyClientId, PaymentDirectionId, TransModeId, Amount, PaymentDate, Notes, CreatedAt)
-  - `CreatePaymentDto` — (PartyClientId, PaymentDirectionId, TransModeId, Amount, PaymentDate, Notes)
-  - `UpdatePaymentDto` — (PaymentDirectionId, TransModeId, Amount, PaymentDate, Notes)
+### ViewModels (`Services/ViewModel/PaymentViewModel.cs`)
+- `AllocationItemViewModel`, `PaymentCreateViewModel`, `PaymentUpdateViewModel`, `ReverseAndCorrectViewModel`
 
-### ViewModels (`Services/ViewModel/`)
+### Validation (`Validation/PaymentValidation.cs`)
+- `PaymentCreateViewModelValidation` — PartyClientId > 0, Amount > 0, DirectionId > 0, TransModeId > 0, PaymentDate required, Allocations sum ≤ Amount
+- `PaymentUpdateViewModelValidation` — TransModeId > 0, PaymentDate required
+- `ReverseAndCorrectViewModelValidation` — CorrectClientId > 0
 
-- [ ] Create `PaymentViewModel.cs`:
-  - `PaymentCreateViewModel`
-  - `PaymentUpdateViewModel`
+### Service Layer (`Services/PaymentService.cs`)
+- `CreateAsync` — records payment, posts ledger Transaction, auto-FIFO allocates or validates manual allocations
+- `GetByIdAsync`, `GetAllPaginatedAsync`, `GetAllByUserIdAsync`, `GetAllByClientIdAsync`, `GetFilteredAsync`
+- `GetUnallocatedCreditAsync` — returns unallocated balance for a client
+- `UpdateByIdAsync` — updates date, notes, TransMode only
+- `ReverseAsync` — creates reversing Transaction, marks original IsReversed=true, removes allocations
+- `ReverseAndCorrectAsync` — atomic reverse + re-create for correct client (wrong-client correction flow)
+- `DeleteByIdAsync` — hard delete with allocation and transaction cleanup
 
-### Validation (`Validation/`)
+### PDF Config
+- `EntityPdfConfigs.Payment` — columns: Id, Client, Direction, Mode, Amount, Date, Notes, Reversed
 
-- [ ] Create `PaymentValidation.cs`:
-  - `PaymentCreateViewModelValidation` — PartyClientId > 0, Amount > 0, PaymentDirectionId > 0, TransModeId > 0, PaymentDate required
+### Controller (`Controllers/PaymentController.cs`) — 12 endpoints
+- `POST /api/Payment` — record payment with optional allocations (AdminOrStaff)
+- `GET /api/Payment` — all payments paginated (AdminOnly)
+- `GET /api/Payment/me` — payments by current user
+- `GET /api/Payment/{id}` — get by ID
+- `GET /api/Payment/by-client/{clientId}` — all payments for a client
+- `GET /api/Payment/filtered` — filter by clientId, directionId, modeId, dateFrom, dateTo, includeReversed
+- `GET /api/Payment/unallocated/{clientId}` — unallocated credit balance
+- `PUT /api/Payment/{id}` — update date/notes/mode (AdminOrStaff)
+- `POST /api/Payment/{id}/reverse` — reverse a payment (AdminOnly)
+- `POST /api/Payment/{id}/reverse-and-correct` — reverse + re-create for correct client (AdminOnly)
+- `DELETE /api/Payment/{id}` — hard delete (AdminOnly)
+- `GET /api/Payment/pdf` — PDF export (AdminOrStaff)
 
-### Service Layer (`Services/`)
+## Key Business Rules Implemented
 
-- [ ] Create `IPaymentService` interface with:
-  - `Task<Response<PaymentDto>> CreateAsync(CreatePaymentDto model)`
-  - `Task<Response<PaymentDto>> GetByIdAsync(int id)`
-  - `Task<Response<List<PaymentDto>>> GetAllAsync()`
-  - `Task<Response<List<PaymentDto>>> GetAllByClientIdAsync(int clientId)`
-  - `Task<Response<PagedList<PaymentDto>>> GetAllPaginatedAsync(int page, int pageSize)`
-  - `Task<Response<PaymentDto>> UpdateByIdAsync(int id, UpdatePaymentDto model)`
-  - `Task<Response> DeleteByIdAsync(int id)`
-- [ ] Create `PaymentService` implementing `IPaymentService`
-- [ ] Register as Scoped in `Program.cs`
-
-### PDF Config (`Models/PdfConfig.cs`)
-
-- [ ] Add `Payment` config to `EntityPdfConfigs` (columns: Id, PartyClientId, Amount, PaymentDirectionId, TransModeId, PaymentDate, Notes)
-
-### Controller (`Controllers/PaymentController.cs`)
-
-- [ ] `POST /api/Payment` — record payment (AdminOrStaff)
-- [ ] `GET /api/Payment` — all payments paginated (AdminOnly)
-- [ ] `GET /api/Payment/{id}` — get by ID (Authenticated)
-- [ ] `GET /api/Payment/by-client/{clientId}` — payments for a client (Authenticated)
-- [ ] `GET /api/Payment/filtered` — filter by clientId, directionId, transModeId, dateFrom, dateTo (Authenticated)
-- [ ] `PUT /api/Payment/{id}` — update payment (AdminOrStaff)
-- [ ] `DELETE /api/Payment/{id}` — delete (AdminOnly)
-- [ ] `GET /api/Payment/pdf` — PDF export (AdminOrStaff)
-
-## Business Logic Notes
-
-- `Payment.PartyClientId` links to `Client` — can be Customer or Supplier depending on direction
-- `PaymentDirection`: Received (1) = money coming in from customer; Paid (2) = money going out to supplier
-- No `OrderId` on `Payment` entity — payments are linked at client level, not order level
-- `TransMode` (Cash/Bank/Credit) is shared across Payment, Transaction, Expense
+- **FIFO auto-allocation:** If `Allocations` is empty, system greedily fills oldest non-Cancelled orders/purchases first
+- **Manual allocation validation:** Each allocation's `AllocatedAmount` cannot exceed the order/purchase outstanding balance
+- **Ledger posting by direction:**
+  - Direction=Received (customer pays) → `TransCategoryId=5 (Cash In)`, `TransTypeId=2 (Credit)`
+  - Direction=Paid (supplier payment) → `TransCategoryId=6 (Cash Out)`, `TransTypeId=1 (Debit)`
+  - Direction=Adjustment → `TransCategoryId=5`, `TransTypeId=2`
+- **Reversal:** Reversed payments excluded from `v_client_balance` via `is_reversed = 0` filter
+- **Cross-cutting fix:** `OrderDto` and `PurchaseDto` now include `AmountPaid`, `Outstanding`, `PaymentStatus` computed from allocation totals
+- **Client deletion guard:** Cannot delete a client with payment history — deactivate instead

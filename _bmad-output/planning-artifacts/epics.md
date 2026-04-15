@@ -7,14 +7,14 @@ stepsCompleted:
 inputDocuments:
   - _bmad-output/planning-artifacts/prd.md
   - _bmad-output/planning-artifacts/architecture.md
-implementationStatusLastUpdated: "2026-04-13"
+implementationStatusLastUpdated: "2026-04-16"
 implementationStatus:
   epic1_auth: complete
   epic2_users_roles: partial  # missing POST /api/Users (admin create) — see todo/09
   epic3_clients: complete
   epic4_products: complete    # includes StockMovements (full CRUD + PDF)
   epic5_orders: complete      # full lifecycle: Pending→Delivered (stock+ledger)→Cancelled (reversal)
-  epic6_payments: not_started # Payments, Expenses, Transactions — see todo/04,05,06
+  epic6_payments: partial     # Payments complete (todo/04 ✅); Expenses (todo/05) and Transactions (todo/06) pending
   epic7_sync: not_started     # decision on conflict strategy required first — see todo/10
   epic8_reports: not_started  # DB views exist; no service/controller yet — see todo/07
   epic9_invoices: not_started # Invoice entity doesn't exist yet — see todo/08
@@ -138,9 +138,14 @@ Staff can view and manage products as needed for orders and reporting; stock mov
 
 Staff can create, view, and update orders and order lines linked to clients and products; full lifecycle implemented: Pending → Delivered (stock out + ledger in one DB transaction) → Cancelled (stock reversal + compensating ledger). **FRs covered:** FR8. Mobile UI pending (Epic 7 / frontend).
 
-### Epic 6: Staff can record payments — 🔴 Not Started
+### Epic 6: Staff can record payments — 🟡 Partial
 
 Staff can record payments and link them to clients, orders, and transactions as required by the business. **FRs covered:** FR10. See `todo/04-payments.md`, `todo/05-expenses.md`, `todo/06-transactions.md`.
+
+**Progress:**
+- ✅ `todo/04-payments.md` — Full Payments API: FIFO allocation, reversal, reverse-and-correct, ledger posting, v_client_balance redesign. Planning docs: `planning/backend/payments-sprint/`.
+- 🔴 `todo/05-expenses.md` — Expenses API + ExpenseType controller — not started
+- 🔴 `todo/06-transactions.md` — Transactions API + lookup endpoints — not started
 
 ### Epic 7: Staff can work offline and sync data — 🔴 Not Started
 

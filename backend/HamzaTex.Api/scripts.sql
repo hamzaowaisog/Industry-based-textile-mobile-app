@@ -867,6 +867,108 @@ ALTER TABLE `order_lines` MODIFY COLUMN `unit_price` decimal(14,4) NOT NULL;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260412204830_ChangeUnitCostAndPriceToDecimal14x4OnLines', '9.0.10');
 
+ALTER TABLE `payments` ADD `is_reversed` tinyint(1) NOT NULL DEFAULT FALSE;
+
+ALTER TABLE `payments` ADD `original_payment_id` int NULL;
+
+ALTER TABLE `payments` ADD `reversed_by_payment_id` int NULL;
+
+ALTER TABLE `payments` ADD `transaction_id` int NULL;
+
+ALTER TABLE `payments` ADD `user_id` int NULL;
+
+CREATE TABLE `payment_allocations` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `payment_id` int NOT NULL,
+    `order_id` int NULL,
+    `purchase_id` int NULL,
+    `allocated_amount` decimal(14,2) NOT NULL,
+    CONSTRAINT `payment_allocations_pkey` PRIMARY KEY (`id`),
+    CONSTRAINT `payment_allocations_order_id_fkey` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `payment_allocations_payment_id_fkey` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `payment_allocations_purchase_id_fkey` FOREIGN KEY (`purchase_id`) REFERENCES `purchases` (`id`) ON DELETE SET NULL
+) CHARACTER SET=utf8mb4;
+
+CREATE INDEX `IX_payments_is_reversed` ON `payments` (`is_reversed`);
+
+CREATE INDEX `IX_payments_original_payment_id` ON `payments` (`original_payment_id`);
+
+CREATE INDEX `IX_payments_reversed_by_payment_id` ON `payments` (`reversed_by_payment_id`);
+
+CREATE INDEX `IX_payments_transaction_id` ON `payments` (`transaction_id`);
+
+CREATE INDEX `IX_payments_user_id` ON `payments` (`user_id`);
+
+CREATE INDEX `IX_payment_allocations_order_id` ON `payment_allocations` (`order_id`);
+
+CREATE INDEX `IX_payment_allocations_payment_id` ON `payment_allocations` (`payment_id`);
+
+CREATE INDEX `IX_payment_allocations_purchase_id` ON `payment_allocations` (`purchase_id`);
+
+ALTER TABLE `payments` ADD CONSTRAINT `payments_original_payment_id_fkey` FOREIGN KEY (`original_payment_id`) REFERENCES `payments` (`id`) ON DELETE SET NULL;
+
+ALTER TABLE `payments` ADD CONSTRAINT `payments_reversed_by_payment_id_fkey` FOREIGN KEY (`reversed_by_payment_id`) REFERENCES `payments` (`id`) ON DELETE SET NULL;
+
+ALTER TABLE `payments` ADD CONSTRAINT `payments_transaction_id_fkey` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`) ON DELETE SET NULL;
+
+ALTER TABLE `payments` ADD CONSTRAINT `payments_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260415215348_AddPaymentAllocationTable', '9.0.10');
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260415215411_AddFieldsToPayment', '9.0.10');
+
+DROP VIEW IF EXISTS v_client_balance;
+
+
+CREATE VIEW v_client_balance AS
+SELECT
+    c.id        AS client_id,
+    c.name,
+    COALESCE(t.order_total, 0) - COALESCE(p.paid_total, 0) AS balance
+FROM clients c
+LEFT JOIN (
+    SELECT client_id, SUM(amount) AS order_total
+    FROM transactions
+    WHERE trans_category_id = 1
+    GROUP BY client_id
+) t ON t.client_id = c.id
+LEFT JOIN (
+    SELECT party_client_id, SUM(amount) AS paid_total
+    FROM payments
+    WHERE payment_direction_id = 1
+      AND is_reversed = 0
+    GROUP BY party_client_id
+) p ON p.party_client_id = c.id
+WHERE c.client_type_id = 1
+
+UNION ALL
+
+SELECT
+    c.id,
+    c.name,
+    COALESCE(t.purchase_total, 0) - COALESCE(p.paid_total, 0) AS balance
+FROM clients c
+LEFT JOIN (
+    SELECT client_id, SUM(amount) AS purchase_total
+    FROM transactions
+    WHERE trans_category_id = 2
+    GROUP BY client_id
+) t ON t.client_id = c.id
+LEFT JOIN (
+    SELECT party_client_id, SUM(amount) AS paid_total
+    FROM payments
+    WHERE payment_direction_id = 2
+      AND is_reversed = 0
+    GROUP BY party_client_id
+) p ON p.party_client_id = c.id
+WHERE c.client_type_id = 2;
+
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260415215422_UpdateVClientBalanceView', '9.0.10');
+
 COMMIT;
 
 
