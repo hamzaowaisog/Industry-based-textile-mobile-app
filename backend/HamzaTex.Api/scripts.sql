@@ -969,6 +969,29 @@ WHERE c.client_type_id = 2;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260415215422_UpdateVClientBalanceView', '9.0.10');
 
+DROP VIEW IF EXISTS v_monthly_credit_debit;
+
+
+CREATE VIEW v_monthly_credit_debit AS
+SELECT
+    ROW_NUMBER() OVER (ORDER BY month) AS id,
+    month,
+    total_credit,
+    total_debit,
+    (total_credit - total_debit) AS balance
+FROM (
+    SELECT
+        DATE_FORMAT(t.trans_date, '%Y-%m-01') AS month,
+        SUM(CASE WHEN t.trans_type_id = 2 THEN t.amount ELSE 0 END) AS total_credit,
+        SUM(CASE WHEN t.trans_type_id = 1 THEN t.amount ELSE 0 END) AS total_debit
+    FROM transactions t
+    WHERE t.trans_category_id IN (5, 6, 7, 8)
+    GROUP BY DATE_FORMAT(t.trans_date, '%Y-%m-01')
+) x;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260415224000_FixMonthlyCreditDebitView', '9.0.10');
+
 COMMIT;
 
 
