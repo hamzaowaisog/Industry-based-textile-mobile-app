@@ -13,6 +13,9 @@ public class PurchaseDto
     public string? Notes { get; set; }
     public DateTime? CreatedAt { get; set; }
     public decimal Total { get; set; }
+    public decimal AmountPaid { get; set; }
+    public decimal Outstanding { get; set; }
+    public string PaymentStatus { get; set; } = "Unpaid";
     public List<PurchaseLineDto> PurchaseLines { get; set; } = [];
 }
 

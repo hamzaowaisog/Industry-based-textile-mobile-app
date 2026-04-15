@@ -135,9 +135,19 @@ public class ClientService : IClientService
     {
         var entity = await _dbContext.Clients.Where(client => client.Id == id).FirstOrDefaultAsync();
         if (entity is null)
-        {
             return Response.ErrorResponse("Not found", $"Client with id '{id}' was not found.");
-        }
+
+        var hasPayments = await _dbContext.Payments.AnyAsync(p => p.PartyClientId == id);
+        if (hasPayments)
+            return Response.ErrorResponse("Validation failed", "Cannot delete a client with payment history. Deactivate the client instead.");
+
+        var hasOrders = await _dbContext.Orders.AnyAsync(o => o.ClientId == id);
+        if (hasOrders)
+            return Response.ErrorResponse("Validation failed", "Cannot delete a client with order history. Deactivate the client instead.");
+
+        var hasPurchases = await _dbContext.Purchases.AnyAsync(p => p.SupplierId == id);
+        if (hasPurchases)
+            return Response.ErrorResponse("Validation failed", "Cannot delete a client with purchase history. Deactivate the client instead.");
 
         _dbContext.Clients.Remove(entity);
         await _dbContext.SaveChangesAsync();

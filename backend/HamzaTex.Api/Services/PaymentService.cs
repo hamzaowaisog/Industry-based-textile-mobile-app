@@ -1,0 +1,637 @@
+using HamzaTex.Api.Data;
+using HamzaTex.Api.Entities;
+using HamzaTex.Api.Helpers;
+using HamzaTex.Api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace HamzaTex.Api.Services;
+
+/// <summary>
+/// Payment management. Handles supplier payments, customer receipts, multi-order FIFO allocation,
+/// ledger posting, reversal flow, and unallocated credit tracking.
+/// </summary>
+public interface IPaymentService
+{
+    /// <summary>Create a payment. Allocates to orders/purchases (manual or auto-FIFO) and posts a Transaction to the ledger.</summary>
+    Task<Response<PaymentDto>> CreateAsync(CreatePaymentDto model, int userId);
+    /// <summary>Get payment by ID with allocations.</summary>
+    Task<Response<PaymentDto>> GetByIdAsync(int id);
+    /// <summary>Get all payments paginated. Admin only.</summary>
+    Task<Response<PagedList<PaymentDto>>> GetAllPaginatedAsync(int page, int pageSize, bool includeReversed);
+    /// <summary>Get all payments for a specific client.</summary>
+    Task<Response<List<PaymentDto>>> GetAllByClientIdAsync(int clientId);
+    /// <summary>Get payments recorded by the current user (paginated).</summary>
+    Task<Response<PagedList<PaymentDto>>> GetAllByUserIdAsync(int userId, int page, int pageSize);
+    /// <summary>Filter payments by clientId, directionId, modeId, date range, and reversed flag.</summary>
+    Task<Response<List<PaymentDto>>> GetFilteredAsync(int? clientId, int? directionId, int? modeId, DateOnly? dateFrom, DateOnly? dateTo, bool includeReversed);
+    /// <summary>Update payment notes, date, and mode only. Amount and client cannot be changed.</summary>
+    Task<Response<PaymentDto>> UpdateByIdAsync(int id, UpdatePaymentDto model);
+    /// <summary>Reverse a payment (wrong amount). Creates a reversing Transaction + reversal Payment. Original is marked IsReversed=true.</summary>
+    Task<Response<PaymentDto>> ReverseAsync(int id, string? notes, int adminUserId);
+    /// <summary>Reverse a payment and re-create it for the correct client. Atomic operation.</summary>
+    Task<Response<PaymentDto>> ReverseAndCorrectAsync(int id, ReverseAndCorrectPaymentDto model, int adminUserId);
+    /// <summary>Get unallocated credit balance for a client.</summary>
+    Task<Response<UnallocatedCreditDto>> GetUnallocatedCreditAsync(int clientId);
+    /// <summary>Hard delete a payment and its allocations. Deletes the linked Transaction. Admin only.</summary>
+    Task<Response> DeleteByIdAsync(int id);
+}
+
+public class PaymentService : IPaymentService
+{
+    private readonly ApplicationDbContext _db;
+
+    // Seeded direction IDs
+    private const int DirectionReceived = 1;
+    private const int DirectionPaid = 2;
+    private const int DirectionAdjustment = 3;
+
+    // Seeded TransMode IDs
+    private const int ModeCash = 1;
+    private const int ModeBank = 2;
+    private const int ModeCredit = 3;
+
+    // Seeded TransType IDs
+    private const int TransTypeDebit = 1;
+    private const int TransTypeCredit = 2;
+
+    // Seeded TransCategory IDs
+    private const int CatSales = 1;
+    private const int CatPurchases = 2;
+    private const int CatCashIn = 5;
+    private const int CatCashOut = 6;
+    private const int CatBankIn = 7;
+    private const int CatBankOut = 8;
+
+    // Seeded OrderStatus / PurchaseStatus IDs
+    private const int StatusCancelled = 4;
+
+    // Seeded ClientType IDs
+    private const int ClientTypeCustomer = 1;
+    private const int ClientTypeSupplier = 2;
+
+    public PaymentService(ApplicationDbContext db)
+    {
+        _db = db;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // CREATE
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public async Task<Response<PaymentDto>> CreateAsync(CreatePaymentDto model, int userId)
+    {
+        var client = await _db.Clients.FirstOrDefaultAsync(c => c.Id == model.PartyClientId);
+        if (client is null)
+            return Response<PaymentDto>.ErrorResponse("Not found", "Client not found.");
+
+        // Direction-client type validation
+        if (model.PaymentDirectionId == DirectionReceived && client.ClientTypeId != ClientTypeCustomer)
+            return Response<PaymentDto>.ErrorResponse("Validation failed", "Received payments can only be recorded for Customers.");
+
+        // Paid is allowed for both Suppliers (payment) and Customers (refund)
+        if (model.PaymentDirectionId == DirectionPaid &&
+            client.ClientTypeId != ClientTypeSupplier &&
+            client.ClientTypeId != ClientTypeCustomer)
+            return Response<PaymentDto>.ErrorResponse("Validation failed", "Invalid client type for this payment direction.");
+
+        // Build allocations (manual or FIFO)
+        List<(int? OrderId, int? PurchaseId, decimal Amount)> allocations;
+        if (model.Allocations.Count > 0)
+        {
+            var validationError = await ValidateManualAllocations(model);
+            if (validationError is not null)
+                return Response<PaymentDto>.ErrorResponse("Validation failed", validationError);
+
+            allocations = model.Allocations
+                .Select(a => (a.OrderId, a.PurchaseId, a.AllocatedAmount))
+                .ToList();
+        }
+        else
+        {
+            allocations = await BuildFifoAllocations(model.PartyClientId, model.PaymentDirectionId, model.Amount);
+        }
+
+        // Determine ledger posting values
+        var (transCategoryId, transTypeId) = GetLedgerPosting(model.PaymentDirectionId, model.TransModeId);
+
+        using var txn = await _db.Database.BeginTransactionAsync();
+        try
+        {
+            var payment = new Payment
+            {
+                PartyClientId = model.PartyClientId,
+                PaymentDirectionId = model.PaymentDirectionId,
+                TransModeId = model.TransModeId,
+                Amount = model.Amount,
+                PaymentDate = model.PaymentDate,
+                Notes = model.Notes,
+                UserId = userId,
+                IsReversed = false,
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.Payments.Add(payment);
+            await _db.SaveChangesAsync();
+
+            // Insert allocations
+            foreach (var (orderId, purchaseId, amount) in allocations)
+            {
+                _db.PaymentAllocations.Add(new PaymentAllocation
+                {
+                    PaymentId = payment.Id,
+                    OrderId = orderId,
+                    PurchaseId = purchaseId,
+                    AllocatedAmount = amount
+                });
+            }
+
+            // Post Transaction to ledger (ClientId = NULL — cash flow only)
+            var transaction = new Transaction
+            {
+                ClientId = null,
+                UserId = userId,
+                TransTypeId = transTypeId,
+                TransModeId = model.TransModeId,
+                TransCategoryId = transCategoryId,
+                Amount = model.Amount,
+                TransDate = model.PaymentDate,
+                Notes = $"Payment #{payment.Id}: {model.Notes}",
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.Transactions.Add(transaction);
+            await _db.SaveChangesAsync();
+
+            payment.TransactionId = transaction.Id;
+            await _db.SaveChangesAsync();
+
+            await txn.CommitAsync();
+
+            return await GetByIdAsync(payment.Id);
+        }
+        catch
+        {
+            await txn.RollbackAsync();
+            throw;
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // GET
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public async Task<Response<PaymentDto>> GetByIdAsync(int id)
+    {
+        var payment = await _db.Payments
+            .Include(p => p.PartyClient)
+            .Include(p => p.PaymentDirection)
+            .Include(p => p.TransMode)
+            .Include(p => p.User)
+            .Include(p => p.Allocations)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (payment is null)
+            return Response<PaymentDto>.ErrorResponse("Not found", "Payment not found.");
+
+        return Response<PaymentDto>.SuccessResponse(MapToDto(payment), "Payment retrieved.");
+    }
+
+    public async Task<Response<PagedList<PaymentDto>>> GetAllPaginatedAsync(int page, int pageSize, bool includeReversed)
+    {
+        var query = _db.Payments
+            .Include(p => p.PartyClient)
+            .Include(p => p.PaymentDirection)
+            .Include(p => p.TransMode)
+            .Include(p => p.User)
+            .Include(p => p.Allocations)
+            .AsQueryable();
+
+        if (!includeReversed)
+            query = query.Where(p => !p.IsReversed);
+
+        query = query.OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.Id);
+
+        var paged = await PagedList<PaymentDto>.CreateAsync(
+            query.Select(p => MapToDto(p)), page, pageSize);
+
+        return Response<PagedList<PaymentDto>>.SuccessResponse(paged, "Payments retrieved.");
+    }
+
+    public async Task<Response<List<PaymentDto>>> GetAllByClientIdAsync(int clientId)
+    {
+        var payments = await _db.Payments
+            .Include(p => p.PartyClient)
+            .Include(p => p.PaymentDirection)
+            .Include(p => p.TransMode)
+            .Include(p => p.User)
+            .Include(p => p.Allocations)
+            .Where(p => p.PartyClientId == clientId)
+            .OrderByDescending(p => p.PaymentDate)
+            .ToListAsync();
+
+        return Response<List<PaymentDto>>.SuccessResponse(
+            payments.Select(MapToDto).ToList(), "Payments retrieved.");
+    }
+
+    public async Task<Response<PagedList<PaymentDto>>> GetAllByUserIdAsync(int userId, int page, int pageSize)
+    {
+        var query = _db.Payments
+            .Include(p => p.PartyClient)
+            .Include(p => p.PaymentDirection)
+            .Include(p => p.TransMode)
+            .Include(p => p.User)
+            .Include(p => p.Allocations)
+            .Where(p => p.UserId == userId)
+            .OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.Id);
+
+        var paged = await PagedList<PaymentDto>.CreateAsync(
+            query.Select(p => MapToDto(p)), page, pageSize);
+
+        return Response<PagedList<PaymentDto>>.SuccessResponse(paged, "Payments retrieved.");
+    }
+
+    public async Task<Response<List<PaymentDto>>> GetFilteredAsync(
+        int? clientId, int? directionId, int? modeId,
+        DateOnly? dateFrom, DateOnly? dateTo, bool includeReversed)
+    {
+        var query = _db.Payments
+            .Include(p => p.PartyClient)
+            .Include(p => p.PaymentDirection)
+            .Include(p => p.TransMode)
+            .Include(p => p.User)
+            .Include(p => p.Allocations)
+            .AsQueryable();
+
+        if (clientId.HasValue) query = query.Where(p => p.PartyClientId == clientId);
+        if (directionId.HasValue) query = query.Where(p => p.PaymentDirectionId == directionId);
+        if (modeId.HasValue) query = query.Where(p => p.TransModeId == modeId);
+        if (dateFrom.HasValue) query = query.Where(p => p.PaymentDate >= dateFrom.Value);
+        if (dateTo.HasValue) query = query.Where(p => p.PaymentDate <= dateTo.Value);
+        if (!includeReversed) query = query.Where(p => !p.IsReversed);
+
+        var list = await query.OrderByDescending(p => p.PaymentDate).ToListAsync();
+        return Response<List<PaymentDto>>.SuccessResponse(list.Select(MapToDto).ToList(), "Payments retrieved.");
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // UPDATE
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public async Task<Response<PaymentDto>> UpdateByIdAsync(int id, UpdatePaymentDto model)
+    {
+        var payment = await _db.Payments.FindAsync(id);
+        if (payment is null)
+            return Response<PaymentDto>.ErrorResponse("Not found", "Payment not found.");
+        if (payment.IsReversed)
+            return Response<PaymentDto>.ErrorResponse("Invalid operation", "Cannot update a reversed payment.");
+
+        payment.TransModeId = model.TransModeId;
+        payment.PaymentDate = model.PaymentDate;
+        payment.Notes = model.Notes;
+        await _db.SaveChangesAsync();
+
+        return await GetByIdAsync(id);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // REVERSAL
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public async Task<Response<PaymentDto>> ReverseAsync(int id, string? notes, int adminUserId)
+    {
+        var original = await _db.Payments
+            .Include(p => p.Allocations)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (original is null)
+            return Response<PaymentDto>.ErrorResponse("Not found", "Payment not found.");
+        if (original.IsReversed)
+            return Response<PaymentDto>.ErrorResponse("Invalid operation", "Payment has already been reversed.");
+        if (original.OriginalPaymentId.HasValue)
+            return Response<PaymentDto>.ErrorResponse("Invalid operation", "Cannot reverse a reversal payment.");
+
+        var (transCategoryId, transTypeId) = GetLedgerPosting(original.PaymentDirectionId ?? 0, original.TransModeId ?? 0);
+        int reversalTransTypeId = transTypeId == TransTypeCredit ? TransTypeDebit : TransTypeCredit;
+
+        using var txn = await _db.Database.BeginTransactionAsync();
+        try
+        {
+            // Reversing transaction (negates cash flow)
+            var reversalTransaction = new Transaction
+            {
+                ClientId = null,
+                UserId = adminUserId,
+                TransTypeId = reversalTransTypeId,
+                TransModeId = original.TransModeId,
+                TransCategoryId = transCategoryId,
+                Amount = original.Amount,
+                TransDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                Notes = $"REVERSAL of Payment #{original.Id}: {notes}",
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.Transactions.Add(reversalTransaction);
+            await _db.SaveChangesAsync();
+
+            // Reversal payment record
+            var reversalPayment = new Payment
+            {
+                PartyClientId = original.PartyClientId,
+                PaymentDirectionId = original.PaymentDirectionId,
+                TransModeId = original.TransModeId,
+                Amount = original.Amount,
+                PaymentDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                Notes = $"REVERSAL of Payment #{original.Id}: {notes}",
+                UserId = adminUserId,
+                IsReversed = false,
+                OriginalPaymentId = original.Id,
+                TransactionId = reversalTransaction.Id,
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.Payments.Add(reversalPayment);
+            await _db.SaveChangesAsync();
+
+            // Remove original allocations
+            _db.PaymentAllocations.RemoveRange(original.Allocations);
+
+            // Mark original as reversed
+            original.IsReversed = true;
+            original.ReversedByPaymentId = reversalPayment.Id;
+            await _db.SaveChangesAsync();
+
+            await txn.CommitAsync();
+            return await GetByIdAsync(reversalPayment.Id);
+        }
+        catch
+        {
+            await txn.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task<Response<PaymentDto>> ReverseAndCorrectAsync(int id, ReverseAndCorrectPaymentDto model, int adminUserId)
+    {
+        var original = await _db.Payments.FirstOrDefaultAsync(p => p.Id == id);
+        if (original is null)
+            return Response<PaymentDto>.ErrorResponse("Not found", "Payment not found.");
+        if (original.IsReversed)
+            return Response<PaymentDto>.ErrorResponse("Invalid operation", "Payment has already been reversed.");
+        if (original.OriginalPaymentId.HasValue)
+            return Response<PaymentDto>.ErrorResponse("Invalid operation", "Cannot reverse a reversal payment.");
+
+        var correctClient = await _db.Clients.FirstOrDefaultAsync(c => c.Id == model.CorrectClientId);
+        if (correctClient is null)
+            return Response<PaymentDto>.ErrorResponse("Not found", "Correct client not found.");
+
+        // Validate direction-client type for the correct client
+        if (original.PaymentDirectionId == DirectionReceived && correctClient.ClientTypeId != ClientTypeCustomer)
+            return Response<PaymentDto>.ErrorResponse("Validation failed", "Received payments can only be assigned to Customers.");
+
+        // Step 1: Reverse the original
+        var reverseResult = await ReverseAsync(id, model.Notes ?? "Wrong client — corrected", adminUserId);
+        if (!reverseResult.Success)
+            return reverseResult;
+
+        // Step 2: Create correction payment for correct client
+        var correctionDto = new CreatePaymentDto
+        {
+            PartyClientId = model.CorrectClientId,
+            PaymentDirectionId = original.PaymentDirectionId ?? DirectionAdjustment,
+            TransModeId = original.TransModeId ?? ModeCash,
+            Amount = original.Amount,
+            PaymentDate = original.PaymentDate,
+            Notes = $"CORRECTION for Payment #{original.Id}: {model.Notes}",
+            Allocations = new List<AllocationItemDto>() // auto-FIFO on correct client
+        };
+
+        return await CreateAsync(correctionDto, adminUserId);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // UNALLOCATED CREDIT
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public async Task<Response<UnallocatedCreditDto>> GetUnallocatedCreditAsync(int clientId)
+    {
+        var client = await _db.Clients.FindAsync(clientId);
+        if (client is null)
+            return Response<UnallocatedCreditDto>.ErrorResponse("Not found", "Client not found.");
+
+        var totalPaid = await _db.Payments
+            .Where(p => p.PartyClientId == clientId && !p.IsReversed)
+            .SumAsync(p => (decimal?)p.Amount) ?? 0;
+
+        var totalAllocated = await _db.PaymentAllocations
+            .Where(a => a.Payment.PartyClientId == clientId && !a.Payment.IsReversed)
+            .SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
+
+        return Response<UnallocatedCreditDto>.SuccessResponse(new UnallocatedCreditDto
+        {
+            ClientId = clientId,
+            ClientName = client.Name,
+            UnallocatedAmount = totalPaid - totalAllocated
+        }, "Unallocated credit retrieved.");
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // DELETE
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public async Task<Response> DeleteByIdAsync(int id)
+    {
+        var payment = await _db.Payments
+            .Include(p => p.Allocations)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (payment is null)
+            return Response.ErrorResponse("Not found", "Payment not found.");
+
+        using var txn = await _db.Database.BeginTransactionAsync();
+        try
+        {
+            // Remove allocations
+            _db.PaymentAllocations.RemoveRange(payment.Allocations);
+
+            // Remove linked transaction if exists
+            if (payment.TransactionId.HasValue)
+            {
+                var transaction = await _db.Transactions.FindAsync(payment.TransactionId.Value);
+                if (transaction is not null)
+                    _db.Transactions.Remove(transaction);
+            }
+
+            _db.Payments.Remove(payment);
+            await _db.SaveChangesAsync();
+            await txn.CommitAsync();
+
+            return Response.SuccessResponse("Payment deleted.");
+        }
+        catch
+        {
+            await txn.RollbackAsync();
+            throw;
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // PRIVATE HELPERS
+    // ──────────────────────────────────────────────────────────────────────────
+
+    private async Task<string?> ValidateManualAllocations(CreatePaymentDto model)
+    {
+        decimal totalAllocated = 0;
+        foreach (var alloc in model.Allocations)
+        {
+            if (alloc.OrderId.HasValue && alloc.PurchaseId.HasValue)
+                return "An allocation cannot have both OrderId and PurchaseId set.";
+            if (!alloc.OrderId.HasValue && !alloc.PurchaseId.HasValue)
+                return "Each allocation must have either an OrderId or a PurchaseId.";
+
+            if (alloc.OrderId.HasValue)
+            {
+                var order = await _db.Orders
+                    .Include(o => o.OrderLines)
+                    .FirstOrDefaultAsync(o => o.Id == alloc.OrderId.Value);
+                if (order is null) return $"Order #{alloc.OrderId} not found.";
+                if (order.StatusId == StatusCancelled) return $"Order #{alloc.OrderId} is cancelled and cannot receive payment.";
+
+                var orderTotal = order.OrderLines.Sum(l => l.Qty * l.UnitPrice);
+                var alreadyAllocated = await _db.PaymentAllocations
+                    .Where(a => a.OrderId == alloc.OrderId && !a.Payment.IsReversed)
+                    .SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
+                var outstanding = orderTotal - alreadyAllocated;
+
+                if (alloc.AllocatedAmount > outstanding)
+                    return $"Allocation for Order #{alloc.OrderId} exceeds outstanding balance of {outstanding:F2}.";
+            }
+
+            if (alloc.PurchaseId.HasValue)
+            {
+                var purchase = await _db.Purchases
+                    .Include(p => p.PurchaseLines)
+                    .FirstOrDefaultAsync(p => p.Id == alloc.PurchaseId.Value);
+                if (purchase is null) return $"Purchase #{alloc.PurchaseId} not found.";
+                if (purchase.StatusId == StatusCancelled) return $"Purchase #{alloc.PurchaseId} is cancelled and cannot receive payment.";
+
+                var purchaseTotal = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost);
+                var alreadyAllocated = await _db.PaymentAllocations
+                    .Where(a => a.PurchaseId == alloc.PurchaseId && !a.Payment.IsReversed)
+                    .SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
+                var outstanding = purchaseTotal - alreadyAllocated;
+
+                if (alloc.AllocatedAmount > outstanding)
+                    return $"Allocation for Purchase #{alloc.PurchaseId} exceeds outstanding balance of {outstanding:F2}.";
+            }
+
+            totalAllocated += alloc.AllocatedAmount;
+        }
+
+        if (totalAllocated > model.Amount)
+            return $"Total allocated amount ({totalAllocated:F2}) exceeds payment amount ({model.Amount:F2}).";
+
+        return null;
+    }
+
+    private async Task<List<(int? OrderId, int? PurchaseId, decimal Amount)>> BuildFifoAllocations(
+        int clientId, int directionId, decimal paymentAmount)
+    {
+        var result = new List<(int? OrderId, int? PurchaseId, decimal Amount)>();
+        decimal remaining = paymentAmount;
+
+        if (directionId == DirectionReceived)
+        {
+            // Customer payment — allocate to orders oldest first
+            var orders = await _db.Orders
+                .Include(o => o.OrderLines)
+                .Where(o => o.ClientId == clientId && o.StatusId != StatusCancelled)
+                .OrderBy(o => o.OrderDate).ThenBy(o => o.Id)
+                .ToListAsync();
+
+            foreach (var order in orders)
+            {
+                if (remaining <= 0) break;
+
+                var orderTotal = order.OrderLines.Sum(l => l.Qty * l.UnitPrice);
+                var alreadyAllocated = await _db.PaymentAllocations
+                    .Where(a => a.OrderId == order.Id && !a.Payment.IsReversed)
+                    .SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
+                var outstanding = orderTotal - alreadyAllocated;
+
+                if (outstanding <= 0) continue;
+
+                var toAllocate = Math.Min(remaining, outstanding);
+                result.Add((order.Id, null, toAllocate));
+                remaining -= toAllocate;
+            }
+        }
+        else if (directionId == DirectionPaid)
+        {
+            // Supplier payment — allocate to purchases oldest first
+            var purchases = await _db.Purchases
+                .Include(p => p.PurchaseLines)
+                .Where(p => p.SupplierId == clientId && p.StatusId != StatusCancelled)
+                .OrderBy(p => p.PurchaseDate).ThenBy(p => p.Id)
+                .ToListAsync();
+
+            foreach (var purchase in purchases)
+            {
+                if (remaining <= 0) break;
+
+                var purchaseTotal = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost);
+                var alreadyAllocated = await _db.PaymentAllocations
+                    .Where(a => a.PurchaseId == purchase.Id && !a.Payment.IsReversed)
+                    .SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
+                var outstanding = purchaseTotal - alreadyAllocated;
+
+                if (outstanding <= 0) continue;
+
+                var toAllocate = Math.Min(remaining, outstanding);
+                result.Add((null, purchase.Id, toAllocate));
+                remaining -= toAllocate;
+            }
+        }
+        // Adjustment or no matching orders/purchases → no allocations (unallocated credit)
+
+        return result;
+    }
+
+    private static (int transCategoryId, int transTypeId) GetLedgerPosting(int directionId, int modeId)
+    {
+        return (directionId, modeId) switch
+        {
+            (DirectionReceived, ModeCash)  => (CatCashIn, TransTypeCredit),
+            (DirectionReceived, ModeBank)  => (CatBankIn, TransTypeCredit),
+            (DirectionReceived, ModeCredit) => (CatSales, TransTypeCredit),
+            (DirectionPaid, ModeCash)      => (CatCashOut, TransTypeDebit),
+            (DirectionPaid, ModeBank)      => (CatBankOut, TransTypeDebit),
+            (DirectionPaid, ModeCredit)    => (CatPurchases, TransTypeDebit),
+            _                              => (CatCashIn, TransTypeCredit) // Adjustment default
+        };
+    }
+
+    private static PaymentDto MapToDto(Payment p) => new()
+    {
+        Id = p.Id,
+        PartyClientId = p.PartyClientId,
+        PartyClientName = p.PartyClient?.Name,
+        PaymentDirectionId = p.PaymentDirectionId,
+        PaymentDirectionName = p.PaymentDirection?.Name,
+        TransModeId = p.TransModeId,
+        TransModeName = p.TransMode?.Name,
+        Amount = p.Amount,
+        PaymentDate = p.PaymentDate,
+        Notes = p.Notes,
+        CreatedAt = p.CreatedAt,
+        UserId = p.UserId,
+        RecordedByName = p.User?.Name,
+        IsReversed = p.IsReversed,
+        ReversedByPaymentId = p.ReversedByPaymentId,
+        OriginalPaymentId = p.OriginalPaymentId,
+        IsCashSettled = p.TransModeId != 3,
+        Allocations = p.Allocations.Select(a => new PaymentAllocationDto
+        {
+            Id = a.Id,
+            PaymentId = a.PaymentId,
+            OrderId = a.OrderId,
+            PurchaseId = a.PurchaseId,
+            AllocatedAmount = a.AllocatedAmount
+        }).ToList()
+    };
+}

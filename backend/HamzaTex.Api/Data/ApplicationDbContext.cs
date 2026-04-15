@@ -52,6 +52,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
 
     public virtual DbSet<Payment> Payments { get; set; }
 
+    public virtual DbSet<PaymentAllocation> PaymentAllocations { get; set; }
+
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<Purchase> Purchases { get; set; }
@@ -272,21 +274,81 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasDefaultValueSql("NOW()")
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.IsReversed)
+                .HasDefaultValue(false)
+                .HasColumnName("is_reversed");
+            entity.Property(e => e.ReversedByPaymentId).HasColumnName("reversed_by_payment_id");
+            entity.Property(e => e.OriginalPaymentId).HasColumnName("original_payment_id");
+            entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
 
             entity.HasOne(d => d.PartyClient).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.PartyClientId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("payments_party_client_id_fkey");
-            
+
             entity.HasOne(d => d.PaymentDirection).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.PaymentDirectionId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("payments_payment_direction_id_fkey");
-            
+
             entity.HasOne(d => d.TransMode).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.TransModeId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("payments_trans_mode_id_fkey");
+
+            entity.HasOne(d => d.User).WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("payments_user_id_fkey");
+
+            entity.HasOne(d => d.Transaction).WithMany()
+                .HasForeignKey(d => d.TransactionId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("payments_transaction_id_fkey");
+
+            // Self-referencing for reversal chain
+            entity.HasOne<Payment>().WithMany()
+                .HasForeignKey(d => d.ReversedByPaymentId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("payments_reversed_by_payment_id_fkey");
+
+            entity.HasOne<Payment>().WithMany()
+                .HasForeignKey(d => d.OriginalPaymentId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("payments_original_payment_id_fkey");
+        });
+
+        modelBuilder.Entity<PaymentAllocation>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("payment_allocations_pkey");
+
+            entity.ToTable("payment_allocations");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id");
+            entity.Property(e => e.PaymentId).HasColumnName("payment_id");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.PurchaseId).HasColumnName("purchase_id");
+            entity.Property(e => e.AllocatedAmount)
+                .HasPrecision(14, 2)
+                .HasColumnName("allocated_amount");
+
+            entity.HasOne(d => d.Payment).WithMany(p => p.Allocations)
+                .HasForeignKey(d => d.PaymentId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("payment_allocations_payment_id_fkey");
+
+            entity.HasOne(d => d.Order).WithMany()
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("payment_allocations_order_id_fkey");
+
+            entity.HasOne(d => d.Purchase).WithMany()
+                .HasForeignKey(d => d.PurchaseId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("payment_allocations_purchase_id_fkey");
         });
 
         modelBuilder.Entity<Product>(entity =>
