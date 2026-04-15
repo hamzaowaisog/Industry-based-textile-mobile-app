@@ -59,8 +59,10 @@
 
 ## Key Business Rules Implemented
 
-- **FIFO auto-allocation:** If `Allocations` is empty, system greedily fills oldest non-Cancelled orders/purchases first
-- **Manual allocation validation:** Each allocation's `AllocatedAmount` cannot exceed the order/purchase outstanding balance
+- **FIFO auto-allocation:** If `Allocations` is empty (or contains only empty items), system greedily fills oldest **Delivered** orders/purchases first. Pending/InProgress documents are excluded — only delivered goods can be paid.
+- **Empty allocation stripping:** Allocation items missing both `OrderId` and `PurchaseId` are silently stripped before FIFO check — sending `[{}]` is treated the same as `[]`.
+- **Manual allocation validation:** Each allocation's `AllocatedAmount` cannot exceed the order/purchase outstanding balance. Document must be Delivered (not just non-Cancelled).
+- **Advance payment handling:** If payment is recorded before delivery, it sits as unallocated credit. When `OrderService`/`PurchaseService` marks a document as Delivered, `ApplyUnallocatedCreditAsync` fires automatically to apply any existing unallocated credit (oldest payment first).
 - **Ledger posting by direction:**
   - Direction=Received (customer pays) → `TransCategoryId=5 (Cash In)`, `TransTypeId=2 (Credit)`
   - Direction=Paid (supplier payment) → `TransCategoryId=6 (Cash Out)`, `TransTypeId=1 (Debit)`
@@ -68,3 +70,4 @@
 - **Reversal:** Reversed payments excluded from `v_client_balance` via `is_reversed = 0` filter
 - **Cross-cutting fix:** `OrderDto` and `PurchaseDto` now include `AmountPaid`, `Outstanding`, `PaymentStatus` computed from allocation totals
 - **Client deletion guard:** Cannot delete a client with payment history — deactivate instead
+- **`IOrderService` and `IPurchaseService`** now inject `IPaymentService` to call `ApplyUnallocatedCreditAsync` on Delivered transition

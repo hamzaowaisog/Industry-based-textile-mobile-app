@@ -34,6 +34,7 @@ public class PurchaseService : IPurchaseService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IStockMovementsService _stockMovementsService;
+    private readonly IPaymentService _paymentService;
 
     // Seed IDs
     private const int StatusPending = 1;
@@ -49,10 +50,11 @@ public class PurchaseService : IPurchaseService
     private const int MovementSourceManual = 3;
     private const int MovementTypeOut = 2;
 
-    public PurchaseService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService)
+    public PurchaseService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService)
     {
         _dbContext = dbContext;
         _stockMovementsService = stockMovementsService;
+        _paymentService = paymentService;
     }
 
     public async Task<Response<PurchaseDto>> CreateAsync(CreatePurchaseDto model, int userId)
@@ -303,6 +305,9 @@ public class PurchaseService : IPurchaseService
             await _dbContext.Transactions.AddAsync(txn);
             await _dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
+
+            // Auto-apply any unallocated advance payments against this newly delivered purchase
+            await _paymentService.ApplyUnallocatedCreditAsync(purchase.SupplierId ?? 0, null, purchase.Id);
 
             var reloaded = await LoadPurchaseWithIncludes(purchase.Id);
             return Response<PurchaseDto>.SuccessResponse(ToDto(reloaded!), "Purchase delivered. Stock and ledger updated.");

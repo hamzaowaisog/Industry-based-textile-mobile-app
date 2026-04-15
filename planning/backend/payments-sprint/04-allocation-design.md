@@ -71,3 +71,18 @@ Calculated as: `SUM(non-reversed payments) - SUM(all allocations for that client
 | Received (1) — customer pays | Orders only |
 | Paid (2) — we pay supplier | Purchases only |
 | Adjustment (3) | Either (no validation enforced) |
+
+## Advance Payment Handling
+
+If a customer/supplier pays before the order/purchase is delivered:
+- Payment is recorded normally with 0 allocations
+- Full amount sits as unallocated credit (`GET /api/Payment/unallocated/{clientId}`)
+- When the order/purchase is later marked **Delivered**, `OrderService`/`PurchaseService` automatically calls `IPaymentService.ApplyUnallocatedCreditAsync`
+- This finds all non-reversed payments with remaining unallocated amounts (oldest first) and creates `PaymentAllocation` rows against the newly delivered document
+- No manual step required — delivery triggers settlement automatically
+
+## FIFO Eligibility Rules
+
+- Only `StatusId = 3 (Delivered)` documents are eligible
+- Pending (1) and InProgress (2) excluded — no payment due for undelivered goods
+- Empty allocation items (missing both OrderId and PurchaseId) are stripped silently — sending `[{}]` falls through to auto-FIFO

@@ -21,7 +21,7 @@
 |---|---|---|---|
 | Frontend | Backend | REST API | All API calls via Axios. Auth interceptor stubbed, not yet wired. |
 | Frontend | Backend | JWT | Login returns JWT + refresh token. `Authorization: Bearer <token>` required on all protected endpoints. |
-| Frontend | Backend | OpenAPI | `GET /api/App/spec` downloads OpenAPI JSON for Orval codegen — generates typed React Query hooks. |
+| Frontend | Backend | OpenAPI | `GET /api/App/spec` downloads OpenAPI JSON for Orval codegen — generates typed React Query hooks. Swagger UI at `/swagger`. `EmptyStringSchemaFilter` populates all request body examples with meaningful domain values. |
 | Backend | MySQL | EF Core | Pomelo driver. Auto-migrates + seeds on startup. |
 | Backend | SMTP | Email | Confirmation + password reset emails via `appsettings.json` SMTP config. |
 
@@ -45,15 +45,19 @@
 Order lifecycle:
   POST /api/Order (Pending)
     → PUT /api/Order/{id} (status=Delivered) → stock movement Out + Transaction (Sales, Credit)
+                                              → ApplyUnallocatedCreditAsync auto-settles advance payments
     → PUT /api/Order/{id} (status=Cancelled) → stock reversal In + Transaction (Sales, Debit, negative)
 
 Purchase lifecycle:
   POST /api/Purchase (Pending)
     → PUT /api/Purchase/{id} (status=Delivered) → stock movement In + Transaction (Purchases, Debit)
+                                                 → ApplyUnallocatedCreditAsync auto-settles advance payments
     → PUT /api/Purchase/{id} (status=Cancelled) → stock reversal Out + Transaction (Purchases, Credit, negative)
 
 Payment lifecycle:
-  POST /api/Payment → allocates to orders/purchases (FIFO or manual) + Transaction (Cash In/Out)
+  POST /api/Payment → strips empty allocations → FIFO on Delivered docs (oldest first) or manual alloc
+                    → Transaction (Cash In/Out, ClientId=NULL)
+  Advance payment  → sits as unallocated credit until order/purchase is Delivered (auto-applied)
     → POST /api/Payment/{id}/reverse → mirror Transaction + IsReversed=true
     → POST /api/Payment/{id}/reverse-and-correct → reverse + re-create for correct client (atomic)
 ```

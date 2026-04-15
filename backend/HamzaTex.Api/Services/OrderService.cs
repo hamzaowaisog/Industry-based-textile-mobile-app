@@ -34,6 +34,7 @@ public class OrderService : IOrderService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IStockMovementsService _stockMovementsService;
+    private readonly IPaymentService _paymentService;
 
     // Seed IDs
     private const int StatusPending = 1;
@@ -49,10 +50,11 @@ public class OrderService : IOrderService
     private const int MovementSourceManual = 3;
     private const int MovementTypeIn = 1;
 
-    public OrderService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService)
+    public OrderService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService)
     {
         _dbContext = dbContext;
         _stockMovementsService = stockMovementsService;
+        _paymentService = paymentService;
     }
 
     public async Task<Response<OrderDto>> CreateAsync(CreateOrderDto model, int userId)
@@ -308,6 +310,9 @@ public class OrderService : IOrderService
             await _dbContext.Transactions.AddAsync(txn);
             await _dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
+
+            // Auto-apply any unallocated advance payments against this newly delivered order
+            await _paymentService.ApplyUnallocatedCreditAsync(order.ClientId ?? 0, order.Id, null);
 
             var reloaded = await LoadOrderWithIncludes(order.Id);
             return Response<OrderDto>.SuccessResponse(ToDto(reloaded!), "Order delivered. Stock and ledger updated.");

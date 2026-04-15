@@ -79,6 +79,13 @@ All controllers extend `BaseController` (`Helpers/BaseController.cs`), which pro
 - `DataAnnotations` validation is explicitly disabled — use FluentValidation only
 - Validators are named `<ViewModel>Validation` and registered automatically via assembly scan
 
+### Swagger Example Values
+
+`Helpers/EmptyStringSchemaFilter.cs` is registered as a `SchemaFilter` in `Program.cs` (`c.SchemaFilter<EmptyStringSchemaFilter>()`).
+It populates Swagger UI request body examples with domain-appropriate values (e.g. `username: "john_doe"`, `password: "@Secure123"`, `amount: 150000`, `sku: "FAB-001"`).
+Rules: any property name ending in `Id` → `1`; known string fields mapped by name; known numeric fields mapped by name; unknown strings → `"string"`.
+**Do not remove or replace this filter** — without it all string fields default to `""` in Swagger UI.
+
 ### PDF Generation
 
 `IPdfService` / `PdfService` generates PDFs from `Helpers/pdf.html` template.
@@ -200,7 +207,9 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
   - **Payment Paid (supplier payment):** `TransCategoryId=6 (Cash Out)`, `TransTypeId=1 (Debit)`, `Amount=+amount`, `ClientId=NULL`
   - **Payment Reversed:** reversing Transaction posted with opposite TransType; original payment `IsReversed=true`
 - **v_client_balance redesign:** View now joins `transactions` (order/purchase totals) against `payments` table directly (excluding `is_reversed=1`). Customers: `order_total - received_payments`. Suppliers: `purchase_total - paid_payments`.
-- **PaymentAllocation:** join table linking Payment → Order/Purchase with `AllocatedAmount`. FIFO auto-allocation sorts non-Cancelled orders/purchases by date ASC and fills greedily when `Allocations` list is empty on create.
+- **PaymentAllocation:** join table linking Payment → Order/Purchase with `AllocatedAmount`. FIFO auto-allocation sorts **Delivered** orders/purchases by date ASC and fills greedily when `Allocations` list is empty on create. Empty/null allocation items in the request are stripped before the FIFO check — sending `[{}]` is treated the same as `[]`.
+- **Advance payment handling:** If a customer/supplier pays before delivery, the payment sits as unallocated credit. When `OrderService` or `PurchaseService` transitions a document to Delivered, `IPaymentService.ApplyUnallocatedCreditAsync` is called automatically to apply any existing unallocated credit against the newly delivered document (oldest payment first).
+- **FIFO eligibility:** Only `StatusId = 3 (Delivered)` orders/purchases are eligible for allocation. Pending and InProgress documents are excluded — you cannot collect payment for undelivered goods.
 - **Line qty and price precision:** `order_lines.qty` / `purchase_lines.qty` = `decimal(14,2)`. `order_lines.unit_price` / `purchase_lines.unit_cost` = `decimal(14,4)` matching `stock_movements`.
 
 ---
@@ -260,7 +269,7 @@ private int? GetUserId()
 | `IStockMovementsService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
 | `IOrderService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllByUserIdAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
 | `IPurchaseService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllByUserIdAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
-| `IPaymentService` | CreateAsync, GetByIdAsync, GetAllPaginatedAsync, GetAllByUserIdAsync, GetAllByClientIdAsync, GetFilteredAsync, GetUnallocatedCreditAsync, UpdateByIdAsync, ReverseAsync, ReverseAndCorrectAsync, DeleteByIdAsync |
+| `IPaymentService` | CreateAsync, GetByIdAsync, GetAllPaginatedAsync, GetAllByUserIdAsync, GetAllByClientIdAsync, GetFilteredAsync, GetUnallocatedCreditAsync, UpdateByIdAsync, ReverseAsync, ReverseAndCorrectAsync, DeleteByIdAsync, ApplyUnallocatedCreditAsync |
 | `ILookupService` | GetAllAsync, GetByTypeAsync, GetOrderStatusesAsync, GetPurchaseStatusesAsync, GetPaymentTypesAsync, GetPaymentDirectionsAsync, GetTransTypesAsync, GetTransModesAsync, GetTransCategoriesAsync, GetExpenseTypesAsync, GetMovementTypesAsync, GetMovementSourcesAsync, GetClientTypesAsync, GetUserRolesAsync |
 | `IPdfService` | CreatePdf |
 

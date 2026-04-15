@@ -15,9 +15,14 @@ public class PaymentCreateViewModelValidation : AbstractValidator<PaymentCreateV
 
         RuleForEach(x => x.Allocations).ChildRules(a =>
         {
-            a.RuleFor(x => x).Must(x => (x.OrderId.HasValue) != (x.PurchaseId.HasValue))
-                .WithMessage("Each allocation must have either an OrderId or a PurchaseId, not both.");
-            a.RuleFor(x => x.AllocatedAmount).GreaterThan(0).WithMessage("Allocated amount must be greater than zero.");
+            // Only validate items that are actually filled in (0 treated same as null/omitted)
+            a.When(x => (x.OrderId ?? 0) > 0 || (x.PurchaseId ?? 0) > 0 || x.AllocatedAmount > 0, () =>
+            {
+                a.RuleFor(x => x)
+                    .Must(x => ((x.OrderId ?? 0) > 0) != ((x.PurchaseId ?? 0) > 0))
+                    .WithMessage("Each allocation must have either an OrderId or a PurchaseId, not both.");
+                a.RuleFor(x => x.AllocatedAmount).GreaterThan(0).WithMessage("Allocated amount must be greater than zero.");
+            });
         });
 
         RuleFor(x => x).Must(x =>

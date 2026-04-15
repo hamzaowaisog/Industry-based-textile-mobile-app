@@ -34,6 +34,8 @@ public interface IPaymentService
     Task<Response<UnallocatedCreditDto>> GetUnallocatedCreditAsync(int clientId);
     /// <summary>Hard delete a payment and its allocations. Deletes the linked Transaction. Admin only.</summary>
     Task<Response> DeleteByIdAsync(int id);
+    /// <summary>Auto-apply any unallocated credit for a client against a newly delivered order or purchase. Called internally when status transitions to Delivered.</summary>
+    Task ApplyUnallocatedCreditAsync(int clientId, int? orderId, int? purchaseId);
 }
 
 public class PaymentService : IPaymentService
@@ -63,6 +65,7 @@ public class PaymentService : IPaymentService
     private const int CatBankOut = 8;
 
     // Seeded OrderStatus / PurchaseStatus IDs
+    private const int StatusDelivered = 3;
     private const int StatusCancelled = 4;
 
     // Seeded ClientType IDs
@@ -94,10 +97,16 @@ public class PaymentService : IPaymentService
             client.ClientTypeId != ClientTypeCustomer)
             return Response<PaymentDto>.ErrorResponse("Validation failed", "Invalid client type for this payment direction.");
 
+        // Strip empty allocation items — treat 0 same as null (user may send [{orderId:0}] instead of [])
+        var providedAllocations = model.Allocations
+            .Where(a => (a.OrderId ?? 0) > 0 || (a.PurchaseId ?? 0) > 0)
+            .ToList();
+
         // Build allocations (manual or FIFO)
         List<(int? OrderId, int? PurchaseId, decimal Amount)> allocations;
-        if (model.Allocations.Count > 0)
+        if (providedAllocations.Count > 0)
         {
+            model.Allocations = providedAllocations;
             var validationError = await ValidateManualAllocations(model);
             if (validationError is not null)
                 return Response<PaymentDto>.ErrorResponse("Validation failed", validationError);
@@ -471,6 +480,64 @@ public class PaymentService : IPaymentService
     }
 
     // ──────────────────────────────────────────────────────────────────────────
+    // APPLY UNALLOCATED CREDIT (called on Order/Purchase Delivered)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public async Task ApplyUnallocatedCreditAsync(int clientId, int? orderId, int? purchaseId)
+    {
+        // Calculate outstanding balance on the newly delivered document
+        decimal documentTotal = 0;
+        if (orderId.HasValue)
+        {
+            var order = await _db.Orders.Include(o => o.OrderLines).FirstOrDefaultAsync(o => o.Id == orderId.Value);
+            if (order is null) return;
+            documentTotal = order.OrderLines.Sum(l => l.Qty * l.UnitPrice);
+        }
+        else if (purchaseId.HasValue)
+        {
+            var purchase = await _db.Purchases.Include(p => p.PurchaseLines).FirstOrDefaultAsync(p => p.Id == purchaseId.Value);
+            if (purchase is null) return;
+            documentTotal = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost);
+        }
+
+        var alreadyAllocated = orderId.HasValue
+            ? await _db.PaymentAllocations.Where(a => a.OrderId == orderId && !a.Payment.IsReversed).SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0
+            : await _db.PaymentAllocations.Where(a => a.PurchaseId == purchaseId && !a.Payment.IsReversed).SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
+
+        decimal outstanding = documentTotal - alreadyAllocated;
+        if (outstanding <= 0) return;
+
+        // Find payments for this client that still have unallocated amounts, oldest first
+        var payments = await _db.Payments
+            .Include(p => p.Allocations)
+            .Where(p => p.PartyClientId == clientId && !p.IsReversed)
+            .OrderBy(p => p.PaymentDate).ThenBy(p => p.Id)
+            .ToListAsync();
+
+        foreach (var payment in payments)
+        {
+            if (outstanding <= 0) break;
+
+            var paymentAllocated = payment.Allocations.Sum(a => a.AllocatedAmount);
+            var paymentRemaining = payment.Amount - paymentAllocated;
+            if (paymentRemaining <= 0) continue;
+
+            var toAllocate = Math.Min(paymentRemaining, outstanding);
+            _db.PaymentAllocations.Add(new PaymentAllocation
+            {
+                PaymentId = payment.Id,
+                OrderId = orderId,
+                PurchaseId = purchaseId,
+                AllocatedAmount = toAllocate
+            });
+            outstanding -= toAllocate;
+        }
+
+        if (_db.ChangeTracker.HasChanges())
+            await _db.SaveChangesAsync();
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
     // PRIVATE HELPERS
     // ──────────────────────────────────────────────────────────────────────────
 
@@ -490,7 +557,7 @@ public class PaymentService : IPaymentService
                     .Include(o => o.OrderLines)
                     .FirstOrDefaultAsync(o => o.Id == alloc.OrderId.Value);
                 if (order is null) return $"Order #{alloc.OrderId} not found.";
-                if (order.StatusId == StatusCancelled) return $"Order #{alloc.OrderId} is cancelled and cannot receive payment.";
+                if (order.StatusId != StatusDelivered) return $"Order #{alloc.OrderId} is not yet delivered and cannot receive payment.";
 
                 var orderTotal = order.OrderLines.Sum(l => l.Qty * l.UnitPrice);
                 var alreadyAllocated = await _db.PaymentAllocations
@@ -508,7 +575,7 @@ public class PaymentService : IPaymentService
                     .Include(p => p.PurchaseLines)
                     .FirstOrDefaultAsync(p => p.Id == alloc.PurchaseId.Value);
                 if (purchase is null) return $"Purchase #{alloc.PurchaseId} not found.";
-                if (purchase.StatusId == StatusCancelled) return $"Purchase #{alloc.PurchaseId} is cancelled and cannot receive payment.";
+                if (purchase.StatusId != StatusDelivered) return $"Purchase #{alloc.PurchaseId} is not yet delivered and cannot receive payment.";
 
                 var purchaseTotal = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost);
                 var alreadyAllocated = await _db.PaymentAllocations
@@ -540,7 +607,7 @@ public class PaymentService : IPaymentService
             // Customer payment — allocate to orders oldest first
             var orders = await _db.Orders
                 .Include(o => o.OrderLines)
-                .Where(o => o.ClientId == clientId && o.StatusId != StatusCancelled)
+                .Where(o => o.ClientId == clientId && o.StatusId == StatusDelivered)
                 .OrderBy(o => o.OrderDate).ThenBy(o => o.Id)
                 .ToListAsync();
 
@@ -566,7 +633,7 @@ public class PaymentService : IPaymentService
             // Supplier payment — allocate to purchases oldest first
             var purchases = await _db.Purchases
                 .Include(p => p.PurchaseLines)
-                .Where(p => p.SupplierId == clientId && p.StatusId != StatusCancelled)
+                .Where(p => p.SupplierId == clientId && p.StatusId == StatusDelivered)
                 .OrderBy(p => p.PurchaseDate).ThenBy(p => p.Id)
                 .ToListAsync();
 

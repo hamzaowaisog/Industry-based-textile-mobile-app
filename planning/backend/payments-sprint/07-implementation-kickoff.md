@@ -38,6 +38,14 @@
 - `PaymentDirection` and `TransMode` already seeded
 - `Transaction` entity already has optional `OrderId`/`PurchaseId` FKs wired
 
+## Post-Implementation Fixes
+
+| Bug | Fix |
+|---|---|
+| FIFO included Pending/InProgress orders — payment allocated to undelivered goods | Changed filter from `StatusId != Cancelled` to `StatusId == Delivered (3)` in both FIFO and manual validation |
+| Sending `[{}]` or empty allocation items triggered FluentValidation errors instead of falling through to FIFO | Strip items missing both `OrderId` and `PurchaseId` before FIFO check in `CreateAsync` |
+| Advance payments had no path to settle — unallocated credit never applied to future orders | Added `ApplyUnallocatedCreditAsync` to `IPaymentService`; called automatically from `OrderService.TransitionToDelivered` and `PurchaseService.TransitionToDelivered` |
+
 ## Out of Scope (Deferred)
 
 - Expense payments (separate Expenses sprint — `todo/05-expenses.md`)
