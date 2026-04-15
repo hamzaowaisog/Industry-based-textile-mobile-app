@@ -118,7 +118,7 @@ public class OrderService : IOrderService
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
 
-        return Response<List<OrderDto>>.SuccessResponse(orders.Select(ToDto).ToList(), "Orders fetched successfully.");
+        return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Orders fetched successfully.");
     }
 
     public async Task<Response<List<OrderDto>>> GetAllByUserIdAsync(int userId)
@@ -128,16 +128,15 @@ public class OrderService : IOrderService
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
 
-        return Response<List<OrderDto>>.SuccessResponse(orders.Select(ToDto).ToList(), "Orders fetched successfully.");
+        return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Orders fetched successfully.");
     }
 
     public async Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize)
     {
-        var query = OrderQueryWithIncludes()
-            .OrderByDescending(o => o.OrderDate)
-            .Select(o => ToDto(o));
-
-        var pagedList = await PagedList<OrderDto>.CreateAsync(query, page, pageSize);
+        var query = OrderQueryWithIncludes().OrderByDescending(o => o.OrderDate);
+        var totalCount = await query.CountAsync();
+        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        var pagedList = new PagedList<OrderDto>(items.Select(o => ToDto(o)).ToList(), page, pageSize, totalCount);
         return Response<PagedList<OrderDto>>.SuccessResponse(pagedList, "Orders fetched successfully.");
     }
 
@@ -162,7 +161,7 @@ public class OrderService : IOrderService
             query = query.Where(o => o.OrderDate <= dateTo.Value);
 
         var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
-        return Response<List<OrderDto>>.SuccessResponse(orders.Select(ToDto).ToList(), "Filtered orders fetched successfully.");
+        return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Filtered orders fetched successfully.");
     }
 
     public async Task<Response<OrderDto>> UpdateByIdAsync(int id, UpdateOrderDto model, int userId, bool isAdmin)
@@ -411,27 +410,36 @@ public class OrderService : IOrderService
     private async Task<Order?> LoadOrderWithIncludes(int orderId) =>
         await OrderQueryWithIncludes().FirstOrDefaultAsync(o => o.Id == orderId);
 
-    private static OrderDto ToDto(Order order) => new()
+    private static OrderDto ToDto(Order order, decimal amountPaid = 0)
     {
-        Id = order.Id,
-        ClientId = order.ClientId ?? 0,
-        ClientName = order.Client?.Name,
-        StatusId = order.StatusId ?? 0,
-        StatusName = order.Status?.Name,
-        PaymentTypeId = order.PaymentTypeId ?? 0,
-        PaymentTypeName = order.PaymentType?.Name,
-        OrderDate = order.OrderDate,
-        Notes = order.Notes,
-        CreatedAt = order.CreatedAt,
-        Total = order.OrderLines.Sum(l => l.Qty * l.UnitPrice),
-        OrderLines = order.OrderLines.Select(l => new OrderLineDto
+        var total = order.OrderLines.Sum(l => l.Qty * l.UnitPrice);
+        var outstanding = total - amountPaid;
+        var paymentStatus = outstanding <= 0 ? "FullyPaid" : amountPaid > 0 ? "PartiallyPaid" : "Unpaid";
+        return new()
         {
-            Id = l.Id,
-            OrderId = l.OrderId,
-            ProductId = l.ProductId ?? 0,
-            ProductName = l.Product?.Name,
-            Qty = l.Qty,
-            UnitPrice = l.UnitPrice
-        }).ToList()
-    };
+            Id = order.Id,
+            ClientId = order.ClientId ?? 0,
+            ClientName = order.Client?.Name,
+            StatusId = order.StatusId ?? 0,
+            StatusName = order.Status?.Name,
+            PaymentTypeId = order.PaymentTypeId ?? 0,
+            PaymentTypeName = order.PaymentType?.Name,
+            OrderDate = order.OrderDate,
+            Notes = order.Notes,
+            CreatedAt = order.CreatedAt,
+            Total = total,
+            AmountPaid = amountPaid,
+            Outstanding = outstanding < 0 ? 0 : outstanding,
+            PaymentStatus = paymentStatus,
+            OrderLines = order.OrderLines.Select(l => new OrderLineDto
+            {
+                Id = l.Id,
+                OrderId = l.OrderId,
+                ProductId = l.ProductId ?? 0,
+                ProductName = l.Product?.Name,
+                Qty = l.Qty,
+                UnitPrice = l.UnitPrice
+            }).ToList()
+        };
+    }
 }

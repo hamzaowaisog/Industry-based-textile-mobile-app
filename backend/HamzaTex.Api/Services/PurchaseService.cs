@@ -117,7 +117,7 @@ public class PurchaseService : IPurchaseService
             .OrderByDescending(p => p.PurchaseDate)
             .ToListAsync();
 
-        return Response<List<PurchaseDto>>.SuccessResponse(purchases.Select(ToDto).ToList(), "Purchases fetched successfully.");
+        return Response<List<PurchaseDto>>.SuccessResponse(purchases.Select(p => ToDto(p)).ToList(), "Purchases fetched successfully.");
     }
 
     public async Task<Response<List<PurchaseDto>>> GetAllByUserIdAsync(int userId)
@@ -127,16 +127,15 @@ public class PurchaseService : IPurchaseService
             .OrderByDescending(p => p.PurchaseDate)
             .ToListAsync();
 
-        return Response<List<PurchaseDto>>.SuccessResponse(purchases.Select(ToDto).ToList(), "Purchases fetched successfully.");
+        return Response<List<PurchaseDto>>.SuccessResponse(purchases.Select(p => ToDto(p)).ToList(), "Purchases fetched successfully.");
     }
 
     public async Task<Response<PagedList<PurchaseDto>>> GetAllPaginatedAsync(int page, int pageSize)
     {
-        var query = PurchaseQueryWithIncludes()
-            .OrderByDescending(p => p.PurchaseDate)
-            .Select(p => ToDto(p));
-
-        var pagedList = await PagedList<PurchaseDto>.CreateAsync(query, page, pageSize);
+        var query = PurchaseQueryWithIncludes().OrderByDescending(p => p.PurchaseDate);
+        var totalCount = await query.CountAsync();
+        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        var pagedList = new PagedList<PurchaseDto>(items.Select(p => ToDto(p)).ToList(), page, pageSize, totalCount);
         return Response<PagedList<PurchaseDto>>.SuccessResponse(pagedList, "Purchases fetched successfully.");
     }
 
@@ -161,7 +160,7 @@ public class PurchaseService : IPurchaseService
             query = query.Where(p => p.PurchaseDate <= dateTo.Value);
 
         var purchases = await query.OrderByDescending(p => p.PurchaseDate).ToListAsync();
-        return Response<List<PurchaseDto>>.SuccessResponse(purchases.Select(ToDto).ToList(), "Filtered purchases fetched successfully.");
+        return Response<List<PurchaseDto>>.SuccessResponse(purchases.Select(p => ToDto(p)).ToList(), "Filtered purchases fetched successfully.");
     }
 
     public async Task<Response<PurchaseDto>> UpdateByIdAsync(int id, UpdatePurchaseDto model, int userId, bool isAdmin)
@@ -406,27 +405,36 @@ public class PurchaseService : IPurchaseService
     private async Task<Purchase?> LoadPurchaseWithIncludes(int purchaseId) =>
         await PurchaseQueryWithIncludes().FirstOrDefaultAsync(p => p.Id == purchaseId);
 
-    private static PurchaseDto ToDto(Purchase purchase) => new()
+    private static PurchaseDto ToDto(Purchase purchase, decimal amountPaid = 0)
     {
-        Id = purchase.Id,
-        SupplierId = purchase.SupplierId ?? 0,
-        SupplierName = purchase.Supplier?.Name,
-        StatusId = purchase.StatusId ?? 0,
-        StatusName = purchase.Status?.Name,
-        PaymentTypeId = purchase.PaymentTypeId ?? 0,
-        PaymentTypeName = purchase.PaymentType?.Name,
-        PurchaseDate = purchase.PurchaseDate,
-        Notes = purchase.Notes,
-        CreatedAt = purchase.CreatedAt,
-        Total = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost),
-        PurchaseLines = purchase.PurchaseLines.Select(l => new PurchaseLineDto
+        var total = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost);
+        var outstanding = total - amountPaid;
+        var paymentStatus = outstanding <= 0 ? "FullyPaid" : amountPaid > 0 ? "PartiallyPaid" : "Unpaid";
+        return new()
         {
-            Id = l.Id,
-            PurchaseId = l.PurchaseId,
-            ProductId = l.ProductId ?? 0,
-            ProductName = l.Product?.Name,
-            Qty = l.Qty,
-            UnitCost = l.UnitCost
-        }).ToList()
-    };
+            Id = purchase.Id,
+            SupplierId = purchase.SupplierId ?? 0,
+            SupplierName = purchase.Supplier?.Name,
+            StatusId = purchase.StatusId ?? 0,
+            StatusName = purchase.Status?.Name,
+            PaymentTypeId = purchase.PaymentTypeId ?? 0,
+            PaymentTypeName = purchase.PaymentType?.Name,
+            PurchaseDate = purchase.PurchaseDate,
+            Notes = purchase.Notes,
+            CreatedAt = purchase.CreatedAt,
+            Total = total,
+            AmountPaid = amountPaid,
+            Outstanding = outstanding < 0 ? 0 : outstanding,
+            PaymentStatus = paymentStatus,
+            PurchaseLines = purchase.PurchaseLines.Select(l => new PurchaseLineDto
+            {
+                Id = l.Id,
+                PurchaseId = l.PurchaseId,
+                ProductId = l.ProductId ?? 0,
+                ProductName = l.Product?.Name,
+                Qty = l.Qty,
+                UnitCost = l.UnitCost
+            }).ToList()
+        };
+    }
 }
