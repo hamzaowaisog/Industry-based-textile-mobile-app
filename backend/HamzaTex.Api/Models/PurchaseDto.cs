@@ -49,6 +49,6 @@ public class UpdatePurchaseDto
 {
     public int StatusId { get; set; }
     public int PaymentTypeId { get; set; }
-    public DateOnly PurchaseDate { get; set; }
+    public DateOnly? PurchaseDate { get; set; }
     public string? Notes { get; set; }
 }

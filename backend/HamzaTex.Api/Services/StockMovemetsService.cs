@@ -318,6 +318,7 @@ public class StockMovementsService : IStockMovementsService
             if (movement is null)
                 return Response<StockMovementsDto>.ErrorResponse("Not found", "Stock movement not found.");
 
+            var effectiveMovementDate = model.MovementDate ?? movement.MovementDate;
             var productId = movement.ProductId!.Value;
 
             // ── Full replay: fetch all movements for this product fresh (no tracking)
@@ -339,7 +340,7 @@ public class StockMovementsService : IStockMovementsService
                 allMovements[idx].Qty              = model.Qty;
                 allMovements[idx].UnitCost         = model.UnitCost;
                 allMovements[idx].UnitPrice        = model.UnitPrice;
-                allMovements[idx].MovementDate     = model.MovementDate;
+                allMovements[idx].MovementDate     = effectiveMovementDate;
                 allMovements = [.. allMovements.OrderBy(sm => sm.MovementDate).ThenBy(sm => sm.Id)];
             }
 
@@ -350,7 +351,7 @@ public class StockMovementsService : IStockMovementsService
             movement.Qty              = model.Qty;
             movement.UnitCost         = model.UnitCost;
             movement.UnitPrice        = model.UnitPrice;
-            movement.MovementDate     = model.MovementDate;
+            movement.MovementDate     = effectiveMovementDate;
 
             decimal currentQty    = 0;
             decimal avgCost       = 0;

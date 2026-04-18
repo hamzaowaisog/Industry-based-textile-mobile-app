@@ -153,16 +153,20 @@ public class PaymentService : IPaymentService
                 });
             }
 
-            // Post Transaction to ledger (ClientId = NULL — cash flow only)
+            // Post Transaction to ledger
+            // OrderId/PurchaseId set only for single-allocation payments; null when split across multiple
+            var singleAlloc = allocations.Count == 1 ? allocations[0] : default;
             var transaction = new Transaction
             {
-                ClientId = null,
+                ClientId = model.PartyClientId,
                 UserId = userId,
                 TransTypeId = transTypeId,
                 TransModeId = model.TransModeId,
                 TransCategoryId = transCategoryId,
                 Amount = model.Amount,
                 TransDate = model.PaymentDate,
+                OrderId = singleAlloc.OrderId,
+                PurchaseId = singleAlloc.PurchaseId,
                 Notes = $"Payment #{payment.Id}: {model.Notes}",
                 CreatedAt = DateTime.UtcNow
             };
@@ -293,7 +297,8 @@ public class PaymentService : IPaymentService
             return Response<PaymentDto>.ErrorResponse("Invalid operation", "Cannot update a reversed payment.");
 
         payment.TransModeId = model.TransModeId;
-        payment.PaymentDate = model.PaymentDate;
+        if (model.PaymentDate.HasValue)
+            payment.PaymentDate = model.PaymentDate.Value;
         payment.Notes = model.Notes;
         await _db.SaveChangesAsync();
 
@@ -324,15 +329,18 @@ public class PaymentService : IPaymentService
         try
         {
             // Reversing transaction (negates cash flow)
+            var originalSingleAlloc = original.Allocations.Count == 1 ? original.Allocations.First() : null;
             var reversalTransaction = new Transaction
             {
-                ClientId = null,
+                ClientId = original.PartyClientId,
                 UserId = adminUserId,
                 TransTypeId = reversalTransTypeId,
                 TransModeId = original.TransModeId,
                 TransCategoryId = transCategoryId,
                 Amount = original.Amount,
                 TransDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                OrderId = originalSingleAlloc?.OrderId,
+                PurchaseId = originalSingleAlloc?.PurchaseId,
                 Notes = $"REVERSAL of Payment #{original.Id}: {notes}",
                 CreatedAt = DateTime.UtcNow
             };
@@ -424,11 +432,11 @@ public class PaymentService : IPaymentService
             return Response<UnallocatedCreditDto>.ErrorResponse("Not found", "Client not found.");
 
         var totalPaid = await _db.Payments
-            .Where(p => p.PartyClientId == clientId && !p.IsReversed)
+            .Where(p => p.PartyClientId == clientId && !p.IsReversed && p.OriginalPaymentId == null)
             .SumAsync(p => (decimal?)p.Amount) ?? 0;
 
         var totalAllocated = await _db.PaymentAllocations
-            .Where(a => a.Payment.PartyClientId == clientId && !a.Payment.IsReversed)
+            .Where(a => a.Payment.PartyClientId == clientId && !a.Payment.IsReversed && a.Payment.OriginalPaymentId == null)
             .SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
 
         return Response<UnallocatedCreditDto>.SuccessResponse(new UnallocatedCreditDto
@@ -501,8 +509,8 @@ public class PaymentService : IPaymentService
         }
 
         var alreadyAllocated = orderId.HasValue
-            ? await _db.PaymentAllocations.Where(a => a.OrderId == orderId && !a.Payment.IsReversed).SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0
-            : await _db.PaymentAllocations.Where(a => a.PurchaseId == purchaseId && !a.Payment.IsReversed).SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
+            ? await _db.PaymentAllocations.Where(a => a.OrderId == orderId && !a.Payment.IsReversed && a.Payment.OriginalPaymentId == null).SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0
+            : await _db.PaymentAllocations.Where(a => a.PurchaseId == purchaseId && !a.Payment.IsReversed && a.Payment.OriginalPaymentId == null).SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
 
         decimal outstanding = documentTotal - alreadyAllocated;
         if (outstanding <= 0) return;
@@ -510,7 +518,7 @@ public class PaymentService : IPaymentService
         // Find payments for this client that still have unallocated amounts, oldest first
         var payments = await _db.Payments
             .Include(p => p.Allocations)
-            .Where(p => p.PartyClientId == clientId && !p.IsReversed)
+            .Where(p => p.PartyClientId == clientId && !p.IsReversed && p.OriginalPaymentId == null)
             .OrderBy(p => p.PaymentDate).ThenBy(p => p.Id)
             .ToListAsync();
 
@@ -561,7 +569,7 @@ public class PaymentService : IPaymentService
 
                 var orderTotal = order.OrderLines.Sum(l => l.Qty * l.UnitPrice);
                 var alreadyAllocated = await _db.PaymentAllocations
-                    .Where(a => a.OrderId == alloc.OrderId && !a.Payment.IsReversed)
+                    .Where(a => a.OrderId == alloc.OrderId && !a.Payment.IsReversed && a.Payment.OriginalPaymentId == null)
                     .SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
                 var outstanding = orderTotal - alreadyAllocated;
 
@@ -579,7 +587,7 @@ public class PaymentService : IPaymentService
 
                 var purchaseTotal = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost);
                 var alreadyAllocated = await _db.PaymentAllocations
-                    .Where(a => a.PurchaseId == alloc.PurchaseId && !a.Payment.IsReversed)
+                    .Where(a => a.PurchaseId == alloc.PurchaseId && !a.Payment.IsReversed && a.Payment.OriginalPaymentId == null)
                     .SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
                 var outstanding = purchaseTotal - alreadyAllocated;
 
@@ -617,7 +625,7 @@ public class PaymentService : IPaymentService
 
                 var orderTotal = order.OrderLines.Sum(l => l.Qty * l.UnitPrice);
                 var alreadyAllocated = await _db.PaymentAllocations
-                    .Where(a => a.OrderId == order.Id && !a.Payment.IsReversed)
+                    .Where(a => a.OrderId == order.Id && !a.Payment.IsReversed && a.Payment.OriginalPaymentId == null)
                     .SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
                 var outstanding = orderTotal - alreadyAllocated;
 
@@ -643,7 +651,7 @@ public class PaymentService : IPaymentService
 
                 var purchaseTotal = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost);
                 var alreadyAllocated = await _db.PaymentAllocations
-                    .Where(a => a.PurchaseId == purchase.Id && !a.Payment.IsReversed)
+                    .Where(a => a.PurchaseId == purchase.Id && !a.Payment.IsReversed && a.Payment.OriginalPaymentId == null)
                     .SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
                 var outstanding = purchaseTotal - alreadyAllocated;
 

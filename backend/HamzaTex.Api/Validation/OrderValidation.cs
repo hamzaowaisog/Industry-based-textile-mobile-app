@@ -13,9 +13,6 @@ public sealed class OrderCreateViewModelValidation : AbstractValidator<OrderCrea
         RuleFor(x => x.PaymentTypeId)
             .GreaterThan(0).WithMessage("PaymentTypeId is required");
 
-        RuleFor(x => x.OrderDate)
-            .NotEmpty().WithMessage("OrderDate is required");
-
         RuleFor(x => x.Lines)
             .NotEmpty().WithMessage("At least one order line is required");
 
@@ -40,8 +37,5 @@ public sealed class OrderUpdateViewModelValidation : AbstractValidator<OrderUpda
 
         RuleFor(x => x.PaymentTypeId)
             .GreaterThan(0).WithMessage("PaymentTypeId is required");
-
-        RuleFor(x => x.OrderDate)
-            .NotEmpty().WithMessage("OrderDate is required");
     }
 }

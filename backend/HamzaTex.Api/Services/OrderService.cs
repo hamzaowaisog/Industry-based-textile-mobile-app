@@ -190,7 +190,8 @@ public class OrderService : IOrderService
             // Idempotent: already delivered, just update other fields
             order.PaymentTypeId = model.PaymentTypeId;
             order.Notes = model.Notes;
-            order.OrderDate = model.OrderDate;
+            if (model.OrderDate.HasValue)
+                order.OrderDate = model.OrderDate.Value;
             await _dbContext.SaveChangesAsync();
             var reloaded = await LoadOrderWithIncludes(id);
             return Response<OrderDto>.SuccessResponse(ToDto(reloaded!), "Order already delivered. Header fields updated.");
@@ -221,7 +222,8 @@ public class OrderService : IOrderService
         order.StatusId = model.StatusId;
         order.PaymentTypeId = model.PaymentTypeId;
         order.Notes = model.Notes;
-        order.OrderDate = model.OrderDate;
+        if (model.OrderDate.HasValue)
+            order.OrderDate = model.OrderDate.Value;
         await _dbContext.SaveChangesAsync();
 
         var updated = await LoadOrderWithIncludes(id);
@@ -265,7 +267,8 @@ public class OrderService : IOrderService
             order.StatusId = StatusDelivered;
             order.PaymentTypeId = model.PaymentTypeId;
             order.Notes = model.Notes;
-            order.OrderDate = model.OrderDate;
+            if (model.OrderDate.HasValue)
+                order.OrderDate = model.OrderDate.Value;
             await _dbContext.SaveChangesAsync();
 
             // Stock out per line via IStockMovementsService
@@ -410,14 +413,18 @@ public class OrderService : IOrderService
             .Include(o => o.Client)
             .Include(o => o.Status)
             .Include(o => o.PaymentType)
-            .Include(o => o.OrderLines).ThenInclude(ol => ol.Product);
+            .Include(o => o.OrderLines).ThenInclude(ol => ol.Product)
+            .Include(o => o.PaymentAllocations).ThenInclude(a => a.Payment);
 
     private async Task<Order?> LoadOrderWithIncludes(int orderId) =>
         await OrderQueryWithIncludes().FirstOrDefaultAsync(o => o.Id == orderId);
 
-    private static OrderDto ToDto(Order order, decimal amountPaid = 0)
+    private static OrderDto ToDto(Order order)
     {
         var total = order.OrderLines.Sum(l => l.Qty * l.UnitPrice);
+        var amountPaid = order.PaymentAllocations
+            .Where(a => a.Payment != null && !a.Payment.IsReversed)
+            .Sum(a => a.AllocatedAmount);
         var outstanding = total - amountPaid;
         var paymentStatus = outstanding <= 0 ? "FullyPaid" : amountPaid > 0 ? "PartiallyPaid" : "Unpaid";
         return new()

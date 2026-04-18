@@ -188,7 +188,8 @@ public class PurchaseService : IPurchaseService
         {
             purchase.PaymentTypeId = model.PaymentTypeId;
             purchase.Notes = model.Notes;
-            purchase.PurchaseDate = model.PurchaseDate;
+            if (model.PurchaseDate.HasValue)
+                purchase.PurchaseDate = model.PurchaseDate.Value;
             await _dbContext.SaveChangesAsync();
             var reloaded = await LoadPurchaseWithIncludes(id);
             return Response<PurchaseDto>.SuccessResponse(ToDto(reloaded!), "Purchase already delivered. Header fields updated.");
@@ -209,7 +210,8 @@ public class PurchaseService : IPurchaseService
         purchase.StatusId = model.StatusId;
         purchase.PaymentTypeId = model.PaymentTypeId;
         purchase.Notes = model.Notes;
-        purchase.PurchaseDate = model.PurchaseDate;
+        if (model.PurchaseDate.HasValue)
+            purchase.PurchaseDate = model.PurchaseDate.Value;
         await _dbContext.SaveChangesAsync();
 
         var updated = await LoadPurchaseWithIncludes(id);
@@ -260,7 +262,8 @@ public class PurchaseService : IPurchaseService
             purchase.StatusId = StatusDelivered;
             purchase.PaymentTypeId = model.PaymentTypeId;
             purchase.Notes = model.Notes;
-            purchase.PurchaseDate = model.PurchaseDate;
+            if (model.PurchaseDate.HasValue)
+                purchase.PurchaseDate = model.PurchaseDate.Value;
             await _dbContext.SaveChangesAsync();
 
             // Stock In per line via IStockMovementsService
@@ -405,14 +408,18 @@ public class PurchaseService : IPurchaseService
             .Include(p => p.Supplier)
             .Include(p => p.Status)
             .Include(p => p.PaymentType)
-            .Include(p => p.PurchaseLines).ThenInclude(pl => pl.Product);
+            .Include(p => p.PurchaseLines).ThenInclude(pl => pl.Product)
+            .Include(p => p.PaymentAllocations).ThenInclude(a => a.Payment);
 
     private async Task<Purchase?> LoadPurchaseWithIncludes(int purchaseId) =>
         await PurchaseQueryWithIncludes().FirstOrDefaultAsync(p => p.Id == purchaseId);
 
-    private static PurchaseDto ToDto(Purchase purchase, decimal amountPaid = 0)
+    private static PurchaseDto ToDto(Purchase purchase)
     {
         var total = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost);
+        var amountPaid = purchase.PaymentAllocations
+            .Where(a => a.Payment != null && !a.Payment.IsReversed)
+            .Sum(a => a.AllocatedAmount);
         var outstanding = total - amountPaid;
         var paymentStatus = outstanding <= 0 ? "FullyPaid" : amountPaid > 0 ? "PartiallyPaid" : "Unpaid";
         return new()

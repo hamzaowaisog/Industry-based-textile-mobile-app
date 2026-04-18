@@ -49,7 +49,7 @@ public class PaymentController : BaseController
             PaymentDirectionId = model.PaymentDirectionId,
             TransModeId = model.TransModeId,
             Amount = model.Amount,
-            PaymentDate = model.PaymentDate,
+            PaymentDate = model.PaymentDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
             Notes = model.Notes,
             Allocations = model.Allocations.Select(a => new AllocationItemDto
             {

@@ -52,7 +52,7 @@ public class CreatePaymentDto
 public class UpdatePaymentDto
 {
     public int TransModeId { get; set; }
-    public DateOnly PaymentDate { get; set; }
+    public DateOnly? PaymentDate { get; set; }
     public string? Notes { get; set; }
 }
 

@@ -44,7 +44,7 @@ public class StockMovementsController : BaseController
             Qty            = model.Qty,
             UnitCost       = model.UnitCost,
             UnitPrice      = model.UnitPrice,
-            MovementDate   = model.MovementDate
+            MovementDate   = model.MovementDate ?? DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
         var response = await _stockMovementsService.CreateAsync(dto, userId.Value);

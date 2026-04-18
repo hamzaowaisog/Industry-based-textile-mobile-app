@@ -4,7 +4,8 @@ public class PurchaseCreateViewModel
 {
     public int SupplierId { get; set; }
     public int PaymentTypeId { get; set; }
-    public DateOnly PurchaseDate { get; set; }
+    /// <summary>Omit or null to use the current UTC date.</summary>
+    public DateOnly? PurchaseDate { get; set; }
     public string? Notes { get; set; }
     public List<PurchaseLineCreateViewModel> Lines { get; set; } = [];
 }
@@ -20,6 +21,7 @@ public class PurchaseUpdateViewModel
 {
     public int StatusId { get; set; }
     public int PaymentTypeId { get; set; }
-    public DateOnly PurchaseDate { get; set; }
+    /// <summary>Omit or null to leave the existing purchase date unchanged.</summary>
+    public DateOnly? PurchaseDate { get; set; }
     public string? Notes { get; set; }
 }

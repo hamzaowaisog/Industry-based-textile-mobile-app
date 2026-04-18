@@ -29,6 +29,11 @@ builder.Services.AddControllers(options =>
         .Build();
     options.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter(defaultPolicy));
 })
+.AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new HamzaTex.Api.Helpers.FlexibleDateOnlyJsonConverter());
+    options.JsonSerializerOptions.Converters.Add(new HamzaTex.Api.Helpers.FlexibleNullableDateOnlyJsonConverter());
+})
 .ConfigureApiBehaviorOptions(options =>
 {
     options.SuppressModelStateInvalidFilter = true;

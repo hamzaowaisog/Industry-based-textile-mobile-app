@@ -9,7 +9,6 @@ public class PurchaseCreateViewModelValidation : AbstractValidator<PurchaseCreat
     {
         RuleFor(x => x.SupplierId).GreaterThan(0).WithMessage("SupplierId is required.");
         RuleFor(x => x.PaymentTypeId).GreaterThan(0).WithMessage("PaymentTypeId is required.");
-        RuleFor(x => x.PurchaseDate).NotEmpty().WithMessage("PurchaseDate is required.");
         RuleFor(x => x.Lines).NotEmpty().WithMessage("At least one purchase line is required.");
         RuleForEach(x => x.Lines).ChildRules(line =>
         {
@@ -26,6 +25,5 @@ public class PurchaseUpdateViewModelValidation : AbstractValidator<PurchaseUpdat
     {
         RuleFor(x => x.StatusId).GreaterThan(0).WithMessage("StatusId is required.");
         RuleFor(x => x.PaymentTypeId).GreaterThan(0).WithMessage("PaymentTypeId is required.");
-        RuleFor(x => x.PurchaseDate).NotEmpty().WithMessage("PurchaseDate is required.");
     }
 }

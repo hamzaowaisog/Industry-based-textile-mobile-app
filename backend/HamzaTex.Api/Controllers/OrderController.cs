@@ -41,7 +41,7 @@ public class OrderController : BaseController
         {
             ClientId = model.ClientId,
             PaymentTypeId = model.PaymentTypeId,
-            OrderDate = model.OrderDate,
+            OrderDate = model.OrderDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
             Notes = model.Notes,
             Lines = model.Lines.Select(l => new CreateOrderLineDto
             {

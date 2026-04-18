@@ -31,7 +31,8 @@ public class StockMovementsCreateViewModel
     public decimal Qty { get; set; }
     public decimal? UnitCost { get; set; } = null;
     public decimal? UnitPrice { get; set; } = null;
-    public DateOnly MovementDate { get; set; }
+    /// <summary>Omit or null to use the current UTC date.</summary>
+    public DateOnly? MovementDate { get; set; }
 }
 
 public class StockMovementsUpdateViewModel
@@ -47,5 +48,6 @@ public class StockMovementsUpdateViewModel
     public decimal Qty { get; set; }
     public decimal? UnitCost { get; set; }
     public decimal? UnitPrice { get; set; }
-    public DateOnly MovementDate { get; set; }
+    /// <summary>Omit or null to leave the existing movement date unchanged.</summary>
+    public DateOnly? MovementDate { get; set; }
 }

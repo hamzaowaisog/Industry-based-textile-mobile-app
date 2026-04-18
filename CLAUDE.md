@@ -13,6 +13,8 @@ HamzaTex is a brownfield full-stack textile/trading ERP (API + mobile) being evo
 - **Planning docs:** `_bmad-output/planning-artifacts/` (PRD, architecture decisions, epics)
 - **Remaining work tracker:** `todo/` (12 files, one per feature area)
 
+> **`backend/README.md` is stale** — it describes the original SQLite/Item scaffold and does not reflect the current ERP codebase. Ignore it; this CLAUDE.md is the authoritative reference.
+
 ---
 
 ## Commands
@@ -24,10 +26,12 @@ cd backend/HamzaTex.Api
 
 dotnet run                                        # start API on http://localhost:5000
 dotnet build
-dotnet test
 dotnet ef migrations add <MigrationName>          # add EF migration
+dotnet ef migrations remove                       # undo last migration (before db update)
 dotnet ef database update                         # apply migrations manually
 ```
+
+> **No test project exists** — `dotnet test` will fail. Testing is done via Swagger UI or curl against the running API.
 
 Swagger UI: `http://localhost:5000/swagger`. OpenAPI JSON spec: `http://localhost:5000/swagger/v1/swagger.json`. Download spec for Orval: `GET /api/App/spec`. Auto-migrates and seeds on startup.
 
@@ -203,9 +207,9 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
   - **Order Cancelled reversal:** `TransCategoryId=1`, `TransTypeId=1 (Debit)`, `Amount=-total`, `OrderId` set
   - **Purchase Delivered:** `TransCategoryId=2`, `TransTypeId=1 (Debit)`, `Amount=+total`, `PurchaseId` set
   - **Purchase Cancelled reversal:** `TransCategoryId=2`, `TransTypeId=2 (Credit)`, `Amount=-total`, `PurchaseId` set
-  - **Payment Received (customer pays):** `TransCategoryId=5 (Cash In)`, `TransTypeId=2 (Credit)`, `Amount=+amount`, `ClientId=NULL`
-  - **Payment Paid (supplier payment):** `TransCategoryId=6 (Cash Out)`, `TransTypeId=1 (Debit)`, `Amount=+amount`, `ClientId=NULL`
-  - **Payment Reversed:** reversing Transaction posted with opposite TransType; original payment `IsReversed=true`
+  - **Payment Received (customer pays):** `TransCategoryId=5 (Cash In)`, `TransTypeId=2 (Credit)`, `Amount=+amount`, `ClientId=PartyClientId`. `OrderId`/`PurchaseId` set only when payment has exactly one allocation; null when split across multiple.
+  - **Payment Paid (supplier payment):** `TransCategoryId=6 (Cash Out)`, `TransTypeId=1 (Debit)`, `Amount=+amount`, `ClientId=PartyClientId`. Same `OrderId`/`PurchaseId` rule.
+  - **Payment Reversed:** reversing Transaction posted with opposite TransType, same `ClientId`/`OrderId`/`PurchaseId` rules; original payment `IsReversed=true`
 - **v_client_balance redesign:** View now joins `transactions` (order/purchase totals) against `payments` table directly (excluding `is_reversed=1`). Customers: `order_total - received_payments`. Suppliers: `purchase_total - paid_payments`.
 - **PaymentAllocation:** join table linking Payment → Order/Purchase with `AllocatedAmount`. FIFO auto-allocation sorts **Delivered** orders/purchases by date ASC and fills greedily when `Allocations` list is empty on create. Empty/null allocation items in the request are stripped before the FIFO check — sending `[{}]` is treated the same as `[]`.
 - **Advance payment handling:** If a customer/supplier pays before delivery, the payment sits as unallocated credit. When `OrderService` or `PurchaseService` transitions a document to Delivered, `IPaymentService.ApplyUnallocatedCreditAsync` is called automatically to apply any existing unallocated credit against the newly delivered document (oldest payment first).

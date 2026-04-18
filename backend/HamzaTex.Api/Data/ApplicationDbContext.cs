@@ -340,12 +340,12 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("payment_allocations_payment_id_fkey");
 
-            entity.HasOne(d => d.Order).WithMany()
+            entity.HasOne(d => d.Order).WithMany(p => p.PaymentAllocations)
                 .HasForeignKey(d => d.OrderId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("payment_allocations_order_id_fkey");
 
-            entity.HasOne(d => d.Purchase).WithMany()
+            entity.HasOne(d => d.Purchase).WithMany(p => p.PaymentAllocations)
                 .HasForeignKey(d => d.PurchaseId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("payment_allocations_purchase_id_fkey");

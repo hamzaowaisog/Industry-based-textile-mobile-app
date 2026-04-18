@@ -38,5 +38,5 @@ public class UpdateStockMovementsDto
     public decimal? UnitPrice { get; set; }
     public decimal? AverageCostAtMovement { get; set; }
     public decimal? AveragePriceAtMovement { get; set; }
-    public DateOnly MovementDate { get; set; }
+    public DateOnly? MovementDate { get; set; }
 }

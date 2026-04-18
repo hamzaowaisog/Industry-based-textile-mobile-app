@@ -13,7 +13,8 @@ public class PaymentCreateViewModel
     public int PaymentDirectionId { get; set; }
     public int TransModeId { get; set; }
     public decimal Amount { get; set; }
-    public DateOnly PaymentDate { get; set; }
+    /// <summary>Omit or set null to use the current UTC date.</summary>
+    public DateOnly? PaymentDate { get; set; }
     public string? Notes { get; set; }
     public List<AllocationItemViewModel> Allocations { get; set; } = new();
 }
@@ -21,7 +22,8 @@ public class PaymentCreateViewModel
 public class PaymentUpdateViewModel
 {
     public int TransModeId { get; set; }
-    public DateOnly PaymentDate { get; set; }
+    /// <summary>Omit or set null to leave the existing payment date unchanged.</summary>
+    public DateOnly? PaymentDate { get; set; }
     public string? Notes { get; set; }
 }
 
