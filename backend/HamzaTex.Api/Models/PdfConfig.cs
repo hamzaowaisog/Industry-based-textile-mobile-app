@@ -122,6 +122,22 @@ public static class EntityPdfConfigs
         PdfColumnConfig.Create("MovementDate", "Date", PdfColumnFormat.Date),
     ];
 
+    public static readonly PdfColumnConfig[] Expense = [
+        PdfColumnConfig.Create("Id", "Expense #"),
+        PdfColumnConfig.Create("ExpenseTypeName", "Type"),
+        PdfColumnConfig.Create("Amount", "Amount (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("TransModeName", "Mode"),
+        PdfColumnConfig.Create("TransCategoryName", "Category"),
+        PdfColumnConfig.Create("ExpenseDate", "Date", PdfColumnFormat.Date),
+        PdfColumnConfig.Create("RecordedByName", "Recorded By"),
+        PdfColumnConfig.Create("Notes", "Notes"),
+    ];
+
+    public static readonly PdfColumnConfig[] ExpenseType = [
+        PdfColumnConfig.Create("Id", "ID"),
+        PdfColumnConfig.Create("Name", "Type Name"),
+    ];
+
     /// <summary>
     /// Returns only the columns matching the given property names. Use to include a subset of columns in PDF.
     /// </summary>

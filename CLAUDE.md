@@ -210,6 +210,8 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
   - **Payment Received (customer pays):** `TransCategoryId=5 (Cash In)`, `TransTypeId=2 (Credit)`, `Amount=+amount`, `ClientId=PartyClientId`. `OrderId`/`PurchaseId` set only when payment has exactly one allocation; null when split across multiple.
   - **Payment Paid (supplier payment):** `TransCategoryId=6 (Cash Out)`, `TransTypeId=1 (Debit)`, `Amount=+amount`, `ClientId=PartyClientId`. Same `OrderId`/`PurchaseId` rule.
   - **Payment Reversed:** reversing Transaction posted with opposite TransType, same `ClientId`/`OrderId`/`PurchaseId` rules; original payment `IsReversed=true`
+  - **Expense created:** `TransCategoryId=3 (Office) or 4 (Home)`, `TransTypeId=1 (Debit)`, `Amount=+amount`, `ClientId=null`. TransCategoryId auto-derived from ExpenseTypeId (seeded map: 1→3, 2→4) or supplied explicitly for custom types.
+  - **Expense deleted:** Expense removed first (drops FK), then linked Transaction deleted. Never delete Transaction first — cascade would double-delete the Expense.
 - **v_client_balance redesign:** View now joins `transactions` (order/purchase totals) against `payments` table directly (excluding `is_reversed=1`). Customers: `order_total - received_payments`. Suppliers: `purchase_total - paid_payments`.
 - **PaymentAllocation:** join table linking Payment → Order/Purchase with `AllocatedAmount`. FIFO auto-allocation sorts **Delivered** orders/purchases by date ASC and fills greedily when `Allocations` list is empty on create. Empty/null allocation items in the request are stripped before the FIFO check — sending `[{}]` is treated the same as `[]`.
 - **Advance payment handling:** If a customer/supplier pays before delivery, the payment sits as unallocated credit. When `OrderService` or `PurchaseService` transitions a document to Delivered, `IPaymentService.ApplyUnallocatedCreditAsync` is called automatically to apply any existing unallocated credit against the newly delivered document (oldest payment first).
@@ -274,6 +276,8 @@ private int? GetUserId()
 | `IOrderService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllByUserIdAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
 | `IPurchaseService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllByUserIdAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
 | `IPaymentService` | CreateAsync, GetByIdAsync, GetAllPaginatedAsync, GetAllByUserIdAsync, GetAllByClientIdAsync, GetFilteredAsync, GetUnallocatedCreditAsync, UpdateByIdAsync, ReverseAsync, ReverseAndCorrectAsync, DeleteByIdAsync, ApplyUnallocatedCreditAsync |
+| `IExpenseTypeService` | CreateAsync, GetByIdAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync |
+| `IExpenseService` | CreateAsync, GetByIdAsync, GetAllPaginatedAsync, GetAllByUserIdAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
 | `ILookupService` | GetAllAsync, GetByTypeAsync, GetOrderStatusesAsync, GetPurchaseStatusesAsync, GetPaymentTypesAsync, GetPaymentDirectionsAsync, GetTransTypesAsync, GetTransModesAsync, GetTransCategoriesAsync, GetExpenseTypesAsync, GetMovementTypesAsync, GetMovementSourcesAsync, GetClientTypesAsync, GetUserRolesAsync |
 | `IPdfService` | CreatePdf |
 
@@ -293,10 +297,12 @@ private int? GetUserId()
 | `OrderController` | POST, GET (paginated), GET /me, GET /{id}, GET /filtered, PUT /{id} (status transitions: Delivered→stock+ledger, Cancelled→reversal), DELETE /{id}, GET /pdf |
 | `PurchaseController` | POST, GET (paginated), GET /me, GET /{id}, GET /filtered, PUT /{id} (status transitions: Delivered→stock In+ledger, Cancelled→reversal), DELETE /{id}, GET /pdf |
 | `PaymentController` | POST (create + allocate), GET (paginated), GET /me, GET /{id}, GET /by-client/{clientId}, GET /filtered, GET /unallocated/{clientId}, PUT /{id}, POST /{id}/reverse, POST /{id}/reverse-and-correct, DELETE /{id}, GET /pdf |
+| `ExpenseTypeController` | POST, GET all, GET /{id}, PUT /{id}, DELETE /{id} (guarded), GET /pdf — AdminOnly |
+| `ExpenseController` | POST (AdminOrStaff), GET (paginated, AdminOnly), GET /me, GET /{id}, GET /filtered, PUT /{id} (AdminOrStaff), DELETE /{id} (AdminOnly), GET /pdf |
 | `MetaController` | GET /all, GET /{type} (switch-case dispatch for all 12 lookup tables incl. purchasestatuses) |
 | `AppController` | GET /health, GET /info, GET /spec (downloads OpenAPI JSON for Orval) |
 
-**Not yet created:** ExpenseController, TransactionController, ReportController, InvoiceController, SyncController, DeviceController
+**Not yet created:** TransactionController, ReportController, InvoiceController, SyncController, DeviceController
 
 ---
 
@@ -323,7 +329,7 @@ See `todo/` for detailed task breakdowns:
 | `todo/02-orders.md` | ✅ Complete — full Orders API incl. Delivered/Cancelled lifecycle, ledger, stock |
 | `todo/03-purchases.md` | ✅ Complete — full Purchases API incl. Delivered/Cancelled lifecycle, ledger, stock, PurchaseStatus |
 | `todo/04-payments.md` | ✅ Complete — full Payments API incl. FIFO allocation, reversal, reverse-and-correct, ledger posting, v_client_balance redesign |
-| `todo/05-expenses.md` | Full Expenses API + ExpenseType controller |
+| `todo/05-expenses.md` | ✅ Complete — full Expenses API with atomic ledger posting, ExpenseType CRUD, P&L integration |
 | `todo/06-transactions.md` | Full Transactions API + lookup read endpoints |
 | `todo/07-reports.md` | Expose VMonthlyProfitLoss, VClientBalance, VMonthlyCreditDebit views |
 | `todo/08-invoices.md` | Invoice entity (doesn't exist) + full API |
