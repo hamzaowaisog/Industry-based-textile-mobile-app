@@ -220,3 +220,5 @@ logs/
 *.iml
 
 !README.md
+
+*.zip
