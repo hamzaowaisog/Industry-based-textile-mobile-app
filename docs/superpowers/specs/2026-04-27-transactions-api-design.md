@@ -57,13 +57,19 @@ OrderId == null && PurchaseId == null && !Expenses.Any() && TransCategoryId not 
 |---|---|---|
 | `Id` | int | |
 | `ClientId` | int? | |
+| `ClientName` | string? | Resolved from `Client.Name` |
 | `ProductId` | int? | |
+| `ProductName` | string? | Resolved from `Product.Name` |
 | `UserId` | int? | |
+| `UserName` | string? | Resolved from `User.Name` |
 | `OrderId` | int? | |
 | `PurchaseId` | int? | |
 | `TransTypeId` | int? | |
+| `TransTypeName` | string? | Resolved from `TransType.Name` (Debit / Credit) |
 | `TransModeId` | int? | |
+| `TransModeName` | string? | Resolved from `TransMode.Name` (Cash / Bank / Credit) |
 | `TransCategoryId` | int? | |
+| `TransCategoryName` | string? | Resolved from `TransCategory.Name` (Sales / Expenses / etc.) |
 | `Amount` | decimal | |
 | `TransDate` | DateOnly | |
 | `Notes` | string? | |
@@ -121,12 +127,12 @@ Same fields as `CreateTransactionDto`.
 - `GetByIdAsync` — if not admin, returns `ErrorResponse("Not found")` when `UserId != currentUserId` (ownership check)
 - `GetAllByClientIdAsync` — if not admin, verifies the client belongs to `currentUserId` via `Client.UserId`
 - `UpdateByIdAsync` / `DeleteByIdAsync` — run auto-posted check first; return `ErrorResponse` with source-specific message if locked
-- All read queries use `.AsNoTracking().Include(t => t.Expenses)` to enable `IsManual` and `Source` derivation
+- All read queries use `.AsNoTracking()` with includes: `.Include(t => t.Expenses).Include(t => t.Client).Include(t => t.Product).Include(t => t.User).Include(t => t.TransType).Include(t => t.TransMode).Include(t => t.TransCategory)` to enable name resolution, `IsManual`, and `Source` derivation
 
 ### PDF Config (`Models/PdfConfig.cs`)
 
 Add `Transaction` entry to `EntityPdfConfigs`:
-- Columns: `Id`, `Source`, `TransCategoryId`, `TransTypeId`, `TransModeId`, `Amount`, `TransDate`, `ClientId`, `Notes`
+- Columns: `Id`, `Source`, `TransCategoryName`, `TransTypeName`, `TransModeName`, `Amount`, `TransDate`, `ClientName`, `Notes`
 
 ---
 
