@@ -229,3 +229,28 @@ graphify-out/
 .graphify_detect.json
 .graphify_python
 graphify-cache/
+
+# -----------------------------------------------------------------------------
+# GitHub hygiene — internal work, agent tooling, local-only data (leakage risk)
+# New files under these paths stay untracked; remove from index if already committed:
+#   git rm -r --cached todo/ planning/ docs/superpowers/ _bmad/ .agent/ .cursor/commands/ …
+# -----------------------------------------------------------------------------
+todo/
+planning/
+docs/superpowers/
+_bmad-output/
+portfolio-content/
+
+# Local / scratch context (often contains machine paths, client hints, paste dumps)
+CONTEXT.md
+
+# BMAD + Cursor agent workflow copies (large; reinstall from tooling if needed)
+_bmad/
+.agent/
+.cursor/commands/
+
+# Claude / Cursor overrides that may contain keys or personal paths
+.claude/settings.local.json
+
+# Convention for notes not meant for git
+*.local.md
