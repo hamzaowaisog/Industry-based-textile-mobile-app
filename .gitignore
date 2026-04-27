@@ -222,3 +222,6 @@ logs/
 !README.md
 
 *.zip
+
+# Graphify output
+graphify-out/
