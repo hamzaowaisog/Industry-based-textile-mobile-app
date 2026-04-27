@@ -164,8 +164,9 @@ public class TransactionService : ITransactionService
             .OrderByDescending(t => t.TransDate)
             .ThenByDescending(t => t.Id);
 
-        var paged = await PagedList<TransactionDto>.CreateAsync(
-            query.Select(t => ToDto(t)), page, pageSize);
+        var totalCount = await query.CountAsync();
+        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        var paged = new PagedList<TransactionDto>(items.Select(ToDto).ToList(), page, pageSize, totalCount);
 
         return Response<PagedList<TransactionDto>>.SuccessResponse(paged, "Transactions fetched.");
     }
@@ -253,6 +254,7 @@ public class TransactionService : ITransactionService
         entity.TransDate       = model.TransDate;
         entity.Notes           = model.Notes;
         entity.ClientId        = model.ClientId;
+        // Null means "keep current value" — callers cannot explicitly clear these fields via PUT.
         entity.TransTypeId     = model.TransTypeId ?? entity.TransTypeId;
         entity.TransModeId     = model.TransModeId ?? entity.TransModeId;
 
