@@ -12,6 +12,7 @@ namespace HamzaTex.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
+[Authorize(Policy = "Authenticated")]
 public class TransactionController : BaseController
 {
     private readonly ITransactionService _transactionService;
