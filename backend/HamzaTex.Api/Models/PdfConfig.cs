@@ -138,6 +138,18 @@ public static class EntityPdfConfigs
         PdfColumnConfig.Create("Name", "Type Name"),
     ];
 
+    public static readonly PdfColumnConfig[] Transaction = [
+        PdfColumnConfig.Create("Id", "Transaction #"),
+        PdfColumnConfig.Create("Source", "Source"),
+        PdfColumnConfig.Create("TransCategoryName", "Category"),
+        PdfColumnConfig.Create("TransTypeName", "Type"),
+        PdfColumnConfig.Create("TransModeName", "Mode"),
+        PdfColumnConfig.Create("Amount", "Amount (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("TransDate", "Date", PdfColumnFormat.Date),
+        PdfColumnConfig.Create("ClientName", "Client"),
+        PdfColumnConfig.Create("Notes", "Notes"),
+    ];
+
     /// <summary>
     /// Returns only the columns matching the given property names. Use to include a subset of columns in PDF.
     /// </summary>
