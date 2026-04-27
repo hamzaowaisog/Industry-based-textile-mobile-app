@@ -1,0 +1,182 @@
+using System.Security.Claims;
+using HamzaTex.Api.Helpers;
+using HamzaTex.Api.Models;
+using HamzaTex.Api.Services;
+using HamzaTex.Api.Services.ViewModel;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace HamzaTex.Api.Controllers;
+
+/// <summary>Ledger viewer and manual correction tool for the transactions table.</summary>
+[ApiController]
+[Route("api/[controller]")]
+[Produces("application/json")]
+public class TransactionController : BaseController
+{
+    private readonly ITransactionService _transactionService;
+    private readonly IPdfService _pdfService;
+
+    public TransactionController(ITransactionService transactionService, IPdfService pdfService)
+    {
+        _transactionService = transactionService;
+        _pdfService = pdfService;
+    }
+
+    private int? GetUserId()
+    {
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
+    }
+
+    private bool IsAdmin()
+    {
+        var roleId = User.FindFirst("RoleId")?.Value;
+        return roleId == "1";
+    }
+
+    // ── Write ─────────────────────────────────────────────────────────────────
+
+    /// <summary>Create a manual ledger entry. Defaults TransTypeId=1 (Debit) and TransModeId=1 (Cash) if omitted.</summary>
+    [HttpPost]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(Response<TransactionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Create([FromBody] TransactionCreateViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return ToActionResult(ToValidationResponseFromModelState<TransactionDto>());
+
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var dto = new CreateTransactionDto
+        {
+            Amount          = model.Amount,
+            TransCategoryId = model.TransCategoryId,
+            TransDate       = model.TransDate,
+            Notes           = model.Notes,
+            ClientId        = model.ClientId,
+            TransTypeId     = model.TransTypeId,
+            TransModeId     = model.TransModeId,
+        };
+
+        return ToActionResult(await _transactionService.CreateAsync(dto, userId.Value));
+    }
+
+    /// <summary>Update a manually-created transaction. Returns an error if the transaction was auto-posted by an Order, Purchase, Expense, or Payment.</summary>
+    [HttpPut("{id:int}")]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(Response<TransactionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] TransactionUpdateViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return ToActionResult(ToValidationResponseFromModelState<TransactionDto>());
+
+        var dto = new UpdateTransactionDto
+        {
+            Amount          = model.Amount,
+            TransCategoryId = model.TransCategoryId,
+            TransDate       = model.TransDate,
+            Notes           = model.Notes,
+            ClientId        = model.ClientId,
+            TransTypeId     = model.TransTypeId,
+            TransModeId     = model.TransModeId,
+        };
+
+        return ToActionResult(await _transactionService.UpdateByIdAsync(id, dto));
+    }
+
+    /// <summary>Delete a manually-created transaction. Returns an error if the transaction was auto-posted.</summary>
+    [HttpDelete("{id:int}")]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete([FromRoute] int id)
+    {
+        return ToActionResult(await _transactionService.DeleteByIdAsync(id));
+    }
+
+    // ── Read ──────────────────────────────────────────────────────────────────
+
+    /// <summary>Get all transactions paginated. Admin only.</summary>
+    [HttpGet]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(Response<PagedList<TransactionDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        return ToActionResult(await _transactionService.GetAllPaginatedAsync(page, pageSize));
+    }
+
+    /// <summary>Get transactions for the currently logged-in user.</summary>
+    [HttpGet("me")]
+    [Authorize(Policy = "Authenticated")]
+    [ProducesResponseType(typeof(Response<List<TransactionDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMe()
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        return ToActionResult(await _transactionService.GetAllByUserIdAsync(userId.Value));
+    }
+
+    /// <summary>Get a transaction by ID. Staff can only access their own records.</summary>
+    [HttpGet("{id:int}")]
+    [Authorize(Policy = "AdminOrStaff")]
+    [ProducesResponseType(typeof(Response<TransactionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById([FromRoute] int id)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        return ToActionResult(await _transactionService.GetByIdAsync(id, userId.Value, IsAdmin()));
+    }
+
+    /// <summary>Get all transactions for a specific client. Staff: only if they own the client.</summary>
+    [HttpGet("by-client/{clientId:int}")]
+    [Authorize(Policy = "AdminOrStaff")]
+    [ProducesResponseType(typeof(Response<List<TransactionDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetByClient([FromRoute] int clientId)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        return ToActionResult(await _transactionService.GetAllByClientIdAsync(clientId, userId.Value, IsAdmin()));
+    }
+
+    /// <summary>Filter transactions by typeId, categoryId, modeId, clientId, dateFrom, dateTo. Admin only.</summary>
+    [HttpGet("filtered")]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(Response<List<TransactionDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetFiltered(
+        [FromQuery] int? typeId,
+        [FromQuery] int? categoryId,
+        [FromQuery] int? modeId,
+        [FromQuery] int? clientId,
+        [FromQuery] DateOnly? dateFrom,
+        [FromQuery] DateOnly? dateTo)
+    {
+        return ToActionResult(await _transactionService.GetFilteredAsync(
+            typeId, categoryId, modeId, clientId, dateFrom, dateTo));
+    }
+
+    /// <summary>Export all transactions as PDF. Admin only.</summary>
+    [HttpGet("pdf")]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPdf()
+    {
+        var result = await _transactionService.GetAllAsync();
+        if (!result.Success || result.Data is null)
+            return BadRequest(result.Message);
+
+        var pdf = _pdfService.CreatePdf(
+            "Transactions", "Full ledger. All amounts in PKR.", result.Data, EntityPdfConfigs.Transaction);
+        return File(pdf, "application/pdf", "transactions.pdf");
+    }
+}
