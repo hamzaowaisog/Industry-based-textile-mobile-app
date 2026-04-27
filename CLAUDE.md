@@ -279,6 +279,7 @@ private int? GetUserId()
 | `IExpenseTypeService` | CreateAsync, GetByIdAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync |
 | `IExpenseService` | CreateAsync, GetByIdAsync, GetAllPaginatedAsync, GetAllByUserIdAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
 | `ILookupService` | GetAllAsync, GetByTypeAsync, GetOrderStatusesAsync, GetPurchaseStatusesAsync, GetPaymentTypesAsync, GetPaymentDirectionsAsync, GetTransTypesAsync, GetTransModesAsync, GetTransCategoriesAsync, GetExpenseTypesAsync, GetMovementTypesAsync, GetMovementSourcesAsync, GetClientTypesAsync, GetUserRolesAsync |
+| `ITransactionService` | CreateAsync, GetByIdAsync, GetAllPaginatedAsync, GetAllByUserIdAsync, GetAllByClientIdAsync, GetFilteredAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync |
 | `IPdfService` | CreatePdf |
 
 ---
@@ -300,9 +301,10 @@ private int? GetUserId()
 | `ExpenseTypeController` | POST, GET all, GET /{id}, PUT /{id}, DELETE /{id} (guarded), GET /pdf — AdminOnly |
 | `ExpenseController` | POST (AdminOrStaff), GET (paginated, AdminOnly), GET /me, GET /{id}, GET /filtered, PUT /{id} (AdminOrStaff), DELETE /{id} (AdminOnly), GET /pdf |
 | `MetaController` | GET /all, GET /{type} (switch-case dispatch for all 12 lookup tables incl. purchasestatuses) |
+| `TransactionController` | POST, GET (paginated), GET /me, GET /{id}, GET /by-client/{clientId}, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf |
 | `AppController` | GET /health, GET /info, GET /spec (downloads OpenAPI JSON for Orval) |
 
-**Not yet created:** TransactionController, ReportController, InvoiceController, SyncController, DeviceController
+**Not yet created:** ReportController, InvoiceController, SyncController, DeviceController
 
 ---
 
@@ -330,7 +332,7 @@ See `todo/` for detailed task breakdowns:
 | `todo/03-purchases.md` | ✅ Complete — full Purchases API incl. Delivered/Cancelled lifecycle, ledger, stock, PurchaseStatus |
 | `todo/04-payments.md` | ✅ Complete — full Payments API incl. FIFO allocation, reversal, reverse-and-correct, ledger posting, v_client_balance redesign |
 | `todo/05-expenses.md` | ✅ Complete — full Expenses API with atomic ledger posting, ExpenseType CRUD, P&L integration |
-| `todo/06-transactions.md` | Full Transactions API + lookup read endpoints |
+| `todo/06-transactions.md` | ✅ Complete — full Transactions API with CRUD, filtered, me, by-client, pdf |
 | `todo/07-reports.md` | Expose VMonthlyProfitLoss, VClientBalance, VMonthlyCreditDebit views |
 | `todo/08-invoices.md` | Invoice entity (doesn't exist) + full API |
 | `todo/09-users-admin-create.md` | One new service method + one endpoint on UsersController |
@@ -346,3 +348,12 @@ See `todo/` for detailed task breakdowns:
 - Frontend API base URL: `frontend/src/utils/api.js` → `API_BASE_URL`
 - CORS is `AllowAll` — restrict for production in `Program.cs`
 - `App:PublicBaseUrl` is used in email confirmation links
+
+## graphify
+
+This project has a graphify knowledge graph at graphify-out/.
+
+Rules:
+- Before answering architecture or codebase questions, read graphify-out/GRAPH_REPORT.md for god nodes and community structure
+- If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
+- After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)
