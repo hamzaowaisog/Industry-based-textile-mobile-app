@@ -12,7 +12,7 @@ public class ClientDto
     public decimal? OpeningBalance { get; set; }
     public string? Notes { get; set; }
     public bool IsActive { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
 }
 
 public class CreateClientDto
@@ -26,7 +26,7 @@ public class CreateClientDto
     public decimal? OpeningBalance { get; set; }
     public string? Notes { get; set; }
     public bool IsActive { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
 }
 
 public class UpdateClientByIdDto

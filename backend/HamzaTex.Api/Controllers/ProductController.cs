@@ -58,8 +58,7 @@ public class ProductController : BaseController
             TotalQuantityPurchased = model.Quantity,
             TotalQuantitySold = 0,
             ReorderLevel = model.ReorderLevel,
-            IsActive = model.IsActive,
-            CreatedAt = model.CreatedAt
+            IsActive = model.IsActive
         };
 
         var response = await _productService.CreateWithUserIdAsync(dto, userId);

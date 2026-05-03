@@ -31,7 +31,7 @@ public partial class Payment
 
     public string? Notes { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
 
     public int? UserId { get; set; }
 

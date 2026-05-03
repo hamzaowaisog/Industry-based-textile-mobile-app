@@ -10,7 +10,6 @@ public class ClientCreateViewModel
     public decimal? OpeningBalance { get; set; }
     public string? Notes { get; set; }
     public bool IsActive { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
 public class ClientUpdateViewModel

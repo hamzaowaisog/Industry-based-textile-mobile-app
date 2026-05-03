@@ -8,5 +8,4 @@ public class SignupViewModel
     public string Password { get; set; } = string.Empty;
     public string ConfirmPassword { get; set; } = string.Empty;
     public int RoleId { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

@@ -1044,6 +1044,9 @@ WHERE c.client_type_id = 2;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260418191031_FixVClientBalanceExcludeReversalPayments', '9.0.10');
 
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260503033103_ChangeCreatedAtToDateOnly', '9.0.10');
+
 COMMIT;
 
 

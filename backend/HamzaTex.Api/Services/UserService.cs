@@ -163,7 +163,7 @@ public class UserService : IUserService
             UserName = model.UserName.Trim(),
             RoleId = model.RoleId,
             IsActive = model.IsActive,
-            CreatedAt = model.CreatedAt,
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow),
             EmailConfirmed = false,
             PhoneNumber = !string.IsNullOrWhiteSpace(model.PhoneNumber) ? model.PhoneNumber.Trim() : null,
             PhoneNumberConfirmed = !string.IsNullOrWhiteSpace(model.PhoneNumber)

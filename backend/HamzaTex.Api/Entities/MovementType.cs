@@ -8,6 +8,6 @@ public partial class MovementType
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     public string? Name { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
     public virtual ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
 }

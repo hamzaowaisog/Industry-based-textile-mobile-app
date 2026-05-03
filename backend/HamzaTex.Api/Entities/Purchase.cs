@@ -27,7 +27,7 @@ public partial class Purchase
 
     public string? Notes { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
 
     public virtual ICollection<PurchaseLine> PurchaseLines { get; set; } = new List<PurchaseLine>();
 

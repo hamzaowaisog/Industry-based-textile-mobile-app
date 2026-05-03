@@ -37,8 +37,7 @@ public class ClientTypeController : BaseController
 
         var dto = new CreateClientTypeDto
         {
-            Name = model.Name,
-            CreatedAt = model.CreatedAt
+            Name = model.Name
         };
 
         var response = await _clientTypeService.CreateAsync(dto);

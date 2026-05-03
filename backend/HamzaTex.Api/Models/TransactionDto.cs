@@ -28,7 +28,7 @@ public class TransactionDto
     public decimal Amount { get; set; }
     public DateOnly TransDate { get; set; }
     public string? Notes { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
 
     /// <summary>Derived: "Order #N" | "Purchase #N" | "Expense" | "Payment" | "Manual"</summary>
     public string Source { get; set; } = string.Empty;

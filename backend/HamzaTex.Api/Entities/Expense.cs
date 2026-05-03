@@ -33,7 +33,7 @@ public partial class Expense
 
     public string? Notes { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
 
     public virtual ExpenseType? ExpenseType { get; set; }
 

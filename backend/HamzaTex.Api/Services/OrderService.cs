@@ -81,7 +81,7 @@ public class OrderService : IOrderService
             PaymentTypeId = model.PaymentTypeId,
             OrderDate = model.OrderDate,
             Notes = model.Notes,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
         foreach (var line in model.Lines)
@@ -308,7 +308,7 @@ public class OrderService : IOrderService
                 Amount = orderTotal,
                 TransDate = order.OrderDate,
                 Notes = $"Sale — Order #{order.Id}",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
             await _dbContext.Transactions.AddAsync(txn);
             await _dbContext.SaveChangesAsync();
@@ -377,7 +377,7 @@ public class OrderService : IOrderService
                     Amount = -orderTotal,
                     TransDate = DateOnly.FromDateTime(DateTime.UtcNow),
                     Notes = $"Sale reversal — Order #{order.Id} cancelled",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
                 };
                 await _dbContext.Transactions.AddAsync(reversalTxn);
                 await _dbContext.SaveChangesAsync();

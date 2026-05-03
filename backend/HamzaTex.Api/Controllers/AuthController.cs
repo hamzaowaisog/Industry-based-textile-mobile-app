@@ -54,8 +54,7 @@ public class AuthController : BaseController
             ConfirmPassword = model.ConfirmPassword,
             RoleId = model.RoleId,
             IsActive = model.IsActive,
-            PhoneNumber = model.PhoneNumber,
-            CreatedAt = model.CreatedAt
+            PhoneNumber = model.PhoneNumber
         };
 
         var response = await _userService.SignupAsync(dto);

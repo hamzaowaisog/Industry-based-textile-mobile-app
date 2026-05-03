@@ -33,6 +33,8 @@ builder.Services.AddControllers(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new HamzaTex.Api.Helpers.FlexibleDateOnlyJsonConverter());
     options.JsonSerializerOptions.Converters.Add(new HamzaTex.Api.Helpers.FlexibleNullableDateOnlyJsonConverter());
+    options.JsonSerializerOptions.Converters.Add(new HamzaTex.Api.Helpers.FlexibleDateTimeJsonConverter());
+    options.JsonSerializerOptions.Converters.Add(new HamzaTex.Api.Helpers.FlexibleNullableDateTimeJsonConverter());
 })
 .ConfigureApiBehaviorOptions(options =>
 {

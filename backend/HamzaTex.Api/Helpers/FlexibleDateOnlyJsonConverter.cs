@@ -26,7 +26,7 @@ public sealed class FlexibleDateOnlyJsonConverter : JsonConverter<DateOnly>
     }
 
     public override void Write(Utf8JsonWriter writer, DateOnly value, JsonSerializerOptions options) =>
-        writer.WriteStringValue(value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+        writer.WriteStringValue(value.ToString("dd MMM, yyyy", CultureInfo.InvariantCulture));
 }
 
 /// <summary>Same parsing as <see cref="FlexibleDateOnlyJsonConverter"/>, with null, omitted, and empty string treated as null for optional request bodies.</summary>
@@ -53,7 +53,63 @@ public sealed class FlexibleNullableDateOnlyJsonConverter : JsonConverter<DateOn
         if (value is null)
             writer.WriteNullValue();
         else
-            writer.WriteStringValue(value.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            writer.WriteStringValue(value.Value.ToString("dd MMM, yyyy", CultureInfo.InvariantCulture));
+    }
+}
+
+/// <summary>
+/// Accepts <c>yyyy-MM-dd</c>, ISO-8601 date-time strings, and empty/null for <see cref="DateTime"/> API fields.
+/// Empty or null falls back to <see cref="DateTime.UtcNow"/>.
+/// </summary>
+public sealed class FlexibleDateTimeJsonConverter : JsonConverter<DateTime>
+{
+    public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+            return DateTime.UtcNow;
+        if (reader.TokenType == JsonTokenType.String)
+        {
+            var s = reader.GetString();
+            if (string.IsNullOrWhiteSpace(s))
+                return DateTime.UtcNow;
+            if (DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dt))
+                return dt;
+            if (DateTimeOffset.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dto))
+                return dto.DateTime;
+        }
+        throw new JsonException("The JSON value could not be converted to System.DateTime.");
+    }
+
+    public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture));
+}
+
+/// <summary>Same as <see cref="FlexibleDateTimeJsonConverter"/> but for nullable <c>DateTime?</c> fields.</summary>
+public sealed class FlexibleNullableDateTimeJsonConverter : JsonConverter<DateTime?>
+{
+    public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+            return null;
+        if (reader.TokenType == JsonTokenType.String)
+        {
+            var s = reader.GetString();
+            if (string.IsNullOrWhiteSpace(s))
+                return null;
+            if (DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dt))
+                return dt;
+            if (DateTimeOffset.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dto))
+                return dto.DateTime;
+        }
+        throw new JsonException("The JSON value could not be converted to System.DateTime.");
+    }
+
+    public override void Write(Utf8JsonWriter writer, DateTime? value, JsonSerializerOptions options)
+    {
+        if (value is null)
+            writer.WriteNullValue();
+        else
+            writer.WriteStringValue(value.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture));
     }
 }
 

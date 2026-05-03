@@ -10,7 +10,6 @@ public class ProductCreateViewModel
     public decimal? Quantity { get; set; }
     public int? ReorderLevel { get; set; }
     public bool? IsActive { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
 public class ProductUpdateViewModel

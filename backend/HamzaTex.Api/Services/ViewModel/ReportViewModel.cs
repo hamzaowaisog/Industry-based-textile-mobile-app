@@ -14,6 +14,7 @@ public class ClientBalanceViewModel
 {
     public int ClientId { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string ClientTypeName { get; set; } = string.Empty;
     public decimal Balance { get; set; }
 }
 

@@ -8,10 +8,10 @@ public static class SeedData
 {
     private static readonly IReadOnlyList<PurchaseStatus> PurchaseStatusSeeds =
     [
-        new PurchaseStatus { Id = 1, Name = "Pending",      CreatedAt = DateTime.UtcNow },
-        new PurchaseStatus { Id = 2, Name = "InProgressed", CreatedAt = DateTime.UtcNow },
-        new PurchaseStatus { Id = 3, Name = "Delivered",    CreatedAt = DateTime.UtcNow },
-        new PurchaseStatus { Id = 4, Name = "Cancelled",    CreatedAt = DateTime.UtcNow },
+        new PurchaseStatus { Id = 1, Name = "Pending",      CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+        new PurchaseStatus { Id = 2, Name = "InProgressed", CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+        new PurchaseStatus { Id = 3, Name = "Delivered",    CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+        new PurchaseStatus { Id = 4, Name = "Cancelled",    CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
     ];
 
     private static readonly IReadOnlyList<OrderStatus> OrderStatusSeeds =
@@ -20,25 +20,25 @@ public static class SeedData
         {
             Id = 1,
             Name = "Pending",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new OrderStatus
         {
             Id = 2,
             Name = "InProgressed",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new OrderStatus
         {
             Id = 3,
             Name = "Delivered",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new OrderStatus
         {
             Id = 4,
             Name = "Cancelled",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         }
     ];
 
@@ -48,13 +48,13 @@ public static class SeedData
         {
             Id = 1,
             Name = "Cash",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new PaymentType
         {
             Id = 2,
             Name = "Credit",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         }
     ];
 
@@ -64,13 +64,13 @@ public static class SeedData
         {
             Id = 1,
             Name = "Admin",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new UserRole
         {
             Id = 2,
             Name = "Staff",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         }
     ];
     
@@ -80,13 +80,13 @@ public static class SeedData
         {
             Id = 1,
             Name = "Customer",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new ClientType
         {
             Id = 2,
             Name = "Supplier",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         }
     ];
 
@@ -96,13 +96,13 @@ public static class SeedData
         {
             Id = 1,
             Name = "Debit",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new TransType
         {
             Id = 2,
             Name = "Credit",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         }
     ];
 
@@ -112,19 +112,19 @@ public static class SeedData
         {
             Id = 1,
             Name = "Cash",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new TransMode
         {
             Id = 2,
             Name = "Bank",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new TransMode
         {
             Id = 3,
             Name = "Credit",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         }
     ];
 
@@ -134,49 +134,49 @@ public static class SeedData
         {
             Id = 1,
             Name = "Sales",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new TransCategory
         {
             Id = 2,
             Name = "Purchases",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new TransCategory
         {
             Id = 3,
             Name = "Office Expenses",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new TransCategory
         {
             Id = 4,
             Name = "Home Expenses",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new TransCategory
         {
             Id = 5,
             Name = "Cash In",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new TransCategory
         {
             Id = 6,
             Name = "Cash Out",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new TransCategory
         {
             Id = 7,
             Name = "Bank In",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new TransCategory
         {
             Id = 8,
             Name = "Bank Out",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         }
     ];
 
@@ -186,13 +186,13 @@ public static class SeedData
         {
             Id = 1,
             Name = "Office Expenses",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new ExpenseType
         {
             Id = 2,
             Name = "Home Expenses",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         }
     ];
 
@@ -202,19 +202,19 @@ public static class SeedData
         {
             Id = 1,
             Name = "In",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new MovementType
         {
             Id = 2,
             Name = "Out",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new MovementType
         {
             Id = 3,
             Name = "Adjustment",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         }
     ];
 
@@ -224,19 +224,19 @@ public static class SeedData
         {
             Id = 1,
             Name = "Purchase",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new MovementSource
         {
             Id = 2,
             Name = "Sale",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new MovementSource
         {
             Id = 3,
             Name = "Manual",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         }
     ];
 
@@ -246,19 +246,19 @@ public static class SeedData
         {
             Id = 1,
             Name = "Received",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new PaymentDirection
         {
             Id = 2,
             Name = "Paid",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         },
         new PaymentDirection
         {
             Id = 3,
             Name = "Adjustment",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         }
     ];
 

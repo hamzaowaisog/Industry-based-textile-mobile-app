@@ -1,13 +1,9 @@
-using System.Security.Claims;
 using HamzaTex.Api.Helpers;
 using HamzaTex.Api.Models;
 using HamzaTex.Api.Services;
 using HamzaTex.Api.Services.ViewModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
 
 namespace HamzaTex.Api.Controllers;
 
@@ -19,19 +15,14 @@ namespace HamzaTex.Api.Controllers;
 public class ReportController : BaseController
 {
     private readonly IReportService _reportService;
-    private readonly IPdfService _pdfService;
 
-    public ReportController(IReportService reportService, IPdfService pdfService)
+    public ReportController(IReportService reportService)
     {
         _reportService = reportService;
-        _pdfService = pdfService;
     }
 
-    private bool IsAdmin()
-    {
-        var roleId = User.FindFirst("RoleId")?.Value;
-        return roleId == "1";
-    }
+    private static string Curr(decimal v) =>
+        v.ToString("C", new System.Globalization.CultureInfo("en-PK"));
 
     // ── Profit & Loss ────────────────────────────────────────────────────────
 
@@ -54,9 +45,53 @@ public class ReportController : BaseController
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 
-        var label = year.HasValue ? $"P&L Report — {(month.HasValue ? $"{month.Value}/{year.Value}" : year.Value.ToString())}" : "P&L Report — All Time";
-        var pdf = _pdfService.CreatePdf("Profit & Loss", label, result.Data, EntityPdfConfigs.ProfitLoss, new PdfOptions { ShowRowNumbers = true });
-        return File(pdf, "application/pdf", "profit-loss.pdf");
+        var data        = result.Data;
+        var periodLabel = year.HasValue
+            ? (month.HasValue ? $"{month.Value:D2}/{year.Value}" : year.Value.ToString())
+            : "All Time";
+
+        var totalSales     = data.Sum(r => r.TotalSales);
+        var totalPurchases = data.Sum(r => r.TotalPurchases);
+        var totalExpenses  = data.Sum(r => r.TotalExpenses);
+        var netProfit      = data.Sum(r => r.NetProfit);
+
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel       = "P&L REPORT",
+            Reference           = $"HT-{DateTime.Now:yyyyMMdd-HHmm}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = "Management",
+            PreparedForSubtitle = $"Profit & Loss — {periodLabel}",
+            PeriodLabel         = "REPORT PERIOD",
+            PeriodValue         = periodLabel,
+            Stats = new()
+            {
+                new Stat("Total Sales",     Curr(totalSales)),
+                new Stat("Total Purchases", Curr(totalPurchases)),
+                new Stat("Total Expenses",  Curr(totalExpenses)),
+                new Stat("Net Profit",      Curr(netProfit), Highlight: true),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Monthly Breakdown",
+                    Headers:    new[] { "#", "Month", "Sales", "Purchases", "Expenses", "Gross Profit", "Net Profit" },
+                    Rows:       data.Select((r, i) => new[]
+                    {
+                        (i + 1).ToString(), r.Month,
+                        Curr(r.TotalSales), Curr(r.TotalPurchases), Curr(r.TotalExpenses),
+                        Curr(r.GrossProfit), Curr(r.NetProfit)
+                    }),
+                    RightAlign: new[] { 2, 3, 4, 5, 6 }),
+            },
+            Closing     = new ClosingSummary("NET PROFIT", $"As of {DateTime.Now:dd MMM yyyy}", "TOTAL", Curr(netProfit)),
+            ClosingNote = netProfit >= 0
+                ? "Business is operating at a profit. Review monthly breakdown for detailed trends."
+                : "Business is operating at a loss. Please review expenses and purchasing activity.",
+        };
+
+        var pdf = HamzaTexPdf.Generate(model);
+        return File(pdf, "application/pdf", $"profit-loss-{periodLabel.Replace('/', '-')}.pdf");
     }
 
     // ── Client Balance ───────────────────────────────────────────────────────
@@ -90,7 +125,52 @@ public class ReportController : BaseController
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 
-        var pdf = _pdfService.CreatePdf("Client Balances", "Outstanding balances for all clients. Amounts in PKR.", result.Data, EntityPdfConfigs.ClientBalance, new PdfOptions { ShowRowNumbers = true });
+        var data            = result.Data;
+        var customers       = data.Where(c => c.ClientTypeName == "Customer").ToList();
+        var suppliers       = data.Where(c => c.ClientTypeName == "Supplier").ToList();
+        var receivableFrom  = customers.Where(c => c.Balance > 0).Sum(c => c.Balance);
+        var customerCredit  = customers.Where(c => c.Balance < 0).Sum(c => c.Balance);
+        var payableTo       = suppliers.Where(c => c.Balance > 0).Sum(c => c.Balance);
+        var supplierCredit  = suppliers.Where(c => c.Balance < 0).Sum(c => c.Balance);
+
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel       = "CLIENT BALANCES",
+            Reference           = $"HT-{DateTime.Now:yyyyMMdd-HHmm}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = "Management",
+            PreparedForSubtitle = "Outstanding balances — customers and suppliers",
+            PeriodLabel         = "GENERATED",
+            PeriodValue         = DateTime.Now.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat($"Customers ({customers.Count})", Curr(receivableFrom)),
+                new Stat($"Suppliers ({suppliers.Count})", Curr(payableTo)),
+                new Stat("They Owe Us (net)",  Curr(receivableFrom + customerCredit)),
+                new Stat("We Owe Them (net)",  Curr(payableTo + supplierCredit), Highlight: true),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    $"Customers ({customers.Count}) — they owe us",
+                    Headers:    new[] { "#", "Client Name", "Balance (PKR)" },
+                    Rows:       customers.Select((c, i) => new[]
+                    {
+                        (i + 1).ToString(), c.Name, Curr(c.Balance)
+                    }),
+                    RightAlign: new[] { 2 }),
+                new TableSection(
+                    $"Suppliers ({suppliers.Count}) — we owe them",
+                    Headers:    new[] { "#", "Supplier Name", "Balance (PKR)" },
+                    Rows:       suppliers.Select((s, i) => new[]
+                    {
+                        (i + 1).ToString(), s.Name, Curr(s.Balance)
+                    }),
+                    RightAlign: new[] { 2 }),
+            },
+        };
+
+        var pdf = HamzaTexPdf.Generate(model);
         return File(pdf, "application/pdf", "client-balances.pdf");
     }
 
@@ -115,9 +195,47 @@ public class ReportController : BaseController
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 
-        var label = year.HasValue ? $"Credit/Debit — {(month.HasValue ? $"{month.Value}/{year.Value}" : year.Value.ToString())}" : "Credit/Debit — All Time";
-        var pdf = _pdfService.CreatePdf("Credit / Debit", label, result.Data, EntityPdfConfigs.CreditDebit, new PdfOptions { ShowRowNumbers = true });
-        return File(pdf, "application/pdf", "credit-debit.pdf");
+        var data        = result.Data;
+        var periodLabel = year.HasValue
+            ? (month.HasValue ? $"{month.Value:D2}/{year.Value}" : year.Value.ToString())
+            : "All Time";
+
+        var totalCredit = data.Sum(r => r.TotalCredit);
+        var totalDebit  = data.Sum(r => r.TotalDebit);
+        var netBalance  = totalCredit - totalDebit;
+
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel       = "CREDIT/DEBIT",
+            Reference           = $"HT-{DateTime.Now:yyyyMMdd-HHmm}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = "Management",
+            PreparedForSubtitle = $"Credit/Debit Summary — {periodLabel}",
+            PeriodLabel         = "REPORT PERIOD",
+            PeriodValue         = periodLabel,
+            Stats = new()
+            {
+                new Stat("Total Credit", Curr(totalCredit)),
+                new Stat("Total Debit",  Curr(totalDebit)),
+                new Stat("Net Balance",  Curr(netBalance), Highlight: true),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Monthly Credit / Debit",
+                    Headers:    new[] { "#", "Month", "Credit (PKR)", "Debit (PKR)", "Balance (PKR)" },
+                    Rows:       data.Select((r, i) => new[]
+                    {
+                        (i + 1).ToString(), r.Month,
+                        Curr(r.TotalCredit), Curr(r.TotalDebit), Curr(r.Balance)
+                    }),
+                    RightAlign: new[] { 2, 3, 4 }),
+            },
+            Closing = new ClosingSummary("NET BALANCE", $"As of {DateTime.Now:dd MMM yyyy}", "TOTAL", Curr(netBalance)),
+        };
+
+        var pdf = HamzaTexPdf.Generate(model);
+        return File(pdf, "application/pdf", $"credit-debit-{periodLabel.Replace('/', '-')}.pdf");
     }
 
     // ── Summary Totals ───────────────────────────────────────────────────────
@@ -141,9 +259,44 @@ public class ReportController : BaseController
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 
-        var list = new List<SummaryTotalsViewModel> { result.Data };
-        var pdf = _pdfService.CreatePdf("Summary Totals", "Aggregate business overview. All amounts in PKR.", list, EntityPdfConfigs.SummaryTotals, new PdfOptions { ShowRowNumbers = true });
-        return File(pdf, "application/pdf", "summary.pdf");
+        var d         = result.Data;
+        var netProfit = d.TotalSalesAmount - d.TotalPurchasesAmount - d.TotalExpensesAmount;
+
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel       = "BUSINESS SUMMARY",
+            Reference           = $"HT-{DateTime.Now:yyyyMMdd-HHmm}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = "Management",
+            PreparedForSubtitle = "Aggregate business overview — all time",
+            PeriodLabel         = "GENERATED",
+            PeriodValue         = DateTime.Now.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat("Total Sales",     Curr(d.TotalSalesAmount)),
+                new Stat("Total Purchases", Curr(d.TotalPurchasesAmount)),
+                new Stat("Total Expenses",  Curr(d.TotalExpensesAmount)),
+                new Stat("Net Profit",      Curr(netProfit), Highlight: true),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Volume Counts",
+                    Headers:    new[] { "Orders", "Purchases", "Clients" },
+                    Rows:       new[] { new[] { d.TotalOrderCount.ToString(), d.TotalPurchaseCount.ToString(), d.TotalClientsCount.ToString() } },
+                    RightAlign: new[] { 0, 1, 2 }),
+                new TableSection(
+                    "Financial Totals",
+                    Headers:    new[] { "Sales (PKR)", "Purchases (PKR)", "Expenses (PKR)", "Net Profit (PKR)" },
+                    Rows:       new[] { new[] { Curr(d.TotalSalesAmount), Curr(d.TotalPurchasesAmount), Curr(d.TotalExpensesAmount), Curr(netProfit) } },
+                    RightAlign: new[] { 0, 1, 2, 3 }),
+            },
+            Closing     = new ClosingSummary("NET PROFIT", $"As of {DateTime.Now:dd MMM yyyy}", "TOTAL", Curr(netProfit)),
+            ClosingNote = "This is an aggregate summary. Use the P&L report for month-by-month breakdown.",
+        };
+
+        var pdf = HamzaTexPdf.Generate(model);
+        return File(pdf, "application/pdf", "business-summary.pdf");
     }
 
     // ── Client Detail ────────────────────────────────────────────────────────
@@ -179,188 +332,100 @@ public class ReportController : BaseController
             return BadRequest(result.Message);
 
         var d = result.Data;
-        var reportDate = DateTime.Now.ToString("dd MMM yyyy");
-        var reportRef = $"HT-{DateTime.Now:yyyyMMdd-HHmm}";
-        var pkCulture = new System.Globalization.CultureInfo("en-PK");
-        string Curr(decimal v) => v.ToString("C", pkCulture);
 
-        QuestPDF.Settings.License = LicenseType.Community;
+        // Determine period from earliest record date
+        var allDates = new List<DateOnly>();
+        if (d.Orders.Count > 0)    allDates.Add(d.Orders.Min(o => o.OrderDate));
+        if (d.Purchases.Count > 0) allDates.Add(d.Purchases.Min(p => p.PurchaseDate));
+        if (d.Payments.Count > 0)  allDates.Add(d.Payments.Min(p => p.PaymentDate));
+        var from        = allDates.Count > 0 ? allDates.Min() : DateOnly.FromDateTime(DateTime.Now);
+        var periodValue = $"{from:dd MMM yyyy} — {DateTime.Now:dd MMM yyyy}";
 
-        var document = Document.Create(container =>
+        var isCustomer = d.ClientTypeName == "Customer";
+
+        var model = new HamzaTexDocumentModel
         {
-            container.Page(page =>
-            {
-                page.Size(PageSizes.A4);
-                page.Margin(2, Unit.Centimetre);
-                page.DefaultTextStyle(x => x.FontSize(9).FontColor("#0f172a"));
-
-                // ── HEADER ────────────────────────────────────────────
-                page.Header().Column(h =>
+            DocumentLabel       = isCustomer ? "CLIENT STATEMENT" : "SUPPLIER STATEMENT",
+            Reference           = $"HT-{DateTime.Now:yyyyMMdd-HHmm}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = d.ClientName,
+            PreparedForSubtitle = isCustomer
+                ? $"Customer · Account #{d.ClientId} — They owe us"
+                : $"Supplier · Account #{d.ClientId} — We owe them",
+            PeriodLabel         = "ACCOUNT PERIOD",
+            PeriodValue         = periodValue,
+            Stats = isCustomer
+                ? new()
                 {
-                    h.Item().Background("#0f172a").Padding(16).Row(row =>
-                    {
-                        row.RelativeItem().Column(col =>
-                        {
-                            col.Item().Text("Hamza Tex").Bold().FontSize(20).FontColor(Colors.White);
-                            col.Item().PaddingTop(4).Text("Client Detail Report").FontSize(10).FontColor("#a5f3fc").Italic();
-                        });
-                        row.ConstantItem(130).AlignRight().Column(col =>
-                        {
-                            col.Item().AlignRight().Text(reportDate).Bold().FontSize(10).FontColor(Colors.White);
-                            col.Item().PaddingTop(3).AlignRight().Text($"Ref: {reportRef}").FontSize(8).FontColor("#94a3b8");
-                        });
-                    });
-                    h.Item().Height(4).Background("#0891b2");
-                    h.Item().Height(8);
-                });
-
-                // ── CONTENT ───────────────────────────────────────────
-                page.Content().PaddingVertical(6).Column(column =>
+                    new Stat($"Orders ({d.TotalOrderCount})", Curr(d.TotalOrderAmount)),
+                    new Stat("Payments Received",              Curr(d.TotalPaymentsIn)),
+                    new Stat("Payments Refunded",              Curr(d.TotalPaymentsOut)),
+                    new Stat("Amount Due",                     Curr(d.Balance), Highlight: true),
+                }
+                : new()
                 {
-                    // Client summary card
-                    column.Item().Background("#f0f9ff").Border(1).BorderColor("#7dd3fc").Padding(14).Column(c =>
-                    {
-                        c.Item().Text($"{d.ClientName}  ({d.ClientTypeName})").Bold().FontSize(14).FontColor("#0f172a");
-                        c.Item().PaddingTop(8).Row(r =>
-                        {
-                            r.RelativeItem().Text($"Orders: {d.TotalOrderCount}  ({Curr(d.TotalOrderAmount)})").FontSize(9);
-                            r.RelativeItem().Text($"Purchases: {d.TotalPurchaseCount}  ({Curr(d.TotalPurchaseAmount)})").FontSize(9);
-                            r.RelativeItem().Text($"Payments In: {Curr(d.TotalPaymentsIn)}").FontSize(9);
-                        });
-                        c.Item().PaddingTop(4).Row(r =>
-                        {
-                            r.RelativeItem().Text($"Payments Out: {Curr(d.TotalPaymentsOut)}").FontSize(9);
-                            r.RelativeItem().Text($"Outstanding: {Curr(d.Outstanding)}").FontSize(9).Bold().FontColor("#dc2626");
-                            r.RelativeItem().Text($"Balance: {Curr(d.Balance)}").FontSize(9).Bold();
-                        });
-                    });
-                    column.Item().PaddingTop(10);
+                    new Stat($"Purchases ({d.TotalPurchaseCount})", Curr(d.TotalPurchaseAmount)),
+                    new Stat("Payments Made",                        Curr(d.TotalPaymentsOut)),
+                    new Stat("Payments Received Back",               Curr(d.TotalPaymentsIn)),
+                    new Stat("Amount Payable",                       Curr(d.Balance), Highlight: true),
+                },
+            Sections = new(),
+        };
 
-                    // Orders section
-                    if (d.Orders.Count > 0)
-                    {
-                        column.Item().Text("Orders").Bold().FontSize(11).FontColor("#0891b2");
-                        column.Item().PaddingTop(4).Table(t =>
-                        {
-                            t.ColumnsDefinition(c => { c.ConstantColumn(60); c.ConstantColumn(80); c.ConstantColumn(70); c.RelativeColumn(); c.RelativeColumn(); c.RelativeColumn(); c.ConstantColumn(90); });
-                            t.Header(h =>
-                            {
-                                void Hdr(string v) { h.Cell().Background("#0f172a").BorderBottom(2).BorderColor("#0891b2").Padding(6).Text(v).Bold().FontSize(8).FontColor(Colors.White); }
-                                Hdr("Order #"); Hdr("Date"); Hdr("Status"); Hdr("Total (PKR)"); Hdr("Paid (PKR)"); Hdr("Outstanding"); Hdr("Payment");
-                            });
-                            var orderIdx = 0;
-                            foreach (var o in d.Orders)
-                            {
-                                orderIdx++;
-                                void Cell(string v) { t.Cell().BorderBottom(1).BorderColor("#e2e8f0").Padding(6).Text(v).FontSize(8); }
-                                Cell($"#{orderIdx}"); Cell(o.OrderDate.ToString("dd MMM yyyy")); Cell(o.StatusName);
-                                Cell(Curr(o.Total)); Cell(Curr(o.AmountPaid)); Cell(Curr(o.Outstanding)); Cell(o.PaymentStatus);
-                            }
-                        });
-                        column.Item().PaddingTop(10);
-                    }
-
-                    // Purchases section
-                    if (d.Purchases.Count > 0)
-                    {
-                        column.Item().Text("Purchases").Bold().FontSize(11).FontColor("#0891b2");
-                        column.Item().PaddingTop(4).Table(t =>
-                        {
-                            t.ColumnsDefinition(c => { c.ConstantColumn(70); c.ConstantColumn(80); c.ConstantColumn(70); c.RelativeColumn(); c.RelativeColumn(); c.RelativeColumn(); c.ConstantColumn(90); });
-                            t.Header(h =>
-                            {
-                                void Hdr(string v) { h.Cell().Background("#0f172a").BorderBottom(2).BorderColor("#0891b2").Padding(6).Text(v).Bold().FontSize(8).FontColor(Colors.White); }
-                                Hdr("Purchase #"); Hdr("Date"); Hdr("Status"); Hdr("Total (PKR)"); Hdr("Paid (PKR)"); Hdr("Outstanding"); Hdr("Payment");
-                            });
-                            var purchaseIdx = 0;
-                            foreach (var p in d.Purchases)
-                            {
-                                purchaseIdx++;
-                                void Cell(string v) { t.Cell().BorderBottom(1).BorderColor("#e2e8f0").Padding(6).Text(v).FontSize(8); }
-                                Cell($"#{purchaseIdx}"); Cell(p.PurchaseDate.ToString("dd MMM yyyy")); Cell(p.StatusName);
-                                Cell(Curr(p.Total)); Cell(Curr(p.AmountPaid)); Cell(Curr(p.Outstanding)); Cell(p.PaymentStatus);
-                            }
-                        });
-                        column.Item().PaddingTop(10);
-                    }
-
-                    // Payments section
-                    if (d.Payments.Count > 0)
-                    {
-                        column.Item().Text("Payments").Bold().FontSize(11).FontColor("#0891b2");
-                        column.Item().PaddingTop(4).Table(t =>
-                        {
-                            t.ColumnsDefinition(c => { c.ConstantColumn(70); c.ConstantColumn(80); c.RelativeColumn(); c.RelativeColumn(); c.ConstantColumn(80); });
-                            t.Header(h =>
-                            {
-                                void Hdr(string v) { h.Cell().Background("#0f172a").BorderBottom(2).BorderColor("#0891b2").Padding(6).Text(v).Bold().FontSize(8).FontColor(Colors.White); }
-                                Hdr("Payment #"); Hdr("Date"); Hdr("Direction"); Hdr("Mode"); Hdr("Amount");
-                            });
-                            var paymentIdx = 0;
-                            foreach (var p in d.Payments)
-                            {
-                                paymentIdx++;
-                                void Cell(string v) { t.Cell().BorderBottom(1).BorderColor("#e2e8f0").Padding(6).Text(v).FontSize(8); }
-                                Cell($"#{paymentIdx}"); Cell(p.PaymentDate.ToString("dd MMM yyyy")); Cell(p.DirectionName);
-                                Cell(p.ModeName); Cell(Curr(p.Amount));
-                            }
-                        });
-                        column.Item().PaddingTop(10);
-                    }
-
-                    // Recent transactions section
-                    if (d.RecentTransactions.Count > 0)
-                    {
-                        column.Item().Text("Recent Transactions").Bold().FontSize(11).FontColor("#0891b2");
-                        column.Item().PaddingTop(4).Table(t =>
-                        {
-                            t.ColumnsDefinition(c => { c.ConstantColumn(80); c.ConstantColumn(80); c.RelativeColumn(); c.RelativeColumn(); c.RelativeColumn(); });
-                            t.Header(h =>
-                            {
-                                void Hdr(string v) { h.Cell().Background("#0f172a").BorderBottom(2).BorderColor("#0891b2").Padding(6).Text(v).Bold().FontSize(8).FontColor(Colors.White); }
-                                Hdr("Trans #"); Hdr("Date"); Hdr("Category"); Hdr("Type"); Hdr("Amount");
-                            });
-                            var txIdx = 0;
-                            foreach (var tx in d.RecentTransactions)
-                            {
-                                txIdx++;
-                                void Cell(string v) { t.Cell().BorderBottom(1).BorderColor("#e2e8f0").Padding(6).Text(v).FontSize(8); }
-                                Cell($"#{txIdx}"); Cell(tx.TransDate.ToString("dd MMM yyyy")); Cell(tx.CategoryName);
-                                Cell(tx.TypeName); Cell(Curr(tx.Amount));
-                            }
-                        });
-                    }
-
-                    // Footer
-                    column.Item().PaddingTop(14).Background("#1e293b").Padding(10)
-                        .Text($"{d.Orders.Count + d.Purchases.Count + d.Payments.Count + d.RecentTransactions.Count} records — end of report")
-                        .FontSize(8).FontColor("#94a3b8").Italic();
-                });
-
-                // ── FOOTER ────────────────────────────────────────────
-                page.Footer().Column(f =>
+        if (d.Orders.Count > 0)
+            model.Sections.Add(new TableSection(
+                $"Orders ({d.Orders.Count})",
+                Headers:    new[] { "#", "Date", "Status", "Total", "Paid", "Outstanding", "Payment" },
+                Rows:       d.Orders.Select((o, i) => new[]
                 {
-                    f.Item().Height(3).Background("#0891b2");
-                    f.Item().PaddingTop(6).Row(row =>
-                    {
-                        row.RelativeItem().Text("Hamza Tex — Confidential").FontSize(8).FontColor("#94a3b8").Italic();
-                        row.ConstantItem(80).AlignRight().Text(text =>
-                        {
-                            text.Span("Page ").FontSize(8).FontColor("#94a3b8");
-                            text.CurrentPageNumber().FontSize(8).FontColor("#475569").Bold();
-                            text.Span(" / ").FontSize(8).FontColor("#94a3b8");
-                            text.TotalPages().FontSize(8).FontColor("#475569");
-                        });
-                    });
-                });
-            });
-        });
+                    (i + 1).ToString(), o.OrderDate.ToString("dd MMM yyyy"), o.StatusName,
+                    Curr(o.Total), Curr(o.AmountPaid), Curr(o.Outstanding), o.PaymentStatus
+                }),
+                RightAlign: new[] { 3, 4, 5 }));
 
-        var pdf = document.GeneratePdf();
-        return File(pdf, "application/pdf", $"client-detail-{d.ClientName.Replace(' ', '-')}.pdf");
+        if (d.Purchases.Count > 0)
+            model.Sections.Add(new TableSection(
+                $"Purchases ({d.Purchases.Count})",
+                Headers:    new[] { "#", "Date", "Status", "Total", "Paid", "Outstanding", "Payment" },
+                Rows:       d.Purchases.Select((p, i) => new[]
+                {
+                    (i + 1).ToString(), p.PurchaseDate.ToString("dd MMM yyyy"), p.StatusName,
+                    Curr(p.Total), Curr(p.AmountPaid), Curr(p.Outstanding), p.PaymentStatus
+                }),
+                RightAlign: new[] { 3, 4, 5 }));
+
+        if (d.Payments.Count > 0)
+            model.Sections.Add(new TableSection(
+                $"Payments ({d.Payments.Count})",
+                Headers:    new[] { "#", "Date", "Direction", "Mode", "Amount" },
+                Rows:       d.Payments.Select((p, i) => new[]
+                {
+                    (i + 1).ToString(), p.PaymentDate.ToString("dd MMM yyyy"),
+                    p.DirectionName, p.ModeName, Curr(p.Amount)
+                }),
+                RightAlign: new[] { 4 }));
+
+        if (d.RecentTransactions.Count > 0)
+            model.Sections.Add(new TableSection(
+                $"Recent Transactions ({d.RecentTransactions.Count})",
+                Headers:    new[] { "#", "Date", "Category", "Type", "Amount" },
+                Rows:       d.RecentTransactions.Select((t, i) => new[]
+                {
+                    (i + 1).ToString(), t.TransDate.ToString("dd MMM yyyy"),
+                    t.CategoryName, t.TypeName, Curr(t.Amount)
+                }),
+                RightAlign: new[] { 4 }));
+
+        model.Closing = new ClosingSummary(
+            "CLOSING BALANCE", $"As of {DateTime.Now:dd MMM yyyy}",
+            isCustomer ? "AMOUNT DUE" : "AMOUNT PAYABLE", Curr(d.Balance));
+        model.ClosingNote = "Thank you for your continued partnership with Hamza Tex. For queries, please contact us at hamzatex007@gmail.com.";
+
+        var pdf = HamzaTexPdf.Generate(model);
+        return File(pdf, "application/pdf", $"client-statement-{d.ClientName.Replace(' ', '-')}.pdf");
     }
 
-    /// <summary>Export per-client detail report as PDF.</summary>
+    /// <summary>Export per-client overview — all clients with order, purchase, and balance totals.</summary>
     [HttpGet("client-detail/pdf")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
@@ -370,7 +435,60 @@ public class ReportController : BaseController
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 
-        var pdf = _pdfService.CreatePdf("Client Detail Report", "Per-client orders, purchases, and balance. All amounts in PKR.", result.Data, EntityPdfConfigs.ClientDetail, new PdfOptions { ShowRowNumbers = true });
+        var data             = result.Data;
+        var customers        = data.Where(c => c.ClientTypeName == "Customer").ToList();
+        var suppliers        = data.Where(c => c.ClientTypeName == "Supplier").ToList();
+        var totalOrderVal    = customers.Sum(c => c.TotalOrderAmount);
+        var totalPurchaseVal = suppliers.Sum(c => c.TotalPurchaseAmount);
+        var receivable       = customers.Sum(c => c.Balance);
+        var payable          = suppliers.Sum(c => c.Balance);
+
+        var sections = new List<TableSection>();
+
+        if (customers.Count > 0)
+            sections.Add(new TableSection(
+                $"Customers ({customers.Count})",
+                Headers:    new[] { "#", "Client", "Orders", "Order Total", "Balance" },
+                Rows:       customers.Select((c, i) => new[]
+                {
+                    (i + 1).ToString(), c.ClientName,
+                    c.TotalOrderCount.ToString(), Curr(c.TotalOrderAmount),
+                    Curr(c.Balance)
+                }),
+                RightAlign: new[] { 3, 4 }));
+
+        if (suppliers.Count > 0)
+            sections.Add(new TableSection(
+                $"Suppliers ({suppliers.Count})",
+                Headers:    new[] { "#", "Supplier", "Purchases", "Purchase Total", "Balance" },
+                Rows:       suppliers.Select((s, i) => new[]
+                {
+                    (i + 1).ToString(), s.ClientName,
+                    s.TotalPurchaseCount.ToString(), Curr(s.TotalPurchaseAmount),
+                    Curr(s.Balance)
+                }),
+                RightAlign: new[] { 3, 4 }));
+
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel       = "CLIENT DETAIL",
+            Reference           = $"HT-{DateTime.Now:yyyyMMdd-HHmm}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = "Management",
+            PreparedForSubtitle = "Per-client orders, purchases, and balance overview",
+            PeriodLabel         = "GENERATED",
+            PeriodValue         = DateTime.Now.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat($"Customers ({customers.Count})", Curr(receivable)),
+                new Stat($"Suppliers ({suppliers.Count})", Curr(payable)),
+                new Stat("They Owe Us (net)", Curr(receivable)),
+                new Stat("We Owe Them (net)", Curr(payable), Highlight: true),
+            },
+            Sections = sections,
+        };
+
+        var pdf = HamzaTexPdf.Generate(model);
         return File(pdf, "application/pdf", "client-detail.pdf");
     }
 }

@@ -135,7 +135,7 @@ public class TransactionService : ITransactionService
             TransTypeId     = model.TransTypeId ?? 1,
             TransModeId     = model.TransModeId ?? 1,
             UserId          = userId,
-            CreatedAt       = DateTime.UtcNow
+            CreatedAt       = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
         _db.Transactions.Add(entity);

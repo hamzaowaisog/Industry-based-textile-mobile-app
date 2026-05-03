@@ -238,7 +238,7 @@ public class ProductService : IProductService
         TotalQuantitySold = model.TotalQuantitySold,
         ReorderLevel = model.ReorderLevel,
         IsActive = model.IsActive,
-        CreatedAt = DateTime.UtcNow
+        CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
     };
 
     private static ProductUser ToEntity(CreateProductUserDto model) =>

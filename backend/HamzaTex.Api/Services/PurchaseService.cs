@@ -81,7 +81,7 @@ public class PurchaseService : IPurchaseService
             PaymentTypeId = model.PaymentTypeId,
             PurchaseDate = model.PurchaseDate,
             Notes = model.Notes,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
         foreach (var line in model.Lines)
@@ -303,7 +303,7 @@ public class PurchaseService : IPurchaseService
                 Amount = purchaseTotal,
                 TransDate = purchase.PurchaseDate,
                 Notes = $"Purchase — Purchase #{purchase.Id}",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
             await _dbContext.Transactions.AddAsync(txn);
             await _dbContext.SaveChangesAsync();
@@ -372,7 +372,7 @@ public class PurchaseService : IPurchaseService
                     Amount = -purchaseTotal,
                     TransDate = DateOnly.FromDateTime(DateTime.UtcNow),
                     Notes = $"Purchase reversal — Purchase #{purchase.Id} cancelled",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
                 };
                 await _dbContext.Transactions.AddAsync(reversalTxn);
                 await _dbContext.SaveChangesAsync();

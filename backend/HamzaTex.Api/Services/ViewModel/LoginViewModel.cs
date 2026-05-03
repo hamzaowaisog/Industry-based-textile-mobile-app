@@ -13,7 +13,7 @@ public class LoginResponseViewModel
     public string Email { get; set; } = string.Empty;
     public int RoleId { get; set; }
     public bool IsActive { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateOnly CreatedAt { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
     public string Token { get; set; } = string.Empty;
     public string RefreshToken { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; } = DateTime.UtcNow;

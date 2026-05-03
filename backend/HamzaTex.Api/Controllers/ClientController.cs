@@ -69,8 +69,7 @@ public class ClientController : BaseController
             CreditLimit = model.CreditLimit,
             OpeningBalance = model.OpeningBalance,
             Notes = model.Notes,
-            IsActive = model.IsActive,
-            CreatedAt = model.CreatedAt
+            IsActive = model.IsActive
         };
 
         var response = await _clientService.CreateAsync(dto);

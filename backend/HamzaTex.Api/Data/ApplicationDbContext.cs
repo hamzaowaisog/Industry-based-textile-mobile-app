@@ -78,9 +78,30 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configure DateOnly to map to MySQL 'date' type
-        // EF Core 9.0+ supports DateOnly natively when mapped to 'date' type
-        
+        // Map all DateOnly properties to MySQL 'date' columns via value converter
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateOnly))
+                {
+                    property.SetValueConverter(
+                        new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateOnly, DateTime>(
+                            d => d.ToDateTime(TimeOnly.MinValue),
+                            dt => DateOnly.FromDateTime(dt)));
+                    property.SetColumnType("date");
+                }
+                else if (property.ClrType == typeof(DateOnly?))
+                {
+                    property.SetValueConverter(
+                        new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateOnly?, DateTime?>(
+                            d => d.HasValue ? d.Value.ToDateTime(TimeOnly.MinValue) : null,
+                            dt => dt.HasValue ? DateOnly.FromDateTime(dt.Value) : null));
+                    property.SetColumnType("date");
+                }
+            }
+        }
+
         // Configure enums to be stored as strings in MySQL
         // EF Core will automatically convert enum values to/from strings
 

@@ -136,7 +136,7 @@ public class PaymentService : IPaymentService
                 Notes = model.Notes,
                 UserId = userId,
                 IsReversed = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
             _db.Payments.Add(payment);
             await _db.SaveChangesAsync();
@@ -168,7 +168,7 @@ public class PaymentService : IPaymentService
                 OrderId = singleAlloc.OrderId,
                 PurchaseId = singleAlloc.PurchaseId,
                 Notes = $"Payment #{payment.Id}: {model.Notes}",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
             _db.Transactions.Add(transaction);
             await _db.SaveChangesAsync();
@@ -342,7 +342,7 @@ public class PaymentService : IPaymentService
                 OrderId = originalSingleAlloc?.OrderId,
                 PurchaseId = originalSingleAlloc?.PurchaseId,
                 Notes = $"REVERSAL of Payment #{original.Id}: {notes}",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
             _db.Transactions.Add(reversalTransaction);
             await _db.SaveChangesAsync();
@@ -360,7 +360,7 @@ public class PaymentService : IPaymentService
                 IsReversed = false,
                 OriginalPaymentId = original.Id,
                 TransactionId = reversalTransaction.Id,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
             _db.Payments.Add(reversalPayment);
             await _db.SaveChangesAsync();

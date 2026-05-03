@@ -8,7 +8,7 @@ public partial class PaymentType
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     public string? Name { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();

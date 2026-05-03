@@ -21,7 +21,7 @@ public class PaymentDto
     public decimal Amount { get; set; }
     public DateOnly PaymentDate { get; set; }
     public string? Notes { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
     public int? UserId { get; set; }
     public string? RecordedByName { get; set; }
     public bool IsReversed { get; set; }

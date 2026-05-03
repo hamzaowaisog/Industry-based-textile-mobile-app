@@ -11,7 +11,7 @@ public class OrderDto
     public string? PaymentTypeName { get; set; }
     public DateOnly OrderDate { get; set; }
     public string? Notes { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
     public decimal Total { get; set; }
     public decimal AmountPaid { get; set; }
     public decimal Outstanding { get; set; }

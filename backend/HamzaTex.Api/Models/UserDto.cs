@@ -9,7 +9,7 @@ public class UserDto
     public int RoleId { get; set; }
     public string? PhoneNumber { get; set; } = string.Empty;
     public bool IsActive { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateOnly CreatedAt { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
 }
 
 public class CreateUserDto
@@ -22,7 +22,6 @@ public class CreateUserDto
     public int RoleId { get; set; }
     public bool IsActive { get; set; }
     public string? PhoneNumber { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
 public class UpdateUserByIdDto

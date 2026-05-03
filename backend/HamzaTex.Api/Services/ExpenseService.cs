@@ -42,7 +42,7 @@ public class ExpenseTypeService : IExpenseTypeService
         var entity = new ExpenseType
         {
             Name = model.Name.Trim(),
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
         _db.ExpenseTypes.Add(entity);
@@ -218,7 +218,7 @@ public class ExpenseService : IExpenseService
                 Amount = model.Amount,
                 TransDate = model.ExpenseDate,
                 Notes = $"Expense: {model.Notes}",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
             _db.Transactions.Add(transaction);
             await _db.SaveChangesAsync();
@@ -234,7 +234,7 @@ public class ExpenseService : IExpenseService
                 TransactionId = transaction.Id,
                 ExpenseDate = model.ExpenseDate,
                 Notes = model.Notes,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
             _db.Expenses.Add(expense);
             await _db.SaveChangesAsync();

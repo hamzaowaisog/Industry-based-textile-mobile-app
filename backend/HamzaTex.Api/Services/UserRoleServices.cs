@@ -41,7 +41,7 @@ public class UserRoleService : IUserRoleService
         var entity = new UserRole
         {
             Name = model.Name.Trim(),
-            CreatedAt = model.CreatedAt
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
         await _dbContext.UserRoles.AddAsync(entity);

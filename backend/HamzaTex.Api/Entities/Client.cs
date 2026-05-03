@@ -33,7 +33,7 @@ public partial class Client
 
     public bool IsActive { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
 
     public virtual ClientType? ClientType { get; set; }
 

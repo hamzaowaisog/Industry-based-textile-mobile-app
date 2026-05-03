@@ -25,7 +25,7 @@ public class ApplicationUser : IdentityUser<int>
     /// <summary>
     /// Timestamp when the user was created
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateOnly CreatedAt { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
 
     // Navigation properties
     public virtual UserRole? Role { get; set; }

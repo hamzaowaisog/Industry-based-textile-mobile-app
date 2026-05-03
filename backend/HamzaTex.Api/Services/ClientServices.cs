@@ -168,7 +168,7 @@ public class ClientService : IClientService
             OpeningBalance = entity.OpeningBalance ?? 0,
             Notes = entity.Notes ?? string.Empty,
             IsActive = entity.IsActive,
-            CreatedAt = entity.CreatedAt ?? DateTime.UtcNow
+            CreatedAt = entity.CreatedAt ?? DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
     private static Client ToEntity(CreateClientDto model) =>
@@ -183,7 +183,7 @@ public class ClientService : IClientService
             OpeningBalance = model.OpeningBalance,
             Notes = model.Notes?.Trim(),
             IsActive = model.IsActive,
-            CreatedAt = model.CreatedAt
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 }
 

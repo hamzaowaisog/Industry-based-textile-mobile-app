@@ -28,7 +28,7 @@ public partial class Order
 
     public string? Notes { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
 
     public virtual Client? Client { get; set; }
     public virtual OrderStatus? Status { get; set; }

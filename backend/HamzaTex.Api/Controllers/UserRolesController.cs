@@ -37,8 +37,7 @@ public class UserRolesController : BaseController
 
         var dto = new CreateUserRoleDto
         {
-            Name = model.Name,
-            CreatedAt = model.CreatedAt
+            Name = model.Name
         };
 
         var response = await _userRoleService.CreateAsync(dto);

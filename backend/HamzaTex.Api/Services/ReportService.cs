@@ -80,33 +80,43 @@ public class ReportService : IReportService
 
     public async Task<Response<List<ClientBalanceViewModel>>> GetClientBalancesAsync()
     {
-        var result = await _db.VClientBalances.AsNoTracking()
-            .OrderBy(c => c.Name)
-            .Select(c => new ClientBalanceViewModel
+        var result = await (
+            from v in _db.VClientBalances.AsNoTracking()
+            join c in _db.Clients.AsNoTracking() on v.ClientId equals c.Id
+            join ct in _db.ClientTypes.AsNoTracking() on c.ClientTypeId equals ct.Id
+            orderby v.Name
+            select new ClientBalanceViewModel
             {
-                ClientId = c.ClientId ?? 0,
-                Name = c.Name ?? string.Empty,
-                Balance = c.Balance ?? 0,
-            })
-            .ToListAsync();
+                ClientId = v.ClientId ?? 0,
+                Name = v.Name ?? string.Empty,
+                ClientTypeName = ct.Name ?? "Unknown",
+                Balance = v.Balance ?? 0,
+            }
+        ).ToListAsync();
 
         return Response<List<ClientBalanceViewModel>>.SuccessResponse(result, "Client balances fetched.");
     }
 
     public async Task<Response<ClientBalanceViewModel>> GetClientBalanceByIdAsync(int clientId)
     {
-        var entity = await _db.VClientBalances.AsNoTracking()
-            .FirstOrDefaultAsync(c => c.ClientId == clientId);
+        var entity = await (
+            from v in _db.VClientBalances.AsNoTracking()
+            join c in _db.Clients.AsNoTracking() on v.ClientId equals c.Id
+            join ct in _db.ClientTypes.AsNoTracking() on c.ClientTypeId equals ct.Id
+            where v.ClientId == clientId
+            select new ClientBalanceViewModel
+            {
+                ClientId = v.ClientId ?? 0,
+                Name = v.Name ?? string.Empty,
+                ClientTypeName = ct.Name ?? "Unknown",
+                Balance = v.Balance ?? 0,
+            }
+        ).FirstOrDefaultAsync();
 
         if (entity is null)
             return Response<ClientBalanceViewModel>.ErrorResponse("Not found", $"Balance for client '{clientId}' was not found.");
 
-        return Response<ClientBalanceViewModel>.SuccessResponse(new ClientBalanceViewModel
-        {
-            ClientId = entity.ClientId ?? 0,
-            Name = entity.Name ?? string.Empty,
-            Balance = entity.Balance ?? 0,
-        }, "Client balance fetched.");
+        return Response<ClientBalanceViewModel>.SuccessResponse(entity, "Client balance fetched.");
     }
 
     // ── Credit / Debit ───────────────────────────────────────────────────────
@@ -219,7 +229,7 @@ public class ReportService : IReportService
         var payments = await _db.Payments.AsNoTracking()
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
-            .Where(p => p.PartyClientId == clientId && !p.IsReversed)
+            .Where(p => p.PartyClientId == clientId && !p.IsReversed && p.OriginalPaymentId == null)
             .OrderBy(p => p.PaymentDate)
             .ToListAsync();
 

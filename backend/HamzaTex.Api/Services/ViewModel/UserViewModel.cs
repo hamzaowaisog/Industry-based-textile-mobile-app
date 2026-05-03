@@ -10,7 +10,6 @@ public class UserCreateViewModel
     public int RoleId { get; set; }
     public bool IsActive { get; set; }
     public string? PhoneNumber { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
 public class UserUpdateViewModel

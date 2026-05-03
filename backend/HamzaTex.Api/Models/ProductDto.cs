@@ -17,7 +17,7 @@ public class ProductDto
     public decimal? TotalQuantitySold { get; set; }
     public int? ReorderLevel { get; set; }
     public bool? IsActive { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
 }
 
 public class CreateProductDto
@@ -36,7 +36,7 @@ public class CreateProductDto
     public decimal? TotalQuantitySold { get; set; }
     public int? ReorderLevel { get; set; }
     public bool? IsActive { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
 }
 
 public class UpdateProductByIdDto

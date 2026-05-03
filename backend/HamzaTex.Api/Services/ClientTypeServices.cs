@@ -42,7 +42,7 @@ public class ClientTypeService : IClientTypeService
         var entity = new ClientType
         {
             Name = model.Name.Trim(),
-            CreatedAt = model.CreatedAt
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
         await _dbContext.ClientTypes.AddAsync(entity);
