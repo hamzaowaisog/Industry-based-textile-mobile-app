@@ -374,7 +374,7 @@ public class ExpenseService : IExpenseService
             .Include(e => e.TransMode)
             .Include(e => e.User)
             .Include(e => e.TransCategory)
-            .OrderByDescending(e => e.ExpenseDate)
+            .OrderBy(e => e.ExpenseDate)
             .ThenByDescending(e => e.Id);
 
     private static ExpenseDto MapToDto(Expense e) => new()

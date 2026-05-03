@@ -105,7 +105,7 @@ public class UserRolesController : BaseController
             return BadRequest(response.Message);
 
         var roles = response.Data ?? new List<UserRoleDto>();
-        var pdfBytes = _pdfService.CreatePdf("User Roles", "List of user roles", roles, EntityPdfConfigs.UserRole);
+        var pdfBytes = _pdfService.CreatePdf("User Roles", "List of user roles", roles, EntityPdfConfigs.UserRole, new PdfOptions { ShowRowNumbers = true });
         return File(pdfBytes, "application/pdf", "user-roles.pdf");
     }
 }

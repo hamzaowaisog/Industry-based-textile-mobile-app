@@ -57,12 +57,10 @@ public static class EntityPdfConfigs
     ];
 
     public static readonly PdfColumnConfig[] ClientType = [
-        PdfColumnConfig.Create("Id", "ID"),
         PdfColumnConfig.Create("Name", "Name"),
     ];
 
     public static readonly PdfColumnConfig[] UserRole = [
-        PdfColumnConfig.Create("Id", "ID"),
         PdfColumnConfig.Create("Name", "Role Name"),
     ];
 
@@ -70,14 +68,12 @@ public static class EntityPdfConfigs
         PdfColumnConfig.Create("Name", "Name"),
         PdfColumnConfig.Create("Email", "Email"),
         PdfColumnConfig.Create("UserName", "Username"),
-        PdfColumnConfig.Create("RoleId", "Role ID"),
         PdfColumnConfig.Create("PhoneNumber", "Phone"),
         PdfColumnConfig.Create("IsActive", "Active", PdfColumnFormat.Boolean),
         PdfColumnConfig.Create("CreatedAt", "Created", PdfColumnFormat.Date),
     ];
 
     public static readonly PdfColumnConfig[] Order = [
-        PdfColumnConfig.Create("Id", "Order #"),
         PdfColumnConfig.Create("ClientName", "Client"),
         PdfColumnConfig.Create("StatusName", "Status"),
         PdfColumnConfig.Create("PaymentTypeName", "Payment Type"),
@@ -88,7 +84,6 @@ public static class EntityPdfConfigs
     ];
 
     public static readonly PdfColumnConfig[] Purchase = [
-        PdfColumnConfig.Create("Id", "Purchase #"),
         PdfColumnConfig.Create("SupplierName", "Supplier"),
         PdfColumnConfig.Create("StatusName", "Status"),
         PdfColumnConfig.Create("PaymentTypeName", "Payment Type"),
@@ -99,7 +94,6 @@ public static class EntityPdfConfigs
     ];
 
     public static readonly PdfColumnConfig[] Payment = [
-        PdfColumnConfig.Create("Id", "Payment #"),
         PdfColumnConfig.Create("PartyClientName", "Client"),
         PdfColumnConfig.Create("PaymentDirectionName", "Direction"),
         PdfColumnConfig.Create("TransModeName", "Mode"),
@@ -123,7 +117,6 @@ public static class EntityPdfConfigs
     ];
 
     public static readonly PdfColumnConfig[] Expense = [
-        PdfColumnConfig.Create("Id", "Expense #"),
         PdfColumnConfig.Create("ExpenseTypeName", "Type"),
         PdfColumnConfig.Create("Amount", "Amount (PKR)", PdfColumnFormat.Currency),
         PdfColumnConfig.Create("TransModeName", "Mode"),
@@ -134,12 +127,10 @@ public static class EntityPdfConfigs
     ];
 
     public static readonly PdfColumnConfig[] ExpenseType = [
-        PdfColumnConfig.Create("Id", "ID"),
         PdfColumnConfig.Create("Name", "Type Name"),
     ];
 
     public static readonly PdfColumnConfig[] Transaction = [
-        PdfColumnConfig.Create("Id", "Transaction #"),
         PdfColumnConfig.Create("Source", "Source"),
         PdfColumnConfig.Create("TransCategoryName", "Category"),
         PdfColumnConfig.Create("TransTypeName", "Type"),
@@ -148,6 +139,46 @@ public static class EntityPdfConfigs
         PdfColumnConfig.Create("TransDate", "Date", PdfColumnFormat.Date),
         PdfColumnConfig.Create("ClientName", "Client"),
         PdfColumnConfig.Create("Notes", "Notes"),
+    ];
+
+    public static readonly PdfColumnConfig[] ProfitLoss = [
+        PdfColumnConfig.Create("Month", "Month"),
+        PdfColumnConfig.Create("TotalSales", "Sales (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("TotalPurchases", "Purchases (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("TotalExpenses", "Expenses (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("GrossProfit", "Gross Profit (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("NetProfit", "Net Profit (PKR)", PdfColumnFormat.Currency),
+    ];
+
+    public static readonly PdfColumnConfig[] ClientBalance = [
+        PdfColumnConfig.Create("Name", "Client Name"),
+        PdfColumnConfig.Create("Balance", "Balance (PKR)", PdfColumnFormat.Currency),
+    ];
+
+    public static readonly PdfColumnConfig[] CreditDebit = [
+        PdfColumnConfig.Create("Month", "Month"),
+        PdfColumnConfig.Create("TotalCredit", "Credit (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("TotalDebit", "Debit (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("Balance", "Balance (PKR)", PdfColumnFormat.Currency),
+    ];
+
+    public static readonly PdfColumnConfig[] SummaryTotals = [
+        PdfColumnConfig.Create("TotalSalesAmount", "Total Sales (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("TotalPurchasesAmount", "Total Purchases (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("TotalExpensesAmount", "Total Expenses (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("TotalOrderCount", "Total Orders"),
+        PdfColumnConfig.Create("TotalPurchaseCount", "Total Purchases"),
+        PdfColumnConfig.Create("TotalClientsCount", "Total Clients"),
+    ];
+
+    public static readonly PdfColumnConfig[] ClientDetail = [
+        PdfColumnConfig.Create("ClientName", "Client"),
+        PdfColumnConfig.Create("ClientTypeName", "Type"),
+        PdfColumnConfig.Create("TotalOrderCount", "Orders"),
+        PdfColumnConfig.Create("TotalOrderAmount", "Order Total (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("TotalPurchaseCount", "Purchases"),
+        PdfColumnConfig.Create("TotalPurchaseAmount", "Purchase Total (PKR)", PdfColumnFormat.Currency),
+        PdfColumnConfig.Create("Balance", "Balance (PKR)", PdfColumnFormat.Currency),
     ];
 
     /// <summary>

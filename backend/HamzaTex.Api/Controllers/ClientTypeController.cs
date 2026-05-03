@@ -102,7 +102,7 @@ public class ClientTypeController : BaseController
             return BadRequest(response.Message);
 
         var clientTypes = response.Data ?? new List<ClientTypeDto>();
-        var pdfBytes = _pdfService.CreatePdf("Client Types", "List of client types", clientTypes, EntityPdfConfigs.ClientType);
+        var pdfBytes = _pdfService.CreatePdf("Client Types", "List of client types", clientTypes, EntityPdfConfigs.ClientType, new PdfOptions { ShowRowNumbers = true });
         return File(pdfBytes, "application/pdf", "client-types.pdf");
     }
 }

@@ -117,7 +117,7 @@ public class OrderService : IOrderService
     public async Task<Response<List<OrderDto>>> GetAllAsync()
     {
         var orders = await OrderQueryWithIncludes()
-            .OrderByDescending(o => o.OrderDate)
+            .OrderBy(o => o.OrderDate)
             .ToListAsync();
 
         return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Orders fetched successfully.");
@@ -127,7 +127,7 @@ public class OrderService : IOrderService
     {
         var orders = await OrderQueryWithIncludes()
             .Where(o => o.Client != null && o.Client.UserId == userId)
-            .OrderByDescending(o => o.OrderDate)
+            .OrderBy(o => o.OrderDate)
             .ToListAsync();
 
         return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Orders fetched successfully.");
@@ -135,7 +135,7 @@ public class OrderService : IOrderService
 
     public async Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize)
     {
-        var query = OrderQueryWithIncludes().OrderByDescending(o => o.OrderDate);
+        var query = OrderQueryWithIncludes().OrderBy(o => o.OrderDate);
         var totalCount = await query.CountAsync();
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         var pagedList = new PagedList<OrderDto>(items.Select(o => ToDto(o)).ToList(), page, pageSize, totalCount);
@@ -162,7 +162,7 @@ public class OrderService : IOrderService
         if (dateTo.HasValue)
             query = query.Where(o => o.OrderDate <= dateTo.Value);
 
-        var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
+        var orders = await query.OrderBy(o => o.OrderDate).ToListAsync();
         return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Filtered orders fetched successfully.");
     }
 

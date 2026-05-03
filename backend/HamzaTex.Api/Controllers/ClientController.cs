@@ -178,7 +178,7 @@ public class ClientController : BaseController
             return BadRequest(response.Message);
 
         var clients = response.Data ?? new List<ClientDto>();
-        var pdfBytes = _pdfService.CreatePdf("Clients", "List of clients. All amounts in PKR.", clients, EntityPdfConfigs.Client, new PdfOptions { SummaryProperty = "OpeningBalance", SummaryLabel = "Total Opening Balance (PKR)" });
+        var pdfBytes = _pdfService.CreatePdf("Clients", "List of clients. All amounts in PKR.", clients, EntityPdfConfigs.Client, new PdfOptions { ShowRowNumbers = true, SummaryProperty = "OpeningBalance", SummaryLabel = "Total Opening Balance (PKR)" });
         return File(pdfBytes, "application/pdf", "clients.pdf");
     }
 }

@@ -177,7 +177,7 @@ public class TransactionController : BaseController
             return BadRequest(result.Message);
 
         var pdf = _pdfService.CreatePdf(
-            "Transactions", "Full ledger. All amounts in PKR.", result.Data, EntityPdfConfigs.Transaction);
+            "Transactions", "Full ledger. All amounts in PKR.", result.Data, EntityPdfConfigs.Transaction, new PdfOptions { ShowRowNumbers = true });
         return File(pdf, "application/pdf", "transactions.pdf");
     }
 }

@@ -225,7 +225,7 @@ public class StockMovementsService : IStockMovementsService
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
             .Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId))
-            .OrderByDescending(sm => sm.MovementDate)
+            .OrderBy(sm => sm.MovementDate)
             .ToListAsync();
 
         var dtos = movements.Select(ToDto).ToList();
@@ -239,7 +239,7 @@ public class StockMovementsService : IStockMovementsService
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
             .Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId))
-            .OrderByDescending(sm => sm.MovementDate)
+            .OrderBy(sm => sm.MovementDate)
             .Select(sm => ToDto(sm));
 
         var pagedList = await PagedList<StockMovementsDto>.CreateAsync(query, page, pageSize);
@@ -277,7 +277,7 @@ public class StockMovementsService : IStockMovementsService
             query = query.Where(sm => sm.MovementDate <= dateTo.Value);
 
         var movements = await query
-            .OrderByDescending(sm => sm.MovementDate)
+            .OrderBy(sm => sm.MovementDate)
             .ToListAsync();
 
         var dtos = movements.Select(ToDto).ToList();

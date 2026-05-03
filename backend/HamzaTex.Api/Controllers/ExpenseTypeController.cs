@@ -87,7 +87,7 @@ public class ExpenseTypeController : BaseController
             return BadRequest(result.Message);
 
         var types = result.Data ?? new List<ExpenseTypeDto>();
-        var pdf = _pdfService.CreatePdf("Expense Types", "List of expense categories.", types, EntityPdfConfigs.ExpenseType);
+        var pdf = _pdfService.CreatePdf("Expense Types", "List of expense categories.", types, EntityPdfConfigs.ExpenseType, new PdfOptions { ShowRowNumbers = true });
         return File(pdf, "application/pdf", "expense-types.pdf");
     }
 }

@@ -154,7 +154,8 @@ public class StockMovementsController : BaseController
             "Stock Movements",
             "All stock movements — In (purchases) and Out (sales).",
             movements,
-            EntityPdfConfigs.StockMovement);
+            EntityPdfConfigs.StockMovement,
+            new PdfOptions { ShowRowNumbers = true });
 
         return File(pdfBytes, "application/pdf", "stock-movements.pdf");
     }

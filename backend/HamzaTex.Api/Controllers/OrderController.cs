@@ -168,7 +168,7 @@ public class OrderController : BaseController
             "Sales orders report. All amounts in PKR.",
             orders,
             EntityPdfConfigs.Order,
-            new PdfOptions { SummaryProperty = "Total", SummaryLabel = "Grand Total (PKR)" });
+            new PdfOptions { ShowRowNumbers = true, SummaryProperty = "Total", SummaryLabel = "Grand Total (PKR)" });
 
         return File(pdfBytes, "application/pdf", "orders.pdf");
     }

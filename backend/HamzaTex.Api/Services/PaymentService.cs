@@ -220,7 +220,7 @@ public class PaymentService : IPaymentService
         if (!includeReversed)
             query = query.Where(p => !p.IsReversed);
 
-        query = query.OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.Id);
+        query = query.OrderBy(p => p.PaymentDate).ThenByDescending(p => p.Id);
 
         var paged = await PagedList<PaymentDto>.CreateAsync(
             query.Select(p => MapToDto(p)), page, pageSize);
@@ -237,7 +237,7 @@ public class PaymentService : IPaymentService
             .Include(p => p.User)
             .Include(p => p.Allocations)
             .Where(p => p.PartyClientId == clientId)
-            .OrderByDescending(p => p.PaymentDate)
+            .OrderBy(p => p.PaymentDate)
             .ToListAsync();
 
         return Response<List<PaymentDto>>.SuccessResponse(
@@ -253,7 +253,7 @@ public class PaymentService : IPaymentService
             .Include(p => p.User)
             .Include(p => p.Allocations)
             .Where(p => p.UserId == userId)
-            .OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.Id);
+            .OrderBy(p => p.PaymentDate).ThenByDescending(p => p.Id);
 
         var paged = await PagedList<PaymentDto>.CreateAsync(
             query.Select(p => MapToDto(p)), page, pageSize);
@@ -280,7 +280,7 @@ public class PaymentService : IPaymentService
         if (dateTo.HasValue) query = query.Where(p => p.PaymentDate <= dateTo.Value);
         if (!includeReversed) query = query.Where(p => !p.IsReversed);
 
-        var list = await query.OrderByDescending(p => p.PaymentDate).ToListAsync();
+        var list = await query.OrderBy(p => p.PaymentDate).ToListAsync();
         return Response<List<PaymentDto>>.SuccessResponse(list.Select(MapToDto).ToList(), "Payments retrieved.");
     }
 

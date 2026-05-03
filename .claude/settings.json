@@ -11,6 +11,16 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /Users/mhamza/Desktop/HamzaTexGithub && graphify update backend/HamzaTex.Api 2>&1 || true"
+          }
+        ]
+      }
     ]
   }
 }

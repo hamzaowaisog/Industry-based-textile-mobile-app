@@ -147,7 +147,7 @@ public class ExpenseController : BaseController
             return BadRequest(result.Message);
 
         var expenses = result.Data ?? new List<ExpenseDto>();
-        var pdf = _pdfService.CreatePdf("Expenses", "Expense records. All amounts in PKR.", expenses, EntityPdfConfigs.Expense);
+        var pdf = _pdfService.CreatePdf("Expenses", "Expense records. All amounts in PKR.", expenses, EntityPdfConfigs.Expense, new PdfOptions { ShowRowNumbers = true });
         return File(pdf, "application/pdf", "expenses.pdf");
     }
 }

@@ -168,7 +168,7 @@ public class PurchaseController : BaseController
             "Procurement purchases report. All amounts in PKR.",
             purchases,
             EntityPdfConfigs.Purchase,
-            new PdfOptions { SummaryProperty = "Total", SummaryLabel = "Grand Total (PKR)" });
+            new PdfOptions { ShowRowNumbers = true, SummaryProperty = "Total", SummaryLabel = "Grand Total (PKR)" });
 
         return File(pdfBytes, "application/pdf", "purchases.pdf");
     }

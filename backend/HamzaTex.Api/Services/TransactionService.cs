@@ -161,7 +161,7 @@ public class TransactionService : ITransactionService
     public async Task<Response<PagedList<TransactionDto>>> GetAllPaginatedAsync(int page, int pageSize)
     {
         var query = WithIncludes(_db.Transactions.AsNoTracking())
-            .OrderByDescending(t => t.TransDate)
+            .OrderBy(t => t.TransDate)
             .ThenByDescending(t => t.Id);
 
         var totalCount = await query.CountAsync();
@@ -175,7 +175,7 @@ public class TransactionService : ITransactionService
     {
         var list = await WithIncludes(_db.Transactions.AsNoTracking())
             .Where(t => t.UserId == userId)
-            .OrderByDescending(t => t.TransDate)
+            .OrderBy(t => t.TransDate)
             .ThenByDescending(t => t.Id)
             .ToListAsync();
 
@@ -196,7 +196,7 @@ public class TransactionService : ITransactionService
 
         var list = await WithIncludes(_db.Transactions.AsNoTracking())
             .Where(t => t.ClientId == clientId)
-            .OrderByDescending(t => t.TransDate)
+            .OrderBy(t => t.TransDate)
             .ThenByDescending(t => t.Id)
             .ToListAsync();
 
@@ -218,7 +218,7 @@ public class TransactionService : ITransactionService
         if (dateTo.HasValue)     query = query.Where(t => t.TransDate       <= dateTo);
 
         var list = await query
-            .OrderByDescending(t => t.TransDate)
+            .OrderBy(t => t.TransDate)
             .ThenByDescending(t => t.Id)
             .ToListAsync();
 
@@ -229,7 +229,7 @@ public class TransactionService : ITransactionService
     public async Task<Response<List<TransactionDto>>> GetAllAsync()
     {
         var list = await WithIncludes(_db.Transactions.AsNoTracking())
-            .OrderByDescending(t => t.TransDate)
+            .OrderBy(t => t.TransDate)
             .ThenByDescending(t => t.Id)
             .ToListAsync();
 

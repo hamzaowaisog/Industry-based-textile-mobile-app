@@ -205,7 +205,7 @@ public class PaymentController : BaseController
             return BadRequest(result.Message);
 
         var payments = result.Data ?? new List<PaymentDto>();
-        var pdf = _pdfService.CreatePdf("Payments", "Payment records. All amounts in PKR.", payments, EntityPdfConfigs.Payment);
+        var pdf = _pdfService.CreatePdf("Payments", "Payment records. All amounts in PKR.", payments, EntityPdfConfigs.Payment, new PdfOptions { ShowRowNumbers = true });
         return File(pdf, "application/pdf", "payments.pdf");
     }
 }

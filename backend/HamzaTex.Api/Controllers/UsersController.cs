@@ -99,7 +99,7 @@ public class UsersController : BaseController
             return BadRequest(response.Message);
 
         var users = response.Data ?? new List<UserDto>();
-        var pdfBytes = _pdfService.CreatePdf("Users", "List of users", users, EntityPdfConfigs.User);
+        var pdfBytes = _pdfService.CreatePdf("Users", "List of users", users, EntityPdfConfigs.User, new PdfOptions { ShowRowNumbers = true });
         return File(pdfBytes, "application/pdf", "users.pdf");
     }
 }
