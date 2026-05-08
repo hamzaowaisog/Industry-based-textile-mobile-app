@@ -30,6 +30,8 @@ public interface IUserService
     Task<Response> ResetPasswordAsync(ResetPasswordDto model);
     /// <summary>Confirm a user's email address using the token from the confirmation email.</summary>
     Task<Response> EmailConfirmationTokenAsync(EmailConfirmationDto model);
+    /// <summary>Admin-only: create a pre-confirmed user account with no email flow required.</summary>
+    Task<Response<UserDto>> AdminCreateAsync(CreateUserDto model);
 }
 
 public class UserService : IUserService
@@ -276,6 +278,45 @@ public class UserService : IUserService
         if (!result.Succeeded) return Response.ErrorResponse("Validation failed", string.Join(", ", result.Errors.Select(e => e.Description)));
 
         return Response.SuccessResponse("Password reset successfully");
+    }
+
+    public async Task<Response<UserDto>> AdminCreateAsync(CreateUserDto model)
+    {
+        var existingEmail = await _userManager.FindByEmailAsync(model.Email.Trim());
+        if (existingEmail is not null)
+            return Response<UserDto>.ErrorResponse("Validation failed", "Email already exists.");
+
+        var existingUserName = await _userManager.FindByNameAsync(model.UserName.Trim());
+        if (existingUserName is not null)
+            return Response<UserDto>.ErrorResponse("Validation failed", "Username already exists.");
+
+        if (model.Password != model.ConfirmPassword)
+            return Response<UserDto>.ErrorResponse("Validation failed", "Password and confirm password do not match.");
+
+        var user = new ApplicationUser
+        {
+            Name = model.Name.Trim(),
+            Email = model.Email.Trim(),
+            UserName = model.UserName.Trim(),
+            RoleId = model.RoleId,
+            IsActive = model.IsActive,
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow),
+            EmailConfirmed = false,
+            PhoneNumber = !string.IsNullOrWhiteSpace(model.PhoneNumber) ? model.PhoneNumber.Trim() : null,
+            PhoneNumberConfirmed = !string.IsNullOrWhiteSpace(model.PhoneNumber)
+        };
+
+        var createResult = await _userManager.CreateAsync(user, model.Password);
+        if (!createResult.Succeeded)
+            return Response<UserDto>.ErrorResponse("Create failed", string.Join(", ", createResult.Errors.Select(e => e.Description)));
+
+        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        var confirmResult = await _userManager.ConfirmEmailAsync(user, token);
+        if (!confirmResult.Succeeded)
+            return Response<UserDto>.ErrorResponse("Confirmation failed", string.Join(", ", confirmResult.Errors.Select(e => e.Description)));
+
+        var created = await _userManager.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == user.Id);
+        return Response<UserDto>.SuccessResponse(ToDto(created!), "User created successfully.");
     }
 
     private static UserDto ToDto(ApplicationUser user) =>

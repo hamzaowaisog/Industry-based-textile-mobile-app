@@ -100,6 +100,16 @@ Every list endpoint should have a corresponding `GET /pdf` endpoint using `IPdfS
 
 `Helpers/PagedList<T>` is the standard paginated response shape — used by Client and Product services. All new list endpoints should follow the same pattern: `GetAllPaginatedAsync(int page, int pageSize, ...)`.
 
+### Date Handling
+
+- **All `CreatedAt` fields use `DateOnly`** (not `DateTime`) — no time precision needed
+- **Exception:** `RefreshToken` keeps `DateTime` for `CreatedAt`, `ExpiresAt`, `RevokedAt` (token management needs time precision)
+- **Server-assigned:** `CreatedAt` is not in any input ViewModel or CreateDto — the server sets it via `DateOnly.FromDateTime(DateTime.UtcNow)` in services
+- **EF Core value converter:** `ApplicationDbContext.OnModelCreating` registers a global `DateOnly ↔ DateTime` converter so MySQL `datetime` columns map to C# `DateOnly` without schema changes
+- **JSON output format:** `"dd MMM, yyyy"` (e.g. `"03 May, 2026"`) — configured in `Helpers/FlexibleDateOnlyJsonConverter.cs`
+- **JSON input:** Accepts `yyyy-MM-dd`, ISO-8601 datetime strings, etc. — parsing is flexible via `FlexibleDateOnlyJsonConverter` / `FlexibleNullableDateOnlyJsonConverter`
+- **Safety net converters:** `FlexibleDateTimeJsonConverter` / `FlexibleNullableDateTimeJsonConverter` handle any remaining `DateTime` fields (e.g. `RefreshToken`) with graceful fallbacks for empty/null
+
 ### Database
 
 - **MySQL 8.x** via EF Core with Pomelo driver
@@ -133,7 +143,7 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
 ### Entities (all in `Entities/`, all mapped in `ApplicationDbContext`)
 
 **Users & Auth**
-- `ApplicationUser` — extends `IdentityUser<int>`; has `Name`, `RoleId`, `IsActive`, `CreatedAt`; navigates to `UserRole`, `Transaction[]`, `Client[]`, `Expense[]`, `ProductUser[]`
+- `ApplicationUser` — extends `IdentityUser<int>`; has `Name`, `RoleId`, `IsActive`, `CreatedAt` (DateOnly); navigates to `UserRole`, `Transaction[]`, `Client[]`, `Expense[]`, `ProductUser[]`
 - `UserRole` — custom role table (separate from ASP.NET Identity roles); `Id`, `Name`
 - `RefreshToken` — `Token`, `UserId`, `ExpiresAt`, `CreatedAt`, `RevokedAt`, `ReplacedByToken`; `IsActive` and `IsExpired` are computed
 
@@ -281,6 +291,7 @@ private int? GetUserId()
 | `ILookupService` | GetAllAsync, GetByTypeAsync, GetOrderStatusesAsync, GetPurchaseStatusesAsync, GetPaymentTypesAsync, GetPaymentDirectionsAsync, GetTransTypesAsync, GetTransModesAsync, GetTransCategoriesAsync, GetExpenseTypesAsync, GetMovementTypesAsync, GetMovementSourcesAsync, GetClientTypesAsync, GetUserRolesAsync |
 | `ITransactionService` | CreateAsync, GetByIdAsync, GetAllPaginatedAsync, GetAllByUserIdAsync, GetAllByClientIdAsync, GetFilteredAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync |
 | `IPdfService` | CreatePdf |
+| `IReportService` | GetMonthlyProfitLossAsync, GetClientBalancesAsync, GetClientBalanceByIdAsync, GetMonthlyCreditDebitAsync, GetSummaryTotalsAsync, GetClientDetailsAsync, GetClientDetailByIdAsync |
 
 ---
 
@@ -303,8 +314,9 @@ private int? GetUserId()
 | `MetaController` | GET /all, GET /{type} (switch-case dispatch for all 12 lookup tables incl. purchasestatuses) |
 | `TransactionController` | POST, GET (paginated), GET /me, GET /{id}, GET /by-client/{clientId}, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf |
 | `AppController` | GET /health, GET /info, GET /spec (downloads OpenAPI JSON for Orval) |
+| `ReportController` | GET profit-loss, profit-loss/pdf, client-balance, client-balance/{id}, client-balance/pdf, credit-debit, credit-debit/pdf, summary, summary/pdf, client-detail, client-detail/{id}, client-detail/{id}/pdf, client-detail/pdf |
 
-**Not yet created:** ReportController, InvoiceController, SyncController, DeviceController
+**Not yet created:** InvoiceController, SyncController, DeviceController
 
 ---
 
@@ -333,7 +345,7 @@ See `todo/` for detailed task breakdowns:
 | `todo/04-payments.md` | ✅ Complete — full Payments API incl. FIFO allocation, reversal, reverse-and-correct, ledger posting, v_client_balance redesign |
 | `todo/05-expenses.md` | ✅ Complete — full Expenses API with atomic ledger posting, ExpenseType CRUD, P&L integration |
 | `todo/06-transactions.md` | ✅ Complete — full Transactions API with CRUD, filtered, me, by-client, pdf |
-| `todo/07-reports.md` | Expose VMonthlyProfitLoss, VClientBalance, VMonthlyCreditDebit views |
+| `todo/07-reports.md` | ✅ Complete — profit-loss, client-balance, credit-debit, summary, client-detail (all with PDF) |
 | `todo/08-invoices.md` | Invoice entity (doesn't exist) + full API |
 | `todo/09-users-admin-create.md` | One new service method + one endpoint on UsersController |
 | `todo/10-sync.md` | Backend sync push/pull (needs UpdatedAt migration + conflict strategy decision) |

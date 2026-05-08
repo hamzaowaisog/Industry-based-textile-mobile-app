@@ -23,6 +23,28 @@ public class UsersController : BaseController
         _pdfService = pdfService;
     }
 
+    /// <summary>Admin creates a new pre-confirmed user account. No email confirmation required.</summary>
+    [HttpPost]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(Response<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> AdminCreateUser([FromBody] UserCreateViewModel model)
+    {
+        var dto = new CreateUserDto
+        {
+            Name = model.Name,
+            Email = model.Email,
+            UserName = model.UserName,
+            Password = model.Password,
+            ConfirmPassword = model.ConfirmPassword,
+            RoleId = model.RoleId,
+            IsActive = model.IsActive,
+            PhoneNumber = model.PhoneNumber
+        };
+
+        return ToActionResult(await _userService.AdminCreateAsync(dto));
+    }
+
     /// <summary>Get a user by ID.</summary>
     [HttpGet("{id}")]
     [Authorize(Policy = "AdminOrStaff")]
