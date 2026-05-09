@@ -135,6 +135,7 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
 | `ExpenseType` | Office Expenses (1), Home Expenses (2) |
 | `MovementType` | In (1), Out (2), Adjustment (3) |
 | `MovementSource` | Purchase (1), Sale (2), Manual (3) |
+| `InvoiceStatus` | Draft (1), Issued (2), Paid (3), Cancelled (4) |
 
 ---
 
@@ -168,7 +169,13 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
 **Financials**
 - `Payment` — `PartyClientId` (FK → Client), `PaymentDirectionId`, `TransModeId`, `Amount`, `PaymentDate`, `Notes`, `CreatedAt`
 - `Expense` — `ExpenseTypeId`, `Amount`, `TransModeId`, `UserId`, `TransCategoryId`, `TransactionId` (optional link), `ExpenseDate` (DateOnly), `Notes`, `CreatedAt`
-- `Transaction` — `ClientId?`, `ProductId?`, `UserId`, `OrderId?` (FK → Order), `PurchaseId?` (FK → Purchase), `TransTypeId`, `TransModeId`, `TransCategoryId`, `Amount`, `TransDate` (DateOnly), `Notes`, `CreatedAt`; owns `Expense[]`
+- `Transaction` — `ClientId?`, `ProductId?`, `UserId`, `OrderId?` (FK → Order), `PurchaseId?` (FK → Purchase), `InvoiceId?` (FK → Invoice), `TransTypeId`, `TransModeId`, `TransCategoryId`, `Amount`, `TransDate` (DateOnly), `Notes`, `CreatedAt`; owns `Expense[]`
+
+**Invoices**
+- `InvoiceStatus` — lookup (Draft=1, Issued=2, Paid=3, Cancelled=4); seeded on startup
+- `Invoice` — `InvoiceNumber` (unique, INV-YYYY-NNNN), `OrderId?`, `PurchaseId?`, `ClientId?`, `InvoiceStatusId`, `IssueDate?` (DateOnly), `DueDate?` (DateOnly), `TotalAmount`, `Notes?`, `CreatedByUserId?`, `CreatedAt` (DateOnly)
+- `InvoiceLine` — `InvoiceId`, `ProductName` (string snapshot), `Qty` (decimal 14,2), `UnitPrice` (decimal 14,4), `LineTotal` (decimal 14,2)
+- `PaymentAllocation` — `PaymentId`, `OrderId?`, `PurchaseId?`, `InvoiceId?`, `AllocatedAmount`
 
 **Reporting Views (read-only)**
 - `VMonthlyProfitLoss` — `Month`, `TotalSales`, `TotalPurchases`, `TotalExpenses`, `GrossProfit`, `NetProfit`
@@ -292,6 +299,7 @@ private int? GetUserId()
 | `ITransactionService` | CreateAsync, GetByIdAsync, GetAllPaginatedAsync, GetAllByUserIdAsync, GetAllByClientIdAsync, GetFilteredAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync |
 | `IPdfService` | CreatePdf |
 | `IReportService` | GetMonthlyProfitLossAsync, GetClientBalancesAsync, GetClientBalanceByIdAsync, GetMonthlyCreditDebitAsync, GetSummaryTotalsAsync, GetClientDetailsAsync, GetClientDetailByIdAsync |
+| `IInvoiceService` | CreateAsync, CreateFromOrderAsync, CreateFromPurchaseAsync, GetByIdAsync, GetAllPaginatedAsync, GetAllByClientIdAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync, UpdateStatusOnDeliveryAsync, CancelByOrderOrPurchaseAsync, TryMarkPaidAsync, GenerateInvoiceNumberAsync |
 
 ---
 
@@ -300,7 +308,7 @@ private int? GetUserId()
 | Controller | Done endpoints |
 |---|---|
 | `AuthController` | POST register, login, logout, refresh, change-password, GET confirm-email, POST resend-email-confirmation, forgot-password, GET+POST reset-password |
-| `UsersController` | GET /{id}, GET / (all), PUT /me, DELETE /{id}, GET /pdf — **missing POST (admin create)** |
+| `UsersController` | POST / (admin create), GET /{id}, GET / (all), PUT /me, DELETE /{id}, GET /pdf |
 | `UserRolesController` | POST, GET all, GET /{id}, PUT /{id}, DELETE /{id}, GET /pdf |
 | `ClientController` | POST, GET all (AdminOnly), GET /me (scoped), GET /Filtered, GET /{id}, PUT /{id}, DELETE /{id}, GET /pdf |
 | `ClientTypeController` | POST, GET all, GET /{id}, PUT /{id}, DELETE /{id}, GET /pdf |
@@ -311,12 +319,13 @@ private int? GetUserId()
 | `PaymentController` | POST (create + allocate), GET (paginated), GET /me, GET /{id}, GET /by-client/{clientId}, GET /filtered, GET /unallocated/{clientId}, PUT /{id}, POST /{id}/reverse, POST /{id}/reverse-and-correct, DELETE /{id}, GET /pdf |
 | `ExpenseTypeController` | POST, GET all, GET /{id}, PUT /{id}, DELETE /{id} (guarded), GET /pdf — AdminOnly |
 | `ExpenseController` | POST (AdminOrStaff), GET (paginated, AdminOnly), GET /me, GET /{id}, GET /filtered, PUT /{id} (AdminOrStaff), DELETE /{id} (AdminOnly), GET /pdf |
-| `MetaController` | GET /all, GET /{type} (switch-case dispatch for all 12 lookup tables incl. purchasestatuses) |
+| `MetaController` | GET /all, GET /{type} (switch-case dispatch for all 13 lookup tables incl. purchasestatuses, invoicestatuses) |
 | `TransactionController` | POST, GET (paginated), GET /me, GET /{id}, GET /by-client/{clientId}, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf |
 | `AppController` | GET /health, GET /info, GET /spec (downloads OpenAPI JSON for Orval) |
 | `ReportController` | GET profit-loss, profit-loss/pdf, client-balance, client-balance/{id}, client-balance/pdf, credit-debit, credit-debit/pdf, summary, summary/pdf, client-detail, client-detail/{id}, client-detail/{id}/pdf, client-detail/pdf |
+| `InvoiceController` | POST /, GET / (paginated), GET /{id} (detail with lines+transactions), GET /by-client/{clientId}, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf (all), GET /{id}/pdf (single), GET /by-client/{clientId}/pdf, GET /filtered/pdf |
 
-**Not yet created:** InvoiceController, SyncController, DeviceController
+**Not yet created:** SyncController, DeviceController
 
 ---
 
@@ -346,8 +355,8 @@ See `todo/` for detailed task breakdowns:
 | `todo/05-expenses.md` | ✅ Complete — full Expenses API with atomic ledger posting, ExpenseType CRUD, P&L integration |
 | `todo/06-transactions.md` | ✅ Complete — full Transactions API with CRUD, filtered, me, by-client, pdf |
 | `todo/07-reports.md` | ✅ Complete — profit-loss, client-balance, credit-debit, summary, client-detail (all with PDF) |
-| `todo/08-invoices.md` | Invoice entity (doesn't exist) + full API |
-| `todo/09-users-admin-create.md` | One new service method + one endpoint on UsersController |
+| `todo/08-invoices.md` | ✅ Complete — full Invoices API with auto-generation, lifecycle, payment tracking, directional PDFs |
+| `todo/09-users-admin-create.md` | ✅ Complete — admin can create pre-confirmed user accounts via POST /api/Users |
 | `todo/10-sync.md` | Backend sync push/pull (needs UpdatedAt migration + conflict strategy decision) |
 | `todo/11-push-notifications.md` | Device token + push provider (Expo Push recommended) |
 | `todo/12-frontend.md` | Everything on mobile |
