@@ -262,6 +262,14 @@ public static class SeedData
         }
     ];
 
+    private static readonly IReadOnlyList<InvoiceStatus> InvoiceStatusSeeds =
+    [
+        new InvoiceStatus { Id = 1, Name = "Draft",     CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+        new InvoiceStatus { Id = 2, Name = "Issued",    CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+        new InvoiceStatus { Id = 3, Name = "Paid",      CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+        new InvoiceStatus { Id = 4, Name = "Cancelled", CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+    ];
+
     public static async Task EnsureSeedDataAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
     {
         await SeedStatusesAsync(context, cancellationToken);
@@ -362,6 +370,14 @@ public static class SeedData
             context.PaymentDirections,
             direction => direction.Name!,
             PaymentDirectionSeeds,
+            StringComparer.OrdinalIgnoreCase,
+            cancellationToken);
+
+        await SeedLookupAsync(
+            context,
+            context.InvoiceStatuses,
+            status => status.Name!,
+            InvoiceStatusSeeds,
             StringComparer.OrdinalIgnoreCase,
             cancellationToken);
     }

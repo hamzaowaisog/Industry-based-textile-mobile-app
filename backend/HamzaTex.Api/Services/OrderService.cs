@@ -35,6 +35,7 @@ public class OrderService : IOrderService
     private readonly ApplicationDbContext _dbContext;
     private readonly IStockMovementsService _stockMovementsService;
     private readonly IPaymentService _paymentService;
+    private readonly IInvoiceService _invoiceService;
 
     // Seed IDs
     private const int StatusPending = 1;
@@ -50,11 +51,12 @@ public class OrderService : IOrderService
     private const int MovementSourceManual = 3;
     private const int MovementTypeIn = 1;
 
-    public OrderService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService)
+    public OrderService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService, IInvoiceService invoiceService)
     {
         _dbContext = dbContext;
         _stockMovementsService = stockMovementsService;
         _paymentService = paymentService;
+        _invoiceService = invoiceService;
     }
 
     public async Task<Response<OrderDto>> CreateAsync(CreateOrderDto model, int userId)
@@ -96,6 +98,8 @@ public class OrderService : IOrderService
 
         await _dbContext.Orders.AddAsync(order);
         await _dbContext.SaveChangesAsync();
+
+        await _invoiceService.CreateFromOrderAsync(order.Id, userId);
 
         // Reload with navigation properties
         var saved = await LoadOrderWithIncludes(order.Id);
@@ -314,6 +318,8 @@ public class OrderService : IOrderService
             await _dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
 
+            await _invoiceService.UpdateStatusOnDeliveryAsync(order.Id, null);
+
             // Auto-apply any unallocated advance payments against this newly delivered order
             await _paymentService.ApplyUnallocatedCreditAsync(order.ClientId ?? 0, order.Id, null);
 
@@ -385,6 +391,8 @@ public class OrderService : IOrderService
 
             await transaction.CommitAsync();
 
+            await _invoiceService.CancelByOrderOrPurchaseAsync(order.Id, null);
+
             var reloaded = await LoadOrderWithIncludes(order.Id);
             var message = previousStatusId == StatusDelivered
                 ? "Order cancelled. Stock and ledger reversed."
@@ -440,8 +448,8 @@ public class OrderService : IOrderService
             Notes = order.Notes,
             CreatedAt = order.CreatedAt,
             Total = total,
-            AmountPaid = amountPaid,
-            Outstanding = outstanding < 0 ? 0 : outstanding,
+            AmountReceived = amountPaid,
+            Receivable = outstanding < 0 ? 0 : outstanding,
             PaymentStatus = paymentStatus,
             OrderLines = order.OrderLines.Select(l => new OrderLineDto
             {

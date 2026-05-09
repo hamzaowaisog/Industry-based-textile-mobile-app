@@ -21,6 +21,8 @@ public interface ILookupService
     Task<Response<List<LookupDto>>> GetMovementSourcesAsync();
     Task<Response<List<LookupDto>>> GetClientTypesAsync();
     Task<Response<List<LookupDto>>> GetUserRolesAsync();
+    /// <summary>Get all invoice statuses.</summary>
+    Task<Response<List<LookupDto>>> GetInvoiceStatusesAsync();
 }
 
 public class LookupService : ILookupService
@@ -50,6 +52,7 @@ public class LookupService : ILookupService
             MovementSources   = await _dbContext.MovementSources.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
             ClientTypes       = await _dbContext.ClientTypes.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
             UserRoles         = await _dbContext.UserRoles.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
+            InvoiceStatuses   = await _dbContext.InvoiceStatuses.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
         };
 
         return Response<LookupsAllDto>.SuccessResponse(result, "Lookups fetched successfully.");
@@ -71,6 +74,7 @@ public class LookupService : ILookupService
             "movementsources"    or "movement-sources"    => await GetMovementSourcesAsync(),
             "clienttypes"        or "client-types"        => await GetClientTypesAsync(),
             "userroles"          or "user-roles"          => await GetUserRolesAsync(),
+            "invoicestatuses"    or "invoice-statuses"    => await GetInvoiceStatusesAsync(),
             _ => Response<List<LookupDto>>.ErrorResponse("Invalid type",
                      $"Unknown lookup type '{type}'. Valid values: orderStatuses, paymentTypes, paymentDirections, " +
                      "transTypes, transModes, transCategories, expenseTypes, movementTypes, movementSources, clientTypes, userRoles")
@@ -112,6 +116,9 @@ public class LookupService : ILookupService
 
     public async Task<Response<List<LookupDto>>> GetUserRolesAsync()
         => Success(await _dbContext.UserRoles.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync());
+
+    public async Task<Response<List<LookupDto>>> GetInvoiceStatusesAsync()
+        => Success(await _dbContext.InvoiceStatuses.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync());
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 

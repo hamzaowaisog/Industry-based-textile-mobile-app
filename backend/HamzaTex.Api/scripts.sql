@@ -1047,6 +1047,106 @@ VALUES ('20260418191031_FixVClientBalanceExcludeReversalPayments', '9.0.10');
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260503033103_ChangeCreatedAtToDateOnly', '9.0.10');
 
+ALTER TABLE `transactions` ADD `invoice_id` int NULL;
+
+ALTER TABLE `payment_allocations` ADD `invoice_id` int NULL;
+
+CREATE TABLE `invoice_statuses` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `name` longtext CHARACTER SET utf8mb4 NULL,
+    `created_at` date NULL,
+    CONSTRAINT `invoice_statuses_pkey` PRIMARY KEY (`id`)
+) CHARACTER SET=utf8mb4;
+
+CREATE TABLE `invoices` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `invoice_number` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+    `order_id` int NULL,
+    `purchase_id` int NULL,
+    `client_id` int NULL,
+    `invoice_status_id` int NOT NULL,
+    `issue_date` date NULL,
+    `due_date` date NULL,
+    `total_amount` decimal(14,2) NOT NULL,
+    `notes` longtext CHARACTER SET utf8mb4 NULL,
+    `created_by_user_id` int NULL,
+    `created_at` date NOT NULL,
+    CONSTRAINT `invoices_pkey` PRIMARY KEY (`id`),
+    CONSTRAINT `FK_invoices_clients_client_id` FOREIGN KEY (`client_id`) REFERENCES `clients` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `FK_invoices_invoice_statuses_invoice_status_id` FOREIGN KEY (`invoice_status_id`) REFERENCES `invoice_statuses` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `FK_invoices_orders_order_id` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `FK_invoices_purchases_purchase_id` FOREIGN KEY (`purchase_id`) REFERENCES `purchases` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `FK_invoices_users_created_by_user_id` FOREIGN KEY (`created_by_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) CHARACTER SET=utf8mb4;
+
+CREATE TABLE `invoice_lines` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `invoice_id` int NOT NULL,
+    `product_name` longtext CHARACTER SET utf8mb4 NOT NULL,
+    `qty` decimal(14,2) NOT NULL,
+    `unit_price` decimal(14,4) NOT NULL,
+    `line_total` decimal(14,2) NOT NULL,
+    CONSTRAINT `invoice_lines_pkey` PRIMARY KEY (`id`),
+    CONSTRAINT `FK_invoice_lines_invoices_invoice_id` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE
+) CHARACTER SET=utf8mb4;
+
+CREATE INDEX `IX_transactions_invoice_id` ON `transactions` (`invoice_id`);
+
+CREATE INDEX `IX_payment_allocations_invoice_id` ON `payment_allocations` (`invoice_id`);
+
+CREATE INDEX `IX_invoice_lines_invoice_id` ON `invoice_lines` (`invoice_id`);
+
+CREATE INDEX `IX_invoices_client_id` ON `invoices` (`client_id`);
+
+CREATE INDEX `IX_invoices_created_by_user_id` ON `invoices` (`created_by_user_id`);
+
+CREATE UNIQUE INDEX `IX_invoices_number` ON `invoices` (`invoice_number`);
+
+CREATE INDEX `IX_invoices_order_id` ON `invoices` (`order_id`);
+
+CREATE INDEX `IX_invoices_purchase_id` ON `invoices` (`purchase_id`);
+
+CREATE INDEX `IX_invoices_status_id` ON `invoices` (`invoice_status_id`);
+
+ALTER TABLE `payment_allocations` ADD CONSTRAINT `FK_payment_allocations_invoices_invoice_id` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE SET NULL;
+
+ALTER TABLE `transactions` ADD CONSTRAINT `FK_transactions_invoices_invoice_id` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE SET NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260508234017_AddInvoiceTables', '9.0.10');
+
 COMMIT;
 
+-- ═══════════════════════════════════════════════════════════════
+-- BACKFILL: Link existing transactions & payment allocations to invoices
+-- Run manually after the invoice feature is deployed.
+-- ═══════════════════════════════════════════════════════════════
+
+-- 1) Link transactions to invoices via OrderId
+UPDATE transactions t
+JOIN invoices i ON i.order_id = t.OrderId
+SET t.invoice_id = i.id
+WHERE t.OrderId IS NOT NULL
+  AND t.invoice_id IS NULL;
+
+-- 2) Link transactions to invoices via PurchaseId
+UPDATE transactions t
+JOIN invoices i ON i.purchase_id = t.PurchaseId
+SET t.invoice_id = i.id
+WHERE t.PurchaseId IS NOT NULL
+  AND t.invoice_id IS NULL;
+
+-- 3) Link payment allocations to invoices via OrderId
+UPDATE payment_allocations pa
+JOIN invoices i ON i.order_id = pa.order_id
+SET pa.invoice_id = i.id
+WHERE pa.order_id IS NOT NULL
+  AND pa.invoice_id IS NULL;
+
+-- 4) Link payment allocations to invoices via PurchaseId
+UPDATE payment_allocations pa
+JOIN invoices i ON i.purchase_id = pa.purchase_id
+SET pa.invoice_id = i.id
+WHERE pa.purchase_id IS NOT NULL
+  AND pa.invoice_id IS NULL;
 

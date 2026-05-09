@@ -54,6 +54,12 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
 
     public virtual DbSet<PaymentAllocation> PaymentAllocations { get; set; }
 
+    public virtual DbSet<InvoiceStatus> InvoiceStatuses { get; set; }
+
+    public virtual DbSet<Invoice> Invoices { get; set; }
+
+    public virtual DbSet<InvoiceLine> InvoiceLines { get; set; }
+
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<Purchase> Purchases { get; set; }
@@ -370,6 +376,9 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasForeignKey(d => d.PurchaseId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("payment_allocations_purchase_id_fkey");
+
+            entity.Property(e => e.InvoiceId).HasColumnName("invoice_id");
+            entity.HasOne(e => e.Invoice).WithMany(i => i.PaymentAllocations).HasForeignKey(e => e.InvoiceId).OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Product>(entity =>
@@ -610,6 +619,9 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasForeignKey(d => d.PurchaseId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_transactions_purchases_PurchaseId");
+
+            entity.Property(e => e.InvoiceId).HasColumnName("invoice_id");
+            entity.HasOne(e => e.Invoice).WithMany(i => i.Transactions).HasForeignKey(e => e.InvoiceId).OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<ApplicationUser>(entity =>
@@ -959,6 +971,52 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("product_users_user_id_fkey");
+        });
+
+        modelBuilder.Entity<InvoiceStatus>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("invoice_statuses_pkey");
+            entity.ToTable("invoice_statuses");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<Invoice>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("invoices_pkey");
+            entity.ToTable("invoices");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
+            entity.Property(e => e.InvoiceNumber).HasColumnName("invoice_number");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.PurchaseId).HasColumnName("purchase_id");
+            entity.Property(e => e.ClientId).HasColumnName("client_id");
+            entity.Property(e => e.InvoiceStatusId).HasColumnName("invoice_status_id");
+            entity.Property(e => e.IssueDate).HasColumnName("issue_date");
+            entity.Property(e => e.DueDate).HasColumnName("due_date");
+            entity.Property(e => e.TotalAmount).HasColumnName("total_amount").HasColumnType("decimal(14,2)");
+            entity.Property(e => e.Notes).HasColumnName("notes");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+
+            entity.HasOne(e => e.InvoiceStatus).WithMany(s => s.Invoices).HasForeignKey(e => e.InvoiceStatusId);
+            entity.HasOne(e => e.Order).WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.Purchase).WithMany().HasForeignKey(e => e.PurchaseId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.Client).WithMany().HasForeignKey(e => e.ClientId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedByUserId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<InvoiceLine>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("invoice_lines_pkey");
+            entity.ToTable("invoice_lines");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
+            entity.Property(e => e.InvoiceId).HasColumnName("invoice_id");
+            entity.Property(e => e.ProductName).HasColumnName("product_name");
+            entity.Property(e => e.Qty).HasColumnName("qty").HasColumnType("decimal(14,2)");
+            entity.Property(e => e.UnitPrice).HasColumnName("unit_price").HasColumnType("decimal(14,4)");
+            entity.Property(e => e.LineTotal).HasColumnName("line_total").HasColumnType("decimal(14,2)");
+            entity.HasOne(e => e.Invoice).WithMany(i => i.InvoiceLines).HasForeignKey(e => e.InvoiceId).OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);

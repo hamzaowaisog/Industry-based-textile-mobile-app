@@ -35,6 +35,7 @@ public class PurchaseService : IPurchaseService
     private readonly ApplicationDbContext _dbContext;
     private readonly IStockMovementsService _stockMovementsService;
     private readonly IPaymentService _paymentService;
+    private readonly IInvoiceService _invoiceService;
 
     // Seed IDs
     private const int StatusPending = 1;
@@ -50,11 +51,12 @@ public class PurchaseService : IPurchaseService
     private const int MovementSourceManual = 3;
     private const int MovementTypeOut = 2;
 
-    public PurchaseService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService)
+    public PurchaseService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService, IInvoiceService invoiceService)
     {
         _dbContext = dbContext;
         _stockMovementsService = stockMovementsService;
         _paymentService = paymentService;
+        _invoiceService = invoiceService;
     }
 
     public async Task<Response<PurchaseDto>> CreateAsync(CreatePurchaseDto model, int userId)
@@ -96,6 +98,8 @@ public class PurchaseService : IPurchaseService
 
         await _dbContext.Purchases.AddAsync(purchase);
         await _dbContext.SaveChangesAsync();
+
+        await _invoiceService.CreateFromPurchaseAsync(purchase.Id, userId);
 
         var saved = await LoadPurchaseWithIncludes(purchase.Id);
         return Response<PurchaseDto>.SuccessResponse(ToDto(saved!), "Purchase created successfully.");
@@ -309,6 +313,8 @@ public class PurchaseService : IPurchaseService
             await _dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
 
+            await _invoiceService.UpdateStatusOnDeliveryAsync(null, purchase.Id);
+
             // Auto-apply any unallocated advance payments against this newly delivered purchase
             await _paymentService.ApplyUnallocatedCreditAsync(purchase.SupplierId ?? 0, null, purchase.Id);
 
@@ -380,6 +386,8 @@ public class PurchaseService : IPurchaseService
 
             await transaction.CommitAsync();
 
+            await _invoiceService.CancelByOrderOrPurchaseAsync(null, purchase.Id);
+
             var reloaded = await LoadPurchaseWithIncludes(purchase.Id);
             var message = previousStatusId == StatusDelivered
                 ? "Purchase cancelled. Stock and ledger reversed."
@@ -436,7 +444,7 @@ public class PurchaseService : IPurchaseService
             CreatedAt = purchase.CreatedAt,
             Total = total,
             AmountPaid = amountPaid,
-            Outstanding = outstanding < 0 ? 0 : outstanding,
+            Payable = outstanding < 0 ? 0 : outstanding,
             PaymentStatus = paymentStatus,
             PurchaseLines = purchase.PurchaseLines.Select(l => new PurchaseLineDto
             {

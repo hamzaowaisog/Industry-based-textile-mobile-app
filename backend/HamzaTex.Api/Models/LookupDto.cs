@@ -25,4 +25,5 @@ public class LookupsAllDto
     public List<LookupDto> MovementSources { get; set; } = [];
     public List<LookupDto> ClientTypes { get; set; } = [];
     public List<LookupDto> UserRoles { get; set; } = [];
+    public List<LookupDto> InvoiceStatuses { get; set; } = [];
 }

@@ -181,6 +181,18 @@ public static class EntityPdfConfigs
         PdfColumnConfig.Create("Balance", "Balance (PKR)", PdfColumnFormat.Currency),
     ];
 
+    public static readonly PdfColumnConfig[] Invoice =
+    [
+        PdfColumnConfig.Create("InvoiceNumber", nameof(InvoiceDto.InvoiceNumber)),
+        PdfColumnConfig.Create("Client",        nameof(InvoiceDto.ClientName)),
+        PdfColumnConfig.Create("Direction",     nameof(InvoiceDto.Direction)),
+        PdfColumnConfig.Create("Status",        nameof(InvoiceDto.StatusName)),
+        PdfColumnConfig.Create("Total",         nameof(InvoiceDto.TotalAmount)),
+        PdfColumnConfig.Create("Paid",          nameof(InvoiceDto.AmountPaid)),
+        PdfColumnConfig.Create("Outstanding",   nameof(InvoiceDto.Outstanding)),
+        PdfColumnConfig.Create("Issue Date",    nameof(InvoiceDto.IssueDate)),
+    ];
+
     /// <summary>
     /// Returns only the columns matching the given property names. Use to include a subset of columns in PDF.
     /// </summary>

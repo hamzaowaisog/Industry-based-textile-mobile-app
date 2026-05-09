@@ -41,6 +41,7 @@ public interface IPaymentService
 public class PaymentService : IPaymentService
 {
     private readonly ApplicationDbContext _db;
+    private readonly IInvoiceService _invoiceService;
 
     // Seeded direction IDs
     private const int DirectionReceived = 1;
@@ -72,9 +73,10 @@ public class PaymentService : IPaymentService
     private const int ClientTypeCustomer = 1;
     private const int ClientTypeSupplier = 2;
 
-    public PaymentService(ApplicationDbContext db)
+    public PaymentService(ApplicationDbContext db, IInvoiceService invoiceService)
     {
         _db = db;
+        _invoiceService = invoiceService;
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -142,20 +144,39 @@ public class PaymentService : IPaymentService
             await _db.SaveChangesAsync();
 
             // Insert allocations
+            var allocationEntities = new List<PaymentAllocation>();
             foreach (var (orderId, purchaseId, amount) in allocations)
             {
-                _db.PaymentAllocations.Add(new PaymentAllocation
+                var allocEntity = new PaymentAllocation
                 {
                     PaymentId = payment.Id,
                     OrderId = orderId,
                     PurchaseId = purchaseId,
                     AllocatedAmount = amount
-                });
+                };
+                _db.PaymentAllocations.Add(allocEntity);
+                allocationEntities.Add(allocEntity);
+            }
+
+            // Stamp InvoiceId on each allocation
+            foreach (var alloc in allocationEntities)
+            {
+                if (alloc.OrderId.HasValue)
+                {
+                    var inv = await _db.Invoices.FirstOrDefaultAsync(i => i.OrderId == alloc.OrderId);
+                    if (inv is not null) alloc.InvoiceId = inv.Id;
+                }
+                else if (alloc.PurchaseId.HasValue)
+                {
+                    var inv = await _db.Invoices.FirstOrDefaultAsync(i => i.PurchaseId == alloc.PurchaseId);
+                    if (inv is not null) alloc.InvoiceId = inv.Id;
+                }
             }
 
             // Post Transaction to ledger
             // OrderId/PurchaseId set only for single-allocation payments; null when split across multiple
             var singleAlloc = allocations.Count == 1 ? allocations[0] : default;
+            int? singleInvoiceId = allocationEntities.Count == 1 ? allocationEntities[0].InvoiceId : null;
             var transaction = new Transaction
             {
                 ClientId = model.PartyClientId,
@@ -167,6 +188,7 @@ public class PaymentService : IPaymentService
                 TransDate = model.PaymentDate,
                 OrderId = singleAlloc.OrderId,
                 PurchaseId = singleAlloc.PurchaseId,
+                InvoiceId = singleInvoiceId,
                 Notes = $"Payment #{payment.Id}: {model.Notes}",
                 CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
@@ -175,6 +197,15 @@ public class PaymentService : IPaymentService
 
             payment.TransactionId = transaction.Id;
             await _db.SaveChangesAsync();
+
+            // Check if any invoices are now fully paid
+            var affectedInvoiceIds = allocationEntities
+                .Where(a => a.InvoiceId.HasValue)
+                .Select(a => a.InvoiceId!.Value)
+                .Distinct();
+
+            foreach (var invoiceId in affectedInvoiceIds)
+                await _invoiceService.TryMarkPaidAsync(invoiceId);
 
             await txn.CommitAsync();
 
@@ -330,6 +361,7 @@ public class PaymentService : IPaymentService
         {
             // Reversing transaction (negates cash flow)
             var originalSingleAlloc = original.Allocations.Count == 1 ? original.Allocations.First() : null;
+            var originalSingleInvoiceId = original.Allocations.Count == 1 ? original.Allocations.First().InvoiceId : null;
             var reversalTransaction = new Transaction
             {
                 ClientId = original.PartyClientId,
@@ -341,6 +373,7 @@ public class PaymentService : IPaymentService
                 TransDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 OrderId = originalSingleAlloc?.OrderId,
                 PurchaseId = originalSingleAlloc?.PurchaseId,
+                InvoiceId = originalSingleInvoiceId,
                 Notes = $"REVERSAL of Payment #{original.Id}: {notes}",
                 CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
@@ -531,13 +564,27 @@ public class PaymentService : IPaymentService
             if (paymentRemaining <= 0) continue;
 
             var toAllocate = Math.Min(paymentRemaining, outstanding);
-            _db.PaymentAllocations.Add(new PaymentAllocation
+            var autoAlloc = new PaymentAllocation
             {
                 PaymentId = payment.Id,
                 OrderId = orderId,
                 PurchaseId = purchaseId,
                 AllocatedAmount = toAllocate
-            });
+            };
+
+            // Stamp InvoiceId on auto-allocation
+            if (orderId.HasValue)
+            {
+                var inv = await _db.Invoices.FirstOrDefaultAsync(i => i.OrderId == orderId);
+                if (inv is not null) autoAlloc.InvoiceId = inv.Id;
+            }
+            else if (purchaseId.HasValue)
+            {
+                var inv = await _db.Invoices.FirstOrDefaultAsync(i => i.PurchaseId == purchaseId);
+                if (inv is not null) autoAlloc.InvoiceId = inv.Id;
+            }
+
+            _db.PaymentAllocations.Add(autoAlloc);
             outstanding -= toAllocate;
         }
 

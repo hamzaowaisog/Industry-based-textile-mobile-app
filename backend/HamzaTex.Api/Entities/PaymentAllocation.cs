@@ -7,6 +7,7 @@ namespace HamzaTex.Api.Entities;
 [Index(nameof(PaymentId), Name = "IX_payment_allocations_payment_id")]
 [Index(nameof(OrderId), Name = "IX_payment_allocations_order_id")]
 [Index(nameof(PurchaseId), Name = "IX_payment_allocations_purchase_id")]
+[Index(nameof(InvoiceId), Name = "IX_payment_allocations_invoice_id")]
 public partial class PaymentAllocation
 {
     [Key]
@@ -21,7 +22,11 @@ public partial class PaymentAllocation
 
     public decimal AllocatedAmount { get; set; }
 
+    public int? InvoiceId { get; set; }
+
     public virtual Payment Payment { get; set; } = null!;
     public virtual Order? Order { get; set; }
     public virtual Purchase? Purchase { get; set; }
+
+    public virtual Invoice? Invoice { get; set; }
 }

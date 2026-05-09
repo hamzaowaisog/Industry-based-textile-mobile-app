@@ -18,6 +18,7 @@ namespace HamzaTex.Api.Entities;
 [Index(nameof(UserId), nameof(TransDate), Name = "IX_transactions_user_date")]
 [Index(nameof(OrderId), Name = "IX_transactions_order_id")]
 [Index(nameof(PurchaseId), Name = "IX_transactions_purchase_id")]
+[Index(nameof(InvoiceId), Name = "IX_transactions_invoice_id")]
 public partial class Transaction
 {
     [Key]
@@ -35,6 +36,9 @@ public partial class Transaction
 
     /// <summary>Set when this transaction was created by a purchase. Null for sales, payments, expenses, and manual entries.</summary>
     public int? PurchaseId { get; set; }
+
+    /// <summary>Set when this transaction is linked to an invoice for traceability.</summary>
+    public int? InvoiceId { get; set; }
 
     public int? TransTypeId { get; set; }
 
@@ -65,6 +69,8 @@ public partial class Transaction
     public virtual Order? Order { get; set; }
 
     public virtual Purchase? Purchase { get; set; }
+
+    public virtual Invoice? Invoice { get; set; }
 
     public virtual ICollection<Expense> Expenses { get; set; } = new List<Expense>();
 }

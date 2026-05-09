@@ -14,7 +14,7 @@ public class PurchaseDto
     public DateOnly? CreatedAt { get; set; }
     public decimal Total { get; set; }
     public decimal AmountPaid { get; set; }
-    public decimal Outstanding { get; set; }
+    public decimal Payable { get; set; }
     public string PaymentStatus { get; set; } = "Unpaid";
     public List<PurchaseLineDto> PurchaseLines { get; set; } = [];
 }
