@@ -307,7 +307,7 @@ private int? GetUserId()
 
 | Controller | Done endpoints |
 |---|---|
-| `AuthController` | POST register, login, logout, refresh, change-password, GET confirm-email, POST resend-email-confirmation, forgot-password, GET+POST reset-password |
+| `AuthController` | POST register, login, logout, refresh, change-password, GET confirm-email, POST resend-email-confirmation, forgot-password, GET+POST reset-password, POST biometric/setup, POST biometric/login, DELETE biometric/disable |
 | `UsersController` | POST / (admin create), GET /{id}, GET / (all), PUT /me, DELETE /{id}, GET /pdf |
 | `UserRolesController` | POST, GET all, GET /{id}, PUT /{id}, DELETE /{id}, GET /pdf |
 | `ClientController` | POST, GET all (AdminOnly), GET /me (scoped), GET /Filtered, GET /{id}, PUT /{id}, DELETE /{id}, GET /pdf |
@@ -324,6 +324,8 @@ private int? GetUserId()
 | `AppController` | GET /health, GET /info, GET /spec (downloads OpenAPI JSON for Orval) |
 | `ReportController` | GET profit-loss, profit-loss/pdf, client-balance, client-balance/{id}, client-balance/pdf, credit-debit, credit-debit/pdf, summary, summary/pdf, client-detail, client-detail/{id}, client-detail/{id}/pdf, client-detail/pdf |
 | `InvoiceController` | POST /, GET / (paginated), GET /{id} (detail with lines+transactions), GET /by-client/{clientId}, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf (all), GET /{id}/pdf (single), GET /by-client/{clientId}/pdf, GET /filtered/pdf |
+
+| `DashboardController` | GET /summary (role-scoped stats + recent orders), GET /monthly-overview (last N months chart data) |
 
 **Not yet created:** SyncController, DeviceController
 
@@ -359,7 +361,9 @@ See `todo/` for detailed task breakdowns:
 | `todo/09-users-admin-create.md` | ✅ Complete — admin can create pre-confirmed user accounts via POST /api/Users |
 | `todo/10-sync.md` | Backend sync push/pull (needs UpdatedAt migration + conflict strategy decision) |
 | `todo/11-push-notifications.md` | Device token + push provider (Expo Push recommended) |
-| `todo/12-frontend.md` | Everything on mobile |
+| `todo/12-frontend.md` | Everything on mobile — design prompt at `docs/mobile-design-prompt.md` |
+| `todo/13-dashboard.md` | Dashboard API — summary stats + monthly overview (role-scoped) |
+| `todo/14-biometric-auth.md` | Biometric auth — extend RefreshToken with IsBiometric flag, 3 new Auth endpoints |
 
 ---
 
