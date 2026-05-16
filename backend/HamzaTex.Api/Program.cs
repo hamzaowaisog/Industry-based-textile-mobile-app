@@ -94,6 +94,7 @@ builder.Services.AddScoped<IReportService, ReportService>();
     builder.Services.AddScoped<ILookupService, LookupService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPdfService, PdfService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.Configure<SmtpOptionsDto>(builder.Configuration.GetSection("Smtp"));
 builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSenderService>();
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
