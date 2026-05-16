@@ -11,6 +11,7 @@ public class RefreshToken
     public DateTime? RevokedAt { get; set; }
     public String? RevokedByIp { get; set; }
     public String? ReplacedByToken { get; set; }
+    public bool IsBiometric { get; set; } = false;
     public bool IsActive => RevokedAt == null && !IsExpired;
     public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
     public virtual ApplicationUser User { get; set; } = null!;

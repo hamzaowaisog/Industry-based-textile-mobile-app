@@ -1115,38 +1115,11 @@ ALTER TABLE `transactions` ADD CONSTRAINT `FK_transactions_invoices_invoice_id` 
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260508234017_AddInvoiceTables', '9.0.10');
 
+ALTER TABLE `refresh_tokens` ADD `IsBiometric` tinyint(1) NOT NULL DEFAULT FALSE;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260516201033_AddBiometricToRefreshTokens', '9.0.10');
+
 COMMIT;
 
--- ═══════════════════════════════════════════════════════════════
--- BACKFILL: Link existing transactions & payment allocations to invoices
--- Run manually after the invoice feature is deployed.
--- ═══════════════════════════════════════════════════════════════
-
--- 1) Link transactions to invoices via OrderId
-UPDATE transactions t
-JOIN invoices i ON i.order_id = t.OrderId
-SET t.invoice_id = i.id
-WHERE t.OrderId IS NOT NULL
-  AND t.invoice_id IS NULL;
-
--- 2) Link transactions to invoices via PurchaseId
-UPDATE transactions t
-JOIN invoices i ON i.purchase_id = t.PurchaseId
-SET t.invoice_id = i.id
-WHERE t.PurchaseId IS NOT NULL
-  AND t.invoice_id IS NULL;
-
--- 3) Link payment allocations to invoices via OrderId
-UPDATE payment_allocations pa
-JOIN invoices i ON i.order_id = pa.order_id
-SET pa.invoice_id = i.id
-WHERE pa.order_id IS NOT NULL
-  AND pa.invoice_id IS NULL;
-
--- 4) Link payment allocations to invoices via PurchaseId
-UPDATE payment_allocations pa
-JOIN invoices i ON i.purchase_id = pa.purchase_id
-SET pa.invoice_id = i.id
-WHERE pa.purchase_id IS NOT NULL
-  AND pa.invoice_id IS NULL;
 

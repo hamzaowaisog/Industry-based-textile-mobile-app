@@ -10,9 +10,11 @@ namespace HamzaTex.Api.Services;
 public interface IRefreshTokenService
 {
     Task<(RefreshToken? Entity, string? PlainToken)> CreateRefreshTokenAsync(int userId, string ipAddress);
+    Task<(RefreshToken? Entity, string? PlainToken)> CreateBiometricTokenAsync(int userId, string ipAddress);
     Task<RefreshToken?> GetRefreshTokenByTokenAsync(string token);
     Task RevokeRefreshTokenAsync(string token, string ipAddress);
     Task RevokeAllUserTokensAsync(int userId, string ipAddress);
+    Task RevokeBiometricTokensAsync(int userId, string ipAddress);
     Task<bool> IsRefreshTokenValidAsync(string token, bool checkinRefresh = false);
     Task CleanupExpiredTokensAsync();
 }
@@ -126,6 +128,60 @@ public class RefreshTokenService : IRefreshTokenService
         }
 
         return true;
+    }
+
+    public async Task<(RefreshToken? Entity, string? PlainToken)> CreateBiometricTokenAsync(int userId, string ipAddress)
+    {
+        // Revoke any existing active biometric tokens for this user
+        var existing = await _dbContext.RefreshTokens
+            .Where(rt => rt.UserId == userId && rt.IsBiometric && rt.RevokedAt == null)
+            .ToListAsync();
+
+        var now = DateTime.UtcNow;
+        foreach (var token in existing)
+        {
+            token.RevokedAt = now;
+            token.RevokedByIp = ipAddress;
+        }
+
+        if (existing.Count > 0)
+            await _dbContext.SaveChangesAsync();
+
+        var plainToken = JwtHelper.GenerateRefreshToken();
+        var hashedToken = HashToken(plainToken);
+
+        var refreshToken = new RefreshToken
+        {
+            Token = hashedToken,
+            UserId = userId,
+            ExpiresAt = DateTime.UtcNow.AddDays(30),
+            CreatedAt = DateTime.UtcNow,
+            CreatedByIp = ipAddress,
+            IsBiometric = true
+        };
+
+        await _dbContext.RefreshTokens.AddAsync(refreshToken);
+        await _dbContext.SaveChangesAsync();
+
+        return (refreshToken, plainToken);
+    }
+
+    public async Task RevokeBiometricTokensAsync(int userId, string ipAddress)
+    {
+        var tokens = await _dbContext.RefreshTokens
+            .Where(rt => rt.UserId == userId && rt.IsBiometric && rt.RevokedAt == null)
+            .ToListAsync();
+
+        if (tokens.Count == 0) return;
+
+        var now = DateTime.UtcNow;
+        foreach (var token in tokens)
+        {
+            token.RevokedAt = now;
+            token.RevokedByIp = ipAddress;
+        }
+
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task CleanupExpiredTokensAsync()

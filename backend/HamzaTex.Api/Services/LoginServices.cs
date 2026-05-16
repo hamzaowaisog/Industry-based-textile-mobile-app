@@ -19,6 +19,12 @@ public interface ILoginService
     Task<Response> LogoutAsync(string refreshToken);
     /// <summary>Revoke all refresh tokens for a user (logout all devices).</summary>
     Task<Response> LogoutAllAsync(int userId);
+    /// <summary>Create a long-lived biometric token for the user (replaces any existing one).</summary>
+    Task<Response<BiometricSetupResponseDto>> SetupBiometricAsync(int userId);
+    /// <summary>Validate a biometric token and return fresh access + refresh tokens.</summary>
+    Task<Response<LoginResponseDto>> BiometricLoginAsync(string biometricToken);
+    /// <summary>Revoke all biometric tokens for a user.</summary>
+    Task<Response> DisableBiometricAsync(int userId);
 }
 
 public class LoginService : ILoginService
@@ -215,5 +221,88 @@ public class LoginService : ILoginService
         await _refreshTokenService.RevokeAllUserTokensAsync(userId, ipAddress);
 
         return Response.SuccessResponse("Logged out from all devices successfully");
+    }
+
+    public async Task<Response<BiometricSetupResponseDto>> SetupBiometricAsync(int userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+            return Response<BiometricSetupResponseDto>.ErrorResponse("User not found");
+
+        if (!user.IsActive)
+            return Response<BiometricSetupResponseDto>.ErrorResponse("User account is inactive");
+
+        var ipAddress = GetClientIpAddress();
+        var (entity, plainToken) = await _refreshTokenService.CreateBiometricTokenAsync(userId, ipAddress);
+
+        if (entity == null || plainToken == null)
+            return Response<BiometricSetupResponseDto>.ErrorResponse("Failed to create biometric token");
+
+        return Response<BiometricSetupResponseDto>.SuccessResponse(
+            new BiometricSetupResponseDto
+            {
+                BiometricToken = plainToken,
+                ExpiresAt = entity.ExpiresAt
+            }, "Biometric authentication enabled");
+    }
+
+    public async Task<Response<LoginResponseDto>> BiometricLoginAsync(string biometricToken)
+    {
+        var tokenEntity = await _refreshTokenService.GetRefreshTokenByTokenAsync(biometricToken);
+
+        if (tokenEntity == null)
+            return Response<LoginResponseDto>.ErrorResponse("Invalid biometric token");
+
+        if (!tokenEntity.IsBiometric)
+            return Response<LoginResponseDto>.ErrorResponse("Invalid biometric token");
+
+        if (!tokenEntity.IsActive)
+            return Response<LoginResponseDto>.ErrorResponse("Biometric token has been revoked");
+
+        if (tokenEntity.IsExpired)
+            return Response<LoginResponseDto>.ErrorResponse("Biometric token has expired. Please log in with your password and re-enable biometrics.");
+
+        var user = tokenEntity.User;
+
+        if (!user.IsActive)
+            return Response<LoginResponseDto>.ErrorResponse("User account is inactive");
+
+        if (!user.RoleId.HasValue)
+            return Response<LoginResponseDto>.ErrorResponse("User role is not assigned");
+
+        var ipAddress = GetClientIpAddress();
+
+        // Revoke old biometric token (rotation)
+        await _refreshTokenService.RevokeRefreshTokenAsync(biometricToken, ipAddress);
+
+        // Generate new JWT access token
+        var accessToken = JwtHelper.GenerateToken(user.Id, user.Email, user.RoleId.Value);
+
+        // Create new rotated biometric token
+        var (newEntity, newPlainToken) = await _refreshTokenService.CreateBiometricTokenAsync(user.Id, ipAddress);
+
+        if (newEntity == null || newPlainToken == null)
+            return Response<LoginResponseDto>.ErrorResponse("Failed to create biometric token");
+
+        return Response<LoginResponseDto>.SuccessResponse(new LoginResponseDto
+        {
+            UserId = user.Id,
+            UserName = user.UserName ?? string.Empty,
+            Email = user.Email ?? string.Empty,
+            RoleId = user.RoleId.Value,
+            IsActive = user.IsActive,
+            CreatedAt = user.CreatedAt,
+            Token = accessToken,
+            RefreshToken = newPlainToken,
+            ExpiresAt = JwtHelper.GetTokenExpiration(),
+            RefreshTokenExpiresAt = newEntity.ExpiresAt
+        });
+    }
+
+    public async Task<Response> DisableBiometricAsync(int userId)
+    {
+        var ipAddress = GetClientIpAddress();
+        await _refreshTokenService.RevokeBiometricTokensAsync(userId, ipAddress);
+        return Response.SuccessResponse("Biometric authentication disabled");
     }
 }

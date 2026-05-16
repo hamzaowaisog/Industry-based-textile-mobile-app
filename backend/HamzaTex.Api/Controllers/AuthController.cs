@@ -234,4 +234,44 @@ public class AuthController : BaseController
         var response = await _userService.ResetPasswordAsync(dto);
         return ToActionResult(response);
     }
+
+    /// <summary>Enable biometric authentication for the current user. Returns a long-lived biometric token.</summary>
+    [HttpPost("biometric/setup")]
+    [Authorize(Policy = "Authenticated")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> BiometricSetup()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized("User identifier is missing or invalid in the token.");
+
+        return ToActionResult(await _loginService.SetupBiometricAsync(userId));
+    }
+
+    /// <summary>Login using a biometric token. Validates the token and returns fresh access + refresh tokens.</summary>
+    [HttpPost("biometric/login")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> BiometricLogin([FromBody] BiometricLoginViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
+
+        return ToActionResult(await _loginService.BiometricLoginAsync(model.BiometricToken));
+    }
+
+    /// <summary>Disable biometric authentication for the current user. Revokes all biometric tokens.</summary>
+    [HttpDelete("biometric/disable")]
+    [Authorize(Policy = "Authenticated")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> BiometricDisable()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized("User identifier is missing or invalid in the token.");
+
+        return ToActionResult(await _loginService.DisableBiometricAsync(userId));
+    }
 }
