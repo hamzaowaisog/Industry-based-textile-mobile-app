@@ -359,11 +359,11 @@ See `todo/` for detailed task breakdowns:
 | `todo/07-reports.md` | ✅ Complete — profit-loss, client-balance, credit-debit, summary, client-detail (all with PDF) |
 | `todo/08-invoices.md` | ✅ Complete — full Invoices API with auto-generation, lifecycle, payment tracking, directional PDFs |
 | `todo/09-users-admin-create.md` | ✅ Complete — admin can create pre-confirmed user accounts via POST /api/Users |
-| `todo/10-sync.md` | Backend sync push/pull (needs UpdatedAt migration + conflict strategy decision) |
-| `todo/11-push-notifications.md` | Device token + push provider (Expo Push recommended) |
-| `todo/12-frontend.md` | Everything on mobile — design prompt at `docs/mobile-design-prompt.md` |
-| `todo/13-dashboard.md` | Dashboard API — summary stats + monthly overview (role-scoped) |
-| `todo/14-biometric-auth.md` | Biometric auth — extend RefreshToken with IsBiometric flag, 3 new Auth endpoints |
+| `todo/10-sync.md` | ✅ Complete — push (create+update+conflict), full-pull, delta-pull, ping; all 13 lookups + 3 views included in pull response |
+| `todo/11-push-notifications.md` | Device token registration + FCM push provider (not started) |
+| `todo/12-frontend.md` | Everything on mobile — design prompt at `docs/mobile-design-prompt.md` (not started) |
+| `todo/13-dashboard.md` | ✅ Complete — GET /summary (role-scoped stats + recent orders), GET /monthly-overview |
+| `todo/14-biometric-auth.md` | ✅ Complete — biometric setup, login, disable endpoints; IsBiometric flag on RefreshToken |
 
 ---
 
