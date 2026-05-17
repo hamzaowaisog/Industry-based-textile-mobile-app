@@ -4,6 +4,7 @@ using HamzaTex.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HamzaTex.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260517101727_AddVersionAndDateTimeUpdatedAt")]
+    partial class AddVersionAndDateTimeUpdatedAt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -383,9 +386,6 @@ namespace HamzaTex.Api.Migrations
                     b.Property<DateTime?>("IssueDate")
                         .HasColumnType("date")
                         .HasColumnName("issue_date");
-
-                    b.Property<string>("LocalId")
-                        .HasColumnType("longtext");
 
                     b.Property<string>("Notes")
                         .HasColumnType("longtext")
@@ -928,9 +928,6 @@ namespace HamzaTex.Api.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
-                    b.Property<string>("LocalId")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("varchar(255)")
@@ -1389,9 +1386,6 @@ namespace HamzaTex.Api.Migrations
                     b.Property<int?>("InvoiceId")
                         .HasColumnType("int")
                         .HasColumnName("invoice_id");
-
-                    b.Property<string>("LocalId")
-                        .HasColumnType("longtext");
 
                     b.Property<string>("Notes")
                         .HasColumnType("longtext")

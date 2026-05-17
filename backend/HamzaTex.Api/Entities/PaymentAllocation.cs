@@ -22,6 +22,10 @@ public partial class PaymentAllocation
 
     public decimal AllocatedAmount { get; set; }
 
+    public DateTime? UpdatedAt { get; set; }
+
+    public int Version { get; set; } = 1;
+
     public int? InvoiceId { get; set; }
 
     public virtual Payment Payment { get; set; } = null!;

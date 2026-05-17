@@ -37,6 +37,12 @@ public partial class Invoice
 
     public DateOnly CreatedAt { get; set; }
 
+    public DateTime? UpdatedAt { get; set; }
+
+    public int Version { get; set; } = 1;
+
+    public string? LocalId { get; set; }
+
     public virtual Order? Order { get; set; }
     public virtual Purchase? Purchase { get; set; }
     public virtual Client? Client { get; set; }

@@ -35,6 +35,12 @@ public partial class StockMovement
 
     public DateOnly MovementDate { get; set; }
 
+    public DateTime? UpdatedAt { get; set; }
+
+    public string? LocalId { get; set; }
+
+    public int Version { get; set; } = 1;
+
     public virtual Product? Product { get; set; }
     public virtual MovementType? MovementType { get; set; }
     public virtual MovementSource? MovementSource { get; set; }

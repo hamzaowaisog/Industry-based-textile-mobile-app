@@ -1120,6 +1120,111 @@ ALTER TABLE `refresh_tokens` ADD `IsBiometric` tinyint(1) NOT NULL DEFAULT FALSE
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260516201033_AddBiometricToRefreshTokens', '9.0.10');
 
+ALTER TABLE `transactions` ADD `UpdatedAt` date NULL;
+
+ALTER TABLE `stock_movements` ADD `LocalId` longtext CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `stock_movements` ADD `UpdatedAt` date NULL;
+
+ALTER TABLE `purchases` ADD `LocalId` longtext CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `purchases` ADD `UpdatedAt` date NULL;
+
+ALTER TABLE `purchase_lines` ADD `UpdatedAt` date NULL;
+
+ALTER TABLE `products` ADD `UpdatedAt` date NULL;
+
+ALTER TABLE `payments` ADD `LocalId` longtext CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `payments` ADD `UpdatedAt` date NULL;
+
+ALTER TABLE `payment_allocations` ADD `UpdatedAt` date NULL;
+
+ALTER TABLE `orders` ADD `LocalId` longtext CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `orders` ADD `UpdatedAt` date NULL;
+
+ALTER TABLE `order_lines` ADD `UpdatedAt` date NULL;
+
+ALTER TABLE `invoices` ADD `UpdatedAt` date NULL;
+
+ALTER TABLE `invoice_lines` ADD `UpdatedAt` date NULL;
+
+ALTER TABLE `expenses` ADD `LocalId` longtext CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `expenses` ADD `UpdatedAt` date NULL;
+
+ALTER TABLE `clients` ADD `LocalId` longtext CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `clients` ADD `UpdatedAt` date NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260517083520_AddUpdatedAtAndLocalIdToSyncableEntities', '9.0.10');
+
+ALTER TABLE `transactions` MODIFY COLUMN `UpdatedAt` datetime(6) NULL;
+
+ALTER TABLE `transactions` ADD `Version` int NOT NULL DEFAULT 0;
+
+ALTER TABLE `stock_movements` MODIFY COLUMN `UpdatedAt` datetime(6) NULL;
+
+ALTER TABLE `stock_movements` ADD `Version` int NOT NULL DEFAULT 0;
+
+ALTER TABLE `purchases` MODIFY COLUMN `UpdatedAt` datetime(6) NULL;
+
+ALTER TABLE `purchases` ADD `Version` int NOT NULL DEFAULT 0;
+
+ALTER TABLE `purchase_lines` MODIFY COLUMN `UpdatedAt` datetime(6) NULL;
+
+ALTER TABLE `purchase_lines` ADD `Version` int NOT NULL DEFAULT 0;
+
+ALTER TABLE `products` MODIFY COLUMN `UpdatedAt` datetime(6) NULL;
+
+ALTER TABLE `products` ADD `Version` int NOT NULL DEFAULT 0;
+
+ALTER TABLE `payments` MODIFY COLUMN `UpdatedAt` datetime(6) NULL;
+
+ALTER TABLE `payments` ADD `Version` int NOT NULL DEFAULT 0;
+
+ALTER TABLE `payment_allocations` MODIFY COLUMN `UpdatedAt` datetime(6) NULL;
+
+ALTER TABLE `payment_allocations` ADD `Version` int NOT NULL DEFAULT 0;
+
+ALTER TABLE `orders` MODIFY COLUMN `UpdatedAt` datetime(6) NULL;
+
+ALTER TABLE `orders` ADD `Version` int NOT NULL DEFAULT 0;
+
+ALTER TABLE `order_lines` MODIFY COLUMN `UpdatedAt` datetime(6) NULL;
+
+ALTER TABLE `order_lines` ADD `Version` int NOT NULL DEFAULT 0;
+
+ALTER TABLE `invoices` MODIFY COLUMN `UpdatedAt` datetime(6) NULL;
+
+ALTER TABLE `invoices` ADD `Version` int NOT NULL DEFAULT 0;
+
+ALTER TABLE `invoice_lines` MODIFY COLUMN `UpdatedAt` datetime(6) NULL;
+
+ALTER TABLE `invoice_lines` ADD `Version` int NOT NULL DEFAULT 0;
+
+ALTER TABLE `expenses` MODIFY COLUMN `UpdatedAt` datetime(6) NULL;
+
+ALTER TABLE `expenses` ADD `Version` int NOT NULL DEFAULT 0;
+
+ALTER TABLE `clients` MODIFY COLUMN `UpdatedAt` datetime(6) NULL;
+
+ALTER TABLE `clients` ADD `Version` int NOT NULL DEFAULT 0;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260517101727_AddVersionAndDateTimeUpdatedAt', '9.0.10');
+
+ALTER TABLE `transactions` ADD `LocalId` longtext CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `products` ADD `LocalId` longtext CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `invoices` ADD `LocalId` longtext CHARACTER SET utf8mb4 NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260517103944_AddLocalIdToProductTransactionInvoice', '9.0.10');
+
 COMMIT;
 
 

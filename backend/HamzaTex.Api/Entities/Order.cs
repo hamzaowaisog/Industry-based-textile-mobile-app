@@ -30,6 +30,12 @@ public partial class Order
 
     public DateOnly? CreatedAt { get; set; }
 
+    public DateTime? UpdatedAt { get; set; }
+
+    public string? LocalId { get; set; }
+
+    public int Version { get; set; } = 1;
+
     public virtual Client? Client { get; set; }
     public virtual OrderStatus? Status { get; set; }
     public virtual PaymentType? PaymentType { get; set; }

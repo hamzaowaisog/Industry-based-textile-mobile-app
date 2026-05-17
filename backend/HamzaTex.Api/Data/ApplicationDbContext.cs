@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace HamzaTex.Api.Data;
 
@@ -80,6 +83,26 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
 
     public virtual DbSet<ProductUser> ProductUsers { get; set; }
 
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified))
+        {
+            if (entry.Properties.Any(p => p.Metadata.Name == "UpdatedAt"))
+            {
+                entry.Property("UpdatedAt").CurrentValue = DateTime.UtcNow;
+            }
+
+            if (entry.State == EntityState.Modified &&
+                entry.Properties.Any(p => p.Metadata.Name == "Version"))
+            {
+                entry.Property("Version").CurrentValue = (int)entry.Property("Version").CurrentValue + 1;
+            }
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -104,6 +127,18 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                             d => d.HasValue ? d.Value.ToDateTime(TimeOnly.MinValue) : null,
                             dt => dt.HasValue ? DateOnly.FromDateTime(dt.Value) : null));
                     property.SetColumnType("date");
+                }
+            }
+        }
+
+        // Set UpdatedAt DateTime? columns to datetime(6) for microsecond precision
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.Name == "UpdatedAt" && property.ClrType == typeof(DateTime?))
+                {
+                    property.SetColumnType("datetime(6)");
                 }
             }
         }

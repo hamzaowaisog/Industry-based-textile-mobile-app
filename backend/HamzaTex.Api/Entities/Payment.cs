@@ -33,6 +33,12 @@ public partial class Payment
 
     public DateOnly? CreatedAt { get; set; }
 
+    public DateTime? UpdatedAt { get; set; }
+
+    public string? LocalId { get; set; }
+
+    public int Version { get; set; } = 1;
+
     public int? UserId { get; set; }
 
     public bool IsReversed { get; set; }
