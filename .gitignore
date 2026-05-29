@@ -259,3 +259,5 @@ _bmad/
 firebase-service-account.json
 google-services.json
 GoogleService-Info.plist
+*.md
+!README.md
