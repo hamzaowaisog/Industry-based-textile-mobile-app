@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
@@ -10,7 +12,9 @@ namespace HamzaTex.Api.Entities;
 [Index(nameof(IsActive), nameof(Name), Name = "IX_products_is_active_name")]
 public partial class Product
 {
-    public Guid Id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -22,11 +26,31 @@ public partial class Product
 
     public decimal? DefaultPrice { get; set; }
 
+    public decimal? Quantity { get; set; }
+
+    public decimal? AverageCost { get; set; }
+
+    public decimal? AveragePrice { get; set; }
+
+    public int CostChangeCount { get; set; }
+
+    public int PriceChangeCount { get; set; }
+    
+    public decimal? TotalQuantityPurchased { get; set; }
+    
+    public decimal? TotalQuantitySold { get; set; }
+
     public int? ReorderLevel { get; set; }
 
     public bool? IsActive { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public int Version { get; set; } = 1;
+
+    public string? LocalId { get; set; }
 
     public virtual ICollection<OrderLine> OrderLines { get; set; } = new List<OrderLine>();
 
@@ -35,4 +59,6 @@ public partial class Product
     public virtual ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
 
     public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+    
+    public virtual ICollection<ProductUser> ProductUsers { get; set; } = new List<ProductUser>();
 }

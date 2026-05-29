@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
@@ -14,21 +16,35 @@ namespace HamzaTex.Api.Entities;
 [Index(nameof(ClientId), nameof(TransDate), Name = "IX_transactions_client_date")]
 [Index(nameof(TransTypeId), nameof(TransDate), Name = "IX_transactions_type_date")]
 [Index(nameof(UserId), nameof(TransDate), Name = "IX_transactions_user_date")]
+[Index(nameof(OrderId), Name = "IX_transactions_order_id")]
+[Index(nameof(PurchaseId), Name = "IX_transactions_purchase_id")]
+[Index(nameof(InvoiceId), Name = "IX_transactions_invoice_id")]
 public partial class Transaction
 {
-    public Guid Id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
-    public Guid? ClientId { get; set; }
+    public int? ClientId { get; set; }
 
-    public Guid? ProductId { get; set; }
+    public int? ProductId { get; set; }
 
-    public Guid? UserId { get; set; }
+    public int? UserId { get; set; }
 
-    public Guid? TransTypeId { get; set; }
+    /// <summary>Set when this transaction was created by an order (sale). Null for payments, expenses, and manual entries.</summary>
+    public int? OrderId { get; set; }
 
-    public Guid? TransModeId { get; set; }
+    /// <summary>Set when this transaction was created by a purchase. Null for sales, payments, expenses, and manual entries.</summary>
+    public int? PurchaseId { get; set; }
 
-    public Guid? TransCategoryId { get; set; }
+    /// <summary>Set when this transaction is linked to an invoice for traceability.</summary>
+    public int? InvoiceId { get; set; }
+
+    public int? TransTypeId { get; set; }
+
+    public int? TransModeId { get; set; }
+
+    public int? TransCategoryId { get; set; }
 
     public decimal Amount { get; set; }
 
@@ -36,17 +52,31 @@ public partial class Transaction
 
     public string? Notes { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public int Version { get; set; } = 1;
+
+    public string? LocalId { get; set; }
 
     public virtual Client? Client { get; set; }
 
     public virtual Product? Product { get; set; }
 
-    public virtual User? User { get; set; }
+    public virtual ApplicationUser? User { get; set; }
 
     public virtual TransType? TransType { get; set; }
 
     public virtual TransMode? TransMode { get; set; }
 
     public virtual TransCategory? TransCategory { get; set; }
+
+    public virtual Order? Order { get; set; }
+
+    public virtual Purchase? Purchase { get; set; }
+
+    public virtual Invoice? Invoice { get; set; }
+
+    public virtual ICollection<Expense> Expenses { get; set; } = new List<Expense>();
 }

@@ -1,0 +1,41 @@
+using FluentValidation;
+using HamzaTex.Api.Services.ViewModel;
+
+namespace HamzaTex.Api.Validation;
+
+public sealed class OrderCreateViewModelValidation : AbstractValidator<OrderCreateViewModel>
+{
+    public OrderCreateViewModelValidation()
+    {
+        RuleFor(x => x.ClientId)
+            .GreaterThan(0).WithMessage("ClientId is required");
+
+        RuleFor(x => x.PaymentTypeId)
+            .GreaterThan(0).WithMessage("PaymentTypeId is required");
+
+        RuleFor(x => x.Lines)
+            .NotEmpty().WithMessage("At least one order line is required");
+
+        RuleForEach(x => x.Lines).ChildRules(line =>
+        {
+            line.RuleFor(l => l.ProductId)
+                .GreaterThan(0).WithMessage("ProductId is required");
+            line.RuleFor(l => l.Qty)
+                .GreaterThan(0).WithMessage("Qty must be greater than 0");
+            line.RuleFor(l => l.UnitPrice)
+                .GreaterThan(0).WithMessage("UnitPrice must be greater than 0");
+        });
+    }
+}
+
+public sealed class OrderUpdateViewModelValidation : AbstractValidator<OrderUpdateViewModel>
+{
+    public OrderUpdateViewModelValidation()
+    {
+        RuleFor(x => x.StatusId)
+            .GreaterThan(0).WithMessage("StatusId is required");
+
+        RuleFor(x => x.PaymentTypeId)
+            .GreaterThan(0).WithMessage("PaymentTypeId is required");
+    }
+}
