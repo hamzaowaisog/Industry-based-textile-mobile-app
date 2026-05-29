@@ -42,6 +42,7 @@ public class PaymentService : IPaymentService
 {
     private readonly ApplicationDbContext _db;
     private readonly IInvoiceService _invoiceService;
+    private readonly IPushNotificationService _push;
 
     // Seeded direction IDs
     private const int DirectionReceived = 1;
@@ -73,10 +74,11 @@ public class PaymentService : IPaymentService
     private const int ClientTypeCustomer = 1;
     private const int ClientTypeSupplier = 2;
 
-    public PaymentService(ApplicationDbContext db, IInvoiceService invoiceService)
+    public PaymentService(ApplicationDbContext db, IInvoiceService invoiceService, IPushNotificationService push)
     {
         _db = db;
         _invoiceService = invoiceService;
+        _push = push;
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -208,6 +210,14 @@ public class PaymentService : IPaymentService
                 await _invoiceService.TryMarkPaidAsync(invoiceId);
 
             await txn.CommitAsync();
+
+            // Push notification
+            var notificationType = model.PaymentDirectionId == DirectionReceived ? "payment_received" : "payment_paid";
+            _ = _push.SendTypedAsync(userId, notificationType, new Dictionary<string, string>
+            {
+                ["clientName"] = client.Name ?? "Client",
+                ["amount"] = model.Amount.ToString("F2")
+            });
 
             return await GetByIdAsync(payment.Id);
         }
@@ -407,6 +417,12 @@ public class PaymentService : IPaymentService
             await _db.SaveChangesAsync();
 
             await txn.CommitAsync();
+
+            _ = _push.SendTypedAsync(adminUserId, "payment_reversed", new Dictionary<string, string>
+            {
+                ["amount"] = original.Amount.ToString("F2")
+            });
+
             return await GetByIdAsync(reversalPayment.Id);
         }
         catch

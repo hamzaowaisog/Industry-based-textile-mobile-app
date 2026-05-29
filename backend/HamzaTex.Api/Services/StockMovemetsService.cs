@@ -39,11 +39,13 @@ public class StockMovementsService : IStockMovementsService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IProductService _productService;
+    private readonly IPushNotificationService _push;
 
-    public StockMovementsService(ApplicationDbContext dbContext, IProductService productService)
+    public StockMovementsService(ApplicationDbContext dbContext, IProductService productService, IPushNotificationService push)
     {
         _dbContext = dbContext;
         _productService = productService;
+        _push = push;
     }
 
     public async Task<Response<StockMovementsDto>> CreateAsync(CreateStockMovementsDto model, int userId)
@@ -180,6 +182,20 @@ public class StockMovementsService : IStockMovementsService
             await _dbContext.StockMovements.AddAsync(entity);
             await _dbContext.SaveChangesAsync();
             if (ownTransaction) await transaction!.CommitAsync();
+
+            // Low stock alert — only for Out movements after commit
+            if (resolvedMovementType == 2 && productData.ReorderLevel.HasValue && productData.ReorderLevel > 0)
+            {
+                var newQty = productData.Quantity ?? 0;
+                if (newQty <= productData.ReorderLevel.Value)
+                {
+                    _ = _push.SendTypedAsync(userId, "low_stock", new Dictionary<string, string>
+                    {
+                        ["productName"] = productData.Name ?? "Product",
+                        ["qty"] = newQty.ToString()
+                    });
+                }
+            }
 
             // Reload with navigation properties so names are populated in the response
             var saved = await _dbContext.StockMovements

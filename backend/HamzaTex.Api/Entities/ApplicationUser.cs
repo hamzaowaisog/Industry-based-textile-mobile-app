@@ -33,5 +33,6 @@ public class ApplicationUser : IdentityUser<int>
     public virtual ICollection<Client> Clients { get; set; } = new List<Client>();
     public virtual ICollection<Expense> Expenses { get; set; } = new List<Expense>();
     public virtual ICollection<ProductUser> ProductUsers { get; set; } = new List<ProductUser>();
+    public virtual ICollection<DeviceToken> DeviceTokens { get; set; } = new List<DeviceToken>();
 }
 

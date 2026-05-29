@@ -40,15 +40,17 @@ public interface IInvoiceService
 public class InvoiceService : IInvoiceService
 {
     private readonly ApplicationDbContext _db;
+    private readonly IPushNotificationService _push;
 
     private const int StatusDraft     = 1;
     private const int StatusIssued    = 2;
     private const int StatusPaid      = 3;
     private const int StatusCancelled = 4;
 
-    public InvoiceService(ApplicationDbContext db)
+    public InvoiceService(ApplicationDbContext db, IPushNotificationService push)
     {
         _db = db;
+        _push = push;
     }
 
     // ── Number generation ────────────────────────────────────────────────────
@@ -334,9 +336,18 @@ public class InvoiceService : IInvoiceService
 
         if (model.InvoiceStatusId.HasValue)
         {
+            var wasIssued = invoice.InvoiceStatusId == StatusIssued;
             invoice.InvoiceStatusId = model.InvoiceStatusId.Value;
             if (model.InvoiceStatusId.Value == StatusIssued && invoice.IssueDate is null)
                 invoice.IssueDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            if (model.InvoiceStatusId.Value == StatusIssued && !wasIssued && invoice.CreatedByUserId.HasValue)
+            {
+                _ = _push.SendTypedAsync(invoice.CreatedByUserId.Value, "invoice_issued", new Dictionary<string, string>
+                {
+                    ["invoiceNumber"] = invoice.InvoiceNumber,
+                    ["amount"] = invoice.TotalAmount.ToString("F2")
+                });
+            }
         }
         if (model.DueDate.HasValue)         invoice.DueDate         = model.DueDate.Value;
         if (model.Notes is not null)        invoice.Notes           = model.Notes;

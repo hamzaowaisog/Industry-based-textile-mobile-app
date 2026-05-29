@@ -1225,6 +1225,24 @@ ALTER TABLE `invoices` ADD `LocalId` longtext CHARACTER SET utf8mb4 NULL;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260517103944_AddLocalIdToProductTransactionInvoice', '9.0.10');
 
+CREATE TABLE `DeviceTokens` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `UserId` int NOT NULL,
+    `PushToken` longtext CHARACTER SET utf8mb4 NOT NULL,
+    `DeviceType` longtext CHARACTER SET utf8mb4 NOT NULL,
+    `AppVersion` longtext CHARACTER SET utf8mb4 NULL,
+    `RegisteredAt` datetime(6) NOT NULL,
+    `LastUsedAt` datetime(6) NULL,
+    `IsActive` tinyint(1) NOT NULL,
+    CONSTRAINT `PK_DeviceTokens` PRIMARY KEY (`Id`),
+    CONSTRAINT `FK_DeviceTokens_users_UserId` FOREIGN KEY (`UserId`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET=utf8mb4;
+
+CREATE INDEX `IX_DeviceTokens_UserId` ON `DeviceTokens` (`UserId`);
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260529165511_AddDeviceTokenTable', '9.0.10');
+
 COMMIT;
 
 

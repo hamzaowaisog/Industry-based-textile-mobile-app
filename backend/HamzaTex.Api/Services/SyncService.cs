@@ -36,6 +36,7 @@ public class SyncService : ISyncService
     private readonly IProductService _productService;
     private readonly ITransactionService _transactionService;
     private readonly IInvoiceService _invoiceService;
+    private readonly IPushNotificationService _push;
 
     private static readonly JsonSerializerOptions _jsonOpts = new()
     {
@@ -53,7 +54,8 @@ public class SyncService : ISyncService
         IStockMovementsService stockMovementsService,
         IProductService productService,
         ITransactionService transactionService,
-        IInvoiceService invoiceService)
+        IInvoiceService invoiceService,
+        IPushNotificationService push)
     {
         _db = db;
         _clientService = clientService;
@@ -65,50 +67,65 @@ public class SyncService : ISyncService
         _productService = productService;
         _transactionService = transactionService;
         _invoiceService = invoiceService;
+        _push = push;
     }
 
     // ─── Push ─────────────────────────────────────────────────────────────────
 
     public async Task<Response<SyncPushResultDto>> PushAsync(SyncPushDto model, int userId, bool isAdmin)
     {
-        var results = new List<SyncItemResultDto>();
-
-        foreach (var item in model.Clients)
-            results.Add(await ProcessClientPush(item, userId, isAdmin));
-
-        foreach (var item in model.Products)
-            results.Add(await ProcessProductPush(item, userId, isAdmin));
-
-        foreach (var item in model.Orders)
-            results.Add(await ProcessOrderPush(item, userId, isAdmin));
-
-        foreach (var item in model.Purchases)
-            results.Add(await ProcessPurchasePush(item, userId, isAdmin));
-
-        foreach (var item in model.Payments)
-            results.Add(await ProcessPaymentPush(item, userId, isAdmin));
-
-        foreach (var item in model.Expenses)
-            results.Add(await ProcessExpensePush(item, userId, isAdmin));
-
-        foreach (var item in model.StockMovements)
-            results.Add(await ProcessStockMovementPush(item, userId, isAdmin));
-
-        foreach (var item in model.Transactions)
-            results.Add(await ProcessTransactionPush(item, userId, isAdmin));
-
-        foreach (var item in model.Invoices)
-            results.Add(await ProcessInvoicePush(item, userId, isAdmin));
-
-        var pushResult = new SyncPushResultDto
+        try
         {
-            Results = results,
-            AcceptedCount = results.Count(r => r.Status is "created" or "updated" or "accepted"),
-            RejectedCount = results.Count(r => r.Status is "rejected" or "conflict"),
-            ServerTime = DateTime.UtcNow
-        };
+            var results = new List<SyncItemResultDto>();
 
-        return Response<SyncPushResultDto>.SuccessResponse(pushResult, "Sync push completed.");
+            foreach (var item in model.Clients)
+                results.Add(await ProcessClientPush(item, userId, isAdmin));
+
+            foreach (var item in model.Products)
+                results.Add(await ProcessProductPush(item, userId, isAdmin));
+
+            foreach (var item in model.Orders)
+                results.Add(await ProcessOrderPush(item, userId, isAdmin));
+
+            foreach (var item in model.Purchases)
+                results.Add(await ProcessPurchasePush(item, userId, isAdmin));
+
+            foreach (var item in model.Payments)
+                results.Add(await ProcessPaymentPush(item, userId, isAdmin));
+
+            foreach (var item in model.Expenses)
+                results.Add(await ProcessExpensePush(item, userId, isAdmin));
+
+            foreach (var item in model.StockMovements)
+                results.Add(await ProcessStockMovementPush(item, userId, isAdmin));
+
+            foreach (var item in model.Transactions)
+                results.Add(await ProcessTransactionPush(item, userId, isAdmin));
+
+            foreach (var item in model.Invoices)
+                results.Add(await ProcessInvoicePush(item, userId, isAdmin));
+
+            var pushResult = new SyncPushResultDto
+            {
+                Results = results,
+                AcceptedCount = results.Count(r => r.Status is "created" or "updated" or "accepted"),
+                RejectedCount = results.Count(r => r.Status is "rejected" or "conflict"),
+                ServerTime = DateTime.UtcNow
+            };
+
+            var notifType = pushResult.RejectedCount == 0 ? "sync_complete" : "sync_partial";
+            var notifVars = pushResult.RejectedCount == 0
+                ? new Dictionary<string, string> { ["count"] = pushResult.AcceptedCount.ToString(), ["total"] = results.Count.ToString() }
+                : new Dictionary<string, string> { ["rejected"] = pushResult.RejectedCount.ToString(), ["total"] = results.Count.ToString() };
+            _ = _push.SendTypedAsync(userId, notifType, notifVars);
+
+            return Response<SyncPushResultDto>.SuccessResponse(pushResult, "Sync push completed.");
+        }
+        catch
+        {
+            _ = _push.SendTypedAsync(userId, "sync_failed", new Dictionary<string, string>());
+            throw;
+        }
     }
 
     // ─── Client Push ──────────────────────────────────────────────────────────

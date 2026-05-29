@@ -90,19 +90,17 @@ public class AuthController : BaseController
     {
         Response response;
 
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var currentUserId))
+            return Unauthorized("User identifier is missing or invalid in the token.");
+
         if (request != null && !string.IsNullOrWhiteSpace(request.RefreshToken))
         {
-            response = await _loginService.LogoutAsync(request.RefreshToken);
+            response = await _loginService.LogoutAsync(request.RefreshToken, currentUserId, request.PushToken);
         }
         else
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-            {
-                return Unauthorized("User identifier is missing or invalid in the token.");
-            }
-
-            response = await _loginService.LogoutAllAsync(userId);
+            response = await _loginService.LogoutAllAsync(currentUserId);
         }
 
         return ToActionResult(response);

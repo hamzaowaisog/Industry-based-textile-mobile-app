@@ -36,6 +36,7 @@ public class PurchaseService : IPurchaseService
     private readonly IStockMovementsService _stockMovementsService;
     private readonly IPaymentService _paymentService;
     private readonly IInvoiceService _invoiceService;
+    private readonly IPushNotificationService _push;
 
     // Seed IDs
     private const int StatusPending = 1;
@@ -51,12 +52,13 @@ public class PurchaseService : IPurchaseService
     private const int MovementSourceManual = 3;
     private const int MovementTypeOut = 2;
 
-    public PurchaseService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService, IInvoiceService invoiceService)
+    public PurchaseService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService, IInvoiceService invoiceService, IPushNotificationService push)
     {
         _dbContext = dbContext;
         _stockMovementsService = stockMovementsService;
         _paymentService = paymentService;
         _invoiceService = invoiceService;
+        _push = push;
     }
 
     public async Task<Response<PurchaseDto>> CreateAsync(CreatePurchaseDto model, int userId)
@@ -319,6 +321,11 @@ public class PurchaseService : IPurchaseService
             await _paymentService.ApplyUnallocatedCreditAsync(purchase.SupplierId ?? 0, null, purchase.Id);
 
             var reloaded = await LoadPurchaseWithIncludes(purchase.Id);
+            _ = _push.SendTypedAsync(userId, "purchase_delivered", new Dictionary<string, string>
+            {
+                ["purchaseId"] = purchase.Id.ToString(),
+                ["supplierName"] = purchase.Supplier?.Name ?? "Supplier"
+            });
             return Response<PurchaseDto>.SuccessResponse(ToDto(reloaded!), "Purchase delivered. Stock and ledger updated.");
         }
         catch (Exception ex)

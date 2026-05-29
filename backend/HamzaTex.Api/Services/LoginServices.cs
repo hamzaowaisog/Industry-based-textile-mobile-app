@@ -15,9 +15,9 @@ public interface ILoginService
     Task<Response<LoginResponseDto>> LoginAsync(LoginDto model);
     /// <summary>Exchange a valid refresh token for a new access token and rotated refresh token.</summary>
     Task<Response<LoginResponseDto>> RefreshTokenAsync(string refreshToken);
-    /// <summary>Revoke a specific refresh token (logout current device).</summary>
-    Task<Response> LogoutAsync(string refreshToken);
-    /// <summary>Revoke all refresh tokens for a user (logout all devices).</summary>
+    /// <summary>Revoke a specific refresh token and deregister the device's push token (logout current device).</summary>
+    Task<Response> LogoutAsync(string refreshToken, int userId, string? pushToken = null);
+    /// <summary>Revoke all refresh tokens and deregister all push tokens for a user (logout all devices).</summary>
     Task<Response> LogoutAllAsync(int userId);
     /// <summary>Create a long-lived biometric token for the user (replaces any existing one).</summary>
     Task<Response<BiometricSetupResponseDto>> SetupBiometricAsync(int userId);
@@ -33,17 +33,20 @@ public class LoginService : ILoginService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IDeviceService _deviceService;
 
     public LoginService(
-        SignInManager<ApplicationUser> signInManager, 
+        SignInManager<ApplicationUser> signInManager,
         UserManager<ApplicationUser> userManager,
         IRefreshTokenService refreshTokenService,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IDeviceService deviceService)
     {
         _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         _refreshTokenService = refreshTokenService ?? throw new ArgumentNullException(nameof(refreshTokenService));
         _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+        _deviceService = deviceService;
     }
 
     private string GetClientIpAddress()
@@ -207,10 +210,13 @@ public class LoginService : ILoginService
         });
     }
 
-    public async Task<Response> LogoutAsync(string refreshToken)
+    public async Task<Response> LogoutAsync(string refreshToken, int userId, string? pushToken = null)
     {
         var ipAddress = GetClientIpAddress();
         await _refreshTokenService.RevokeRefreshTokenAsync(refreshToken, ipAddress);
+
+        if (!string.IsNullOrWhiteSpace(pushToken))
+            await _deviceService.UnregisterAsync(pushToken, userId);
 
         return Response.SuccessResponse("Logged out successfully");
     }
@@ -219,6 +225,7 @@ public class LoginService : ILoginService
     {
         var ipAddress = GetClientIpAddress();
         await _refreshTokenService.RevokeAllUserTokensAsync(userId, ipAddress);
+        await _deviceService.UnregisterAllAsync(userId);
 
         return Response.SuccessResponse("Logged out from all devices successfully");
     }

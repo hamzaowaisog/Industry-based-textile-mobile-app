@@ -158,6 +158,7 @@ public interface IExpenseService
 public class ExpenseService : IExpenseService
 {
     private readonly ApplicationDbContext _db;
+    private readonly IPushNotificationService _push;
 
     private const int TransTypeDebit = 1;
 
@@ -170,16 +171,17 @@ public class ExpenseService : IExpenseService
         { 2, 4 }
     };
 
-    public ExpenseService(ApplicationDbContext db)
+    public ExpenseService(ApplicationDbContext db, IPushNotificationService push)
     {
         _db = db;
+        _push = push;
     }
 
     public async Task<Response<ExpenseDto>> CreateAsync(CreateExpenseDto model, int userId)
     {
         // 1. Verify ExpenseTypeId exists
-        var expenseTypeExists = await _db.ExpenseTypes.AnyAsync(t => t.Id == model.ExpenseTypeId);
-        if (!expenseTypeExists)
+        var expenseType = await _db.ExpenseTypes.FindAsync(model.ExpenseTypeId);
+        if (expenseType is null)
             return Response<ExpenseDto>.ErrorResponse("Not found", "Expense type not found.");
 
         // 2. Derive TransCategoryId
@@ -240,6 +242,13 @@ public class ExpenseService : IExpenseService
             await _db.SaveChangesAsync();
 
             await txn.CommitAsync();
+
+            _ = _push.SendTypedAsync(userId, "expense_approved", new Dictionary<string, string>
+            {
+                ["amount"] = model.Amount.ToString("F2"),
+                ["category"] = expenseType.Name ?? "Expense"
+            });
+
             return await GetByIdAsync(expense.Id);
         }
         catch

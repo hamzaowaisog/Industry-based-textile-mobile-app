@@ -254,3 +254,8 @@ _bmad/
 
 # Convention for notes not meant for git
 *.local.md
+
+# Firebase secrets — never commit these
+firebase-service-account.json
+google-services.json
+GoogleService-Info.plist

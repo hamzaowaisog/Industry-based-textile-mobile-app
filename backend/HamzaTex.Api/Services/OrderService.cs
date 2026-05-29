@@ -36,6 +36,7 @@ public class OrderService : IOrderService
     private readonly IStockMovementsService _stockMovementsService;
     private readonly IPaymentService _paymentService;
     private readonly IInvoiceService _invoiceService;
+    private readonly IPushNotificationService _push;
 
     // Seed IDs
     private const int StatusPending = 1;
@@ -51,12 +52,13 @@ public class OrderService : IOrderService
     private const int MovementSourceManual = 3;
     private const int MovementTypeIn = 1;
 
-    public OrderService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService, IInvoiceService invoiceService)
+    public OrderService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService, IInvoiceService invoiceService, IPushNotificationService push)
     {
         _dbContext = dbContext;
         _stockMovementsService = stockMovementsService;
         _paymentService = paymentService;
         _invoiceService = invoiceService;
+        _push = push;
     }
 
     public async Task<Response<OrderDto>> CreateAsync(CreateOrderDto model, int userId)
@@ -103,6 +105,11 @@ public class OrderService : IOrderService
 
         // Reload with navigation properties
         var saved = await LoadOrderWithIncludes(order.Id);
+        _ = _push.SendTypedAsync(userId, "order_created", new Dictionary<string, string>
+        {
+            ["orderId"]    = order.Id.ToString(),
+            ["clientName"] = client.Name ?? "Client"
+        });
         return Response<OrderDto>.SuccessResponse(ToDto(saved!), "Order created successfully.");
     }
 
@@ -324,6 +331,10 @@ public class OrderService : IOrderService
             await _paymentService.ApplyUnallocatedCreditAsync(order.ClientId ?? 0, order.Id, null);
 
             var reloaded = await LoadOrderWithIncludes(order.Id);
+            _ = _push.SendTypedAsync(userId, "order_delivered", new Dictionary<string, string>
+            {
+                ["orderId"] = order.Id.ToString()
+            });
             return Response<OrderDto>.SuccessResponse(ToDto(reloaded!), "Order delivered. Stock and ledger updated.");
         }
         catch (Exception ex)
@@ -394,6 +405,10 @@ public class OrderService : IOrderService
             await _invoiceService.CancelByOrderOrPurchaseAsync(order.Id, null);
 
             var reloaded = await LoadOrderWithIncludes(order.Id);
+            _ = _push.SendTypedAsync(userId, "order_cancelled", new Dictionary<string, string>
+            {
+                ["orderId"] = order.Id.ToString()
+            });
             var message = previousStatusId == StatusDelivered
                 ? "Order cancelled. Stock and ledger reversed."
                 : "Order cancelled.";

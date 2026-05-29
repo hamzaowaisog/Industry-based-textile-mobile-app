@@ -28,6 +28,7 @@ public class RefreshTokenRequest
 public class LogoutRequest
 {
     public string? RefreshToken { get; set; }
+    public string? PushToken { get; set; }
 }
 
 public class ResendEmailConfirmationRequest
