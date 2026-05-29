@@ -1,0 +1,127 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "noData": "No data found",
+    "search": "Search",
+    "filter": "Filter",
+    "all": "All",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "loginButton": "Sign In",
+    "loginError": "Invalid username or password",
+    "email": "Email"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "summary": "Summary",
+    "totalSales": "Total Sales",
+    "totalPurchases": "Total Purchases",
+    "totalExpenses": "Total Expenses",
+    "netProfit": "Net Profit",
+    "recentOrders": "Recent Orders",
+    "lowStock": "Low Stock Alerts"
+  },
+  "clients": {
+    "title": "Clients",
+    "addClient": "Add Client",
+    "editClient": "Edit Client",
+    "clientName": "Client Name",
+    "clientType": "Client Type",
+    "phone": "Phone",
+    "address": "Address",
+    "creditLimit": "Credit Limit",
+    "openingBalance": "Opening Balance",
+    "notes": "Notes",
+    "balance": "Balance"
+  },
+  "products": {
+    "title": "Products",
+    "addProduct": "Add Product",
+    "productName": "Product Name",
+    "sku": "SKU",
+    "unit": "Unit",
+    "quantity": "Quantity",
+    "price": "Price",
+    "cost": "Cost",
+    "reorderLevel": "Reorder Level",
+    "lowStock": "Low Stock"
+  },
+  "orders": {
+    "title": "Orders",
+    "createOrder": "Create Order",
+    "orderDate": "Order Date",
+    "status": "Status",
+    "client": "Client",
+    "paymentType": "Payment Type",
+    "orderLines": "Order Lines",
+    "total": "Total",
+    "notes": "Notes",
+    "pending": "Pending",
+    "inProgress": "In Progress",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled"
+  },
+  "payments": {
+    "title": "Payments",
+    "recordPayment": "Record Payment",
+    "amount": "Amount",
+    "direction": "Direction",
+    "transMode": "Transaction Mode",
+    "paymentDate": "Payment Date",
+    "received": "Received",
+    "paid": "Paid",
+    "notes": "Notes"
+  },
+  "reports": {
+    "title": "Reports",
+    "profitLoss": "Profit & Loss",
+    "clientBalance": "Client Balances",
+    "creditDebit": "Credit / Debit",
+    "month": "Month",
+    "grossProfit": "Gross Profit",
+    "netProfit": "Net Profit"
+  },
+  "settings": {
+    "title": "Settings",
+    "changePassword": "Change Password",
+    "logout": "Logout",
+    "syncStatus": "Sync Status",
+    "pendingChanges": "Pending Changes",
+    "lastSynced": "Last Synced",
+    "syncNow": "Sync Now"
+  },
+  "sync": {
+    "pending": "{{count}} pending",
+    "syncing": "Syncing...",
+    "synced": "Synced {{time}}",
+    "failed": "Sync failed",
+    "syncNow": "Sync Now"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "minLength": "Minimum {{count}} characters",
+    "maxLength": "Maximum {{count}} characters",
+    "positiveNumber": "Must be a positive number"
+  }
+}
