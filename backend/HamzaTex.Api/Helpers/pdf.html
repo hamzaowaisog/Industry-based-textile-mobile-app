@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{title}}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 36px;
+            margin: 0;
+            color: #333;
+        }
+        .header p {
+            font-size: 18px;
+            margin: 0;
+            color: #777;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .total {
+            font-weight: bold;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+
+    <div class="header">
+        <h1>Hamza Tex</h1>
+        <p>Your trusted partner in high-quality textiles</p> 
+    </div>
+
+    <h2>{{title}}</h2>
+    <p>{{description}}</p>
+
+    <table>
+        <thead>
+            <tr>
+                {{tableHeaders}}
+            </tr>
+        </thead>
+        <tbody>
+            {{tableRows}}
+        </tbody>
+    </table>
+
+    <p class="total">{{totalText}}: ${{totalAmount}}</p>
+
+</body>
+</html>

@@ -1,19 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HamzaTex.Api.Entities;
 
 public partial class OrderLine
 {
-    public Guid Id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
-    public Guid OrderId { get; set; }
+    public int OrderId { get; set; }
 
-    public Guid? ProductId { get; set; }
+    public int? ProductId { get; set; }
 
-    public int Qty { get; set; }
+    public decimal Qty { get; set; }
 
     public decimal UnitPrice { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public int Version { get; set; } = 1;
 
     public virtual Order Order { get; set; } = null!;
 

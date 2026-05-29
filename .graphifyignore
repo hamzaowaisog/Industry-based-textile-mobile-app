@@ -1,0 +1,21 @@
+# AI planning/build folders
+_bmad/
+_bmad-output/
+planning/
+
+# Frontend (not backend code)
+frontend/
+
+# Docs and meta
+docs/
+todo/
+portfolio-content/
+
+# Output/cache
+graphify-out/
+
+# Misc
+LICENSE
+README.md
+CLAUDE.md
+CONTEXT.md
