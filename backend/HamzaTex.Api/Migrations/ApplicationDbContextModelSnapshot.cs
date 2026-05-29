@@ -22,19 +22,135 @@ namespace HamzaTex.Api.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("HamzaTex.Api.Entities.ApplicationUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int")
+                        .HasColumnName("access_failed_count");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("longtext")
+                        .HasColumnName("concurrency_stamp");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnName("email");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false)
+                        .HasColumnName("email_confirmed");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("lockout_enabled");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("lockout_end");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnName("normalized_email");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnName("normalized_user_name");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("longtext")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("longtext")
+                        .HasColumnName("phone_number");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("phone_number_confirmed");
+
+                    b.Property<int?>("RoleId")
+                        .HasColumnType("int")
+                        .HasColumnName("role_id");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("longtext")
+                        .HasColumnName("security_stamp");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("two_factor_enabled");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnName("user_name");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex(new[] { "Email" }, "IX_users_email");
+
+                    b.HasIndex(new[] { "IsActive" }, "IX_users_is_active");
+
+                    b.HasIndex(new[] { "IsActive", "CreatedAt" }, "IX_users_is_active_created_at");
+
+                    b.HasIndex(new[] { "Name" }, "users_name_key");
+
+                    b.ToTable("users", (string)null);
+                });
+
             modelBuilder.Entity("HamzaTex.Api.Entities.Client", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
                         .HasColumnType("longtext")
                         .HasColumnName("address");
 
-                    b.Property<Guid?>("ClientTypeId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("ClientTypeId")
+                        .HasColumnType("int")
                         .HasColumnName("client_type_id");
 
                     b.Property<DateTime?>("CreatedAt")
@@ -53,6 +169,9 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
+
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -74,10 +193,22 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("varchar(255)")
                         .HasColumnName("phone");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
                     b.HasKey("Id")
                         .HasName("clients_pkey");
 
                     b.HasIndex("ClientTypeId");
+
+                    b.HasIndex("UserId");
 
                     b.HasIndex(new[] { "IsActive" }, "IX_clients_is_active");
 
@@ -90,10 +221,12 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.ClientType", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -111,12 +244,52 @@ namespace HamzaTex.Api.Migrations
                     b.ToTable("client_types", (string)null);
                 });
 
+            modelBuilder.Entity("HamzaTex.Api.Entities.DeviceToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AppVersion")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("DeviceType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("PushToken")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("RegisteredAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DeviceTokens");
+                });
+
             modelBuilder.Entity("HamzaTex.Api.Entities.Expense", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(14, 2)
@@ -129,24 +302,51 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("NOW()");
 
-                    b.Property<DateOnly>("ExpenseDate")
+                    b.Property<DateTime>("ExpenseDate")
                         .HasColumnType("date")
                         .HasColumnName("expense_date");
 
-                    b.Property<Guid?>("ExpenseTypeId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("ExpenseTypeId")
+                        .HasColumnType("int")
                         .HasColumnName("expense_type_id");
+
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Notes")
                         .HasColumnType("longtext")
                         .HasColumnName("notes");
 
-                    b.Property<Guid?>("TransModeId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("TransCategoryId")
+                        .HasColumnType("int")
+                        .HasColumnName("trans_category_id");
+
+                    b.Property<int?>("TransModeId")
+                        .HasColumnType("int")
                         .HasColumnName("trans_mode_id");
+
+                    b.Property<int?>("TransactionId")
+                        .HasColumnType("int")
+                        .HasColumnName("transaction_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("expenses_pkey");
+
+                    b.HasIndex("TransCategoryId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.HasIndex("UserId");
 
                     b.HasIndex(new[] { "ExpenseDate" }, "IX_expenses_expense_date");
 
@@ -161,10 +361,12 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.ExpenseType", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -182,49 +384,163 @@ namespace HamzaTex.Api.Migrations
                     b.ToTable("expense_types", (string)null);
                 });
 
-            modelBuilder.Entity("HamzaTex.Api.Entities.Login", b =>
+            modelBuilder.Entity("HamzaTex.Api.Entities.Invoice", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
 
-                    b.Property<DateTime?>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("NOW()");
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Password")
-                        .HasColumnType("longtext")
-                        .HasColumnName("password");
+                    b.Property<int?>("ClientId")
+                        .HasColumnType("int")
+                        .HasColumnName("client_id");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("char(36)")
-                        .HasColumnName("user_id");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("date")
+                        .HasColumnName("created_at");
 
-                    b.Property<string>("Username")
+                    b.Property<int?>("CreatedByUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("due_date");
+
+                    b.Property<string>("InvoiceNumber")
+                        .IsRequired()
                         .HasColumnType("varchar(255)")
-                        .HasColumnName("username");
+                        .HasColumnName("invoice_number");
+
+                    b.Property<int>("InvoiceStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("invoice_status_id");
+
+                    b.Property<DateTime?>("IssueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("issue_date");
+
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("longtext")
+                        .HasColumnName("notes");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("order_id");
+
+                    b.Property<int?>("PurchaseId")
+                        .HasColumnType("int")
+                        .HasColumnName("purchase_id");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("total_amount");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
-                        .HasName("logins_pkey");
+                        .HasName("invoices_pkey");
 
-                    b.HasIndex("UserId")
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex(new[] { "ClientId" }, "IX_invoices_client_id");
+
+                    b.HasIndex(new[] { "InvoiceNumber" }, "IX_invoices_number")
                         .IsUnique();
 
-                    b.HasIndex(new[] { "Username" }, "IX_logins_username")
-                        .IsUnique();
+                    b.HasIndex(new[] { "OrderId" }, "IX_invoices_order_id");
 
-                    b.ToTable("logins", (string)null);
+                    b.HasIndex(new[] { "PurchaseId" }, "IX_invoices_purchase_id");
+
+                    b.HasIndex(new[] { "InvoiceStatusId" }, "IX_invoices_status_id");
+
+                    b.ToTable("invoices", (string)null);
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.InvoiceLine", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("InvoiceId")
+                        .HasColumnType("int")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<decimal>("LineTotal")
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("line_total");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("product_name");
+
+                    b.Property<decimal>("Qty")
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("qty");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(14,4)")
+                        .HasColumnName("unit_price");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id")
+                        .HasName("invoice_lines_pkey");
+
+                    b.HasIndex(new[] { "InvoiceId" }, "IX_invoice_lines_invoice_id");
+
+                    b.ToTable("invoice_lines", (string)null);
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.InvoiceStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("date")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("invoice_statuses_pkey");
+
+                    b.ToTable("invoice_statuses", (string)null);
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.MovementSource", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -244,10 +560,12 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.MovementType", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -267,13 +585,15 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.Order", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
 
-                    b.Property<Guid?>("ClientId")
-                        .HasColumnType("char(36)")
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ClientId")
+                        .HasColumnType("int")
                         .HasColumnName("client_id");
 
                     b.Property<DateTime?>("CreatedAt")
@@ -282,21 +602,30 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("NOW()");
 
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Notes")
                         .HasColumnType("longtext")
                         .HasColumnName("notes");
 
-                    b.Property<DateOnly>("OrderDate")
+                    b.Property<DateTime>("OrderDate")
                         .HasColumnType("date")
                         .HasColumnName("order_date");
 
-                    b.Property<Guid?>("PaymentTypeId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("PaymentTypeId")
+                        .HasColumnType("int")
                         .HasColumnName("payment_type_id");
 
-                    b.Property<Guid?>("StatusId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int")
                         .HasColumnName("status_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("orders_pkey");
@@ -318,27 +647,36 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.OrderLine", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
 
-                    b.Property<Guid>("OrderId")
-                        .HasColumnType("char(36)")
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int")
                         .HasColumnName("order_id");
 
-                    b.Property<Guid?>("ProductId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int")
                         .HasColumnName("product_id");
 
-                    b.Property<int>("Qty")
-                        .HasColumnType("int")
+                    b.Property<decimal>("Qty")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
                         .HasColumnName("qty");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
+                        .HasPrecision(14, 4)
+                        .HasColumnType("decimal(14,4)")
                         .HasColumnName("unit_price");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("order_lines_pkey");
@@ -352,10 +690,12 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.OrderStatus", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -375,10 +715,12 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.Payment", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(14, 2)
@@ -391,35 +733,74 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("NOW()");
 
+                    b.Property<bool>("IsReversed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_reversed");
+
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Notes")
                         .HasColumnType("longtext")
                         .HasColumnName("notes");
 
-                    b.Property<Guid?>("PartyClientId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("OriginalPaymentId")
+                        .HasColumnType("int")
+                        .HasColumnName("original_payment_id");
+
+                    b.Property<int?>("PartyClientId")
+                        .HasColumnType("int")
                         .HasColumnName("party_client_id");
 
-                    b.Property<DateOnly>("PaymentDate")
+                    b.Property<DateTime>("PaymentDate")
                         .HasColumnType("date")
                         .HasColumnName("payment_date");
 
-                    b.Property<Guid?>("PaymentDirectionId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("PaymentDirectionId")
+                        .HasColumnType("int")
                         .HasColumnName("payment_direction_id");
 
-                    b.Property<Guid?>("PaymentTypeId")
-                        .HasColumnType("char(36)");
+                    b.Property<int?>("PaymentTypeId")
+                        .HasColumnType("int");
 
-                    b.Property<Guid?>("TransModeId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("ReversedByPaymentId")
+                        .HasColumnType("int")
+                        .HasColumnName("reversed_by_payment_id");
+
+                    b.Property<int?>("TransModeId")
+                        .HasColumnType("int")
                         .HasColumnName("trans_mode_id");
+
+                    b.Property<int?>("TransactionId")
+                        .HasColumnType("int")
+                        .HasColumnName("transaction_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("payments_pkey");
 
+                    b.HasIndex("OriginalPaymentId");
+
                     b.HasIndex("PaymentTypeId");
 
+                    b.HasIndex("ReversedByPaymentId");
+
+                    b.HasIndex("TransactionId");
+
                     b.HasIndex(new[] { "PartyClientId", "PaymentDate" }, "IX_payments_client_date");
+
+                    b.HasIndex(new[] { "IsReversed" }, "IX_payments_is_reversed");
 
                     b.HasIndex(new[] { "PartyClientId" }, "IX_payments_party_client_id");
 
@@ -429,15 +810,69 @@ namespace HamzaTex.Api.Migrations
 
                     b.HasIndex(new[] { "TransModeId" }, "IX_payments_trans_mode_id");
 
+                    b.HasIndex(new[] { "UserId" }, "IX_payments_user_id");
+
                     b.ToTable("payments", (string)null);
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.PaymentAllocation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AllocatedAmount")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("allocated_amount");
+
+                    b.Property<int?>("InvoiceId")
+                        .HasColumnType("int")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("order_id");
+
+                    b.Property<int>("PaymentId")
+                        .HasColumnType("int")
+                        .HasColumnName("payment_id");
+
+                    b.Property<int?>("PurchaseId")
+                        .HasColumnType("int")
+                        .HasColumnName("purchase_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id")
+                        .HasName("payment_allocations_pkey");
+
+                    b.HasIndex(new[] { "InvoiceId" }, "IX_payment_allocations_invoice_id");
+
+                    b.HasIndex(new[] { "OrderId" }, "IX_payment_allocations_order_id");
+
+                    b.HasIndex(new[] { "PaymentId" }, "IX_payment_allocations_payment_id");
+
+                    b.HasIndex(new[] { "PurchaseId" }, "IX_payment_allocations_purchase_id");
+
+                    b.ToTable("payment_allocations", (string)null);
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.PaymentDirection", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -457,10 +892,12 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.PaymentType", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -480,10 +917,28 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.Product", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("AverageCost")
+                        .HasPrecision(14, 4)
+                        .HasColumnType("decimal(14,4)")
+                        .HasColumnName("average_cost");
+
+                    b.Property<decimal?>("AveragePrice")
+                        .HasPrecision(14, 4)
+                        .HasColumnType("decimal(14,4)")
+                        .HasColumnName("average_price");
+
+                    b.Property<int>("CostChangeCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("cost_change_count");
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -511,10 +966,26 @@ namespace HamzaTex.Api.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("varchar(255)")
                         .HasColumnName("name");
+
+                    b.Property<int>("PriceChangeCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("price_change_count");
+
+                    b.Property<decimal?>("Quantity")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("quantity")
+                        .HasDefaultValueSql("0");
 
                     b.Property<int?>("ReorderLevel")
                         .ValueGeneratedOnAdd()
@@ -527,10 +998,30 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("varchar(255)")
                         .HasColumnName("sku");
 
+                    b.Property<decimal?>("TotalQuantityPurchased")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("total_quantity_purchased")
+                        .HasDefaultValueSql("0");
+
+                    b.Property<decimal?>("TotalQuantitySold")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("total_quantity_sold")
+                        .HasDefaultValueSql("0");
+
                     b.Property<string>("Unit")
                         .IsRequired()
                         .HasColumnType("longtext")
                         .HasColumnName("unit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("products_pkey");
@@ -547,12 +1038,36 @@ namespace HamzaTex.Api.Migrations
                     b.ToTable("products", (string)null);
                 });
 
+            modelBuilder.Entity("HamzaTex.Api.Entities.ProductUser", b =>
+                {
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int")
+                        .HasColumnName("product_id");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.HasKey("ProductId", "UserId")
+                        .HasName("product_users_pkey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("product_users", (string)null);
+                });
+
             modelBuilder.Entity("HamzaTex.Api.Entities.Purchase", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -560,21 +1075,34 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("NOW()");
 
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Notes")
                         .HasColumnType("longtext")
                         .HasColumnName("notes");
 
-                    b.Property<Guid?>("PaymentTypeId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("PaymentTypeId")
+                        .HasColumnType("int")
                         .HasColumnName("payment_type_id");
 
-                    b.Property<DateOnly>("PurchaseDate")
+                    b.Property<DateTime>("PurchaseDate")
                         .HasColumnType("date")
                         .HasColumnName("purchase_date");
 
-                    b.Property<Guid?>("SupplierId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("status_id");
+
+                    b.Property<int?>("SupplierId")
+                        .HasColumnType("int")
                         .HasColumnName("supplier_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("purchases_pkey");
@@ -582,6 +1110,8 @@ namespace HamzaTex.Api.Migrations
                     b.HasIndex(new[] { "PaymentTypeId" }, "IX_purchases_payment_type_id");
 
                     b.HasIndex(new[] { "PurchaseDate" }, "IX_purchases_purchase_date");
+
+                    b.HasIndex(new[] { "StatusId" }, "IX_purchases_status_id");
 
                     b.HasIndex(new[] { "SupplierId", "PurchaseDate" }, "IX_purchases_supplier_date");
 
@@ -592,27 +1122,36 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.PurchaseLine", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
 
-                    b.Property<Guid?>("ProductId")
-                        .HasColumnType("char(36)")
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int")
                         .HasColumnName("product_id");
 
-                    b.Property<Guid>("PurchaseId")
-                        .HasColumnType("char(36)")
+                    b.Property<int>("PurchaseId")
+                        .HasColumnType("int")
                         .HasColumnName("purchase_id");
 
-                    b.Property<int>("Qty")
-                        .HasColumnType("int")
+                    b.Property<decimal>("Qty")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
                         .HasColumnName("qty");
 
                     b.Property<decimal>("UnitCost")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
+                        .HasPrecision(14, 4)
+                        .HasColumnType("decimal(14,4)")
                         .HasColumnName("unit_cost");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("purchase_lines_pkey");
@@ -624,32 +1163,135 @@ namespace HamzaTex.Api.Migrations
                     b.ToTable("purchase_lines", (string)null);
                 });
 
-            modelBuilder.Entity("HamzaTex.Api.Entities.StockMovement", b =>
+            modelBuilder.Entity("HamzaTex.Api.Entities.PurchaseStatus", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
 
-                    b.Property<DateOnly>("MovementDate")
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("purchase_statuses_pkey");
+
+                    b.ToTable("purchase_statuses", (string)null);
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("CreatedByIp")
+                        .HasColumnType("longtext")
+                        .HasColumnName("created_by_ip");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime")
+                        .HasColumnName("expires_at");
+
+                    b.Property<bool>("IsBiometric")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ReplacedByToken")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("replaced_by_token");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<string>("RevokedByIp")
+                        .HasColumnType("longtext")
+                        .HasColumnName("revoked_by_ip");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("token");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("refresh_tokens_pkey");
+
+                    b.HasIndex("Token")
+                        .HasDatabaseName("idx_refresh_tokens_token");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("idx_refresh_tokens_user_id");
+
+                    b.ToTable("refresh_tokens", (string)null);
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.StockMovement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("AverageCostAtMovement")
+                        .HasPrecision(14, 4)
+                        .HasColumnType("decimal(14,4)")
+                        .HasColumnName("average_cost_at_movement");
+
+                    b.Property<decimal?>("AveragePriceAtMovement")
+                        .HasPrecision(14, 4)
+                        .HasColumnType("decimal(14,4)")
+                        .HasColumnName("average_price_at_movement");
+
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("MovementDate")
                         .HasColumnType("date")
                         .HasColumnName("movement_date");
 
-                    b.Property<Guid?>("MovementSourceId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("MovementSourceId")
+                        .HasColumnType("int")
                         .HasColumnName("movement_source_id");
 
-                    b.Property<Guid?>("MovementTypeId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("MovementTypeId")
+                        .HasColumnType("int")
                         .HasColumnName("movement_type_id");
 
-                    b.Property<Guid?>("ProductId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int")
                         .HasColumnName("product_id");
 
-                    b.Property<int>("Qty")
-                        .HasColumnType("int")
-                        .HasColumnName("qty");
+                    b.Property<decimal?>("Qty")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("qty")
+                        .HasDefaultValueSql("0");
 
                     b.Property<decimal?>("UnitCost")
                         .HasPrecision(14, 4)
@@ -660,6 +1302,12 @@ namespace HamzaTex.Api.Migrations
                         .HasPrecision(14, 4)
                         .HasColumnType("decimal(14,4)")
                         .HasColumnName("unit_price");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("stock_movements_pkey");
@@ -679,10 +1327,12 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.TransCategory", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -702,10 +1352,12 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.TransMode", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -725,10 +1377,12 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.TransType", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -748,18 +1402,20 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.Transaction", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(14, 2)
                         .HasColumnType("decimal(14,2)")
                         .HasColumnName("amount");
 
-                    b.Property<Guid?>("ClientId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("ClientId")
+                        .HasColumnType("int")
                         .HasColumnName("client_id");
 
                     b.Property<DateTime?>("CreatedAt")
@@ -768,33 +1424,54 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("NOW()");
 
+                    b.Property<int?>("InvoiceId")
+                        .HasColumnType("int")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Notes")
                         .HasColumnType("longtext")
                         .HasColumnName("notes");
 
-                    b.Property<Guid?>("ProductId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("OrderId");
+
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int")
                         .HasColumnName("product_id");
 
-                    b.Property<Guid?>("TransCategoryId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("PurchaseId")
+                        .HasColumnType("int")
+                        .HasColumnName("PurchaseId");
+
+                    b.Property<int?>("TransCategoryId")
+                        .HasColumnType("int")
                         .HasColumnName("trans_category_id");
 
-                    b.Property<DateOnly>("TransDate")
+                    b.Property<DateTime>("TransDate")
                         .HasColumnType("date")
                         .HasColumnName("trans_date");
 
-                    b.Property<Guid?>("TransModeId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("TransModeId")
+                        .HasColumnType("int")
                         .HasColumnName("trans_mode_id");
 
-                    b.Property<Guid?>("TransTypeId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("TransTypeId")
+                        .HasColumnType("int")
                         .HasColumnName("trans_type_id");
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("char(36)")
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int")
                         .HasColumnName("user_id");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("transactions_pkey");
@@ -803,7 +1480,13 @@ namespace HamzaTex.Api.Migrations
 
                     b.HasIndex(new[] { "ClientId" }, "IX_transactions_client_id");
 
+                    b.HasIndex(new[] { "InvoiceId" }, "IX_transactions_invoice_id");
+
+                    b.HasIndex(new[] { "OrderId" }, "IX_transactions_order_id");
+
                     b.HasIndex(new[] { "ProductId" }, "IX_transactions_product_id");
+
+                    b.HasIndex(new[] { "PurchaseId" }, "IX_transactions_purchase_id");
 
                     b.HasIndex(new[] { "TransCategoryId" }, "IX_transactions_trans_category_id");
 
@@ -822,59 +1505,14 @@ namespace HamzaTex.Api.Migrations
                     b.ToTable("transactions", (string)null);
                 });
 
-            modelBuilder.Entity("HamzaTex.Api.Entities.User", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("NOW()");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("email");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_active");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("name");
-
-                    b.Property<Guid?>("RoleId")
-                        .HasColumnType("char(36)")
-                        .HasColumnName("role_id");
-
-                    b.HasKey("Id")
-                        .HasName("users_pkey");
-
-                    b.HasIndex("RoleId");
-
-                    b.HasIndex(new[] { "Email" }, "IX_users_email");
-
-                    b.HasIndex(new[] { "IsActive" }, "IX_users_is_active");
-
-                    b.HasIndex(new[] { "IsActive", "CreatedAt" }, "IX_users_is_active_created_at");
-
-                    b.HasIndex(new[] { "Name" }, "users_name_key");
-
-                    b.ToTable("users", (string)null);
-                });
-
             modelBuilder.Entity("HamzaTex.Api.Entities.UserRole", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
+                        .HasColumnType("int")
                         .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -899,8 +1537,9 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("decimal(14,2)")
                         .HasColumnName("balance");
 
-                    b.Property<Guid?>("ClientId")
-                        .HasColumnType("char(36)")
+                    b.Property<int?>("ClientId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
                         .HasColumnName("client_id");
 
                     b.Property<string>("Name")
@@ -912,12 +1551,47 @@ namespace HamzaTex.Api.Migrations
                     b.ToView("v_client_balance", (string)null);
                 });
 
+            modelBuilder.Entity("HamzaTex.Api.Entities.VMonthlyCreditDebit", b =>
+                {
+                    b.Property<decimal?>("Balance")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("balance");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("Month")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("month");
+
+                    b.Property<decimal?>("TotalCredit")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("total_credit");
+
+                    b.Property<decimal?>("TotalDebit")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("total_debit");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("v_monthly_credit_debit", (string)null);
+                });
+
             modelBuilder.Entity("HamzaTex.Api.Entities.VMonthlyProfitLoss", b =>
                 {
                     b.Property<decimal?>("GrossProfit")
                         .HasPrecision(14, 2)
                         .HasColumnType("decimal(14,2)")
                         .HasColumnName("gross_profit");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("Month")
                         .HasColumnType("datetime(6)")
@@ -948,6 +1622,149 @@ namespace HamzaTex.Api.Migrations
                     b.ToView("v_monthly_profit_loss", (string)null);
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
+
+                    b.ToTable("aspnet_roles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("aspnet_role_claims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("aspnet_user_claims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("aspnet_user_logins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("aspnet_user_roles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("aspnet_user_tokens", (string)null);
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.ApplicationUser", b =>
+                {
+                    b.HasOne("HamzaTex.Api.Entities.UserRole", "Role")
+                        .WithMany("Users")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("users_role_id_fkey");
+
+                    b.Navigation("Role");
+                });
+
             modelBuilder.Entity("HamzaTex.Api.Entities.Client", b =>
                 {
                     b.HasOne("HamzaTex.Api.Entities.ClientType", "ClientType")
@@ -956,7 +1773,26 @@ namespace HamzaTex.Api.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("clients_client_type_id_fkey");
 
+                    b.HasOne("HamzaTex.Api.Entities.ApplicationUser", "User")
+                        .WithMany("Clients")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("clients_user_id_fkey");
+
                     b.Navigation("ClientType");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.DeviceToken", b =>
+                {
+                    b.HasOne("HamzaTex.Api.Entities.ApplicationUser", "User")
+                        .WithMany("DeviceTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.Expense", b =>
@@ -967,27 +1803,89 @@ namespace HamzaTex.Api.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("expenses_expense_type_id_fkey");
 
+                    b.HasOne("HamzaTex.Api.Entities.TransCategory", "TransCategory")
+                        .WithMany("Expenses")
+                        .HasForeignKey("TransCategoryId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("expenses_trans_category_id_fkey");
+
                     b.HasOne("HamzaTex.Api.Entities.TransMode", "TransMode")
                         .WithMany("Expenses")
                         .HasForeignKey("TransModeId")
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("expenses_trans_mode_id_fkey");
 
+                    b.HasOne("HamzaTex.Api.Entities.Transaction", "Transaction")
+                        .WithMany("Expenses")
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("expenses_transaction_id_fkey");
+
+                    b.HasOne("HamzaTex.Api.Entities.ApplicationUser", "User")
+                        .WithMany("Expenses")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("expenses_user_id_fkey");
+
                     b.Navigation("ExpenseType");
 
-                    b.Navigation("TransMode");
-                });
+                    b.Navigation("TransCategory");
 
-            modelBuilder.Entity("HamzaTex.Api.Entities.Login", b =>
-                {
-                    b.HasOne("HamzaTex.Api.Entities.User", "User")
-                        .WithOne()
-                        .HasForeignKey("HamzaTex.Api.Entities.Login", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("logins_user_id_fkey");
+                    b.Navigation("TransMode");
+
+                    b.Navigation("Transaction");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.Invoice", b =>
+                {
+                    b.HasOne("HamzaTex.Api.Entities.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HamzaTex.Api.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HamzaTex.Api.Entities.InvoiceStatus", "InvoiceStatus")
+                        .WithMany("Invoices")
+                        .HasForeignKey("InvoiceStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HamzaTex.Api.Entities.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HamzaTex.Api.Entities.Purchase", "Purchase")
+                        .WithMany()
+                        .HasForeignKey("PurchaseId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Client");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("InvoiceStatus");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Purchase");
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.InvoiceLine", b =>
+                {
+                    b.HasOne("HamzaTex.Api.Entities.Invoice", "Invoice")
+                        .WithMany("InvoiceLines")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Invoice");
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.Order", b =>
@@ -1039,6 +1937,12 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.Payment", b =>
                 {
+                    b.HasOne("HamzaTex.Api.Entities.Payment", null)
+                        .WithMany()
+                        .HasForeignKey("OriginalPaymentId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("payments_original_payment_id_fkey");
+
                     b.HasOne("HamzaTex.Api.Entities.Client", "PartyClient")
                         .WithMany("Payments")
                         .HasForeignKey("PartyClientId")
@@ -1055,17 +1959,95 @@ namespace HamzaTex.Api.Migrations
                         .WithMany("Payments")
                         .HasForeignKey("PaymentTypeId");
 
+                    b.HasOne("HamzaTex.Api.Entities.Payment", null)
+                        .WithMany()
+                        .HasForeignKey("ReversedByPaymentId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("payments_reversed_by_payment_id_fkey");
+
                     b.HasOne("HamzaTex.Api.Entities.TransMode", "TransMode")
                         .WithMany("Payments")
                         .HasForeignKey("TransModeId")
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("payments_trans_mode_id_fkey");
 
+                    b.HasOne("HamzaTex.Api.Entities.Transaction", "Transaction")
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("payments_transaction_id_fkey");
+
+                    b.HasOne("HamzaTex.Api.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("payments_user_id_fkey");
+
                     b.Navigation("PartyClient");
 
                     b.Navigation("PaymentDirection");
 
                     b.Navigation("TransMode");
+
+                    b.Navigation("Transaction");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.PaymentAllocation", b =>
+                {
+                    b.HasOne("HamzaTex.Api.Entities.Invoice", "Invoice")
+                        .WithMany("PaymentAllocations")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HamzaTex.Api.Entities.Order", "Order")
+                        .WithMany("PaymentAllocations")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("payment_allocations_order_id_fkey");
+
+                    b.HasOne("HamzaTex.Api.Entities.Payment", "Payment")
+                        .WithMany("Allocations")
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("payment_allocations_payment_id_fkey");
+
+                    b.HasOne("HamzaTex.Api.Entities.Purchase", "Purchase")
+                        .WithMany("PaymentAllocations")
+                        .HasForeignKey("PurchaseId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("payment_allocations_purchase_id_fkey");
+
+                    b.Navigation("Invoice");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Payment");
+
+                    b.Navigation("Purchase");
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.ProductUser", b =>
+                {
+                    b.HasOne("HamzaTex.Api.Entities.Product", "Product")
+                        .WithMany("ProductUsers")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("product_users_product_id_fkey");
+
+                    b.HasOne("HamzaTex.Api.Entities.ApplicationUser", "User")
+                        .WithMany("ProductUsers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("product_users_user_id_fkey");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.Purchase", b =>
@@ -1076,6 +2058,12 @@ namespace HamzaTex.Api.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("purchases_payment_type_id_fkey");
 
+                    b.HasOne("HamzaTex.Api.Entities.PurchaseStatus", "Status")
+                        .WithMany("Purchases")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("purchases_status_id_fkey");
+
                     b.HasOne("HamzaTex.Api.Entities.Client", "Supplier")
                         .WithMany("Purchases")
                         .HasForeignKey("SupplierId")
@@ -1083,6 +2071,8 @@ namespace HamzaTex.Api.Migrations
                         .HasConstraintName("purchases_supplier_id_fkey");
 
                     b.Navigation("PaymentType");
+
+                    b.Navigation("Status");
 
                     b.Navigation("Supplier");
                 });
@@ -1105,6 +2095,18 @@ namespace HamzaTex.Api.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Purchase");
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("HamzaTex.Api.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("refresh_tokens_user_id_fkey");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.StockMovement", b =>
@@ -1142,11 +2144,28 @@ namespace HamzaTex.Api.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("transactions_client_id_fkey");
 
+                    b.HasOne("HamzaTex.Api.Entities.Invoice", "Invoice")
+                        .WithMany("Transactions")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HamzaTex.Api.Entities.Order", "Order")
+                        .WithMany("Transactions")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_transactions_orders_OrderId");
+
                     b.HasOne("HamzaTex.Api.Entities.Product", "Product")
                         .WithMany("Transactions")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("transactions_product_id_fkey");
+
+                    b.HasOne("HamzaTex.Api.Entities.Purchase", "Purchase")
+                        .WithMany("Transactions")
+                        .HasForeignKey("PurchaseId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_transactions_purchases_PurchaseId");
 
                     b.HasOne("HamzaTex.Api.Entities.TransCategory", "TransCategory")
                         .WithMany("Transactions")
@@ -1166,7 +2185,7 @@ namespace HamzaTex.Api.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("transactions_trans_type_id_fkey");
 
-                    b.HasOne("HamzaTex.Api.Entities.User", "User")
+                    b.HasOne("HamzaTex.Api.Entities.ApplicationUser", "User")
                         .WithMany("Transactions")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.SetNull)
@@ -1174,7 +2193,13 @@ namespace HamzaTex.Api.Migrations
 
                     b.Navigation("Client");
 
+                    b.Navigation("Invoice");
+
+                    b.Navigation("Order");
+
                     b.Navigation("Product");
+
+                    b.Navigation("Purchase");
 
                     b.Navigation("TransCategory");
 
@@ -1185,15 +2210,68 @@ namespace HamzaTex.Api.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("HamzaTex.Api.Entities.User", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
-                    b.HasOne("HamzaTex.Api.Entities.UserRole", "Role")
-                        .WithMany("Users")
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
+                        .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .HasConstraintName("users_role_id_fkey");
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
 
-                    b.Navigation("Role");
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
+                {
+                    b.HasOne("HamzaTex.Api.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
+                {
+                    b.HasOne("HamzaTex.Api.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HamzaTex.Api.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
+                {
+                    b.HasOne("HamzaTex.Api.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.ApplicationUser", b =>
+                {
+                    b.Navigation("Clients");
+
+                    b.Navigation("DeviceTokens");
+
+                    b.Navigation("Expenses");
+
+                    b.Navigation("ProductUsers");
+
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.Client", b =>
@@ -1217,6 +2295,20 @@ namespace HamzaTex.Api.Migrations
                     b.Navigation("Expenses");
                 });
 
+            modelBuilder.Entity("HamzaTex.Api.Entities.Invoice", b =>
+                {
+                    b.Navigation("InvoiceLines");
+
+                    b.Navigation("PaymentAllocations");
+
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.InvoiceStatus", b =>
+                {
+                    b.Navigation("Invoices");
+                });
+
             modelBuilder.Entity("HamzaTex.Api.Entities.MovementSource", b =>
                 {
                     b.Navigation("StockMovements");
@@ -1230,11 +2322,20 @@ namespace HamzaTex.Api.Migrations
             modelBuilder.Entity("HamzaTex.Api.Entities.Order", b =>
                 {
                     b.Navigation("OrderLines");
+
+                    b.Navigation("PaymentAllocations");
+
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.OrderStatus", b =>
                 {
                     b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.Payment", b =>
+                {
+                    b.Navigation("Allocations");
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.PaymentDirection", b =>
@@ -1255,6 +2356,8 @@ namespace HamzaTex.Api.Migrations
                 {
                     b.Navigation("OrderLines");
 
+                    b.Navigation("ProductUsers");
+
                     b.Navigation("PurchaseLines");
 
                     b.Navigation("StockMovements");
@@ -1264,11 +2367,22 @@ namespace HamzaTex.Api.Migrations
 
             modelBuilder.Entity("HamzaTex.Api.Entities.Purchase", b =>
                 {
+                    b.Navigation("PaymentAllocations");
+
                     b.Navigation("PurchaseLines");
+
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.PurchaseStatus", b =>
+                {
+                    b.Navigation("Purchases");
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.TransCategory", b =>
                 {
+                    b.Navigation("Expenses");
+
                     b.Navigation("Transactions");
                 });
 
@@ -1286,9 +2400,9 @@ namespace HamzaTex.Api.Migrations
                     b.Navigation("Transactions");
                 });
 
-            modelBuilder.Entity("HamzaTex.Api.Entities.User", b =>
+            modelBuilder.Entity("HamzaTex.Api.Entities.Transaction", b =>
                 {
-                    b.Navigation("Transactions");
+                    b.Navigation("Expenses");
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.UserRole", b =>

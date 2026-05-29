@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
@@ -10,22 +12,44 @@ namespace HamzaTex.Api.Entities;
 [Index(nameof(ExpenseTypeId), nameof(ExpenseDate), Name = "IX_expenses_type_date")]
 public partial class Expense
 {
-    public Guid Id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    
+    public int Id { get; set; }
 
-    public Guid? ExpenseTypeId { get; set; }
+    public int? ExpenseTypeId { get; set; }
 
     public decimal Amount { get; set; }
 
-    public Guid? TransModeId { get; set; }
+    public int? TransModeId { get; set; }
+
+    public int? UserId { get; set; }
+
+    public int? TransCategoryId { get; set; }
+
+    public int? TransactionId { get; set; }
 
     public DateOnly ExpenseDate { get; set; }
 
     public string? Notes { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public string? LocalId { get; set; }
+
+    public int Version { get; set; } = 1;
 
     public virtual ExpenseType? ExpenseType { get; set; }
 
     public virtual TransMode? TransMode { get; set; }
+
+    public virtual ApplicationUser? User { get; set; }
+
+    public virtual TransCategory? TransCategory { get; set; }
+
+    public virtual Transaction? Transaction { get; set; }
+
 
 }

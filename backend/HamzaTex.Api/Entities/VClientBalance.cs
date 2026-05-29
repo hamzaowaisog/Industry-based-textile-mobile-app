@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HamzaTex.Api.Entities;
 
 public partial class VClientBalance
 {
-    public Guid? ClientId { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int? ClientId { get; set; }
 
     public string? Name { get; set; }
 

@@ -1,11 +1,15 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 namespace HamzaTex.Api.Entities;
 
     public partial class ClientType
     {
-        public Guid Id { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
         public string? Name { get; set; }
 
-        public DateTime? CreatedAt { get; set; }
+        public DateOnly? CreatedAt { get; set; }
 
         public virtual ICollection<Client> Clients { get; set; } = new List<Client>();
     }

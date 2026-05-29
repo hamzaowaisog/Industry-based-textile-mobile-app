@@ -1,11 +1,16 @@
 using HamzaTex.Api.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace HamzaTex.Api.Data;
 
-public partial class ApplicationDbContext : DbContext
+public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
 {
     public ApplicationDbContext()
     {
@@ -20,17 +25,17 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<ClientType> ClientTypes { get; set; }
 
-    public virtual DbSet<Login> Logins { get; set; }
-
-    public virtual DbSet<UserRole> UserRoles { get; set; }
+    public new virtual DbSet<UserRole> UserRoles { get; set; }
 
     public virtual DbSet<ExpenseType> ExpenseTypes { get; set; }
-    
+
     public virtual DbSet<MovementSource> MovementSources { get; set; }
     
     public virtual DbSet<MovementType> MovementTypes { get; set; }
 
     public virtual DbSet<OrderStatus> OrderStatuses { get; set; }
+
+    public virtual DbSet<PurchaseStatus> PurchaseStatuses { get; set; }
 
     public virtual DbSet<PaymentDirection> PaymentDirections { get; set; }
 
@@ -50,6 +55,14 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<Payment> Payments { get; set; }
 
+    public virtual DbSet<PaymentAllocation> PaymentAllocations { get; set; }
+
+    public virtual DbSet<InvoiceStatus> InvoiceStatuses { get; set; }
+
+    public virtual DbSet<Invoice> Invoices { get; set; }
+
+    public virtual DbSet<InvoiceLine> InvoiceLines { get; set; }
+
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<Purchase> Purchases { get; set; }
@@ -60,17 +73,77 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<Transaction> Transactions { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public virtual DbSet<VClientBalance> VClientBalances { get; set; }
 
     public virtual DbSet<VMonthlyProfitLoss> VMonthlyProfitLosses { get; set; }
 
+    public virtual DbSet<VMonthlyCreditDebit> VMonthlyCreditDebits { get; set; }
+
+    public virtual DbSet<ProductUser> ProductUsers { get; set; }
+    public virtual DbSet<DeviceToken> DeviceTokens { get; set; }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified))
+        {
+            if (entry.Properties.Any(p => p.Metadata.Name == "UpdatedAt"))
+            {
+                entry.Property("UpdatedAt").CurrentValue = DateTime.UtcNow;
+            }
+
+            if (entry.State == EntityState.Modified &&
+                entry.Properties.Any(p => p.Metadata.Name == "Version"))
+            {
+                entry.Property("Version").CurrentValue = (int)entry.Property("Version").CurrentValue + 1;
+            }
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Configure DateOnly to map to MySQL 'date' type
-        // EF Core 9.0+ supports DateOnly natively when mapped to 'date' type
-        
+        base.OnModelCreating(modelBuilder);
+
+        // Map all DateOnly properties to MySQL 'date' columns via value converter
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateOnly))
+                {
+                    property.SetValueConverter(
+                        new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateOnly, DateTime>(
+                            d => d.ToDateTime(TimeOnly.MinValue),
+                            dt => DateOnly.FromDateTime(dt)));
+                    property.SetColumnType("date");
+                }
+                else if (property.ClrType == typeof(DateOnly?))
+                {
+                    property.SetValueConverter(
+                        new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateOnly?, DateTime?>(
+                            d => d.HasValue ? d.Value.ToDateTime(TimeOnly.MinValue) : null,
+                            dt => dt.HasValue ? DateOnly.FromDateTime(dt.Value) : null));
+                    property.SetColumnType("date");
+                }
+            }
+        }
+
+        // Set UpdatedAt DateTime? columns to datetime(6) for microsecond precision
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.Name == "UpdatedAt" && property.ClrType == typeof(DateTime?))
+                {
+                    property.SetColumnType("datetime(6)");
+                }
+            }
+        }
+
         // Configure enums to be stored as strings in MySQL
         // EF Core will automatically convert enum values to/from strings
 
@@ -103,6 +176,7 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.ClientTypeId).HasColumnName("client_type_id");
             entity.Property(e => e.Phone).HasColumnName("phone");
             entity.Property(e => e.Address).HasColumnName("address");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.CreditLimit)
                 .HasPrecision(14, 2)
                 .HasColumnName("credit_limit");
@@ -123,6 +197,10 @@ public partial class ApplicationDbContext : DbContext
                 .HasForeignKey(d => d.ClientTypeId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("clients_client_type_id_fkey");
+            entity.HasOne(d => d.User).WithMany(p => p.Clients)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("clients_user_id_fkey");
         });
 
         modelBuilder.Entity<Expense>(entity =>
@@ -139,6 +217,9 @@ public partial class ApplicationDbContext : DbContext
                 .HasPrecision(14, 2)
                 .HasColumnName("amount");
             entity.Property(e => e.TransModeId).HasColumnName("trans_mode_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.TransCategoryId).HasColumnName("trans_category_id");
+            entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
             entity.Property(e => e.ExpenseDate)
                 .HasColumnType("date")
                 .HasColumnName("expense_date");
@@ -156,6 +237,18 @@ public partial class ApplicationDbContext : DbContext
                 .HasForeignKey(d => d.TransModeId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("expenses_trans_mode_id_fkey");
+            entity.HasOne(d => d.User).WithMany(p => p.Expenses)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("expenses_user_id_fkey");
+            entity.HasOne(d => d.TransCategory).WithMany(p => p.Expenses)
+                .HasForeignKey(d => d.TransCategoryId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("expenses_trans_category_id_fkey");
+            entity.HasOne(d => d.Transaction).WithMany(p => p.Expenses)
+                .HasForeignKey(d => d.TransactionId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("expenses_transaction_id_fkey");
         });
 
         modelBuilder.Entity<Order>(entity =>
@@ -204,9 +297,11 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
-            entity.Property(e => e.Qty).HasColumnName("qty");
-            entity.Property(e => e.UnitPrice)
+            entity.Property(e => e.Qty)
                 .HasPrecision(14, 2)
+                .HasColumnName("qty");
+            entity.Property(e => e.UnitPrice)
+                .HasPrecision(14, 4)
                 .HasColumnName("unit_price");
 
             entity.HasOne(d => d.Order).WithMany(p => p.OrderLines)
@@ -242,21 +337,84 @@ public partial class ApplicationDbContext : DbContext
                 .HasDefaultValueSql("NOW()")
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.IsReversed)
+                .HasDefaultValue(false)
+                .HasColumnName("is_reversed");
+            entity.Property(e => e.ReversedByPaymentId).HasColumnName("reversed_by_payment_id");
+            entity.Property(e => e.OriginalPaymentId).HasColumnName("original_payment_id");
+            entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
 
             entity.HasOne(d => d.PartyClient).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.PartyClientId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("payments_party_client_id_fkey");
-            
+
             entity.HasOne(d => d.PaymentDirection).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.PaymentDirectionId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("payments_payment_direction_id_fkey");
-            
+
             entity.HasOne(d => d.TransMode).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.TransModeId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("payments_trans_mode_id_fkey");
+
+            entity.HasOne(d => d.User).WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("payments_user_id_fkey");
+
+            entity.HasOne(d => d.Transaction).WithMany()
+                .HasForeignKey(d => d.TransactionId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("payments_transaction_id_fkey");
+
+            // Self-referencing for reversal chain
+            entity.HasOne<Payment>().WithMany()
+                .HasForeignKey(d => d.ReversedByPaymentId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("payments_reversed_by_payment_id_fkey");
+
+            entity.HasOne<Payment>().WithMany()
+                .HasForeignKey(d => d.OriginalPaymentId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("payments_original_payment_id_fkey");
+        });
+
+        modelBuilder.Entity<PaymentAllocation>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("payment_allocations_pkey");
+
+            entity.ToTable("payment_allocations");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id");
+            entity.Property(e => e.PaymentId).HasColumnName("payment_id");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.PurchaseId).HasColumnName("purchase_id");
+            entity.Property(e => e.AllocatedAmount)
+                .HasPrecision(14, 2)
+                .HasColumnName("allocated_amount");
+
+            entity.HasOne(d => d.Payment).WithMany(p => p.Allocations)
+                .HasForeignKey(d => d.PaymentId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("payment_allocations_payment_id_fkey");
+
+            entity.HasOne(d => d.Order).WithMany(p => p.PaymentAllocations)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("payment_allocations_order_id_fkey");
+
+            entity.HasOne(d => d.Purchase).WithMany(p => p.PaymentAllocations)
+                .HasForeignKey(d => d.PurchaseId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("payment_allocations_purchase_id_fkey");
+
+            entity.Property(e => e.InvoiceId).HasColumnName("invoice_id");
+            entity.HasOne(e => e.Invoice).WithMany(i => i.PaymentAllocations).HasForeignKey(e => e.InvoiceId).OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Product>(entity =>
@@ -282,6 +440,30 @@ public partial class ApplicationDbContext : DbContext
                 .HasPrecision(14, 2)
                 .HasDefaultValueSql("0")
                 .HasColumnName("default_price");
+            entity.Property(e => e.Quantity)
+                .HasPrecision(14, 2)
+                .HasDefaultValueSql("0")
+                .HasColumnName("quantity");
+            entity.Property(e => e.AverageCost)
+                .HasPrecision(14, 4)
+                .HasColumnName("average_cost");
+            entity.Property(e => e.AveragePrice)
+                .HasPrecision(14, 4)
+                .HasColumnName("average_price");
+            entity.Property(e => e.CostChangeCount)
+                .HasDefaultValue(0)
+                .HasColumnName("cost_change_count");
+            entity.Property(e => e.PriceChangeCount)
+                .HasDefaultValue(0)
+                .HasColumnName("price_change_count");
+            entity.Property(e => e.TotalQuantityPurchased)
+                .HasPrecision(14, 2)
+                .HasDefaultValueSql("0")
+                .HasColumnName("total_quantity_purchased");
+            entity.Property(e => e.TotalQuantitySold)
+                .HasPrecision(14, 2)
+                .HasDefaultValueSql("0")
+                .HasColumnName("total_quantity_sold");
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
@@ -313,10 +495,16 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
 
+            entity.Property(e => e.StatusId).HasColumnName("status_id");
+
             entity.HasOne(d => d.Supplier).WithMany(p => p.Purchases)
                 .HasForeignKey(d => d.SupplierId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("purchases_supplier_id_fkey");
+            entity.HasOne(d => d.Status).WithMany(p => p.Purchases)
+                .HasForeignKey(d => d.StatusId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("purchases_status_id_fkey");
             entity.HasOne(d => d.PaymentType).WithMany(p => p.Purchases)
                 .HasForeignKey(d => d.PaymentTypeId)
                 .OnDelete(DeleteBehavior.SetNull)
@@ -334,9 +522,11 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.PurchaseId).HasColumnName("purchase_id");
-            entity.Property(e => e.Qty).HasColumnName("qty");
-            entity.Property(e => e.UnitCost)
+            entity.Property(e => e.Qty)
                 .HasPrecision(14, 2)
+                .HasColumnName("qty");
+            entity.Property(e => e.UnitCost)
+                .HasPrecision(14, 4)
                 .HasColumnName("unit_cost");
 
             entity.HasOne(d => d.Product).WithMany(p => p.PurchaseLines)
@@ -361,13 +551,22 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.MovementTypeId).HasColumnName("movement_type_id");
             entity.Property(e => e.MovementSourceId).HasColumnName("movement_source_id");
-            entity.Property(e => e.Qty).HasColumnName("qty");
+            entity.Property(e => e.Qty)
+                .HasPrecision(14, 2)
+                .HasColumnName("qty")
+                .HasDefaultValueSql("0");
             entity.Property(e => e.UnitCost)
                 .HasPrecision(14, 4)
                 .HasColumnName("unit_cost");
             entity.Property(e => e.UnitPrice)
                 .HasPrecision(14, 4)
                 .HasColumnName("unit_price");
+            entity.Property(e => e.AverageCostAtMovement)
+                .HasPrecision(14, 4)
+                .HasColumnName("average_cost_at_movement");
+            entity.Property(e => e.AveragePriceAtMovement)
+                .HasPrecision(14, 4)
+                .HasColumnName("average_price_at_movement");
             entity.Property(e => e.MovementDate)
                 .HasColumnType("date")
                 .HasColumnName("movement_date");
@@ -444,21 +643,33 @@ public partial class ApplicationDbContext : DbContext
                 .HasForeignKey(d => d.TransCategoryId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("transactions_trans_category_id_fkey");
+
+            entity.Property(e => e.OrderId).HasColumnName("OrderId");
+            entity.HasOne(d => d.Order).WithMany(p => p.Transactions)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_transactions_orders_OrderId");
+
+            entity.Property(e => e.PurchaseId).HasColumnName("PurchaseId");
+            entity.HasOne(d => d.Purchase).WithMany(p => p.Transactions)
+                .HasForeignKey(d => d.PurchaseId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_transactions_purchases_PurchaseId");
+
+            entity.Property(e => e.InvoiceId).HasColumnName("invoice_id");
+            entity.HasOne(e => e.Invoice).WithMany(i => i.Transactions).HasForeignKey(e => e.InvoiceId).OnDelete(DeleteBehavior.SetNull);
         });
 
-        modelBuilder.Entity<User>(entity =>
+        modelBuilder.Entity<ApplicationUser>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("users_pkey");
-
             entity.ToTable("users");
 
             entity.HasIndex(e => e.Name, "users_name_key");
+            entity.HasIndex(e => e.Email, "IX_users_email");
+            entity.HasIndex(e => e.IsActive, "IX_users_is_active");
+            entity.HasIndex(e => new { e.IsActive, e.CreatedAt }, "IX_users_is_active_created_at");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
-            entity.Property(e => e.Email).HasColumnName("email");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
@@ -467,13 +678,67 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
-            entity.HasOne(d => d.Role).WithMany(p => p.Users)
+
+            // Map Identity properties to existing column names
+            entity.Property(e => e.UserName).HasColumnName("user_name");
+            entity.Property(e => e.Email).HasColumnName("email");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
+            entity.Property(e => e.SecurityStamp).HasColumnName("security_stamp");
+            entity.Property(e => e.ConcurrencyStamp).HasColumnName("concurrency_stamp");
+            entity.Property(e => e.PhoneNumber).HasColumnName("phone_number");
+            entity.Property(e => e.PhoneNumberConfirmed).HasColumnName("phone_number_confirmed");
+            entity.Property(e => e.TwoFactorEnabled).HasColumnName("two_factor_enabled");
+            entity.Property(e => e.LockoutEnd).HasColumnName("lockout_end");
+            entity.Property(e => e.LockoutEnabled).HasColumnName("lockout_enabled");
+            entity.Property(e => e.AccessFailedCount).HasColumnName("access_failed_count");
+            entity.Property(e => e.EmailConfirmed).HasDefaultValue(false).HasColumnName("email_confirmed");
+            entity.Property(e => e.NormalizedEmail).HasColumnName("normalized_email");
+            entity.Property(e => e.NormalizedUserName).HasColumnName("normalized_user_name");
+
+            entity.HasOne(d => d.Role).WithMany(r => r.Users)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("users_role_id_fkey");
-        }
-        );
-        modelBuilder.Entity<UserRole>(entity => {
+        });
+
+        // Configure Identity Role to use custom table name (optional - if you want to use Identity roles)
+        modelBuilder.Entity<IdentityRole<int>>(entity =>
+        {
+            entity.ToTable("aspnet_roles");
+        });
+
+        // Configure Identity UserRole (many-to-many) to use custom table name
+        modelBuilder.Entity<IdentityUserRole<int>>(entity =>
+        {
+            entity.ToTable("aspnet_user_roles");
+        });
+
+        // Configure Identity UserClaim
+        modelBuilder.Entity<IdentityUserClaim<int>>(entity =>
+        {
+            entity.ToTable("aspnet_user_claims");
+        });
+
+        // Configure Identity UserLogin
+        modelBuilder.Entity<IdentityUserLogin<int>>(entity =>
+        {
+            entity.ToTable("aspnet_user_logins");
+        });
+
+        // Configure Identity UserToken
+        modelBuilder.Entity<IdentityUserToken<int>>(entity =>
+        {
+            entity.ToTable("aspnet_user_tokens");
+        });
+
+        // Configure Identity RoleClaim
+        modelBuilder.Entity<IdentityRoleClaim<int>>(entity =>
+        {
+            entity.ToTable("aspnet_role_claims");
+        });
+        modelBuilder.Entity<UserRole>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("user_roles_pkey");
             entity.ToTable("user_roles");
             entity.Property(e => e.Id)
@@ -486,27 +751,8 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<Login>(entity => {
-            entity.HasKey(e => e.Id).HasName("logins_pkey");
-            entity.ToTable("logins");
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("id");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.Username).HasColumnName("username");
-            entity.HasIndex(e => e.Username, "IX_logins_username").IsUnique();
-            entity.Property(e => e.Password).HasColumnName("password");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("NOW()")
-                .HasColumnType("datetime")
-                .HasColumnName("created_at");
-            entity.HasOne(d => d.User).WithOne()
-                .HasForeignKey<Login>(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("logins_user_id_fkey");
-        });
-
-        modelBuilder.Entity<OrderStatus>(entity => {
+        modelBuilder.Entity<OrderStatus>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("order_statuses_pkey");
             entity.ToTable("order_statuses");
             entity.Property(e => e.Id)
@@ -519,7 +765,22 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<PaymentType>(entity => {
+        modelBuilder.Entity<PurchaseStatus>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("purchase_statuses_pkey");
+            entity.ToTable("purchase_statuses");
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<PaymentType>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("payment_types_pkey");
             entity.ToTable("payment_types");
             entity.Property(e => e.Id)
@@ -532,7 +793,8 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<TransCategory>(entity => {
+        modelBuilder.Entity<TransCategory>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("trans_categories_pkey");
             entity.ToTable("trans_categories");
             entity.Property(e => e.Id)
@@ -545,7 +807,8 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<TransMode>(entity => {
+        modelBuilder.Entity<TransMode>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("trans_modes_pkey");
             entity.ToTable("trans_modes");
             entity.Property(e => e.Id)
@@ -558,7 +821,8 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<TransType>(entity => {
+        modelBuilder.Entity<TransType>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("trans_types_pkey");
             entity.ToTable("trans_types");
             entity.Property(e => e.Id)
@@ -571,7 +835,8 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<PaymentDirection>(entity => {
+        modelBuilder.Entity<PaymentDirection>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("payment_directions_pkey");
             entity.ToTable("payment_directions");
             entity.Property(e => e.Id)
@@ -584,7 +849,8 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<MovementType>(entity => {
+        modelBuilder.Entity<MovementType>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("movement_types_pkey");
             entity.ToTable("movement_types");
             entity.Property(e => e.Id)
@@ -597,7 +863,8 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<MovementSource>(entity => {
+        modelBuilder.Entity<MovementSource>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("movement_sources_pkey");
             entity.ToTable("movement_sources");
             entity.Property(e => e.Id)
@@ -610,7 +877,8 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("created_at");
         });
 
-        modelBuilder.Entity<ExpenseType>(entity => {
+        modelBuilder.Entity<ExpenseType>(entity =>
+        {
             entity.HasKey(e => e.Id).HasName("expense_types_pkey");
             entity.ToTable("expense_types");
             entity.Property(e => e.Id)
@@ -658,6 +926,133 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.TotalSales)
                 .HasPrecision(14, 2)
                 .HasColumnName("total_sales");
+        });
+
+        modelBuilder.Entity<VMonthlyCreditDebit>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("v_monthly_credit_debit");
+            entity.Property(e => e.Balance)
+                .HasPrecision(14, 2)
+                .HasColumnName("balance");
+            entity.Property(e => e.Month).HasColumnName("month");
+            entity.Property(e => e.TotalCredit)
+                .HasPrecision(14, 2)
+                .HasColumnName("total_credit");
+            entity.Property(e => e.TotalDebit)
+                .HasPrecision(14, 2)
+                .HasColumnName("total_debit");
+            entity.Property(e => e.Id).HasColumnName("id");
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("refresh_tokens_pkey");
+            entity.ToTable("refresh_tokens");
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id");
+            entity.Property(e => e.Token)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("token");
+            entity.Property(e => e.UserId)
+                .IsRequired()
+                .HasColumnName("user_id");
+            entity.Property(e => e.ExpiresAt)
+                .IsRequired()
+                .HasColumnType("datetime")
+                .HasColumnName("expires_at");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("datetime");
+            entity.Property(e => e.CreatedByIp)
+                .HasColumnName("created_by_ip");
+            entity.Property(e => e.RevokedAt)
+                .HasColumnName("revoked_at");
+            entity.Property(e => e.RevokedByIp)
+                .HasColumnName("revoked_by_ip");
+            entity.Property(e => e.ReplacedByToken)
+                .HasMaxLength(255)
+                .HasColumnName("replaced_by_token");
+
+            entity.HasIndex(e => e.Token).HasDatabaseName("idx_refresh_tokens_token");
+            entity.HasIndex(e => e.UserId).HasDatabaseName("idx_refresh_tokens_user_id");
+
+            entity.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("refresh_tokens_user_id_fkey");
+
+        });
+        modelBuilder.Entity<ProductUser>(entity =>
+        {
+            entity.HasKey(e => new { e.ProductId, e.UserId}).HasName("product_users_pkey"); 
+            entity.ToTable("product_users");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Date)
+                .HasColumnType("date")
+                .HasColumnName("date");
+
+            entity.HasOne(d => d.Product)
+                .WithMany(p => p.ProductUsers)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("product_users_product_id_fkey");
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.ProductUsers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("product_users_user_id_fkey");
+        });
+
+        modelBuilder.Entity<InvoiceStatus>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("invoice_statuses_pkey");
+            entity.ToTable("invoice_statuses");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<Invoice>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("invoices_pkey");
+            entity.ToTable("invoices");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
+            entity.Property(e => e.InvoiceNumber).HasColumnName("invoice_number");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.PurchaseId).HasColumnName("purchase_id");
+            entity.Property(e => e.ClientId).HasColumnName("client_id");
+            entity.Property(e => e.InvoiceStatusId).HasColumnName("invoice_status_id");
+            entity.Property(e => e.IssueDate).HasColumnName("issue_date");
+            entity.Property(e => e.DueDate).HasColumnName("due_date");
+            entity.Property(e => e.TotalAmount).HasColumnName("total_amount").HasColumnType("decimal(14,2)");
+            entity.Property(e => e.Notes).HasColumnName("notes");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+
+            entity.HasOne(e => e.InvoiceStatus).WithMany(s => s.Invoices).HasForeignKey(e => e.InvoiceStatusId);
+            entity.HasOne(e => e.Order).WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.Purchase).WithMany().HasForeignKey(e => e.PurchaseId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.Client).WithMany().HasForeignKey(e => e.ClientId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedByUserId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<InvoiceLine>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("invoice_lines_pkey");
+            entity.ToTable("invoice_lines");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
+            entity.Property(e => e.InvoiceId).HasColumnName("invoice_id");
+            entity.Property(e => e.ProductName).HasColumnName("product_name");
+            entity.Property(e => e.Qty).HasColumnName("qty").HasColumnType("decimal(14,2)");
+            entity.Property(e => e.UnitPrice).HasColumnName("unit_price").HasColumnType("decimal(14,4)");
+            entity.Property(e => e.LineTotal).HasColumnName("line_total").HasColumnType("decimal(14,2)");
+            entity.HasOne(e => e.Invoice).WithMany(i => i.InvoiceLines).HasForeignKey(e => e.InvoiceId).OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);

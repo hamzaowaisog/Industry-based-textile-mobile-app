@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Entities;
@@ -12,23 +14,35 @@ namespace HamzaTex.Api.Entities;
 [Index(nameof(StatusId), nameof(OrderDate), Name = "IX_orders_status_date")]
 public partial class Order
 {
-    public Guid Id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
-    public Guid? ClientId { get; set; }
+    public int? ClientId { get; set; }
 
-    public Guid? StatusId { get; set; }
+    public int? StatusId { get; set; }
     
-    public Guid? PaymentTypeId { get; set; }
+    public int? PaymentTypeId { get; set; }
 
     public DateOnly OrderDate { get; set; }
 
     public string? Notes { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateOnly? CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public string? LocalId { get; set; }
+
+    public int Version { get; set; } = 1;
 
     public virtual Client? Client { get; set; }
     public virtual OrderStatus? Status { get; set; }
     public virtual PaymentType? PaymentType { get; set; }
 
     public virtual ICollection<OrderLine> OrderLines { get; set; } = new List<OrderLine>();
+
+    public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+
+    public virtual ICollection<PaymentAllocation> PaymentAllocations { get; set; } = new List<PaymentAllocation>();
 }
