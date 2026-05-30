@@ -9,8 +9,9 @@
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		140DB004D13F49168A5C349F /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8625749C2AC448B1BF384AD2 /* GoogleService-Info.plist */; };
-		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
+		3C9B4B5F334A44959B8446E5 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D6C006AAA19E4AECB1BE2B14 /* BootSplash.storyboard */; };
 		8F333E7C099D1E89830B245F /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C4B309B06DECC540E308DE /* ExpoModulesProvider.swift */; };
+		B523CD2EDCF9481991C7B9F0 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 964970D266CD4473B10C80DD /* Colors.xcassets */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		CCB1EF3434C11BE53FAB25CA /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B993AB7DDC8D18CCCA56FFAE /* PrivacyInfo.xcprivacy */; };
 		ED77D5D582E9338DE28E2F98 /* libPods-HamzaTex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9B3A95022FC855BF8F05E45 /* libPods-HamzaTex.a */; };
@@ -24,9 +25,10 @@
 		30AEA376069FE58F08640804 /* Pods-HamzaTex.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HamzaTex.debug.xcconfig"; path = "Target Support Files/Pods-HamzaTex/Pods-HamzaTex.debug.xcconfig"; sourceTree = "<group>"; };
 		3267306ABD2DCAA9400F425C /* Pods-HamzaTex.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HamzaTex.release.xcconfig"; path = "Target Support Files/Pods-HamzaTex/Pods-HamzaTex.release.xcconfig"; sourceTree = "<group>"; };
 		8625749C2AC448B1BF384AD2 /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "HamzaTex/GoogleService-Info.plist"; sourceTree = "<group>"; };
-		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = HamzaTex/SplashScreen.storyboard; sourceTree = "<group>"; };
+		964970D266CD4473B10C80DD /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = HamzaTex/Colors.xcassets; sourceTree = "<group>"; };
 		B993AB7DDC8D18CCCA56FFAE /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = HamzaTex/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
+		D6C006AAA19E4AECB1BE2B14 /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = HamzaTex/BootSplash.storyboard; sourceTree = "<group>"; };
 		D9B3A95022FC855BF8F05E45 /* libPods-HamzaTex.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-HamzaTex.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9C4B309B06DECC540E308DE /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-HamzaTex/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -54,9 +56,10 @@
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
-				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
 				8625749C2AC448B1BF384AD2 /* GoogleService-Info.plist */,
 				B993AB7DDC8D18CCCA56FFAE /* PrivacyInfo.xcprivacy */,
+				D6C006AAA19E4AECB1BE2B14 /* BootSplash.storyboard */,
+				964970D266CD4473B10C80DD /* Colors.xcassets */,
 			);
 			name = HamzaTex;
 			sourceTree = "<group>";
@@ -199,9 +202,10 @@
 			files = (
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
-				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				140DB004D13F49168A5C349F /* GoogleService-Info.plist in Resources */,
 				CCB1EF3434C11BE53FAB25CA /* PrivacyInfo.xcprivacy in Resources */,
+				3C9B4B5F334A44959B8446E5 /* BootSplash.storyboard in Resources */,
+				B523CD2EDCF9481991C7B9F0 /* Colors.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

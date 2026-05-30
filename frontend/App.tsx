@@ -1,18 +1,12 @@
 import React, { useEffect } from 'react';
 
-import {
-  Quicksand_400Regular,
-  Quicksand_500Medium,
-  Quicksand_600SemiBold,
-  Quicksand_700Bold,
-  useFonts,
-} from '@expo-google-fonts/quicksand';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import BootSplash from 'react-native-bootsplash';
 import { enableScreens } from 'react-native-screens';
 
-import { RootNavigator } from '@navigation/RootNavigator';
-import { SplashScreen } from '@screens/SplashScreen';
 import { useAuthStore } from '@stores/authStore';
+
+import { RootNavigator } from '@navigation/RootNavigator';
 
 enableScreens();
 
@@ -28,20 +22,12 @@ const queryClient = new QueryClient({
 export default function App() {
   const hydrate = useAuthStore((s) => s.hydrate);
 
-  const [fontsLoaded] = useFonts({
-    Quicksand_400Regular,
-    Quicksand_500Medium,
-    Quicksand_600SemiBold,
-    Quicksand_700Bold,
-  });
-
   useEffect(() => {
-    if (fontsLoaded) {
-      hydrate();
-    }
-  }, [fontsLoaded, hydrate]);
-
-  if (!fontsLoaded) return <SplashScreen />;
+    void (async () => {
+      await hydrate();
+      await BootSplash.hide({ fade: true });
+    })();
+  }, [hydrate]);
 
   return (
     <QueryClientProvider client={queryClient}>

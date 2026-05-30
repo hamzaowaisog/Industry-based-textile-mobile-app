@@ -1,9 +1,9 @@
 export const typography = {
   fontFamily: {
-    regular: 'Quicksand_400Regular',
-    medium: 'Quicksand_500Medium',
-    semibold: 'Quicksand_600SemiBold',
-    bold: 'Quicksand_700Bold',
+    regular: 'Quicksand-Regular',
+    medium: 'Quicksand-Medium',
+    semibold: 'Quicksand-SemiBold',
+    bold: 'Quicksand-Bold',
   },
 
   fontSize: {

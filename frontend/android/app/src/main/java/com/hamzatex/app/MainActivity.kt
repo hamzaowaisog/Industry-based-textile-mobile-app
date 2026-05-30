@@ -7,15 +7,13 @@ import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
+import com.zoontek.rnbootsplash.RNBootSplash
 
 import expo.modules.ReactActivityDelegateWrapper
 
 class MainActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
-    // Set the theme to AppTheme BEFORE onCreate to support
-    // coloring the background, status bar, and navigation bar.
-    // This is required for expo-splash-screen.
-    setTheme(R.style.AppTheme);
+    RNBootSplash.init(this)
     super.onCreate(null)
   }
 

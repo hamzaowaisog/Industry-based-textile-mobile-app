@@ -4,6 +4,7 @@ export default ({ config }) => ({
   slug: 'hamzatex',
   version: '1.0.0',
   owner: 'hamzatex',
+  icon: './assets/icon.png',
   ios: {
     bundleIdentifier: 'com.hamzatex.app',
     googleServicesFile: './GoogleService-Info.plist',
@@ -13,10 +14,24 @@ export default ({ config }) => ({
     package: 'com.hamzatex.app',
     googleServicesFile: './google-services.json',
     versionCode: 1,
+    adaptiveIcon: {
+      foregroundImage: './design_handoff_hamzatex_erp/app-icons/android/res/mipmap-xxxhdpi/ic_launcher_foreground.png',
+      backgroundColor: '#1A56DB',
+    },
   },
   plugins: [
     'expo-secure-store',
-    'expo-font',
+    [
+      'expo-font',
+      {
+        fonts: [
+          './assets/fonts/Quicksand-Regular.ttf',
+          './assets/fonts/Quicksand-Medium.ttf',
+          './assets/fonts/Quicksand-SemiBold.ttf',
+          './assets/fonts/Quicksand-Bold.ttf',
+        ],
+      },
+    ],
     '@react-native-firebase/app',
   ],
   extra: {
