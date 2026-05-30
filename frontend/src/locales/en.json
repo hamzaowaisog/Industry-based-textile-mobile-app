@@ -117,11 +117,99 @@
     "failed": "Sync failed",
     "syncNow": "Sync Now"
   },
+  "welcome": {
+    "brandSubtitle": "TEXTILE ERP · MOBILE",
+    "heroTagline": "The complete ERP\nfor textile mills & traders",
+    "stats": {
+      "mills": "Mills",
+      "appRating": "App rating",
+      "uptime": "Uptime"
+    },
+    "features": {
+      "syncLabel": "Real-time sync",
+      "syncSub": "Field staff stay in lockstep",
+      "securityLabel": "Bank-grade security",
+      "securitySub": "Biometric + encryption",
+      "insightsLabel": "Live insights",
+      "insightsSub": "P&L, balances, stock trends"
+    },
+    "getStarted": "Get Started",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "termsPrefix": "By continuing you agree to our",
+    "terms": "Terms",
+    "privacy": "Privacy Policy"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "continue": "Continue",
+    "getStarted": "Get Started",
+    "counter": "{{current}} / {{total}}",
+    "slides": {
+      "slide1": {
+        "title": "Run your mill from anywhere",
+        "body": "Track every meter of fabric and every rupee — from the floor, the warehouse, or the road.",
+        "point1": "Live dashboard with KPIs",
+        "point2": "Orders, payments & invoices",
+        "point3": "Stock tracking by SKU"
+      },
+      "slide2": {
+        "title": "Works offline, syncs later",
+        "body": "No signal? No problem. Field staff record orders locally; everything syncs the moment you reconnect.",
+        "point1": "Offline-first local DB",
+        "point2": "Auto-sync on reconnect",
+        "point3": "Conflict-safe push"
+      },
+      "slide3": {
+        "title": "Insights you can act on",
+        "body": "Beautiful charts that turn raw numbers into clarity. Share PDFs with your accountant in two taps.",
+        "point1": "Profit & loss in one tap",
+        "point2": "Outstanding balance reports",
+        "point3": "PDF export & share"
+      }
+    }
+  },
   "validation": {
     "required": "This field is required",
     "invalidEmail": "Invalid email address",
     "minLength": "Minimum {{count}} characters",
     "maxLength": "Maximum {{count}} characters",
     "positiveNumber": "Must be a positive number"
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "sections": {
+      "acceptance": "1. Acceptance of Terms",
+      "acceptanceBody": "By downloading, installing, or using the HamzaTex mobile application, you agree to be bound by these Terms of Service. If you do not agree with any part of these terms, you must not use the application.",
+      "use": "2. Permitted Use",
+      "useBody": "HamzaTex is licensed to you for lawful business use in managing textile trading operations including orders, purchases, inventory, payments, and financial reporting. You may not reverse-engineer, redistribute, or resell the application without written consent.",
+      "accounts": "3. User Accounts",
+      "accountsBody": "You are responsible for maintaining the confidentiality of your login credentials. All activity under your account is your responsibility. You must notify us immediately of any unauthorized access to your account.",
+      "data": "4. Your Data",
+      "dataBody": "You retain full ownership of all business data entered into HamzaTex. We do not sell, share, or analyze your data for advertising purposes. Data is stored securely and encrypted both in transit and at rest.",
+      "liability": "5. Limitation of Liability",
+      "liabilityBody": "HamzaTex is provided \"as is\" without warranties of any kind. We are not liable for any indirect, incidental, or consequential damages arising from the use or inability to use the application.",
+      "changes": "6. Changes to Terms",
+      "changesBody": "We reserve the right to modify these terms at any time. Continued use of the application after changes constitutes acceptance of the updated terms. We will notify users of significant changes through the application."
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "sections": {
+      "collection": "1. Information We Collect",
+      "collectionBody": "We collect information you provide directly, such as your name, email, phone number, and business data including clients, products, orders, and financial transactions. We also collect device information and usage analytics to improve the application.",
+      "usage": "2. How We Use Your Information",
+      "usageBody": "Your information is used solely to provide and improve HamzaTex services. This includes processing transactions, generating reports, syncing data across devices, and providing customer support.",
+      "storage": "3. Data Storage & Retention",
+      "storageBody": "All data is encrypted using industry-standard AES-256 encryption and stored on secure servers. Data is retained for as long as your account is active. Upon account deletion, all associated data is permanently removed within 30 days.",
+      "sharing": "4. Data Sharing",
+      "sharingBody": "We do not sell, trade, or rent your personal or business data to third parties. Data may only be shared with your explicit consent or when required by law.",
+      "security": "5. Security Measures",
+      "securityBody": "We implement bank-grade security including end-to-end encryption, biometric authentication, JWT-based session management, and regular security audits to protect your data from unauthorized access.",
+      "rights": "6. Your Rights",
+      "rightsBody": "You have the right to access, correct, export, or delete your data at any time. You may also revoke data processing consent, which may limit certain application features.",
+      "contact": "7. Contact Us",
+      "contactBody": "For any questions or concerns about this Privacy Policy or your data, please contact us through the application's Settings screen or email us at privacy@hamzatex.com."
+    }
   }
 }

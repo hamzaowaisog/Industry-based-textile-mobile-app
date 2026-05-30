@@ -1,0 +1,10 @@
+export { LogoIcon } from '../../assets/svg/icons/LogoIcon';
+export { WifiIcon } from '../../assets/svg/icons/WifiIcon';
+export { LockIcon } from '../../assets/svg/icons/LockIcon';
+export { TrendIcon } from '../../assets/svg/icons/TrendIcon';
+export { ArrowLeftIcon } from '../../assets/svg/icons/ArrowLeftIcon';
+export { CheckIcon } from '../../assets/svg/icons/CheckIcon';
+export { WeavePattern } from '../../assets/svg/WeavePattern';
+export { OnboardingSlide1 } from '../../assets/svg/illustrations/OnboardingSlide1';
+export { OnboardingSlide2 } from '../../assets/svg/illustrations/OnboardingSlide2';
+export { OnboardingSlide3 } from '../../assets/svg/illustrations/OnboardingSlide3';

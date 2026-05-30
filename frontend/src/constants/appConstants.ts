@@ -6,6 +6,7 @@ export const AppConstants = {
     USER_ID: 'userId',
     ROLE_ID: 'roleId',
     USER_NAME: 'userName',
+    ONBOARDING_COMPLETED: 'onboardingCompleted',
   },
 
   // Roles

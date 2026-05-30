@@ -1,7 +1,11 @@
 export type AuthStackParamList = {
+  Welcome: undefined;
+  Onboarding: undefined;
   Login: undefined;
   ForgotPassword: undefined;
   ResetPassword: { token: string; email: string };
+  Terms: undefined;
+  Privacy: undefined;
 };
 
 export type MainTabParamList = {
