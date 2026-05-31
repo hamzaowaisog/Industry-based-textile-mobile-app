@@ -5,47 +5,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {
-  LockIcon,
-  LogoIcon,
-  TrendIcon,
-  WeavePattern,
-  WifiIcon,
-} from '@constants/svgAssets';
+import { AppConstants } from '@constants/appConstants';
+import { LogoIcon, WeavePattern } from '@constants/svgAssets';
 import { colors } from '@theme/colors';
+import { WELCOME_FEATURES, WELCOME_STATS } from '@utils/helpers/welcomeContent';
 import { WelcomeComponentProps } from '../../types/welcome.types';
 
 import { styles } from './styles';
 
 export const WelcomeComponent = ({ onGetStarted, onSignIn, onTerms, onPrivacy }: WelcomeComponentProps) => {
   const { t } = useTranslation();
-
-  const stats = [
-    { value: '120+', label: t('welcome.stats.mills') },
-    { value: '4.8★', label: t('welcome.stats.appRating') },
-    { value: '99.9%', label: t('welcome.stats.uptime') },
-  ];
-
-  const features = [
-    {
-      Icon: WifiIcon,
-      color: colors.primary,
-      label: t('welcome.features.syncLabel'),
-      sub: t('welcome.features.syncSub'),
-    },
-    {
-      Icon: LockIcon,
-      color: colors.success,
-      label: t('welcome.features.securityLabel'),
-      sub: t('welcome.features.securitySub'),
-    },
-    {
-      Icon: TrendIcon,
-      color: colors.violet,
-      label: t('welcome.features.insightsLabel'),
-      sub: t('welcome.features.insightsSub'),
-    },
-  ];
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -67,7 +36,7 @@ export const WelcomeComponent = ({ onGetStarted, onSignIn, onTerms, onPrivacy }:
               <View style={styles.logoBox}>
                 <LogoIcon size={56} color="#fff" />
               </View>
-              <Text style={styles.brandName}>HamzaTex</Text>
+              <Text style={styles.brandName}>{AppConstants.APP.NAME}</Text>
               <Text style={styles.brandSubtitle}>{t('welcome.brandSubtitle')}</Text>
             </View>
 
@@ -78,10 +47,10 @@ export const WelcomeComponent = ({ onGetStarted, onSignIn, onTerms, onPrivacy }:
         {/* Stats */}
         <View style={styles.statsWrapper}>
           <View style={styles.statsCard}>
-            {stats.map((stat, i) => (
-              <View key={i} style={[styles.statItem, i > 0 && styles.statItemBorder]}>
+            {WELCOME_STATS.map((stat, i) => (
+              <View key={stat.labelKey} style={[styles.statItem, i > 0 && styles.statItemBorder]}>
                 <Text style={styles.statValue}>{stat.value}</Text>
-                <Text style={styles.statLabel}>{stat.label}</Text>
+                <Text style={styles.statLabel}>{t(stat.labelKey)}</Text>
               </View>
             ))}
           </View>
@@ -89,14 +58,14 @@ export const WelcomeComponent = ({ onGetStarted, onSignIn, onTerms, onPrivacy }:
 
         {/* Features */}
         <View style={styles.featuresWrapper}>
-          {features.map((f, i) => (
-            <View key={i} style={styles.featureRow}>
+          {WELCOME_FEATURES.map((f) => (
+            <View key={f.labelKey} style={styles.featureRow}>
               <View style={[styles.iconTile, { backgroundColor: f.color + '22' }]}>
                 <f.Icon color={f.color} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.featureLabel}>{f.label}</Text>
-                <Text style={styles.featureSub}>{f.sub}</Text>
+                <Text style={styles.featureLabel}>{t(f.labelKey)}</Text>
+                <Text style={styles.featureSub}>{t(f.subKey)}</Text>
               </View>
             </View>
           ))}

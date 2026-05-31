@@ -33,7 +33,6 @@ export const styles = StyleSheet.create({
     borderRadius: 100,
     backgroundColor: colors.overlayWhite04,
   },
-
   backButton: {
     width: 40,
     height: 40,
@@ -67,25 +66,6 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.warning,
-    borderWidth: 3,
-    borderColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroBadgeText: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.textInverse,
-  },
   heroIconCore: {
     width: 66,
     height: 66,
@@ -101,6 +81,24 @@ export const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 8,
   },
+  heroBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.success,
+    borderWidth: 3,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroBadgeText: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: 12,
+    color: colors.textInverse,
+  },
 
   // ── Hero text ──
   heroText: {
@@ -109,7 +107,6 @@ export const styles = StyleSheet.create({
   heroTitle: {
     fontFamily: typography.fontFamily.bold,
     fontSize: 26,
-    fontWeight: '700',
     color: colors.textInverse,
     letterSpacing: -0.5,
     textAlign: 'center',
@@ -117,11 +114,16 @@ export const styles = StyleSheet.create({
   heroSubtitle: {
     fontFamily: typography.fontFamily.medium,
     fontSize: 14,
-    fontWeight: '500',
     color: colors.overlayWhite78,
-    marginTop: 6,
+    marginTop: 4,
     textAlign: 'center',
-    lineHeight: 20,
+  },
+  heroEmail: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: 14,
+    color: colors.textInverse,
+    marginTop: 2,
+    textAlign: 'center',
   },
 
   // ── Form card ──
@@ -137,94 +139,86 @@ export const styles = StyleSheet.create({
   },
   formContent: {
     padding: 24,
-    paddingTop: 28,
-    gap: 24,
+    paddingTop: 32,
+    gap: 28,
   },
 
-  // ── Inputs ──
-  inputWrapper: {
-    gap: 6,
-  },
-  inputLabel: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  requiredStar: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.danger,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
-    height: 50,
-    paddingHorizontal: 14,
+  // ── OTP input row ──
+  otpSection: {
     gap: 10,
   },
-  inputLeading: {
-    width: 18,
+  otpLabel: {
+    fontFamily: typography.fontFamily.semibold,
+    fontSize: 13,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  otpRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  otpBox: {
+    width: 48,
+    height: 56,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  input: {
-    flex: 1,
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
-    height: '100%',
+  otpBoxFocused: {
+    borderColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  inputRowError: {
-    borderColor: colors.danger,
+  otpBoxFilled: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryLight,
+  },
+  otpBoxText: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: 22,
+    color: colors.text,
+    textAlign: 'center',
   },
   fieldError: {
     fontFamily: typography.fontFamily.medium,
     fontSize: 12,
     color: colors.danger,
-    marginTop: 2,
+    textAlign: 'center',
   },
 
-  // ── Step strip ──
-  stepStrip: {
-    flexDirection: 'row',
+  // ── Resend ──
+  resendRow: {
     alignItems: 'center',
     gap: 6,
   },
-  stepItem: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-    backgroundColor: colors.bgAlt,
-    alignItems: 'center',
-    gap: 8,
+  resendHint: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 13,
+    color: colors.textSecondary,
   },
-  stepIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepLabel: {
+  resendTimer: {
     fontFamily: typography.fontFamily.bold,
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.text,
-    textAlign: 'center',
+    fontSize: 13,
+    color: colors.primary,
   },
-  stepConnector: {
-    width: 10,
-    height: 1.5,
-    backgroundColor: colors.border,
-    borderRadius: 1,
+  resendBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  resendBtnText: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: 13,
+    color: colors.primary,
+  },
+  resendBtnDisabledText: {
+    color: colors.textTertiary,
   },
 
   // ── Primary button ──
@@ -246,26 +240,23 @@ export const styles = StyleSheet.create({
   primaryButtonText: {
     fontFamily: typography.fontFamily.bold,
     fontSize: 16,
-    fontWeight: '700',
     color: colors.textInverse,
   },
 
-  // ── Sign in row ──
-  signInRow: {
+  // ── Back to login ──
+  backToLogin: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  signInText: {
+  backToLoginText: {
     fontFamily: typography.fontFamily.medium,
     fontSize: 13,
-    fontWeight: '500',
     color: colors.textSecondary,
   },
-  signInLink: {
+  backToLoginLink: {
     fontFamily: typography.fontFamily.bold,
     fontSize: 13,
-    fontWeight: '700',
     color: colors.primary,
   },
 });

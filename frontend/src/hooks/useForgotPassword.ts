@@ -1,25 +1,30 @@
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFormik } from 'formik';
+import { useTranslation } from 'react-i18next';
+
+import { AppConstants } from '@constants/appConstants';
 
 import { forgotPasswordAsync } from '../core/auth';
-import { AuthStackParamList } from '../types/navigation.types';
+import { ForgotPasswordNavProp } from '../types/navigation.types';
 import { ForgotPasswordFormValues } from '../types/forgotPassword.types';
 import { forgotPasswordValidationSchema } from '../utils/validation/forgotPasswordValidation';
 import { showError, showSuccess } from '../utils/toast';
 
-type ForgotPasswordNavProp = NativeStackNavigationProp<AuthStackParamList, 'ForgotPassword'>;
-
 export const useForgotPassword = (navigation: ForgotPasswordNavProp) => {
+  const { t } = useTranslation();
+
   const formik = useFormik<ForgotPasswordFormValues>({
     initialValues: { email: '' },
     validationSchema: forgotPasswordValidationSchema,
     onSubmit: async (values) => {
       const result = await forgotPasswordAsync({ email: values.email });
       if (result.success) {
-        showSuccess('Email sent', 'Check your inbox for a password reset link.');
-        navigation.navigate('Login');
+        showSuccess(t('forgotPassword.successTitle'), t('forgotPassword.successSubtitle'));
+        navigation.navigate(AppConstants.SCREENS.AUTH.VERIFY_OTP, {
+          email: values.email,
+          nextResendAt: result.nextResendAt,
+        });
       } else {
-        showError('Failed to send email', result.error);
+        showError(t('forgotPassword.errorTitle'), result.error);
       }
     },
   });
@@ -28,6 +33,6 @@ export const useForgotPassword = (navigation: ForgotPasswordNavProp) => {
     formik,
     isPending: formik.isSubmitting,
     onBack: () => navigation.goBack(),
-    onSignIn: () => navigation.navigate('Login'),
+    onSignIn: () => navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN),
   };
 };

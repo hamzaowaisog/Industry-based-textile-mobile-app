@@ -13,7 +13,7 @@ export type SyncEntity =
   | 'invoice'
   | 'invoiceLine';
 
-export interface PendingChange {
+export type PendingChange = {
   localId: string;
   entity: SyncEntity;
   operation: SyncOperation;
@@ -21,9 +21,9 @@ export interface PendingChange {
   createdAt: string;
   status: 'pending' | 'failed';
   retryCount: number;
-}
+};
 
-export interface LocalInvoice {
+export type LocalInvoice = {
   localId: string;
   invoiceNumber: string;
   invoiceStatusId: number;
@@ -32,4 +32,4 @@ export interface LocalInvoice {
   totalAmount: number;
   createdAt: string;
   isSynced: boolean;
-}
+};

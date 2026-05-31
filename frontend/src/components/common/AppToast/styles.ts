@@ -11,7 +11,7 @@ export const toastStyles = {
     height: undefined as number | undefined,
     paddingVertical: 12,
     paddingHorizontal: 12,
-    shadowColor: '#000',
+    shadowColor: colors.shadowBlack,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
@@ -58,7 +58,7 @@ export const toastStyles = {
 export const xIconStyles = StyleSheet.create({
   arm: {
     height: 2,
-    backgroundColor: '#fff',
+    backgroundColor: colors.textInverse,
     position: 'absolute',
   },
 });

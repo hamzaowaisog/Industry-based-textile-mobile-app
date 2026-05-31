@@ -1,12 +1,22 @@
 export const AppConstants = {
-  // Secure store keys
+  // App identity
+  APP: {
+    NAME: 'HamzaTex',
+    TAG: 'TEXTILE ERP',
+  },
+
+  // Secure store keys (auth tokens only — non-sensitive prefs use FILES)
   SECURE_STORE: {
     ACCESS_TOKEN: 'accessToken',
     REFRESH_TOKEN: 'refreshToken',
     USER_ID: 'userId',
     ROLE_ID: 'roleId',
     USER_NAME: 'userName',
-    ONBOARDING_COMPLETED: 'onboardingCompleted',
+  },
+
+  // File-system markers (cleared on reinstall, unlike Keychain)
+  FILES: {
+    ONBOARDING_COMPLETED: 'onboarding_completed',
   },
 
   // Roles
@@ -28,4 +38,23 @@ export const AppConstants = {
 
   // Date format
   DATE_FORMAT: 'dd MMM, yyyy',
-};
+
+  // OTP
+  OTP: {
+    LENGTH: 6,
+  },
+
+  // Screen names
+  SCREENS: {
+    AUTH: {
+      WELCOME: 'Welcome',
+      ONBOARDING: 'Onboarding',
+      LOGIN: 'Login',
+      FORGOT_PASSWORD: 'ForgotPassword',
+      VERIFY_OTP: 'VerifyOtp',
+      RESET_PASSWORD: 'ResetPassword',
+      TERMS: 'Terms',
+      PRIVACY: 'Privacy',
+    },
+  } as const,
+} as const;

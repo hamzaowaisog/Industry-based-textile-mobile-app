@@ -151,6 +151,6 @@ export const styles = StyleSheet.create({
   continueText: {
     fontFamily: typography.fontFamily.bold,
     fontSize: 16,
-    color: '#fff',
+    color: colors.textInverse,
   },
 });

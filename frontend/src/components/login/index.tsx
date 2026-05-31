@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@theme/colors';
 
+import { AppConstants } from '@constants/appConstants';
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -64,8 +65,8 @@ export const LoginComponent = ({
             <LogoIcon size={32} color="#fff" />
           </View>
           <View>
-            <Text style={styles.brandName}>HamzaTex</Text>
-            <Text style={styles.brandTag}>TEXTILE ERP</Text>
+            <Text style={styles.brandName}>{AppConstants.APP.NAME}</Text>
+            <Text style={styles.brandTag}>{AppConstants.APP.TAG}</Text>
           </View>
         </View>
 
@@ -108,7 +109,7 @@ export const LoginComponent = ({
                 onBlur={formik.handleBlur('userName')}
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholder="Enter your username"
+                placeholder={t('login.usernamePlaceholder')}
                 placeholderTextColor={colors.textTertiary}
                 returnKeyType="next"
                 onSubmitEditing={() => passwordRef.current?.focus()}

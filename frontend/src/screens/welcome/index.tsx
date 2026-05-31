@@ -1,24 +1,23 @@
 import React from 'react';
 
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { WelcomeComponent } from '@components/welcome';
+import { AppConstants } from '@constants/appConstants';
 import { useWelcome } from '@hooks/useWelcome';
 
-import { AuthStackParamList } from '../../types/navigation.types';
+import { WelcomeNavProp } from '../../types/navigation.types';
 
 export const WelcomeScreen = () => {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<AuthStackParamList, 'Welcome'>>();
+  const navigation = useNavigation<WelcomeNavProp>();
   const { handleGetStarted, handleSignIn } = useWelcome(navigation);
 
   return (
     <WelcomeComponent
       onGetStarted={handleGetStarted}
       onSignIn={handleSignIn}
-      onTerms={() => navigation.navigate('Terms')}
-      onPrivacy={() => navigation.navigate('Privacy')}
+      onTerms={() => navigation.navigate(AppConstants.SCREENS.AUTH.TERMS)}
+      onPrivacy={() => navigation.navigate(AppConstants.SCREENS.AUTH.PRIVACY)}
     />
   );
 };

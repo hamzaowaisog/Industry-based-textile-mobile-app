@@ -5,10 +5,11 @@ import { BaseToast, BaseToastProps } from 'react-native-toast-message';
 
 import { CheckIcon, LockIcon } from '@constants/svgAssets';
 import { colors } from '@theme/colors';
+import { LeadingIconProps, XIconProps } from '../../../types/toast.types';
 
 import { toastStyles, xIconStyles } from './styles';
 
-const XIcon = ({ size = 18 }: { size?: number }) => {
+const XIcon = ({ size = 18 }: XIconProps) => {
   const armWidth = size * 0.55;
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
@@ -18,7 +19,7 @@ const XIcon = ({ size = 18 }: { size?: number }) => {
   );
 };
 
-const LeadingIcon = ({ bg, Icon }: { bg: string; Icon: React.ElementType }) => (
+const LeadingIcon = ({ bg, Icon }: LeadingIconProps) => (
   <View style={toastStyles.iconCircle(bg)}>
     <Icon size={18} color="#fff" />
   </View>

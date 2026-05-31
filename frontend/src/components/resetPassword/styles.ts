@@ -24,67 +24,99 @@ export const styles = StyleSheet.create({
     borderRadius: 120,
     backgroundColor: colors.overlayWhite07,
   },
-  orbBottomRight: {
+  orbBottomLeft: {
     position: 'absolute',
-    top: 80,
-    right: -120,
+    bottom: 20,
+    left: -80,
     width: 200,
     height: 200,
     borderRadius: 100,
     backgroundColor: colors.overlayWhite04,
   },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  logoBox: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: colors.overlayWhite20,
-    alignItems: 'center',
-    justifyContent: 'center',
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.overlayWhite18,
     borderWidth: 1,
     borderColor: colors.overlayWhite25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+
+  // ── Hero icon ──
+  heroIconArea: {
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  heroRingOuter: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: colors.overlayWhite12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroRingInner: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: colors.overlayWhite18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroIconCore: {
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    backgroundColor: colors.overlayWhite22,
+    borderWidth: 1.5,
+    borderColor: colors.overlayWhite35,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: colors.shadowBlack,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 20,
     elevation: 8,
   },
-  brandName: {
+  heroBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.success,
+    borderWidth: 3,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroBadgeText: {
     fontFamily: typography.fontFamily.bold,
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 12,
     color: colors.textInverse,
-    letterSpacing: -0.4,
   },
-  brandTag: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.overlayWhite74,
-    letterSpacing: 1.6,
-    marginTop: 2,
-  },
+
+  // ── Hero text ──
   heroText: {
-    marginTop: 48,
+    alignItems: 'center',
   },
   heroTitle: {
     fontFamily: typography.fontFamily.bold,
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 26,
     color: colors.textInverse,
-    letterSpacing: -0.6,
-    lineHeight: 34,
+    letterSpacing: -0.5,
+    textAlign: 'center',
   },
   heroSubtitle: {
     fontFamily: typography.fontFamily.medium,
     fontSize: 14,
-    fontWeight: '500',
     color: colors.overlayWhite78,
     marginTop: 6,
+    textAlign: 'center',
   },
 
   // ── Form card ──
@@ -101,7 +133,7 @@ export const styles = StyleSheet.create({
   formContent: {
     padding: 24,
     paddingTop: 28,
-    gap: 24,
+    gap: 20,
   },
 
   // ── Inputs ──
@@ -111,13 +143,11 @@ export const styles = StyleSheet.create({
   inputLabel: {
     fontFamily: typography.fontFamily.semibold,
     fontSize: 13,
-    fontWeight: '600',
     color: colors.text,
   },
   requiredStar: {
     fontFamily: typography.fontFamily.semibold,
     fontSize: 13,
-    fontWeight: '600',
     color: colors.danger,
   },
   inputRow: {
@@ -131,6 +161,9 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 14,
     gap: 10,
   },
+  inputRowError: {
+    borderColor: colors.danger,
+  },
   inputLeading: {
     width: 18,
     alignItems: 'center',
@@ -140,7 +173,6 @@ export const styles = StyleSheet.create({
     flex: 1,
     fontFamily: typography.fontFamily.medium,
     fontSize: 14,
-    fontWeight: '500',
     color: colors.text,
     height: '100%',
   },
@@ -148,10 +180,9 @@ export const styles = StyleSheet.create({
     paddingRight: 4,
   },
   inputTrailing: {
-    padding: 4,
-  },
-  inputRowError: {
-    borderColor: colors.danger,
+    width: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   fieldError: {
     fontFamily: typography.fontFamily.medium,
@@ -160,51 +191,40 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // ── Remember / Forgot ──
-  rememberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: -2,
+  // ── Password rules ──
+  rulesBox: {
+    backgroundColor: colors.primaryLight,
+    borderRadius: 10,
+    padding: 12,
+    gap: 6,
   },
-  rememberBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 5,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  rememberText: {
+  rulesTitle: {
     fontFamily: typography.fontFamily.semibold,
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  forgotText: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12,
     color: colors.primary,
+    marginBottom: 2,
   },
-
-  // ── Error ──
-  errorText: {
+  ruleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  ruleDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.primary,
+  },
+  ruleDotMet: {
+    backgroundColor: colors.success,
+  },
+  ruleText: {
     fontFamily: typography.fontFamily.medium,
-    fontSize: 13,
-    color: colors.danger,
-    textAlign: 'center',
-    marginTop: -4,
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  ruleTextMet: {
+    color: colors.success,
   },
 
   // ── Primary button ──
@@ -212,10 +232,8 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderRadius: 12,
     height: 52,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -228,91 +246,23 @@ export const styles = StyleSheet.create({
   primaryButtonText: {
     fontFamily: typography.fontFamily.bold,
     fontSize: 16,
-    fontWeight: '700',
     color: colors.textInverse,
   },
 
-  // ── Trust line ──
-  trustRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    marginTop: 2,
-  },
-  trustText: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 11.5,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    letterSpacing: 0.2,
-  },
-
-  // ── OR divider ──
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginVertical: 4,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.divider,
-  },
-  dividerText: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.textTertiary,
-    letterSpacing: 1.2,
-  },
-
-  // ── Ghost button ──
-  ghostButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    height: 52,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  ghostButtonText: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.text,
-  },
-
-  // ── Request access ──
-  requestRow: {
+  // ── Back to login ──
+  backToLogin: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 4,
   },
-  requestText: {
+  backToLoginText: {
     fontFamily: typography.fontFamily.medium,
     fontSize: 13,
-    fontWeight: '500',
     color: colors.textSecondary,
   },
-  requestLink: {
+  backToLoginLink: {
     fontFamily: typography.fontFamily.bold,
     fontSize: 13,
-    fontWeight: '700',
     color: colors.primary,
-  },
-
-  versionText: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 11,
-    fontWeight: '500',
-    color: colors.textTertiary,
-    textAlign: 'center',
-    marginTop: 4,
   },
 });

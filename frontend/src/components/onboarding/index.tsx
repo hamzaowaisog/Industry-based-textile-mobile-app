@@ -11,6 +11,7 @@ import {
   OnboardingSlide2,
   OnboardingSlide3,
 } from '@constants/svgAssets';
+import { AppConstants } from '@constants/appConstants';
 import { OnboardingComponentProps } from '../../types/onboarding.types';
 
 import { styles } from './styles';
@@ -38,7 +39,7 @@ export const OnboardingComponent = ({
           <View style={styles.logoMini}>
             <LogoIcon size={20} color="#fff" />
           </View>
-          <Text style={styles.logoName}>HamzaTex</Text>
+          <Text style={styles.logoName}>{AppConstants.APP.NAME}</Text>
         </View>
         <TouchableOpacity onPress={onSkip} style={styles.skipButton} activeOpacity={0.7}>
           <Text style={styles.skipText}>{t('onboarding.skip')}</Text>

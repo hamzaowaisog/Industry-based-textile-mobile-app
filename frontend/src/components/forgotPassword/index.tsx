@@ -145,6 +145,7 @@ export const ForgotPasswordComponent = ({
               ? <ActivityIndicator color="#fff" size="small" />
               : <Text style={styles.primaryButtonText}>{t('forgotPassword.sendLink')}</Text>
             }
+
           </TouchableOpacity>
 
           {/* Sign in link */}

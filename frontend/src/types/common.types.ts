@@ -1,19 +1,19 @@
-export interface ApiResponse<T> {
+export type ApiResponse<T> = {
   success: boolean;
   message: string;
   data: T;
   errors?: string[];
-}
+};
 
-export interface PaginatedResponse<T> {
+export type PaginatedResponse<T> = {
   items: T[];
   totalCount: number;
   page: number;
   pageSize: number;
   totalPages: number;
-}
+};
 
-export interface SelectOption {
+export type SelectOption = {
   label: string;
   value: number;
-}
+};

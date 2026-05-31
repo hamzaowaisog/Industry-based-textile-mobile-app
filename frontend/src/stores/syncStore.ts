@@ -1,16 +1,6 @@
 import { create } from 'zustand';
 
-import { PendingChange } from '@types/db.types';
-import { SyncStatus } from '@types/store.types';
-
-interface SyncStore extends SyncStatus {
-  pendingChanges: PendingChange[];
-  addPendingChange: (change: PendingChange) => void;
-  removePendingChange: (localId: string) => void;
-  setSyncing: (isSyncing: boolean) => void;
-  setSyncError: (error: string | null) => void;
-  setLastSyncedAt: (date: string) => void;
-}
+import { SyncStore } from '../types/syncStore.types';
 
 export const useSyncStore = create<SyncStore>((set) => ({
   pendingCount: 0,

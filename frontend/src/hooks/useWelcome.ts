@@ -1,12 +1,10 @@
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AppConstants } from '@constants/appConstants';
 
-import { AuthStackParamList } from '../types/navigation.types';
-
-type WelcomeNavProp = NativeStackNavigationProp<AuthStackParamList, 'Welcome'>;
+import { WelcomeNavProp } from '../types/navigation.types';
 
 export const useWelcome = (navigation: WelcomeNavProp) => {
-  const handleGetStarted = () => navigation.navigate('Onboarding');
-  const handleSignIn = () => navigation.navigate('Login');
+  const handleGetStarted = () => navigation.navigate(AppConstants.SCREENS.AUTH.ONBOARDING);
+  const handleSignIn = () => navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN);
 
   return { handleGetStarted, handleSignIn };
 };

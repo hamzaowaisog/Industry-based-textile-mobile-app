@@ -1,17 +1,18 @@
 import { useState } from 'react';
 
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFormik } from 'formik';
+import { useTranslation } from 'react-i18next';
+
+import { AppConstants } from '@constants/appConstants';
 
 import { loginAsync } from '../core/auth';
+import { LoginNavProp } from '../types/navigation.types';
 import { LoginFormValues } from '../types/login.types';
-import { AuthStackParamList } from '../types/navigation.types';
 import { showError } from '../utils/toast';
 import { loginValidationSchema } from '../utils/validation/loginValidation';
 
-type LoginNavProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
-
 export const useLogin = (navigation: LoginNavProp) => {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -21,7 +22,7 @@ export const useLogin = (navigation: LoginNavProp) => {
     onSubmit: async (values) => {
       const result = await loginAsync({ credentials: values, rememberMe });
       if (!result.success) {
-        showError('Login failed', result.error);
+        showError(t('login.errorTitle'), result.error ?? t('login.errorSubtitle'));
       }
     },
   });
@@ -32,7 +33,7 @@ export const useLogin = (navigation: LoginNavProp) => {
     rememberMe,
     onTogglePassword: () => setShowPassword((p) => !p),
     onToggleRemember: () => setRememberMe((p) => !p),
-    onForgotPassword: () => navigation.navigate('ForgotPassword'),
+    onForgotPassword: () => navigation.navigate(AppConstants.SCREENS.AUTH.FORGOT_PASSWORD),
     onBiometric: () => {},
   };
 };

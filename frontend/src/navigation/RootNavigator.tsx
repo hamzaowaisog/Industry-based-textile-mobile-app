@@ -9,6 +9,9 @@ import { MainNavigator } from './MainNavigator';
 
 export const RootNavigator = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const hydrated = useAuthStore((s) => s.hydrated);
+
+  if (!hydrated) return null;
 
   return (
     <NavigationContainer>

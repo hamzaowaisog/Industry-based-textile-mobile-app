@@ -1,24 +1,21 @@
 import { useState } from 'react';
 
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import * as SecureStore from 'expo-secure-store';
+import { File, Paths } from 'expo-file-system';
 
 import { AppConstants } from '@constants/appConstants';
 import { ONBOARDING_SLIDES } from '@constants/onboarding';
 import { useAuthStore } from '@stores/authStore';
 
-import { AuthStackParamList } from '../types/navigation.types';
-
-type OnboardingNavProp = NativeStackNavigationProp<AuthStackParamList, 'Onboarding'>;
+import { OnboardingNavProp } from '../types/navigation.types';
 
 export const useOnboarding = (navigation: OnboardingNavProp) => {
   const [slideIndex, setSlideIndex] = useState(0);
   const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
 
   const completeOnboarding = async () => {
-    await SecureStore.setItemAsync(AppConstants.SECURE_STORE.ONBOARDING_COMPLETED, 'true');
+    new File(Paths.document, AppConstants.FILES.ONBOARDING_COMPLETED).write('1');
     setOnboardingCompleted(true);
-    navigation.navigate('Login');
+    navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN);
   };
 
   const handleContinue = () => {

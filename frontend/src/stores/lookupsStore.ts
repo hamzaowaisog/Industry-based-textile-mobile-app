@@ -1,13 +1,7 @@
 import { create } from 'zustand';
 
-import { LookupDto, LookupsAllDto } from '@api/models';
-
-interface LookupsStore {
-  lookups: LookupsAllDto | null;
-  isLoaded: boolean;
-  setLookups: (lookups: LookupsAllDto) => void;
-  getLookupById: (type: keyof LookupsAllDto, id: number) => LookupDto | undefined;
-}
+import { LookupDto } from '@api/models';
+import { LookupsStore } from '../types/lookupsStore.types';
 
 export const useLookupsStore = create<LookupsStore>((set, get) => ({
   lookups: null,

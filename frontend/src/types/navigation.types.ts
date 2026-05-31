@@ -1,11 +1,19 @@
+import { RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+import { AppConstants } from '@constants/appConstants';
+
+const S = AppConstants.SCREENS.AUTH;
+
 export type AuthStackParamList = {
-  Welcome: undefined;
-  Onboarding: undefined;
-  Login: undefined;
-  ForgotPassword: undefined;
-  ResetPassword: { token: string; email: string };
-  Terms: undefined;
-  Privacy: undefined;
+  [S.WELCOME]: undefined;
+  [S.ONBOARDING]: undefined;
+  [S.LOGIN]: undefined;
+  [S.FORGOT_PASSWORD]: undefined;
+  [S.VERIFY_OTP]: { email: string; nextResendAt?: string };
+  [S.RESET_PASSWORD]: { email: string; resetToken: string };
+  [S.TERMS]: undefined;
+  [S.PRIVACY]: undefined;
 };
 
 export type MainTabParamList = {
@@ -48,3 +56,22 @@ export type ReportStackParamList = {
   ClientBalance: undefined;
   ClientBalanceDetail: { clientId: number };
 };
+
+// ── Generic nav/route prop helpers ───────────────────────────────────────────
+export type AuthNavProp<T extends keyof AuthStackParamList> =
+  NativeStackNavigationProp<AuthStackParamList, T>;
+
+export type AuthRouteProp<T extends keyof AuthStackParamList> =
+  RouteProp<AuthStackParamList, T>;
+
+// ── Per-screen nav prop aliases ───────────────────────────────────────────────
+export type WelcomeNavProp = AuthNavProp<typeof S.WELCOME>;
+export type OnboardingNavProp = AuthNavProp<typeof S.ONBOARDING>;
+export type LoginNavProp = AuthNavProp<typeof S.LOGIN>;
+export type ForgotPasswordNavProp = AuthNavProp<typeof S.FORGOT_PASSWORD>;
+export type VerifyOtpNavProp = AuthNavProp<typeof S.VERIFY_OTP>;
+export type ResetPasswordNavProp = AuthNavProp<typeof S.RESET_PASSWORD>;
+
+// ── Per-screen route prop aliases ─────────────────────────────────────────────
+export type VerifyOtpRouteProp = AuthRouteProp<typeof S.VERIFY_OTP>;
+export type ResetPasswordRouteProp = AuthRouteProp<typeof S.RESET_PASSWORD>;

@@ -1,15 +1,9 @@
+import { File, Paths } from 'expo-file-system';
 import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 
 import { AppConstants } from '@constants/appConstants';
-import { AuthState } from '../types/store.types';
-
-interface AuthStore extends AuthState {
-  setAuth: (user: Omit<AuthState, 'isAuthenticated' | 'onboardingCompleted'>) => void;
-  clearAuth: () => void;
-  hydrate: () => Promise<void>;
-  setOnboardingCompleted: (completed: boolean) => void;
-}
+import { AuthStore } from '../types/authStore.types';
 
 export const useAuthStore = create<AuthStore>((set) => ({
   userId: null,
@@ -17,6 +11,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   userName: null,
   isAuthenticated: false,
   onboardingCompleted: false,
+  hydrated: false,
 
   setAuth: (user) =>
     set({
@@ -35,16 +30,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
   setOnboardingCompleted: (completed) => set({ onboardingCompleted: completed }),
 
   hydrate: async () => {
-    const [accessToken, userId, roleId, userName, onboardingFlag] = await Promise.all([
+    const onboardingFile = new File(Paths.document, AppConstants.FILES.ONBOARDING_COMPLETED);
+    const [accessToken, userId, roleId, userName] = await Promise.all([
       SecureStore.getItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN),
       SecureStore.getItemAsync(AppConstants.SECURE_STORE.USER_ID),
       SecureStore.getItemAsync(AppConstants.SECURE_STORE.ROLE_ID),
       SecureStore.getItemAsync(AppConstants.SECURE_STORE.USER_NAME),
-      SecureStore.getItemAsync(AppConstants.SECURE_STORE.ONBOARDING_COMPLETED),
     ]);
 
     const update: Partial<AuthStore> = {
-      onboardingCompleted: onboardingFlag === 'true',
+      onboardingCompleted: onboardingFile.exists,  // file cleared on reinstall; Keychain is not
     };
 
     if (accessToken && userId && roleId && userName) {
@@ -54,6 +49,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
       update.isAuthenticated = true;
     }
 
-    set(update as AuthStore);
+    set({ ...(update as Partial<AuthStore>), hydrated: true });
   },
 }));
