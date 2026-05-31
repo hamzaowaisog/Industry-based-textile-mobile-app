@@ -42,6 +42,7 @@ export const LoginComponent = ({
   onToggleRemember,
   onForgotPassword,
   onBiometric,
+  onRequestAccess,
 }: LoginComponentProps) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -221,7 +222,7 @@ export const LoginComponent = ({
           {/* Request access */}
           <View style={styles.requestRow}>
             <Text style={styles.requestText}>{t('login.newUser')} </Text>
-            <TouchableOpacity activeOpacity={0.7}>
+            <TouchableOpacity onPress={onRequestAccess} activeOpacity={0.7}>
               <Text style={styles.requestLink}>{t('login.requestAccess')}</Text>
             </TouchableOpacity>
           </View>

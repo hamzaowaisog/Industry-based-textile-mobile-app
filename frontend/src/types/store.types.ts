@@ -4,6 +4,7 @@ export type AuthState = {
   userName: string | null;
   isAuthenticated: boolean;
   onboardingCompleted: boolean;
+  isBiometricEnabled: boolean;
 };
 
 export type SyncStatus = {

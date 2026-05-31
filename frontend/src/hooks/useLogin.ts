@@ -6,8 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { AppConstants } from '@constants/appConstants';
 
 import { loginAsync } from '../core/auth';
-import { LoginNavProp } from '../types/navigation.types';
+import { offerBiometricSetup } from '../hooks/useBiometric';
 import { LoginFormValues } from '../types/login.types';
+import { LoginNavProp } from '../types/navigation.types';
 import { showError } from '../utils/toast';
 import { loginValidationSchema } from '../utils/validation/loginValidation';
 
@@ -23,6 +24,12 @@ export const useLogin = (navigation: LoginNavProp) => {
       const result = await loginAsync({ credentials: values, rememberMe });
       if (!result.success) {
         showError(t('login.errorTitle'), result.error ?? t('login.errorSubtitle'));
+      } else {
+        if (rememberMe) {
+          offerBiometricSetup(t).catch((err) => {
+            console.error('Biometric setup error:', err);
+          });
+        }
       }
     },
   });
@@ -34,6 +41,7 @@ export const useLogin = (navigation: LoginNavProp) => {
     onTogglePassword: () => setShowPassword((p) => !p),
     onToggleRemember: () => setRememberMe((p) => !p),
     onForgotPassword: () => navigation.navigate(AppConstants.SCREENS.AUTH.FORGOT_PASSWORD),
-    onBiometric: () => {},
+    onBiometric: () => navigation.navigate(AppConstants.SCREENS.AUTH.BIOMETRIC),
+    onRequestAccess: () => navigation.navigate(AppConstants.SCREENS.AUTH.REGISTER),
   };
 };
