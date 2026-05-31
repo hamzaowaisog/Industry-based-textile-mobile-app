@@ -32,7 +32,7 @@ export const useForgotPassword = (navigation: ForgotPasswordNavProp) => {
   return {
     formik,
     isPending: formik.isSubmitting,
-    onBack: () => navigation.goBack(),
+    onBack: () => navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN),
     onSignIn: () => navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN),
   };
 };

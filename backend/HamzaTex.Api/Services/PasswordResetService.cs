@@ -94,7 +94,7 @@ public class PasswordResetService : IPasswordResetService
         try
         {
             var html = AuthHtmlHelper.GetOtpEmailHtml(code, OtpExpiryMinutes.ToString());
-            await _emailSender.SendEmailAsync(user.Email!, "Your Hamza Tex verification code", html);
+            await _emailSender.SendEmailAsync(user.Email!, "Your Password Reset Code", html);
         }
         catch (Exception ex)
         {
