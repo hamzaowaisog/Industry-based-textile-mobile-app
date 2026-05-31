@@ -147,6 +147,7 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
 - `ApplicationUser` — extends `IdentityUser<int>`; has `Name`, `RoleId`, `IsActive`, `CreatedAt` (DateOnly); navigates to `UserRole`, `Transaction[]`, `Client[]`, `Expense[]`, `ProductUser[]`
 - `UserRole` — custom role table (separate from ASP.NET Identity roles); `Id`, `Name`
 - `RefreshToken` — `Token`, `UserId`, `ExpiresAt`, `CreatedAt`, `RevokedAt`, `ReplacedByToken`; `IsActive` and `IsExpired` are computed
+- `PasswordResetOtp` — OTP-based password reset: `Email`, `CodeHash` (SHA-256), `ResetTokenHash` (SHA-256, set after OTP verified), `CreatedAt`, `ExpiresAt` (15 min), `ResetTokenExpiresAt` (10 min), `AttemptCount` (max 5), `IsUsed`. 30-second resend cooldown enforced server-side. Successful reset calls `IRefreshTokenService.RevokeAllUserTokensAsync` to sign out all devices.
 
 **Clients**
 - `Client` — `Name`, `ClientTypeId`, `UserId` (owner), `Phone`, `Address`, `CreditLimit`, `OpeningBalance`, `Notes`, `IsActive`, `CreatedAt`
@@ -281,7 +282,8 @@ private int? GetUserId()
 
 | Interface | Methods present |
 |---|---|
-| `IUserService` | SignupAsync, GetByIdAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync, ResendEmailConfirmationAsync, ForgotPasswordAsync, ResetPasswordAsync, EmailConfirmationTokenAsync |
+| `IUserService` | SignupAsync, GetByIdAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync, ResendEmailConfirmationAsync, EmailConfirmationTokenAsync, AdminCreateAsync |
+| `IPasswordResetService` | SendOtpAsync, VerifyOtpAsync, ResetPasswordAsync |
 | `ILoginService` | LoginAsync, RefreshTokenAsync, LogoutAsync, LogoutAllAsync |
 | `IRefreshTokenService` | CreateRefreshTokenAsync, GetRefreshTokenByTokenAsync, RevokeRefreshTokenAsync, RevokeAllUserTokensAsync, IsRefreshTokenValidAsync, CleanupExpiredTokensAsync |
 | `IChangePasswordService` | ChangePasswordAsync |
@@ -307,7 +309,7 @@ private int? GetUserId()
 
 | Controller | Done endpoints |
 |---|---|
-| `AuthController` | POST register, login, logout, refresh, change-password, GET confirm-email, POST resend-email-confirmation, forgot-password, GET+POST reset-password, POST biometric/setup, POST biometric/login, DELETE biometric/disable |
+| `AuthController` | POST register, login, logout, refresh, change-password, GET confirm-email, POST resend-email-confirmation, POST forgot-password (sends OTP), POST verify-reset-otp (returns resetToken), POST reset-password (token + email + new password; revokes all sessions on success), POST biometric/setup, POST biometric/login, DELETE biometric/disable |
 | `UsersController` | POST / (admin create), GET /{id}, GET / (all), PUT /me, DELETE /{id}, GET /pdf |
 | `UserRolesController` | POST, GET all, GET /{id}, PUT /{id}, DELETE /{id}, GET /pdf |
 | `ClientController` | POST, GET all (AdminOnly), GET /me (scoped), GET /Filtered, GET /{id}, PUT /{id}, DELETE /{id}, GET /pdf |
@@ -331,16 +333,23 @@ private int? GetUserId()
 
 ---
 
-## Frontend State (scaffold only)
+## Frontend State
 
-The frontend has no domain code. Current state:
-- `App.js` → `AppNavigator` → stack of 3 generic screens (Home, AddItem, ItemDetails)
-- Redux store: only `itemsSlice` (generic items CRUD)
-- `src/utils/api.js`: Axios to `http://localhost:5000/api`; auth interceptor commented out; only generic item functions
-- `src/components/`: `Button.js`, `Card.js` only
-- No login screen, no token storage, no role-based navigation
+Auth screens are implemented. See `frontend/CLAUDE.md` for the full frontend architecture.
 
-See `todo/12-frontend.md` for the full frontend implementation plan.
+**Done:**
+- `App.tsx` — QueryClientProvider, Toast renderer, splash hide, auth hydration
+- `AuthNavigator` — Login → ForgotPassword → VerifyOtp (OTP entry) → ResetPassword
+- Login screen — Formik + Yup, username/password, biometric stub, remember me
+- ForgotPassword screen — email input, 3-step strip, gradient hero layout
+- `src/core/auth.ts`, `useLogin`, `useForgotPassword` hooks
+- `src/utils/axiosInstance.ts` — Axios with JWT bearer + 401 refresh
+- Zustand `authStore`, `lookupsStore`, `syncStore`
+- Toast system (`react-native-toast-message` + `src/utils/toast.ts`)
+
+**Still needed:** OTP screen, ResetPassword screen, all post-login screens (Dashboard, Clients, Products, Orders, Payments, Reports, Settings).
+
+See `todo/12-frontend.md` for the full plan.
 
 ---
 
@@ -370,7 +379,7 @@ See `todo/` for detailed task breakdowns:
 ## Configuration
 
 - DB connection string, JWT settings, SMTP config: `backend/HamzaTex.Api/appsettings.json`
-- Frontend API base URL: `frontend/src/utils/api.js` → `API_BASE_URL`
+- Frontend API base URL: `frontend/app.config.js` → `extra.apiUrl` (env var `API_URL`, defaults to `http://localhost:5000/api`); consumed via `axiosInstance.ts`
 - CORS is `AllowAll` — restrict for production in `Program.cs`
 - `App:PublicBaseUrl` is used in email confirmation links
 
