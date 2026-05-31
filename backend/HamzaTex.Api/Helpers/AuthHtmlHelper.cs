@@ -49,6 +49,123 @@ public static class AuthHtmlHelper
                 "If you didn't request a password reset, your account is safe — ignore this email."
             ]);
 
+    public static string GetOtpEmailHtml(string code, string expirationMinutes, string heading = "Password Reset Code", string bodyText = "Use the code below in the Hamza Tex app to reset your password.")
+    {
+        var digits = string.Concat(code.Select(d =>
+            $"<span style=\"display:inline-block;width:44px;height:56px;line-height:56px;" +
+            $"text-align:center;font-size:28px;font-weight:700;color:{Navy};" +
+            $"background:#f8fafc;border:2px solid #cbd5e1;border-radius:8px;margin:0 4px;\">" +
+            $"{d}</span>"));
+
+        return $@"<!DOCTYPE html>
+<html lang=""en"">
+<head>
+  <meta charset=""UTF-8"">
+  <meta name=""viewport"" content=""width=device-width,initial-scale=1.0"">
+  <title>Your Verification Code – Hamza Tex</title>
+</head>
+<body style=""margin:0;padding:0;background-color:{SlateLight};font-family:Arial,Helvetica,sans-serif;"">
+
+  <table width=""100%"" cellpadding=""0"" cellspacing=""0"" bgcolor=""{SlateLight}"">
+    <tr>
+      <td align=""center"" style=""padding:48px 20px;"">
+
+        <table width=""520"" cellpadding=""0"" cellspacing=""0""
+               style=""max-width:520px;width:100%;border-radius:12px;overflow:hidden;
+                       box-shadow:0 8px 32px rgba(0,0,0,0.12);"">
+
+          <!-- Header -->
+          <tr>
+            <td bgcolor=""{Navy}"" style=""padding:28px 36px 18px;background-color:{Navy};"">
+              <table width=""100%"" cellpadding=""0"" cellspacing=""0"">
+                <tr>
+                  <td valign=""middle"">
+                    <span style=""font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;"">Hamza Tex</span>
+                    <br>
+                    <span style=""font-size:11px;color:{TealText};font-style:italic;"">Weaving Quality. Delivering Trust.</span>
+                  </td>
+                  <td align=""right"" valign=""top"">
+                    <span style=""display:inline-block;border:1.5px solid {Teal};padding:5px 9px;
+                                   font-size:8px;font-weight:700;color:{TealText};letter-spacing:1.2px;"">OFFICIAL</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Teal rule -->
+          <tr>
+            <td height=""4"" bgcolor=""{Teal}"" style=""background-color:{Teal};font-size:0;line-height:0;"">&nbsp;</td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td bgcolor=""#ffffff"" style=""padding:36px 36px 8px;background-color:#ffffff;"">
+              <h2 style=""margin:0 0 12px;font-size:20px;font-weight:700;color:{TextDark};"">{heading}</h2>
+              <p style=""margin:0 0 24px;font-size:15px;color:{TextMid};line-height:1.7;"">
+                {bodyText}
+                Do not share this code with anyone.
+              </p>
+            </td>
+          </tr>
+
+          <!-- OTP block -->
+          <tr>
+            <td bgcolor=""#ffffff"" style=""padding:0 36px 32px;background-color:#ffffff;"">
+              <table width=""100%"" cellpadding=""0"" cellspacing=""0"">
+                <tr>
+                  <td align=""center"" bgcolor=""#f1f5f9""
+                      style=""background-color:#f1f5f9;border-radius:10px;padding:28px 20px;"">
+                    <div style=""margin-bottom:12px;font-size:12px;font-weight:700;color:#64748b;letter-spacing:1.4px;"">
+                      VERIFICATION CODE
+                    </div>
+                    <div style=""line-height:1;"">{digits}</div>
+                    <div style=""margin-top:16px;font-size:12px;color:#94a3b8;"">
+                      ⏱ &nbsp;Expires in <strong>{expirationMinutes} minutes</strong>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Notice -->
+          <tr>
+            <td bgcolor=""#ffffff"" style=""padding:0 36px 32px;background-color:#ffffff;"">
+              <table width=""100%"" cellpadding=""0"" cellspacing=""0"">
+                <tr>
+                  <td bgcolor=""{TealPale}""
+                      style=""background-color:{TealPale};border:1px solid #bae6fd;border-radius:8px;padding:14px 18px;"">
+                    <p style=""margin:0 0 6px;font-size:12px;color:#0369a1;line-height:1.6;"">
+                      🔒 &nbsp;If you didn't request this, your account is safe — ignore this email.
+                    </p>
+                    <p style=""margin:0;font-size:12px;color:#0369a1;line-height:1.6;"">
+                      Never share your code with anyone, including Hamza Tex support.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td bgcolor=""{NavyMid}"" style=""padding:18px 36px;background-color:{NavyMid};"">
+              <p style=""margin:0;font-size:11px;color:#94a3b8;text-align:center;line-height:1.6;"">
+                © {DateTime.UtcNow.Year} Hamza Tex · This is an automated security email.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>";
+    }
+
     private static string BuildEmailTemplate(
         string   title,
         string   heading,
