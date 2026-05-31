@@ -84,6 +84,7 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
     public virtual DbSet<ProductUser> ProductUsers { get; set; }
     public virtual DbSet<DeviceToken> DeviceTokens { get; set; }
     public virtual DbSet<PasswordResetOtp> PasswordResetOtps { get; set; }
+    public virtual DbSet<EmailVerificationOtp> EmailVerificationOtps { get; set; }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

@@ -49,7 +49,7 @@ public static class AuthHtmlHelper
                 "If you didn't request a password reset, your account is safe — ignore this email."
             ]);
 
-    public static string GetOtpEmailHtml(string code, string expirationMinutes)
+    public static string GetOtpEmailHtml(string code, string expirationMinutes, string heading = "Password Reset Code", string bodyText = "Use the code below in the Hamza Tex app to reset your password.")
     {
         var digits = string.Concat(code.Select(d =>
             $"<span style=\"display:inline-block;width:44px;height:56px;line-height:56px;" +
@@ -101,9 +101,9 @@ public static class AuthHtmlHelper
           <!-- Body -->
           <tr>
             <td bgcolor=""#ffffff"" style=""padding:36px 36px 8px;background-color:#ffffff;"">
-              <h2 style=""margin:0 0 12px;font-size:20px;font-weight:700;color:{TextDark};"">Password Reset Code</h2>
+              <h2 style=""margin:0 0 12px;font-size:20px;font-weight:700;color:{TextDark};"">{heading}</h2>
               <p style=""margin:0 0 24px;font-size:15px;color:{TextMid};line-height:1.7;"">
-                Use the code below in the Hamza Tex app to reset your password.
+                {bodyText}
                 Do not share this code with anyone.
               </p>
             </td>

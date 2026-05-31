@@ -1259,6 +1259,21 @@ CREATE TABLE `PasswordResetOtps` (
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260531020434_AddPasswordResetOtpTable', '9.0.10');
 
+CREATE TABLE `EmailVerificationOtps` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `Email` longtext CHARACTER SET utf8mb4 NOT NULL,
+    `CodeHash` longtext CHARACTER SET utf8mb4 NOT NULL,
+    `CreatedAt` datetime(6) NOT NULL,
+    `ExpiresAt` datetime(6) NOT NULL,
+    `NextResendAt` datetime(6) NOT NULL,
+    `AttemptCount` int NOT NULL,
+    `IsUsed` tinyint(1) NOT NULL,
+    CONSTRAINT `PK_EmailVerificationOtps` PRIMARY KEY (`Id`)
+) CHARACTER SET=utf8mb4;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260531153733_AddEmailVerificationOtp', '9.0.10');
+
 COMMIT;
 
 

@@ -12,8 +12,8 @@ namespace HamzaTex.Api.Services;
 /// <summary>User account management — signup, profile, password reset, and email confirmation.</summary>
 public interface IUserService
 {
-    /// <summary>Register a new user and send an email confirmation link.</summary>
-    Task<Response<CreateUserDto>> SignupAsync(CreateUserDto model);
+    /// <summary>Register a new user and send a 6-digit email verification OTP. Forces RoleId=2 (Staff) and IsActive=true for self-registration.</summary>
+    Task<Response<SignupOtpResponseDto>> SignupAsync(CreateUserDto model);
     /// <summary>Get a user by ID including their role.</summary>
     Task<Response<UserDto>> GetByIdAsync(int id);
     /// <summary>Get all users.</summary>
@@ -36,14 +36,16 @@ public class UserService : IUserService
     private readonly ApplicationDbContext _dbContext;
     private readonly IConfiguration _configuration;
     private readonly IEmailSender _emailSender;
+    private readonly IEmailVerificationService _emailVerificationService;
     private readonly ILogger<UserService> _logger;
 
-    public UserService(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IConfiguration configuration, IEmailSender emailSender, ILogger<UserService> logger)
+    public UserService(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IConfiguration configuration, IEmailSender emailSender, IEmailVerificationService emailVerificationService, ILogger<UserService> logger)
     {
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _emailSender = emailSender ?? throw new ArgumentNullException(nameof(emailSender));
+        _emailVerificationService = emailVerificationService ?? throw new ArgumentNullException(nameof(emailVerificationService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -135,23 +137,23 @@ public class UserService : IUserService
         return Response.SuccessResponse("User deleted successfully.");
     }
 
-    public async Task<Response<CreateUserDto>> SignupAsync(CreateUserDto model)
+    public async Task<Response<SignupOtpResponseDto>> SignupAsync(CreateUserDto model)
     {
         var existingUser = await _userManager.FindByEmailAsync(model.Email.Trim());
         if (existingUser != null)
         {
-            return Response<CreateUserDto>.ErrorResponse("Validation failed", "Email already exists.");
+            return Response<SignupOtpResponseDto>.ErrorResponse("Validation failed", "Email already exists.");
         }
 
         var existingUserName = await _userManager.FindByNameAsync(model.UserName.Trim());
         if (existingUserName != null)
         {
-            return Response<CreateUserDto>.ErrorResponse("Validation failed", "Username already exists.");
+            return Response<SignupOtpResponseDto>.ErrorResponse("Validation failed", "Username already exists.");
         }
 
         if (model.Password != model.ConfirmPassword)
         {
-            return Response<CreateUserDto>.ErrorResponse("Validation failed", "Password and confirm password do not match.");
+            return Response<SignupOtpResponseDto>.ErrorResponse("Validation failed", "Password and confirm password do not match.");
         }
 
         var user = new ApplicationUser
@@ -159,8 +161,8 @@ public class UserService : IUserService
             Name = model.Name.Trim(),
             Email = model.Email.Trim(),
             UserName = model.UserName.Trim(),
-            RoleId = model.RoleId,
-            IsActive = model.IsActive,
+            RoleId = 2,
+            IsActive = true,
             CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow),
             EmailConfirmed = false,
             PhoneNumber = !string.IsNullOrWhiteSpace(model.PhoneNumber) ? model.PhoneNumber.Trim() : null,
@@ -172,27 +174,10 @@ public class UserService : IUserService
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return Response<CreateUserDto>.ErrorResponse("Validation failed", errors);
+            return Response<SignupOtpResponseDto>.ErrorResponse("Validation failed", errors);
         }
 
-        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        var code = Uri.EscapeDataString(token);
-
-        var baseUrl = _configuration["App:PublicBaseUrl"];
-        var link = $"{baseUrl}/api/auth/confirm-email?userId={user.Id}&code={code}";
-        var expirationMinutes = _configuration["App:EmailConfirmationTokenExpirationMinutes"] ?? "10";
-        var htmlMessage = AuthHtmlHelper.GetConfirmEmailTemplateHtml(link, expirationMinutes);
-        try
-        {
-            await _emailSender.SendEmailAsync(email: user.Email!, subject: "Confirm your email", htmlMessage: htmlMessage);
-            return Response<CreateUserDto>.SuccessResponse(model, "Registration successful. Please check your email to confirm your account.");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Confirmation email failed for user {UserId}", user.Id);
-            return Response<CreateUserDto>.SuccessResponse(model,
-                "Account created, but the confirmation email could not be sent. Use 'Resend Confirmation' to try again.");
-        }
+        return await _emailVerificationService.SendOtpAsync(user.Email!);
     }
 
     public async Task<Response> EmailConfirmationTokenAsync(EmailConfirmationDto model)

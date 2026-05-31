@@ -21,6 +21,7 @@ public class AuthController : BaseController
     private readonly ILoginService _loginService;
     private readonly IChangePasswordService _changePasswordService;
     private readonly IPasswordResetService _passwordResetService;
+    private readonly IEmailVerificationService _emailVerificationService;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public AuthController(
@@ -28,20 +29,22 @@ public class AuthController : BaseController
         ILoginService loginService,
         IChangePasswordService changePasswordService,
         IPasswordResetService passwordResetService,
+        IEmailVerificationService emailVerificationService,
         UserManager<ApplicationUser> userManager)
     {
         _userService = userService;
         _loginService = loginService;
         _changePasswordService = changePasswordService;
         _passwordResetService = passwordResetService;
+        _emailVerificationService = emailVerificationService;
         _userManager = userManager;
     }
 
-    /// <summary>Register a new user account. Sends an email confirmation link before login is allowed.</summary>
+    /// <summary>Register a new user account. Creates a Staff user and sends a 6-digit email verification OTP.</summary>
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Register([FromBody] UserCreateViewModel model)
+    public async Task<IActionResult> Register([FromBody] RegisterViewModel model)
     {
         if (!ModelState.IsValid)
         {
@@ -55,8 +58,8 @@ public class AuthController : BaseController
             UserName = model.UserName,
             Password = model.Password,
             ConfirmPassword = model.ConfirmPassword,
-            RoleId = model.RoleId,
-            IsActive = model.IsActive,
+            RoleId = 2,
+            IsActive = true,
             PhoneNumber = model.PhoneNumber
         };
 
@@ -187,6 +190,33 @@ public class AuthController : BaseController
             return BadRequest("Email is required");
         }
         var response = await _userService.ResendEmailConfirmationAsync(request.Email);
+        return ToActionResult(response);
+    }
+
+    /// <summary>Verify the 6-digit email verification code sent during signup. Marks email as confirmed on success.</summary>
+    [HttpPost("verify-signup-otp")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> VerifySignupOtp([FromBody] VerifySignupOtpViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
+
+        var dto = new VerifySignupOtpDto { Email = model.Email, Code = model.Code };
+        var response = await _emailVerificationService.VerifyOtpAsync(dto);
+        return ToActionResult(response);
+    }
+
+    /// <summary>Resend the signup email verification OTP. Enforces a 30-second cooldown between requests.</summary>
+    [HttpPost("resend-signup-otp")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResendSignupOtp([FromBody] ResendSignupOtpViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
+
+        var response = await _emailVerificationService.SendOtpAsync(model.Email);
         return ToActionResult(response);
     }
 
