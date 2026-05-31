@@ -1,47 +1,35 @@
-# Node.js / React Native / JavaScript
+# ==============================================================================
+# HamzaTex .gitignore — Security-first: no secrets, no internal docs, no .md leaks
+# ==============================================================================
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*~
+
+# ── Node.js / React Native ────────────────────────────────────────────────────
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.DS_Store
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# React Native specific
 .expo/
 .expo-shared/
+web-build/
+dist/
+.metro-health-check*
+*.jsbundle
+
+# ── React Native signing & certificates ───────────────────────────────────────
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
 *.orig.*
-web-build/
-dist/
 
-# Metro
-.metro-health-check*
-
-# Bundle artifacts
-*.jsbundle
-
-# CocoaPods
+# ── iOS / Xcode ───────────────────────────────────────────────────────────────
 ios/Pods/
 ios/Podfile.lock
-
-# Android/IntelliJ
-android/.idea/
-android/.gradle/
-android/build/
-android/app/build/
-android/local.properties
-*.iml
-*.hprof
-
-# Xcode
 ios/build/
 ios/*.xcworkspace/xcuserdata/
 ios/*.xcodeproj/xcuserdata/
@@ -56,114 +44,18 @@ DerivedData/
 *.xccheckout
 *.xcscmblueprint
 
-# .NET / ASP.NET Core
+# ── Android / IntelliJ ────────────────────────────────────────────────────────
+android/.idea/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.iml
+*.hprof
+
+# ── .NET / ASP.NET Core ──────────────────────────────────────────────────────
 [Bb]in/
 [Oo]bj/
-[Ll]og/
-[Ll]ogs/
-
-# Visual Studio / Rider
-.vs/
-.vscode/
-.idea/
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-*.swp
-*~
-project.lock.json
-project.fragment.lock.json
-artifacts/
-
-# StyleCop
-StyleCopReport.xml
-
-# NuGet
-*.nupkg
-*.snupkg
-**/packages/*
-!**/packages/build/
-*.nuget.props
-*.nuget.targets
-
-# Azure / AppSettings
-# appsettings.Development.json
-# appsettings.Production.json
-# appsettings.*.json
-# !appsettings.json
-# Sensitive Data - Configuration Files
-# AppSettings (contains connection strings, API keys, secrets)
-appsettings.Development.json
-appsettings.Production.json
-appsettings.Staging.json
-appsettings.*.json
-# Uncomment the line below if appsettings.json contains sensitive data (connection strings, passwords, etc.)
-appsettings.json
-# Keep appsettings.json.example or appsettings.template.json for reference
-# !appsettings.json.example
-# !appsettings.template.json
-# !appsettings.sample.json
-
-# Secrets and API Keys
-*.secrets.json
-*.secrets
-secrets.json
-.secrets/
-**/secrets/
-**/*.secret
-**/*.secrets
-*.key
-*.pem
-*.p12
-*.pfx
-*.cer
-*.crt
-*.cert
-
-# Environment Variables
-.env
-.env.*
-!.env.example
-!.env.template
-!.env.sample
-.envrc
-
-# Connection Strings and Database Credentials
-*connection*.json
-*connection*.txt
-*db*.json
-*db*.txt
-connectionstrings.json
-database.json
-
-# API Keys and Tokens
-*apikey*.json
-*apikey*.txt
-*token*.json
-*token*.txt
-api-keys.json
-tokens.json
-
-# User Secrets (ASP.NET Core)
-# Uncomment if launchSettings.json contains sensitive data
-# **/Properties/launchSettings.json
-
-# Azure / Cloud Configuration
-azure-*.json
-*.azure.json
-.azure/
-azure-publish.json
-azure-publish.xml
-
-# Database
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3
-
-# Build results
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -175,89 +67,154 @@ x86/
 [Aa][Rr][Mm]64/
 bld/
 [Bb]ld/
-[Oo]bj/
 [Ll]og/
 [Ll]ogs/
+artifacts/
+project.lock.json
+project.fragment.lock.json
 
-# Test Coverage
+# ── Visual Studio / Rider ─────────────────────────────────────────────────────
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.swp
+
+# ── NuGet ─────────────────────────────────────────────────────────────────────
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+*.nuget.props
+*.nuget.targets
+
+# ── Secrets & Credentials — NEVER commit ──────────────────────────────────────
+*.secrets.json
+*.secrets
+secrets.json
+.secrets/
+**/secrets/
+**/*.secret
+**/*.secrets
+*.pem
+*.pfx
+*.cer
+*.crt
+*.cert
+*.key
+*.p12
+*.jks
+
+# Firebase secrets
+firebase-service-account.json
+google-services.json
+GoogleService-Info.plist
+
+# ── Environment Files — NEVER commit ──────────────────────────────────────────
+.env
+.env.*
+.envrc
+!.env.example
+!.env.template
+!.env.sample
+
+# ── AppSettings — contains connection strings, SMTP, JWT secrets ──────────────
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.*.json
+# Keep example/template for reference:
+# !appsettings.json.example
+# !appsettings.template.json
+
+# ── Connection strings / Database credentials ─────────────────────────────────
+*connection*.json
+*connection*.txt
+*db*.json
+*db*.txt
+connectionstrings.json
+database.json
+
+# ── API Keys & Tokens ─────────────────────────────────────────────────────────
+*apikey*.json
+*apikey*.txt
+*token*.json
+*token*.txt
+api-keys.json
+tokens.json
+
+# ── Azure / Cloud ─────────────────────────────────────────────────────────────
+azure-*.json
+*.azure.json
+.azure/
+azure-publish.json
+azure-publish.xml
+
+# ── Database files ────────────────────────────────────────────────────────────
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# ── Test Coverage ─────────────────────────────────────────────────────────────
 coverage/
 *.coverage
 *.coveragexml
 
-# Temporary files
-*.tmp
-*.temp
-.tmp/
-.temp/
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+*.log.*
+logs/
 
-# Backup files (may contain sensitive data)
+# ── Backups & Temp ────────────────────────────────────────────────────────────
 *.bak
 *.backup
-*~
-*.swp
+*.tmp
+*.temp
 *.swo
 *_backup
 *_old
-
-# Log files (may contain sensitive data)
-*.log
-logs/
-*.log.*
-
-# User-specific files
-*.user
-*.suo
-*.userosscache
-*.sln.docstates
-
-# IDE and Editor files (may contain sensitive data)
-.vscode/settings.json
-.vs/
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/dictionaries/
-.idea/shelf/
-*.iml
-
-!README.md
-
+.tmp/
+.temp/
 *.zip
 
-# Graphify output
+# ── StyleCop ──────────────────────────────────────────────────────────────────
+StyleCopReport.xml
+
+# ── Graphify output ───────────────────────────────────────────────────────────
 graphify-out/
 .graphify_ast.json
 .graphify_detect.json
 .graphify_python
 graphify-cache/
 
-# -----------------------------------------------------------------------------
-# GitHub hygiene — internal work, agent tooling, local-only data (leakage risk)
-# New files under these paths stay untracked; remove from index if already committed:
-#   git rm -r --cached todo/ planning/ docs/superpowers/ _bmad/ .agent/ .cursor/commands/ …
-# -----------------------------------------------------------------------------
+# ── Internal docs / planning / agent tooling — NOT for GitHub ─────────────────
 todo/
 planning/
 docs/superpowers/
+docs/mobile-design-prompt.md
 _bmad-output/
-portfolio-content/
-
-# Local / scratch context (often contains machine paths, client hints, paste dumps)
-CONTEXT.md
-
-# BMAD + Cursor agent workflow copies (large; reinstall from tooling if needed)
 _bmad/
 .agent/
 .cursor/commands/
-
-# Claude / Cursor overrides that may contain keys or personal paths
-.claude/settings.local.json
-
-# Convention for notes not meant for git
+CONTEXT.md
 *.local.md
 
-# Firebase secrets — never commit these
-firebase-service-account.json
-google-services.json
-GoogleService-Info.plist
+# ── Claude / Cursor local overrides ───────────────────────────────────────────
+.claude/settings.local.json
+
+# ── Portfolio / scratch content ───────────────────────────────────────────────
+portfolio-content/
+
+# ── Markdown: block ALL .md files, only allowlist below ───────────────────────
 *.md
+
+# ── ALLOWLIST — these .md files ARE tracked ───────────────────────────────────
 !README.md
+!CLAUDE.md
+!frontend/CLAUDE.md
