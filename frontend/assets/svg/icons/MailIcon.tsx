@@ -1,0 +1,15 @@
+import React from 'react';
+
+import Svg, { Path, Rect } from 'react-native-svg';
+
+interface MailIconProps {
+  size?: number;
+  color?: string;
+}
+
+export const MailIcon = ({ size = 18, color = '#9CA3AF' }: MailIconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect x="2" y="4" width="20" height="16" rx="2" stroke={color} strokeWidth={2} strokeLinejoin="round" />
+    <Path d="M2 7l10 7 10-7" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);

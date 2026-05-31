@@ -1,0 +1,293 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "noData": "No data found",
+    "search": "Search",
+    "filter": "Filter",
+    "all": "All",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "loginButton": "Sign In",
+    "loginError": "Invalid username or password",
+    "email": "Email",
+    "loginFailed": "Login failed. Please try again.",
+    "invalidCredentials": "Invalid username or password. Please try again.",
+    "otpSendFailed": "Failed to send OTP. Please try again.",
+    "invalidOtp": "Invalid or expired OTP.",
+    "resetFailed": "Password reset failed.",
+    "resetFailedRetry": "Password reset failed. Please try again."
+  },
+  "login": {
+    "welcomeBack": "Welcome back",
+    "subtitle": "Sign in to continue your work",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "passwordLabel": "Password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "signIn": "Sign In",
+    "trustLine": "Bank-grade encryption · Your data is protected",
+    "orDivider": "OR",
+    "biometric": "Use Face ID / Fingerprint",
+    "newUser": "New to HamzaTex?",
+    "requestAccess": "Request access",
+    "errorTitle": "Login Failed",
+    "errorSubtitle": "Invalid username or password."
+  },
+  "forgotPassword": {
+    "title": "Reset your password",
+    "subtitle": "Enter your email and we'll send you a 6-digit OTP code.",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@hamzatex.pk",
+    "sendLink": "Send OTP Code",
+    "step1": "Email",
+    "step2": "Verify",
+    "step3": "Reset",
+    "rememberPassword": "Remember your password?",
+    "signIn": "Sign in",
+    "successTitle": "OTP Sent",
+    "successSubtitle": "A 6-digit code has been sent to your email. It expires in 15 minutes.",
+    "errorTitle": "Failed to Send OTP"
+  },
+  "otpVerification": {
+    "title": "Enter OTP",
+    "subtitle": "We sent a 6-digit code to",
+    "codeLabel": "Verification Code",
+    "verify": "Verify Code",
+    "resendIn": "Resend in {{seconds}}s",
+    "resendCode": "Resend Code",
+    "backToLogin": "Back to Login",
+    "invalidCode": "Invalid or expired code. Please try again.",
+    "successTitle": "Code Verified",
+    "successSubtitle": "Your identity has been confirmed.",
+    "didntReceive": "Didn't receive the code?",
+    "backToPrefix": "Back to ",
+    "resendSuccessTitle": "OTP Resent",
+    "resendSuccessSubtitle": "A new code has been sent to your email.",
+    "resendErrorTitle": "Resend Failed",
+    "verifySuccessTitle": "Code Verified",
+    "verifySuccessSubtitle": "Now set your new password.",
+    "verifyErrorTitle": "Verification Failed"
+  },
+  "resetPassword": {
+    "title": "New Password",
+    "subtitle": "Create a strong password for your account",
+    "newPasswordLabel": "New Password",
+    "newPasswordPlaceholder": "Min 8 chars, 1 upper, 1 number, 1 special",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Re-enter new password",
+    "submit": "Reset Password",
+    "backToLogin": "Back to Login",
+    "successTitle": "Password Reset",
+    "successSubtitle": "Your password has been updated. All devices have been signed out.",
+    "passwordRequirements": "Password requirements",
+    "backToPrefix": "Back to ",
+    "errorTitle": "Reset Failed",
+    "mismatch": "Passwords do not match",
+    "minLength": "At least 8 characters required",
+    "requireNumber": "Must contain at least one number",
+    "requireCapital": "Must contain at least one capital letter",
+    "requireSpecial": "Must contain at least one special character"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "summary": "Summary",
+    "totalSales": "Total Sales",
+    "totalPurchases": "Total Purchases",
+    "totalExpenses": "Total Expenses",
+    "netProfit": "Net Profit",
+    "recentOrders": "Recent Orders",
+    "lowStock": "Low Stock Alerts"
+  },
+  "clients": {
+    "title": "Clients",
+    "addClient": "Add Client",
+    "editClient": "Edit Client",
+    "clientName": "Client Name",
+    "clientType": "Client Type",
+    "phone": "Phone",
+    "address": "Address",
+    "creditLimit": "Credit Limit",
+    "openingBalance": "Opening Balance",
+    "notes": "Notes",
+    "balance": "Balance"
+  },
+  "products": {
+    "title": "Products",
+    "addProduct": "Add Product",
+    "productName": "Product Name",
+    "sku": "SKU",
+    "unit": "Unit",
+    "quantity": "Quantity",
+    "price": "Price",
+    "cost": "Cost",
+    "reorderLevel": "Reorder Level",
+    "lowStock": "Low Stock"
+  },
+  "orders": {
+    "title": "Orders",
+    "createOrder": "Create Order",
+    "orderDate": "Order Date",
+    "status": "Status",
+    "client": "Client",
+    "paymentType": "Payment Type",
+    "orderLines": "Order Lines",
+    "total": "Total",
+    "notes": "Notes",
+    "pending": "Pending",
+    "inProgress": "In Progress",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled"
+  },
+  "payments": {
+    "title": "Payments",
+    "recordPayment": "Record Payment",
+    "amount": "Amount",
+    "direction": "Direction",
+    "transMode": "Transaction Mode",
+    "paymentDate": "Payment Date",
+    "received": "Received",
+    "paid": "Paid",
+    "notes": "Notes"
+  },
+  "reports": {
+    "title": "Reports",
+    "profitLoss": "Profit & Loss",
+    "clientBalance": "Client Balances",
+    "creditDebit": "Credit / Debit",
+    "month": "Month",
+    "grossProfit": "Gross Profit",
+    "netProfit": "Net Profit"
+  },
+  "settings": {
+    "title": "Settings",
+    "changePassword": "Change Password",
+    "logout": "Logout",
+    "syncStatus": "Sync Status",
+    "pendingChanges": "Pending Changes",
+    "lastSynced": "Last Synced",
+    "syncNow": "Sync Now"
+  },
+  "sync": {
+    "pending": "{{count}} pending",
+    "syncing": "Syncing...",
+    "synced": "Synced {{time}}",
+    "failed": "Sync failed",
+    "syncNow": "Sync Now"
+  },
+  "welcome": {
+    "brandSubtitle": "TEXTILE ERP · MOBILE",
+    "heroTagline": "The complete ERP\nfor textile mills & traders",
+    "stats": {
+      "mills": "Mills",
+      "appRating": "App rating",
+      "uptime": "Uptime"
+    },
+    "features": {
+      "syncLabel": "Real-time sync",
+      "syncSub": "Field staff stay in lockstep",
+      "securityLabel": "Bank-grade security",
+      "securitySub": "Biometric + encryption",
+      "insightsLabel": "Live insights",
+      "insightsSub": "P&L, balances, stock trends"
+    },
+    "getStarted": "Get Started",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "termsPrefix": "By continuing you agree to our",
+    "terms": "Terms",
+    "privacy": "Privacy Policy"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "continue": "Continue",
+    "getStarted": "Get Started",
+    "counter": "{{current}} / {{total}}",
+    "slides": {
+      "slide1": {
+        "title": "Run your mill from anywhere",
+        "body": "Track every meter of fabric and every rupee — from the floor, the warehouse, or the road.",
+        "point1": "Live dashboard with KPIs",
+        "point2": "Orders, payments & invoices",
+        "point3": "Stock tracking by SKU"
+      },
+      "slide2": {
+        "title": "Works offline, syncs later",
+        "body": "No signal? No problem. Field staff record orders locally; everything syncs the moment you reconnect.",
+        "point1": "Offline-first local DB",
+        "point2": "Auto-sync on reconnect",
+        "point3": "Conflict-safe push"
+      },
+      "slide3": {
+        "title": "Insights you can act on",
+        "body": "Beautiful charts that turn raw numbers into clarity. Share PDFs with your accountant in two taps.",
+        "point1": "Profit & loss in one tap",
+        "point2": "Outstanding balance reports",
+        "point3": "PDF export & share"
+      }
+    }
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "minLength": "Minimum {{count}} characters",
+    "maxLength": "Maximum {{count}} characters",
+    "positiveNumber": "Must be a positive number"
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "sections": {
+      "acceptance": "1. Acceptance of Terms",
+      "acceptanceBody": "By downloading, installing, or using the HamzaTex mobile application, you agree to be bound by these Terms of Service. If you do not agree with any part of these terms, you must not use the application.",
+      "use": "2. Permitted Use",
+      "useBody": "HamzaTex is licensed to you for lawful business use in managing textile trading operations including orders, purchases, inventory, payments, and financial reporting. You may not reverse-engineer, redistribute, or resell the application without written consent.",
+      "accounts": "3. User Accounts",
+      "accountsBody": "You are responsible for maintaining the confidentiality of your login credentials. All activity under your account is your responsibility. You must notify us immediately of any unauthorized access to your account.",
+      "data": "4. Your Data",
+      "dataBody": "You retain full ownership of all business data entered into HamzaTex. We do not sell, share, or analyze your data for advertising purposes. Data is stored securely and encrypted both in transit and at rest.",
+      "liability": "5. Limitation of Liability",
+      "liabilityBody": "HamzaTex is provided \"as is\" without warranties of any kind. We are not liable for any indirect, incidental, or consequential damages arising from the use or inability to use the application.",
+      "changes": "6. Changes to Terms",
+      "changesBody": "We reserve the right to modify these terms at any time. Continued use of the application after changes constitutes acceptance of the updated terms. We will notify users of significant changes through the application."
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "sections": {
+      "collection": "1. Information We Collect",
+      "collectionBody": "We collect information you provide directly, such as your name, email, phone number, and business data including clients, products, orders, and financial transactions. We also collect device information and usage analytics to improve the application.",
+      "usage": "2. How We Use Your Information",
+      "usageBody": "Your information is used solely to provide and improve HamzaTex services. This includes processing transactions, generating reports, syncing data across devices, and providing customer support.",
+      "storage": "3. Data Storage & Retention",
+      "storageBody": "All data is encrypted using industry-standard AES-256 encryption and stored on secure servers. Data is retained for as long as your account is active. Upon account deletion, all associated data is permanently removed within 30 days.",
+      "sharing": "4. Data Sharing",
+      "sharingBody": "We do not sell, trade, or rent your personal or business data to third parties. Data may only be shared with your explicit consent or when required by law.",
+      "security": "5. Security Measures",
+      "securityBody": "We implement bank-grade security including end-to-end encryption, biometric authentication, JWT-based session management, and regular security audits to protect your data from unauthorized access.",
+      "rights": "6. Your Rights",
+      "rightsBody": "You have the right to access, correct, export, or delete your data at any time. You may also revoke data processing consent, which may limit certain application features.",
+      "contact": "7. Contact Us",
+      "contactBody": "For any questions or concerns about this Privacy Policy or your data, please contact us through the application's Settings screen or email us at privacy@hamzatex.com."
+    }
+  }
+}
