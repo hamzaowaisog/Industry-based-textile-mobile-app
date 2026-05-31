@@ -20,17 +20,20 @@ public class AuthController : BaseController
     private readonly IUserService _userService;
     private readonly ILoginService _loginService;
     private readonly IChangePasswordService _changePasswordService;
+    private readonly IPasswordResetService _passwordResetService;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public AuthController(
         IUserService userService,
         ILoginService loginService,
         IChangePasswordService changePasswordService,
+        IPasswordResetService passwordResetService,
         UserManager<ApplicationUser> userManager)
     {
         _userService = userService;
         _loginService = loginService;
         _changePasswordService = changePasswordService;
+        _passwordResetService = passwordResetService;
         _userManager = userManager;
     }
 
@@ -187,49 +190,47 @@ public class AuthController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Send a password reset link to the given email address.</summary>
+    /// <summary>Send a 6-digit OTP to the given email address. Enforces a 30-second resend cooldown.</summary>
     [HttpPost("forgot-password")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordViewModel model)
     {
-        var dto = new ForgetPasswordDto
-        {
-            Email = model.Email
-        };
-        var response = await _userService.ForgotPasswordAsync(dto);
+        if (!ModelState.IsValid) return BadRequest(ToValidationResponseFromModelState<SendOtpResponseDto>());
+        var response = await _passwordResetService.SendOtpAsync(model.Email);
         return ToActionResult(response);
     }
 
-    /// <summary>Renders the reset password HTML page. Called by the link in the forgot-password email — not for direct API use.</summary>
-    [HttpGet("reset-password")]
+    /// <summary>Verify the 6-digit OTP. Returns a short-lived reset token on success.</summary>
+    [HttpPost("verify-reset-otp")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult ResetPasswordPage([FromQuery] string? email, [FromQuery] string? code)
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> VerifyResetOtp([FromBody] VerifyOtpViewModel model)
     {
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(code))
-        {
-            return Content(AuthHtmlHelper.GetResetPasswordPageHtml(error: "Invalid or expired reset link. Please request a new password reset."), "text/html");
-        }
-        return Content(AuthHtmlHelper.GetResetPasswordPageHtml(email: email, code: code), "text/html");
+        if (!ModelState.IsValid) return BadRequest(ToValidationResponseFromModelState<VerifyOtpResponseDto>());
+        var dto = new VerifyOtpDto { Email = model.Email, Code = model.Code };
+        var response = await _passwordResetService.VerifyOtpAsync(dto);
+        return ToActionResult(response);
     }
 
-    /// <summary>Submit a new password using the token from the reset email.</summary>
+    /// <summary>Reset the user's password using the reset token obtained from OTP verification.</summary>
     [HttpPost("reset-password")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordViewModel model)
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordWithTokenViewModel model)
     {
-        var dto = new ResetPasswordDto
+        if (!ModelState.IsValid) return BadRequest(ToValidationResponseFromModelState<object>());
+        var dto = new ResetPasswordWithTokenDto
         {
             Email = model.Email,
-            Token = model.Token,
+            ResetToken = model.ResetToken,
             NewPassword = model.NewPassword,
             ConfirmPassword = model.ConfirmPassword
         };
-        var response = await _userService.ResetPasswordAsync(dto);
+        var response = await _passwordResetService.ResetPasswordAsync(dto);
         return ToActionResult(response);
     }
 

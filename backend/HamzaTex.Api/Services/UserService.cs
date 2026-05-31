@@ -24,10 +24,6 @@ public interface IUserService
     Task<Response> DeleteByIdAsync(int id);
     /// <summary>Resend the email confirmation link to the given address.</summary>
     Task<Response> ResendEmailConfirmationAsync(string email);
-    /// <summary>Send a password reset link to the given email address.</summary>
-    Task<Response> ForgotPasswordAsync(ForgetPasswordDto model);
-    /// <summary>Reset a user's password using the token from the reset email.</summary>
-    Task<Response> ResetPasswordAsync(ResetPasswordDto model);
     /// <summary>Confirm a user's email address using the token from the confirmation email.</summary>
     Task<Response> EmailConfirmationTokenAsync(EmailConfirmationDto model);
     /// <summary>Admin-only: create a pre-confirmed user account with no email flow required.</summary>
@@ -237,47 +233,6 @@ public class UserService : IUserService
             return Response.ErrorResponse("Email send failed", "Could not send the confirmation email. Check SMTP settings or try again later.");
         }
 
-    }
-
-    public async Task<Response> ForgotPasswordAsync (ForgetPasswordDto model)
-    {
-        var user = await _userManager.FindByEmailAsync(model.Email);
-
-        if (user is null) return Response.SuccessResponse("User not found");
-
-        if (!await _userManager.IsEmailConfirmedAsync(user)) return Response.SuccessResponse("Email not confirmed");
-
-        var token =  await _userManager.GeneratePasswordResetTokenAsync(user);
-        var code = Uri.EscapeDataString(token);
-
-        var baseUrl = _configuration["App:PublicBaseUrl"];
-        var link = $"{baseUrl}/api/auth/reset-password?email={Uri.EscapeDataString(user.Email)}&code={code}";
-        var expirationMinutes = _configuration["App:PasswordResetTokenExpirationMinutes"] ?? "10";
-        var htmlMessage = AuthHtmlHelper.GetResetPasswordEmailTemplateHtml(link, expirationMinutes);
-        try
-        {
-            await _emailSender.SendEmailAsync(email: user.Email!, subject: "Reset your password", htmlMessage: htmlMessage);
-            return Response.SuccessResponse("Password reset email sent. Please check your inbox.");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Password reset email failed for {Email}", model.Email);
-            return Response.ErrorResponse("Email send failed", "Could not send the password reset email. Check SMTP settings or try again later.");
-        }
-    }
-
-    public async Task<Response> ResetPasswordAsync(ResetPasswordDto model)
-    {
-        var user = await _userManager.FindByEmailAsync(model.Email);
-
-        if (user is null) return Response.ErrorResponse("Not found", $"User with email '{model.Email}' was not found.");
-
-        var token = Uri.UnescapeDataString(model.Token);
-        var result = await _userManager.ResetPasswordAsync(user,  token, model.NewPassword);
-
-        if (!result.Succeeded) return Response.ErrorResponse("Validation failed", string.Join(", ", result.Errors.Select(e => e.Description)));
-
-        return Response.SuccessResponse("Password reset successfully");
     }
 
     public async Task<Response<UserDto>> AdminCreateAsync(CreateUserDto model)
