@@ -9,21 +9,21 @@
       "distribution": "internal",
       "env": {
         "APP_ENV": "development",
-        "API_URL": "http://localhost:5000/api"
+        "API_URL": "http://localhost:5000"
       }
     },
     "preview": {
       "distribution": "internal",
       "env": {
         "APP_ENV": "preview",
-        "API_URL": "https://staging.hamzatex.com/api"
+        "API_URL": "https://staging.hamzatex.com"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
         "APP_ENV": "production",
-        "API_URL": "https://api.hamzatex.com/api"
+        "API_URL": "https://api.hamzatex.com"
       }
     }
   },

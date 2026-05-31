@@ -3,6 +3,8 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { useAuthStore } from '@stores/authStore';
+import { ForgotPasswordScreen } from '@screens/forgotPassword';
+import { LoginScreen } from '@screens/login';
 import { OnboardingScreen } from '@screens/onboarding';
 import { PrivacyScreen } from '@screens/privacy';
 import { TermsScreen } from '@screens/terms';
@@ -23,8 +25,8 @@ export const AuthNavigator = () => {
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       <Stack.Screen name="Terms" component={TermsScreen} />
       <Stack.Screen name="Privacy" component={PrivacyScreen} />
-      <Stack.Screen name="Login" component={PlaceholderScreen} />
-      <Stack.Screen name="ForgotPassword" component={PlaceholderScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="ResetPassword" component={PlaceholderScreen} />
     </Stack.Navigator>
   );

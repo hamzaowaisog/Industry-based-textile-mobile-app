@@ -31,6 +31,34 @@
     "loginError": "Invalid username or password",
     "email": "Email"
   },
+  "login": {
+    "welcomeBack": "Welcome back",
+    "subtitle": "Sign in to continue your work",
+    "usernameLabel": "Username",
+    "passwordLabel": "Password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "signIn": "Sign In",
+    "trustLine": "Bank-grade encryption · Your data is protected",
+    "orDivider": "OR",
+    "biometric": "Use Face ID / Fingerprint",
+    "newUser": "New to HamzaTex?",
+    "requestAccess": "Request access"
+  },
+  "forgotPassword": {
+    "title": "Reset your password",
+    "subtitle": "Enter your email and we'll send a secure reset link valid for 10 minutes.",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@hamzatex.pk",
+    "sendLink": "Send Reset Link",
+    "step1": "Email",
+    "step2": "Reset",
+    "step3": "Sign in",
+    "rememberPassword": "Remember your password?",
+    "signIn": "Sign in",
+    "successTitle": "Check your email",
+    "successSubtitle": "We've sent a password reset link to your email. It expires in 15 minutes."
+  },
   "dashboard": {
     "title": "Dashboard",
     "summary": "Summary",
