@@ -12,6 +12,8 @@ export const AppConstants = {
     USER_ID: 'userId',
     ROLE_ID: 'roleId',
     USER_NAME: 'userName',
+    EMAIL: 'userEmail',
+    BIOMETRIC_TOKEN: 'biometricToken',
   },
 
   // File-system markers (cleared on reinstall, unlike Keychain)
@@ -53,6 +55,9 @@ export const AppConstants = {
       FORGOT_PASSWORD: 'ForgotPassword',
       VERIFY_OTP: 'VerifyOtp',
       RESET_PASSWORD: 'ResetPassword',
+      REGISTER: 'Register',
+      VERIFY_SIGNUP_OTP: 'VerifySignupOtp',
+      BIOMETRIC: 'Biometric',
       TERMS: 'Terms',
       PRIVACY: 'Privacy',
     },

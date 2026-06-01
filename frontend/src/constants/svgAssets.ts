@@ -9,6 +9,7 @@ export { MailIcon } from '../../assets/svg/icons/MailIcon';
 export { EyeIcon } from '../../assets/svg/icons/EyeIcon';
 export { EyeOffIcon } from '../../assets/svg/icons/EyeOffIcon';
 export { FingerprintIcon } from '../../assets/svg/icons/FingerprintIcon';
+export { RefreshIcon } from '../../assets/svg/icons/RefreshIcon';
 export { WeavePattern } from '../../assets/svg/WeavePattern';
 export { OnboardingSlide1 } from '../../assets/svg/illustrations/OnboardingSlide1';
 export { OnboardingSlide2 } from '../../assets/svg/illustrations/OnboardingSlide2';

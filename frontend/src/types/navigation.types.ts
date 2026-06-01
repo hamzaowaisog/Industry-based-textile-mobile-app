@@ -12,6 +12,9 @@ export type AuthStackParamList = {
   [S.FORGOT_PASSWORD]: undefined;
   [S.VERIFY_OTP]: { email: string; nextResendAt?: string };
   [S.RESET_PASSWORD]: { email: string; resetToken: string };
+  [S.REGISTER]: undefined;
+  [S.VERIFY_SIGNUP_OTP]: { email: string; nextResendAt?: string };
+  [S.BIOMETRIC]: undefined;
   [S.TERMS]: undefined;
   [S.PRIVACY]: undefined;
 };
@@ -71,7 +74,11 @@ export type LoginNavProp = AuthNavProp<typeof S.LOGIN>;
 export type ForgotPasswordNavProp = AuthNavProp<typeof S.FORGOT_PASSWORD>;
 export type VerifyOtpNavProp = AuthNavProp<typeof S.VERIFY_OTP>;
 export type ResetPasswordNavProp = AuthNavProp<typeof S.RESET_PASSWORD>;
+export type RegisterNavProp = AuthNavProp<typeof S.REGISTER>;
+export type VerifySignupOtpNavProp = AuthNavProp<typeof S.VERIFY_SIGNUP_OTP>;
+export type BiometricNavProp = AuthNavProp<typeof S.BIOMETRIC>;
 
 // ── Per-screen route prop aliases ─────────────────────────────────────────────
 export type VerifyOtpRouteProp = AuthRouteProp<typeof S.VERIFY_OTP>;
 export type ResetPasswordRouteProp = AuthRouteProp<typeof S.RESET_PASSWORD>;
+export type VerifySignupOtpRouteProp = AuthRouteProp<typeof S.VERIFY_SIGNUP_OTP>;

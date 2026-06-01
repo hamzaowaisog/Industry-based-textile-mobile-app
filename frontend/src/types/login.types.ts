@@ -6,11 +6,16 @@ export type LoginFormValues = {
 };
 
 export type LoginData = {
-  accessToken: string;
+  token: string;
   refreshToken: string;
   userId: number;
   roleId: number;
   userName: string;
+  email: string;
+  isActive: boolean;
+  createdAt: string;
+  expiresAt: string;
+  refreshTokenExpiresAt: string;
 };
 
 export type LoginResponse = {
@@ -33,4 +38,5 @@ export type LoginComponentProps = {
   onToggleRemember: () => void;
   onForgotPassword: () => void;
   onBiometric: () => void;
+  onRequestAccess: () => void;
 };

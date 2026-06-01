@@ -1,12 +1,11 @@
-import React from 'react';
-
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { useAuthStore } from '@stores/authStore';
+import { DashboardScreen } from '@screens/dashboard';
 
 import { colors } from '@theme/colors';
 
-import { MainTabParamList } from '@types/navigation.types';
+import { MainTabParamList } from '../types/navigation.types';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -19,11 +18,11 @@ export const MainNavigator = () => {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.gray500,
+        tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: { backgroundColor: colors.surface },
       }}
     >
-      <Tab.Screen name="Dashboard" component={PlaceholderScreen} />
+      <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Clients" component={PlaceholderScreen} />
       <Tab.Screen name="Products" component={PlaceholderScreen} />
       <Tab.Screen name="Orders" component={PlaceholderScreen} />

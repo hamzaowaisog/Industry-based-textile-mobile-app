@@ -24,13 +24,7 @@ class AppDelegate: ExpoAppDelegate {
 
 #if os(iOS) || os(tvOS)
     window = UIWindow(frame: UIScreen.main.bounds)
-    // Match BootSplash brand color so there is no black flash before RN attaches the splash overlay.
-    window?.backgroundColor = UIColor(
-      red: 26.0 / 255.0,
-      green: 86.0 / 255.0,
-      blue: 219.0 / 255.0,
-      alpha: 1.0
-    )
+    window?.backgroundColor = .white
 // @generated begin @react-native-firebase/app-didFinishLaunchingWithOptions - expo prebuild (DO NOT MODIFY) sync-10e8520570672fd76b2403b7e1e27f5198a6349a
 FirebaseApp.configure()
 // @generated end @react-native-firebase/app-didFinishLaunchingWithOptions
@@ -68,12 +62,7 @@ class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
 
   public override func customize(_ rootView: UIView) {
     super.customize(rootView)
-    rootView.backgroundColor = UIColor(
-      red: 26.0 / 255.0,
-      green: 86.0 / 255.0,
-      blue: 219.0 / 255.0,
-      alpha: 1.0
-    )
+    rootView.backgroundColor = .white
     RNBootSplash.initWithStoryboard("BootSplash", rootView: rootView)
   }
 
