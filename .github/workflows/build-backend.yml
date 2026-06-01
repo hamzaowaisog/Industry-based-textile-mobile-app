@@ -1,0 +1,39 @@
+name: Build Backend
+
+on:
+  push:
+    branches:
+      - 'hamzaTex/Qa'
+    paths:
+      - 'backend/**'
+
+jobs:
+  build:
+    name: Build & Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore packages
+        run: dotnet restore
+        working-directory: backend/HamzaTex.Api
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+        working-directory: backend/HamzaTex.Api
+
+      # ──────────────────────────────────────────────────────────────────────
+      # DEPLOY — ADD WHEN BACKEND HOST IS CHOSEN
+      # Options: Railway, Fly.io, Azure App Service, DigitalOcean
+      # Note: EF migrations run automatically on startup — already coded.
+      #       No extra migration step needed in this workflow.
+      # ──────────────────────────────────────────────────────────────────────
+      # - name: Deploy to <host>
+      #   ...
