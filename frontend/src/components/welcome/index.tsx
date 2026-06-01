@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -18,8 +18,12 @@ export const WelcomeComponent = ({ onGetStarted, onSignIn, onTerms, onPrivacy }:
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <View style={styles.content}>
-
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        bounces={true}
+      >
         {/* Hero */}
         <View style={styles.heroWrapper}>
           <LinearGradient
@@ -92,7 +96,7 @@ export const WelcomeComponent = ({ onGetStarted, onSignIn, onTerms, onPrivacy }:
           </Text>
         </View>
 
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

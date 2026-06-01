@@ -92,7 +92,12 @@ export const BiometricComponent = ({
           </View>
 
           {/* Fingerprint with 3 animated rings */}
-          <View style={styles.fingerprintSection}>
+          <TouchableOpacity
+            style={styles.fingerprintSection}
+            onPress={onAuthenticate}
+            activeOpacity={0.75}
+            disabled={isPending}
+          >
             {rings.map((ring) => (
               <AnimatedRing key={ring.id} delay={ring.delay} />
             ))}
@@ -100,11 +105,11 @@ export const BiometricComponent = ({
               colors={[colors.primary, colors.primaryDark]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={styles.gradientCircle}
+              style={[styles.gradientCircle, isPending && styles.gradientCirclePending]}
             >
               <FingerprintIcon size={56} color="#fff" />
             </LinearGradient>
-          </View>
+          </TouchableOpacity>
 
           {/* Labels */}
           <View style={styles.labelSection}>

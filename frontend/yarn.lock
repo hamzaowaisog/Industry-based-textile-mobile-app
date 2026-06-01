@@ -3924,7 +3924,7 @@ dunder-proto@^1.0.1:
 
 eas-cli@^20.0.0:
   version "20.0.0"
-  resolved "https://registry.npmjs.org/eas-cli/-/eas-cli-20.0.0.tgz"
+  resolved "https://registry.yarnpkg.com/eas-cli/-/eas-cli-20.0.0.tgz#0cd600727dc0f57b974f494492c4dbb523cdcd66"
   integrity sha512-HI0DfNSA4L0gPBAFOgsWvERrOwMx2phdffgi2n0GNlqWKE7m4xJQavg53Eymml/MILuMwRlIlV7xWt3Zd0v39g==
   dependencies:
     "@expo/apple-utils" "2.1.19"
@@ -4247,6 +4247,38 @@ expo-constants@~56.0.16:
   integrity sha512-6tsiN+gmTUPp/atyA+uY9Tg8VOdXdmb4s/3TVGolfn6A/oCAraw1pcPZX5XllyD+xUguxB6eBSFAT8494hZVMA==
   dependencies:
     "@expo/env" "~2.3.0"
+
+expo-dev-client@^56.0.18:
+  version "56.0.18"
+  resolved "https://registry.yarnpkg.com/expo-dev-client/-/expo-dev-client-56.0.18.tgz#dc63aee8f5ee3f9f0dc82ccb5b8607121acca515"
+  integrity sha512-pTfDcYTOvrs4vCgAaM+vP2OEO93oGkczgGpTAzCY7ZTIvtPhpekJURHBxfOnKvfn97IF3Hk+8J9tMozsNDj0Gw==
+  dependencies:
+    expo-dev-launcher "~56.0.18"
+    expo-dev-menu "~56.0.16"
+    expo-dev-menu-interface "~56.0.0"
+    expo-manifests "~56.0.4"
+    expo-updates-interface "~56.0.1"
+
+expo-dev-launcher@~56.0.18:
+  version "56.0.18"
+  resolved "https://registry.yarnpkg.com/expo-dev-launcher/-/expo-dev-launcher-56.0.18.tgz#483053847e2e0ca296eca9a9374435fa1157a7c9"
+  integrity sha512-7acFJlkAbp3cMz7Uy787todMR/3A/Row2EOPD21RRoetvzJe4DTm9s7RwJ8PDtyNyued9rooD4+Q6rD8ijpTgw==
+  dependencies:
+    "@expo/schema-utils" "^56.0.0"
+    expo-dev-menu "~56.0.16"
+    expo-manifests "~56.0.4"
+
+expo-dev-menu-interface@~56.0.0:
+  version "56.0.1"
+  resolved "https://registry.yarnpkg.com/expo-dev-menu-interface/-/expo-dev-menu-interface-56.0.1.tgz#2e072832775c5a5fba8fd1630095c5f905f10583"
+  integrity sha512-odATx0ZL/Kis10sKSBiKiGQxAB6coSi/KQtKcMhnQVNno6FkRh5/4e5BqcEvpq2rNMTiQp4ytNAQHtdwbPXvGA==
+
+expo-dev-menu@~56.0.16:
+  version "56.0.16"
+  resolved "https://registry.yarnpkg.com/expo-dev-menu/-/expo-dev-menu-56.0.16.tgz#64e322432998f5b35f5a1c848d261febb34ea8ff"
+  integrity sha512-aVgoe+YGhrQnpwiB5BRI7G+uQnGHMUij32bBnEVdc6eJrVZCStxQlV9NeFbbXxrDhLJt6OSqbCHbLR+XToWUUA==
+  dependencies:
+    expo-dev-menu-interface "~56.0.0"
 
 expo-eas-client@~56.0.0:
   version "56.0.1"

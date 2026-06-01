@@ -9,7 +9,7 @@
       "distribution": "internal",
       "env": {
         "APP_ENV": "development",
-        "API_URL": "http://mhamza-2.local:5000"
+        "API_URL": "http://mhamza-2.local:5050"
       }
     },
     "preview": {

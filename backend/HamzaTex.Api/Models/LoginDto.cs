@@ -18,6 +18,8 @@ public class LoginResponseDto
     public string RefreshToken { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; } = DateTime.UtcNow;
     public DateTime RefreshTokenExpiresAt { get; set; } = DateTime.UtcNow;
+    /// <summary>Only populated on biometric login. The rotated biometric token for the next biometric auth.</summary>
+    public string? BiometricToken { get; set; }
 }
 
 public class RefreshTokenRequest

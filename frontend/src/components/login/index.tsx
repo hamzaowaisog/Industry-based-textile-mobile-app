@@ -38,6 +38,7 @@ export const LoginComponent = ({
   formik,
   showPassword,
   rememberMe,
+  isBiometricEnabled,
   onTogglePassword,
   onToggleRemember,
   onForgotPassword,
@@ -206,18 +207,21 @@ export const LoginComponent = ({
             <Text style={styles.trustText}>{t('login.trustLine')}</Text>
           </View>
 
-          {/* OR divider */}
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>{t('login.orDivider')}</Text>
-            <View style={styles.dividerLine} />
-          </View>
+          {/* Biometric — only shown when biometric is set up */}
+          {isBiometricEnabled && (
+            <>
+              <View style={styles.dividerRow}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>{t('login.orDivider')}</Text>
+                <View style={styles.dividerLine} />
+              </View>
 
-          {/* Biometric */}
-          <TouchableOpacity style={styles.ghostButton} onPress={onBiometric} activeOpacity={0.8}>
-            <FingerprintIcon size={20} color={colors.text} />
-            <Text style={styles.ghostButtonText}>{t('login.biometric')}</Text>
-          </TouchableOpacity>
+              <TouchableOpacity style={styles.ghostButton} onPress={onBiometric} activeOpacity={0.8}>
+                <FingerprintIcon size={20} color={colors.text} />
+                <Text style={styles.ghostButtonText}>{t('login.biometric')}</Text>
+              </TouchableOpacity>
+            </>
+          )}
 
           {/* Request access */}
           <View style={styles.requestRow}>

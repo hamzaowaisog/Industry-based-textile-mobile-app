@@ -49,10 +49,15 @@ export const useAuthStore = create<AuthStore>((set) => ({
     };
 
     if (accessToken && userId && roleId && userName) {
-      update.userId = Number(userId);
-      update.roleId = Number(roleId);
-      update.userName = userName;
-      update.isAuthenticated = true;
+      if (!biometricToken) {
+        // No biometric lock — authenticate directly from stored tokens
+        update.userId = Number(userId);
+        update.roleId = Number(roleId);
+        update.userName = userName;
+        update.isAuthenticated = true;
+      }
+      // biometricToken present → leave isAuthenticated = false so AuthNavigator
+      // shows BiometricScreen as the lock screen before granting access
     }
 
     set({ ...(update as Partial<AuthStore>), hydrated: true });
