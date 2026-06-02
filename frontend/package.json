@@ -48,7 +48,7 @@
     "api:generate": "orval --config orval.config.js",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
-    "eas-build-pre-install": "echo \"$GOOGLE_SERVICES_JSON\" | base64 -d > android/app/google-services.json && echo \"$ANDROID_KEYSTORE_BASE64\" | base64 -d > android/app/hamzatex-release.keystore"
+    "eas-build-pre-install": "echo \"$GOOGLE_SERVICES_JSON\" | base64 -d > google-services.json && cp google-services.json android/app/google-services.json && echo \"$ANDROID_KEYSTORE_BASE64\" | base64 -d > android/app/hamzatex-release.keystore"
   },
   "private": true,
   "devDependencies": {

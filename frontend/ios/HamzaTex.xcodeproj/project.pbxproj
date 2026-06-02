@@ -16,6 +16,10 @@
 		CCB1EF3434C11BE53FAB25CA /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B993AB7DDC8D18CCCA56FFAE /* PrivacyInfo.xcprivacy */; };
 		ED77D5D582E9338DE28E2F98 /* libPods-HamzaTex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9B3A95022FC855BF8F05E45 /* libPods-HamzaTex.a */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
+		CCA8B13AAAC046D291BCC04E /* Quicksand-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A35D67E53F51430188487DCC /* Quicksand-Regular.ttf */; };
+		E44CFB2F716246A294B47387 /* Quicksand-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0020C6B76FC5458F88E05D9F /* Quicksand-Medium.ttf */; };
+		454F8D9A698F459885237A4B /* Quicksand-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 178E45076774470E8313311B /* Quicksand-SemiBold.ttf */; };
+		A12FB33EAEDC43B2B2874A60 /* Quicksand-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EA99FDCD95474FDEB6AFA414 /* Quicksand-Bold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +38,10 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = HamzaTex/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* HamzaTex-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "HamzaTex-Bridging-Header.h"; path = "HamzaTex/HamzaTex-Bridging-Header.h"; sourceTree = "<group>"; };
+		A35D67E53F51430188487DCC /* Quicksand-Regular.ttf */ = {isa = PBXFileReference; name = "Quicksand-Regular.ttf"; path = "../assets/fonts/Quicksand-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		0020C6B76FC5458F88E05D9F /* Quicksand-Medium.ttf */ = {isa = PBXFileReference; name = "Quicksand-Medium.ttf"; path = "../assets/fonts/Quicksand-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		178E45076774470E8313311B /* Quicksand-SemiBold.ttf */ = {isa = PBXFileReference; name = "Quicksand-SemiBold.ttf"; path = "../assets/fonts/Quicksand-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		EA99FDCD95474FDEB6AFA414 /* Quicksand-Bold.ttf */ = {isa = PBXFileReference; name = "Quicksand-Bold.ttf"; path = "../assets/fonts/Quicksand-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,6 +114,7 @@
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				64F2DAEDD2DC6CE4CA26E328 /* Pods */,
 				D99FAAF323D256A828CB76D8 /* ExpoModulesProviders */,
+				6B483AE397694F38A26ABAF2 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -137,6 +146,18 @@
 			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
+		6B483AE397694F38A26ABAF2 /* Resources */ = {
+			isa = "PBXGroup";
+			children = (
+				A35D67E53F51430188487DCC /* Quicksand-Regular.ttf */,
+				0020C6B76FC5458F88E05D9F /* Quicksand-Medium.ttf */,
+				178E45076774470E8313311B /* Quicksand-SemiBold.ttf */,
+				EA99FDCD95474FDEB6AFA414 /* Quicksand-Bold.ttf */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+			path = "";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -151,6 +172,7 @@
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
+				439CA7B17C7B4EC49232BEAF /* [Expo Dev Launcher] Strip Local Network Keys for Release */,
 				26A6BBD09B31E21F9D9182FC /* [CP] Embed Pods Frameworks */,
 				6DD969D07610BDBAEA88691B /* [CP-User] [RNFB] Core Configuration */,
 			);
@@ -205,6 +227,10 @@
 				CCB1EF3434C11BE53FAB25CA /* PrivacyInfo.xcprivacy in Resources */,
 				3C9B4B5F334A44959B8446E5 /* BootSplash.storyboard in Resources */,
 				B523CD2EDCF9481991C7B9F0 /* Colors.xcassets in Resources */,
+				CCA8B13AAAC046D291BCC04E /* Quicksand-Regular.ttf in Resources */,
+				E44CFB2F716246A294B47387 /* Quicksand-Medium.ttf in Resources */,
+				454F8D9A698F459885237A4B /* Quicksand-SemiBold.ttf in Resources */,
+				A12FB33EAEDC43B2B2874A60 /* Quicksand-Bold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -373,6 +399,54 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-HamzaTex/Pods-HamzaTex-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		439CA7B17C7B4EC49232BEAF /* [Expo Dev Launcher] Strip Local Network Keys for Release */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			name = "[Expo Dev Launcher] Strip Local Network Keys for Release";
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			shellPath = /bin/sh;
+			shellScript = "# Strip dev-launcher-specific local network permission keys from non-Debug builds
+# This only removes _expo._tcp Bonjour services and the dev-launcher usage description.
+# Other Bonjour services and custom descriptions are preserved for production use.
+
+if [ \"$CONFIGURATION\" != \"Debug\" ]; then
+  PLIST_PATH=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"
+  if [ -f \"$PLIST_PATH\" ]; then
+    # Check if NSBonjourServices exists
+    if /usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" >/dev/null 2>&1; then
+      # Get the count of services
+      COUNT=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null | grep \"^    \" | wc -l | tr -d ' ')
+
+      # Remove _expo._tcp
+      for ((i=COUNT-1; i>=0; i--)); do
+        SERVICE=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices:$i\" \"$PLIST_PATH\" 2>/dev/null || echo \"\")
+        if echo \"$SERVICE\" | grep -q \"_expo._tcp\"; then
+          /usr/libexec/PlistBuddy -c \"Delete :NSBonjourServices:$i\" \"$PLIST_PATH\" 2>/dev/null || true
+        fi
+      done
+
+      # If the array is now empty, remove it entirely
+      REMAINING=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null | grep \"^    \" | wc -l | tr -d ' ')
+      if [ \"$REMAINING\" -eq \"0\" ]; then
+        /usr/libexec/PlistBuddy -c \"Delete :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null || true
+      fi
+    fi
+
+    # Only delete the description if it matches the dev-launcher default text
+    DESC=$(/usr/libexec/PlistBuddy -c \"Print :NSLocalNetworkUsageDescription\" \"$PLIST_PATH\" 2>/dev/null || echo \"\")
+    if echo \"$DESC\" | grep -q \"Expo Dev Launcher\"; then
+      /usr/libexec/PlistBuddy -c \"Delete :NSLocalNetworkUsageDescription\" \"$PLIST_PATH\" 2>/dev/null || true
+    fi
+  fi
+fi
+";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -417,11 +491,11 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.hamzatex.app;
-				PRODUCT_NAME = HamzaTex;
+				PRODUCT_NAME = "HamzaTex";
 				SWIFT_OBJC_BRIDGING_HEADER = "HamzaTex/HamzaTex-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -450,10 +524,10 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.hamzatex.app;
-				PRODUCT_NAME = HamzaTex;
+				PRODUCT_NAME = "HamzaTex";
 				SWIFT_OBJC_BRIDGING_HEADER = "HamzaTex/HamzaTex-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;

@@ -15,7 +15,7 @@ export default ({ config }) => ({
     googleServicesFile: './google-services.json',
     versionCode: 1,
     adaptiveIcon: {
-      foregroundImage: './design_handoff_hamzatex_erp/app-icons/android/res/mipmap-xxxhdpi/ic_launcher_foreground.png',
+      foregroundImage: './textile-erp/project/design_handoff_hamzatex_erp/app-icons/android/res/mipmap-xxxhdpi/ic_launcher_foreground.png',
       backgroundColor: '#1A56DB',
     },
   },
