@@ -47,7 +47,8 @@
     "web": "expo start --web",
     "api:generate": "orval --config orval.config.js",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\""
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
+    "eas-build-pre-install": "echo \"$GOOGLE_SERVICES_JSON\" | base64 -d > android/app/google-services.json"
   },
   "private": true,
   "devDependencies": {

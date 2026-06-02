@@ -51,12 +51,6 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Decode Google Services JSON
-        run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d \
-            > android/app/google-services.json
-          git add -f android/app/google-services.json
-
       - name: Decode Android keystore
         run: |
           echo "${{ secrets.ANDROID_RELEASE_STORE_FILE }}" | base64 -d \
@@ -74,18 +68,25 @@ jobs:
           "
 
       - name: Build Android with EAS
+        id: eas_build
         run: |
-          eas build \
+          BUILD_JSON=$(eas build \
             --platform android \
             --profile ${{ steps.tag.outputs.env }} \
             --non-interactive \
-            --message "${{ steps.tag.outputs.notes }}"
+            --message "${{ steps.tag.outputs.notes }}" \
+            --json)
+          ARTIFACT_URL=$(echo "$BUILD_JSON" | jq -r '.[0].artifacts.buildUrl')
+          echo "artifact_url=$ARTIFACT_URL" >> $GITHUB_OUTPUT
         env:
           API_URL: ${{ steps.tag.outputs.env == 'production' && secrets.API_URL_PRODUCTION || secrets.API_URL_PREVIEW }}
           ANDROID_RELEASE_STORE_FILE: android/app/hamzatex-release.keystore
           ANDROID_RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_STORE_PASSWORD }}
           ANDROID_RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
           ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
+
+      - name: Download artifact from EAS
+        run: curl -L "${{ steps.eas_build.outputs.artifact_url }}" -o app-release.apk
 
       - name: Distribute to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -94,6 +95,7 @@ jobs:
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
           groups: testing-persons
           releaseNotes: ${{ steps.tag.outputs.notes }}
+          file: frontend/app-release.apk
 
   # ──────────────────────────────────────────────────────────────────────────
   # iOS — REQUIRES PAID APPLE DEVELOPER ACCOUNT ($99/year)
