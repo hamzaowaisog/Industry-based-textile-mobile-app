@@ -55,6 +55,7 @@ export const BiometricComponent = ({
   lastSyncMinutes,
   onAuthenticate,
   onSwitchAccount,
+  onUsePassword,
 }: BiometricComponentProps) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -132,7 +133,7 @@ export const BiometricComponent = ({
               <Text style={styles.statusSubtitle}>{t('sync.allDataUpToDate')}</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.ghostButton} onPress={onSwitchAccount} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.ghostButton} onPress={onUsePassword} activeOpacity={0.7}>
             <Text style={styles.ghostButtonText}>{t('biometric.usePassword')}</Text>
           </TouchableOpacity>
         </View>

@@ -84,7 +84,11 @@ export const useBiometric = (navigation: BiometricNavProp) => {
     lastSyncMinutes: 12,
     onAuthenticate: runAuthenticate,
     onSwitchAccount: () => {
+      SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.BIOMETRIC_TOKEN).catch(() => {});
       useAuthStore.getState().setBiometricEnabled(false);
+      navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN);
+    },
+    onUsePassword: () => {
       navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN);
     },
   };

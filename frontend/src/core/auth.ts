@@ -72,6 +72,11 @@ export const loginAsync = async ({
 
     useAuthStore.getState().setAuth({ userId, roleId, userName });
 
+    const storedBiometricToken = await SecureStore.getItemAsync(
+      AppConstants.SECURE_STORE.BIOMETRIC_TOKEN,
+    );
+    useAuthStore.getState().setBiometricEnabled(!!storedBiometricToken);
+
     return { success: true };
   } catch (err: any) {
     const data = err?.response?.data;

@@ -7,4 +7,5 @@ export type BiometricComponentProps = {
   lastSyncMinutes: number;
   onAuthenticate: () => void;
   onSwitchAccount: () => void;
+  onUsePassword: () => void;
 };
