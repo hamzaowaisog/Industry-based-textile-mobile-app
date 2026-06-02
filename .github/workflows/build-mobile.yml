@@ -51,6 +51,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Decode Google Services JSON
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d \
+            > android/app/google-services.json
+
       - name: Decode Android keystore
         run: |
           echo "${{ secrets.ANDROID_RELEASE_STORE_FILE }}" | base64 -d \
