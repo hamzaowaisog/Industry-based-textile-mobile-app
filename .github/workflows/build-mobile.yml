@@ -29,7 +29,11 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "env=$ENV"         >> $GITHUB_OUTPUT
           echo "build=$BUILD"     >> $GITHUB_OUTPUT
-          echo "notes=$NOTES"     >> $GITHUB_OUTPUT
+          {
+            echo "notes<<NOTES_EOF"
+            echo "$NOTES"
+            echo "NOTES_EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
