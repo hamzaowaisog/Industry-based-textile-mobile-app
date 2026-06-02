@@ -2,7 +2,8 @@ import axios, { AxiosRequestConfig } from 'axios';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL: string = Constants.expoConfig?.extra?.apiUrl ?? 'http://localhost:5000';
+const API_URL: string = Constants.expoConfig?.extra?.apiUrl;
+console.log('[axiosInstance] API_URL =', API_URL);
 
 const client = axios.create({
   baseURL: API_URL,
@@ -24,9 +25,10 @@ client.interceptors.response.use(
       try {
         const refreshToken = await SecureStore.getItemAsync('refreshToken');
         const { data } = await axios.post(`${API_URL}/Auth/refresh`, { refreshToken });
-        await SecureStore.setItemAsync('accessToken', data.data.accessToken);
+        // Backend returns 'token' not 'accessToken'
+        await SecureStore.setItemAsync('accessToken', data.data.token);
         await SecureStore.setItemAsync('refreshToken', data.data.refreshToken);
-        client.defaults.headers.common.Authorization = `Bearer ${data.data.accessToken}`;
+        client.defaults.headers.common.Authorization = `Bearer ${data.data.token}`;
         return client(original as AxiosRequestConfig);
       } catch {
         await SecureStore.deleteItemAsync('accessToken');

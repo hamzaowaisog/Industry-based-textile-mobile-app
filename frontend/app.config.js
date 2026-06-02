@@ -35,7 +35,7 @@ export default ({ config }) => ({
     '@react-native-firebase/app',
   ],
   extra: {
-    apiUrl: process.env.API_URL ?? 'http://localhost:5000',
+    apiUrl: process.env.API_URL ?? 'http://mhamza-2.local:5050',
     appEnv: process.env.APP_ENV ?? 'development',
     eas: {
       projectId: '7d080caa-5877-4ca0-b171-a75951595284',

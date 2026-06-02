@@ -9,21 +9,24 @@
       "distribution": "internal",
       "env": {
         "APP_ENV": "development",
-        "API_URL": "http://localhost:5000"
+        "API_URL": "http://mhamza-2.local:5050"
       }
     },
     "preview": {
       "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
       "env": {
-        "APP_ENV": "preview",
-        "API_URL": "https://staging.hamzatex.com"
+        "APP_ENV": "preview"
       }
     },
     "production": {
-      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
       "env": {
-        "APP_ENV": "production",
-        "API_URL": "https://api.hamzatex.com"
+        "APP_ENV": "production"
       }
     }
   },

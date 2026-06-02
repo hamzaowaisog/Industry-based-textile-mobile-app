@@ -286,10 +286,14 @@ public class LoginService : ILoginService
         var accessToken = JwtHelper.GenerateToken(user.Id, user.Email, user.RoleId.Value);
 
         // Create new rotated biometric token
-        var (newEntity, newPlainToken) = await _refreshTokenService.CreateBiometricTokenAsync(user.Id, ipAddress);
-
-        if (newEntity == null || newPlainToken == null)
+        var (newBiometricEntity, newBiometricToken) = await _refreshTokenService.CreateBiometricTokenAsync(user.Id, ipAddress);
+        if (newBiometricEntity == null || newBiometricToken == null)
             return Response<LoginResponseDto>.ErrorResponse("Failed to create biometric token");
+
+        // Create a regular refresh token so the frontend can refresh the JWT without biometric
+        var (newRefreshEntity, newRefreshToken) = await _refreshTokenService.CreateRefreshTokenAsync(user.Id, ipAddress);
+        if (newRefreshEntity == null || newRefreshToken == null)
+            return Response<LoginResponseDto>.ErrorResponse("Failed to create refresh token");
 
         return Response<LoginResponseDto>.SuccessResponse(new LoginResponseDto
         {
@@ -300,9 +304,10 @@ public class LoginService : ILoginService
             IsActive = user.IsActive,
             CreatedAt = user.CreatedAt,
             Token = accessToken,
-            RefreshToken = newPlainToken,
+            RefreshToken = newRefreshToken,
+            BiometricToken = newBiometricToken,
             ExpiresAt = JwtHelper.GetTokenExpiration(),
-            RefreshTokenExpiresAt = newEntity.ExpiresAt
+            RefreshTokenExpiresAt = newRefreshEntity.ExpiresAt
         });
     }
 

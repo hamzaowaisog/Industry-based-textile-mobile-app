@@ -11,6 +11,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   userName: null,
   isAuthenticated: false,
   onboardingCompleted: false,
+  isBiometricEnabled: false,
   hydrated: false,
 
   setAuth: (user) =>
@@ -25,28 +26,38 @@ export const useAuthStore = create<AuthStore>((set) => ({
       roleId: null,
       userName: null,
       isAuthenticated: false,
+      // Note: Don't reset onboardingCompleted - it should persist
+      // Note: Don't reset isBiometricEnabled - it should persist
     }),
 
   setOnboardingCompleted: (completed) => set({ onboardingCompleted: completed }),
+  setBiometricEnabled: (enabled) => set({ isBiometricEnabled: enabled }),
 
   hydrate: async () => {
     const onboardingFile = new File(Paths.document, AppConstants.FILES.ONBOARDING_COMPLETED);
-    const [accessToken, userId, roleId, userName] = await Promise.all([
+    const [accessToken, userId, roleId, userName, biometricToken] = await Promise.all([
       SecureStore.getItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN),
       SecureStore.getItemAsync(AppConstants.SECURE_STORE.USER_ID),
       SecureStore.getItemAsync(AppConstants.SECURE_STORE.ROLE_ID),
       SecureStore.getItemAsync(AppConstants.SECURE_STORE.USER_NAME),
+      SecureStore.getItemAsync(AppConstants.SECURE_STORE.BIOMETRIC_TOKEN),
     ]);
 
     const update: Partial<AuthStore> = {
-      onboardingCompleted: onboardingFile.exists,  // file cleared on reinstall; Keychain is not
+      onboardingCompleted: onboardingFile.exists,
+      isBiometricEnabled: !!biometricToken,
     };
 
     if (accessToken && userId && roleId && userName) {
-      update.userId = Number(userId);
-      update.roleId = Number(roleId);
-      update.userName = userName;
-      update.isAuthenticated = true;
+      if (!biometricToken) {
+        // No biometric lock — authenticate directly from stored tokens
+        update.userId = Number(userId);
+        update.roleId = Number(roleId);
+        update.userName = userName;
+        update.isAuthenticated = true;
+      }
+      // biometricToken present → leave isAuthenticated = false so AuthNavigator
+      // shows BiometricScreen as the lock screen before granting access
     }
 
     set({ ...(update as Partial<AuthStore>), hydrated: true });

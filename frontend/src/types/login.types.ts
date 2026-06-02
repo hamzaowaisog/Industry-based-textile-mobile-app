@@ -6,11 +6,17 @@ export type LoginFormValues = {
 };
 
 export type LoginData = {
-  accessToken: string;
+  token: string;
   refreshToken: string;
+  biometricToken?: string;
   userId: number;
   roleId: number;
   userName: string;
+  email: string;
+  isActive: boolean;
+  createdAt: string;
+  expiresAt: string;
+  refreshTokenExpiresAt: string;
 };
 
 export type LoginResponse = {
@@ -29,8 +35,10 @@ export type LoginComponentProps = {
   formik: FormikProps<LoginFormValues>;
   showPassword: boolean;
   rememberMe: boolean;
+  isBiometricEnabled: boolean;
   onTogglePassword: () => void;
   onToggleRemember: () => void;
   onForgotPassword: () => void;
   onBiometric: () => void;
+  onRequestAccess: () => void;
 };
