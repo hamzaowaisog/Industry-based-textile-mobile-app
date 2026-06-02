@@ -51,11 +51,6 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Decode Android keystore
-        run: |
-          echo "${{ secrets.ANDROID_RELEASE_STORE_FILE }}" | base64 -d \
-            > android/app/hamzatex-release.keystore
-
       - name: Patch app version and build number
         run: |
           node -e "
