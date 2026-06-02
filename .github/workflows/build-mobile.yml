@@ -51,9 +51,6 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Generate API client (Orval)
-        run: npx orval
-
       - name: Decode Android keystore
         run: |
           echo "${{ secrets.ANDROID_RELEASE_STORE_FILE }}" | base64 -d \
