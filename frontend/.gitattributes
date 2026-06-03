@@ -1,1 +1,3 @@
 *.pbxproj -text
+.github/workflows/build-mobile.yml merge=ours
+.github/workflows/build-backend.yml merge=ours

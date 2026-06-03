@@ -39,7 +39,9 @@ jobs:
         env:
           PUBLIC_REPO_URL: ${{ secrets.PUBLIC_REPO_URL }}
         run: |
-          # Double-check the repo URL we will use (only for debugging; remove in prod if you don't want to leak)
-          echo "Using PUBLIC_REPO_URL: ${PUBLIC_REPO_URL}"
           git remote add public "${PUBLIC_REPO_URL}"
+          git config user.email "mirror@hamzatex.com"
+          git config user.name "Mirror Bot"
+          git rm -r --cached .github/ .agents/ .agentvibes/ .claude/ .cursor/ CLAUDE.md 2>/dev/null || true
+          git commit -m "chore: remove CI/agent files from public mirror" --allow-empty
           git push -f public main:main
