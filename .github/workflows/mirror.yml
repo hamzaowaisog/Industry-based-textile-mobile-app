@@ -42,6 +42,7 @@ jobs:
           git remote add public "${PUBLIC_REPO_URL}"
           git config user.email "mirror@hamzatex.com"
           git config user.name "Mirror Bot"
+          git checkout -b public-mirror
           git rm -r --cached .github/ .agent/ .agents/ .agentvibes/ .claude/ .cursor/ .vscode/ CLAUDE.md .mcp.json .graphifyignore skills-lock.json 2>/dev/null || true
           git commit -m "chore: remove CI/agent files from public mirror" --allow-empty
-          git push -f public main:main
+          git push -f public public-mirror:main
