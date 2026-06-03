@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Samsung OneUI 4 override — same fix as compat_splash_screen.xml -->
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/bootsplash_portrait"
+    android:gravity="fill" />

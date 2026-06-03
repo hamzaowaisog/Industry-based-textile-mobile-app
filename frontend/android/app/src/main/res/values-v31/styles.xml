@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="BootTheme" parent="Theme.BootSplash">
+    <item name="android:windowBackground">@drawable/bootsplash_fullscreen</item>
+    <item name="bootSplashBackground">@color/bootsplash_background</item>
+    <item name="bootSplashLogo">@drawable/bootsplash_logo</item>
+    <item name="postBootSplashTheme">@style/AppTheme</item>
+    <!-- Android 12+ system splash: brand blue background, transparent icon = no circle shown -->
+    <item name="android:windowSplashScreenBackground">@color/bootsplash_background</item>
+    <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon_transparent</item>
+  </style>
+</resources>

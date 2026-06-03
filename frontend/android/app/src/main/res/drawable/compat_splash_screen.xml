@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Overrides react-native-bootsplash's library default.
+     The library renders bootSplashLogo at 288dp which distorts our full-portrait
+     bootsplash_logo.png. This override fills the view with the portrait directly,
+     matching the android:windowBackground and producing a seamless splash. -->
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/bootsplash_portrait"
+    android:gravity="fill" />
