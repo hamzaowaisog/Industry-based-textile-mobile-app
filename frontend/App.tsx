@@ -1,14 +1,17 @@
+import 'react-native-get-random-values';
+
 import React, { useEffect } from 'react';
 
+import NetInfo from '@react-native-community/netinfo';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import BootSplash from 'react-native-bootsplash';
 import Toast from 'react-native-toast-message';
 import { enableScreens } from 'react-native-screens';
 
 import { toastConfig } from '@components/common/AppToast';
-import { useAuthStore } from '@stores/authStore';
-
 import { RootNavigator } from '@navigation/RootNavigator';
+import { useAuthStore } from '@stores/authStore';
+import { useSyncStore } from '@stores/syncStore';
 
 enableScreens();
 
@@ -23,6 +26,15 @@ const queryClient = new QueryClient({
 
 export default function App() {
   const hydrate = useAuthStore((s) => s.hydrate);
+  const setIsOnline = useSyncStore((s) => s.setIsOnline);
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      const online = !!(state.isConnected && state.isInternetReachable);
+      setIsOnline(online);
+    });
+    return () => unsubscribe();
+  }, [setIsOnline]);
 
   useEffect(() => {
     void (async () => {

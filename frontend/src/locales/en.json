@@ -37,7 +37,10 @@
     "setupSuccessSubtitle": "You can now sign in with Face ID / Touch ID.",
     "setupFailedTitle": "Setup Failed",
     "setupFailed": "Failed to enable biometrics. Please try again.",
-    "disableFailed": "Failed to disable biometrics."
+    "disableFailed": "Failed to disable biometrics.",
+    "sessionExpired": "Session expired. Please connect to internet and log in again.",
+    "online": "Online",
+    "offline": "Offline"
   },
   "register": {
     "title": "Create Account",
@@ -97,7 +100,26 @@
     "newUser": "New to HamzaTex?",
     "requestAccess": "Request access",
     "errorTitle": "Login Failed",
-    "errorSubtitle": "Invalid username or password."
+    "errorSubtitle": "Invalid username or password.",
+    "requiresConnection": "An internet connection is required to log in for the first time"
+  },
+  "sync": {
+    "pullFailed": "Failed to fetch data from server",
+    "pushFailed": "Failed to upload local changes",
+    "pushFailedTitle": "Sync Failed",
+    "pullFailedTitle": "Sync Incomplete",
+    "partialFailure": "{{count}} records were rejected by the server",
+    "offlineTitle": "You are offline",
+    "offlineMessage": "Connect to the internet to sync",
+    "successTitle": "Sync Complete",
+    "successMessage": "Your data is up to date",
+    "pending": "{{count}} pending",
+    "syncing": "Syncing...",
+    "synced": "Synced {{time}}",
+    "minutesAgo": "{{count}} min ago",
+    "allDataUpToDate": "All your data is up to date",
+    "failed": "Sync failed",
+    "syncNow": "Sync Now"
   },
   "forgotPassword": {
     "title": "Reset your password",
@@ -231,15 +253,6 @@
     "syncStatus": "Sync Status",
     "pendingChanges": "Pending Changes",
     "lastSynced": "Last Synced",
-    "syncNow": "Sync Now"
-  },
-  "sync": {
-    "pending": "{{count}} pending",
-    "syncing": "Syncing...",
-    "synced": "Synced {{time}}",
-    "minutesAgo": "{{count}} min ago",
-    "allDataUpToDate": "All your data is up to date",
-    "failed": "Sync failed",
     "syncNow": "Sync Now"
   },
   "welcome": {

@@ -12,7 +12,7 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 
-import { CheckIcon, FingerprintIcon, RefreshIcon } from '@constants/svgAssets';
+import { FingerprintIcon, RefreshIcon } from '@constants/svgAssets';
 import { colors } from '@theme/colors';
 import { BiometricComponentProps } from '../../types/biometric.types';
 
@@ -51,8 +51,8 @@ export const BiometricComponent = ({
   userEmail,
   initials,
   isPending,
+  isOnline,
   error,
-  lastSyncMinutes,
   onAuthenticate,
   onSwitchAccount,
   onUsePassword,
@@ -120,18 +120,13 @@ export const BiometricComponent = ({
           </View>
         </View>
 
-        {/* Bottom: Status card + Ghost button */}
+        {/* Bottom: Online indicator + Ghost button */}
         <View style={[styles.bottomSection, { paddingBottom: insets.bottom + 24 }]}>
-          <View style={styles.statusCard}>
-            <View style={styles.statusIcon}>
-              <CheckIcon size={16} color={colors.success} />
-            </View>
-            <View style={styles.statusContent}>
-              <Text style={styles.statusTitle}>
-                {t('sync.synced', { time: t('sync.minutesAgo', { count: lastSyncMinutes }) })}
-              </Text>
-              <Text style={styles.statusSubtitle}>{t('sync.allDataUpToDate')}</Text>
-            </View>
+          <View style={styles.onlineRow}>
+            <View style={[styles.onlineDot, isOnline ? styles.dotOnline : styles.dotOffline]} />
+            <Text style={[styles.onlineText, !isOnline && styles.onlineTextOffline]}>
+              {isOnline ? t('biometric.online') : t('biometric.offline')}
+            </Text>
           </View>
           <TouchableOpacity style={styles.ghostButton} onPress={onUsePassword} activeOpacity={0.7}>
             <Text style={styles.ghostButtonText}>{t('biometric.usePassword')}</Text>

@@ -36,6 +36,12 @@ export const AppConstants = {
   // Sync
   SYNC: {
     MAX_RETRY_COUNT: 3,
+    STORE_KEY: 'hamzatex-sync-store',
+  },
+
+  // Local DB
+  DB: {
+    NAME: 'hamzatex.db',
   },
 
   // Date format

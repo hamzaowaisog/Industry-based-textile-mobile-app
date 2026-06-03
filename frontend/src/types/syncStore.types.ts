@@ -8,4 +8,5 @@ export type SyncStore = SyncStatus & {
   setSyncing: (isSyncing: boolean) => void;
   setSyncError: (error: string | null) => void;
   setLastSyncedAt: (date: string) => void;
+  setIsOnline: (isOnline: boolean) => void;
 };

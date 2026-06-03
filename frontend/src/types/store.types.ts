@@ -12,6 +12,7 @@ export type SyncStatus = {
   lastSyncedAt: string | null;
   isSyncing: boolean;
   syncError: string | null;
+  isOnline: boolean;
 };
 
 export type AppEnv = 'development' | 'preview' | 'production';

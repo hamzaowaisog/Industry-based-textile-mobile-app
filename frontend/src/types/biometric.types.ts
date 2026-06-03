@@ -3,8 +3,8 @@ export type BiometricComponentProps = {
   userEmail: string | null;
   initials: string;
   isPending: boolean;
+  isOnline: boolean;
   error: string | null;
-  lastSyncMinutes: number;
   onAuthenticate: () => void;
   onSwitchAccount: () => void;
   onUsePassword: () => void;

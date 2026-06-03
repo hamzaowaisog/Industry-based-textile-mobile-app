@@ -315,4 +315,18 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 4,
   },
+
+  // ── Offline banner ──
+  offlineBanner: {
+    backgroundColor: colors.warning,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  offlineBannerText: {
+    color: colors.white,
+    fontFamily: typography.fontFamily.medium,
+    fontSize: typography.fontSize.sm,
+    textAlign: 'center' as const,
+  },
 });

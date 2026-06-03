@@ -39,6 +39,7 @@ export const LoginComponent = ({
   showPassword,
   rememberMe,
   isBiometricEnabled,
+  isOnline,
   onTogglePassword,
   onToggleRemember,
   onForgotPassword,
@@ -89,6 +90,15 @@ export const LoginComponent = ({
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Offline banner */}
+          {!isOnline && (
+            <View style={styles.offlineBanner}>
+              <Text style={styles.offlineBannerText}>
+                {t('sync.offlineTitle')} — {t('login.requiresConnection')}
+              </Text>
+            </View>
+          )}
+
           {/* Username */}
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>

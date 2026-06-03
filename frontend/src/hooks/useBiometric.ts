@@ -9,6 +9,7 @@ import { AppConstants } from '@constants/appConstants';
 
 import { biometricLoginAsync, biometricSetupAsync } from '../core/auth';
 import { useAuthStore } from '../stores/authStore';
+import { useSyncStore } from '../stores/syncStore';
 import { BiometricNavProp } from '../types/navigation.types';
 import { showError, showSuccess } from '../utils/toast';
 
@@ -75,13 +76,15 @@ export const useBiometric = (navigation: BiometricNavProp) => {
     }
   };
 
+  const isOnline = useSyncStore((s) => s.isOnline);
+
   return {
     userName,
     userEmail,
     initials: deriveInitials(userName),
     isPending,
+    isOnline,
     error,
-    lastSyncMinutes: 12,
     onAuthenticate: runAuthenticate,
     onSwitchAccount: () => {
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.BIOMETRIC_TOKEN).catch(() => {});

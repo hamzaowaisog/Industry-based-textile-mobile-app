@@ -160,37 +160,32 @@ export const styles = StyleSheet.create({
   bottomSection: {
     gap: 12,
   },
-  statusCard: {
+  onlineRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    backgroundColor: colors.bgAlt,
-    borderRadius: 12,
-    padding: 12,
-  },
-  statusIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: colors.successLight,
-    alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
   },
-  statusContent: {
-    flex: 1,
+  onlineDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
-  statusTitle: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 12.5,
-    fontWeight: '700',
-    color: colors.text,
+  dotOnline: {
+    backgroundColor: colors.success,
   },
-  statusSubtitle: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 11.5,
-    fontWeight: '500',
-    color: colors.textSecondary,
-    marginTop: 2,
+  dotOffline: {
+    backgroundColor: colors.danger,
+  },
+  onlineText: {
+    fontFamily: typography.fontFamily.semibold,
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.success,
+  },
+  onlineTextOffline: {
+    color: colors.danger,
   },
 
   // ── Ghost button ──

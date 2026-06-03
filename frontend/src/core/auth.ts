@@ -1,3 +1,4 @@
+import NetInfo from '@react-native-community/netinfo';
 import * as SecureStore from 'expo-secure-store';
 
 import {
@@ -22,9 +23,12 @@ import {
   VerifySignupOtpViewModel,
 } from '../api/models';
 import { AppConstants } from '../constants/appConstants';
+import { clearAllTables } from '../db/queries/clearAll';
 import { useAuthStore } from '../stores/authStore';
+import { useSyncStore } from '../stores/syncStore';
 import { LoginOptions, LoginResponse } from '../types/login.types';
 import i18n from '../utils/i18n';
+import { fullPull } from './sync';
 
 export const loginAsync = async ({
   credentials,
@@ -76,6 +80,8 @@ export const loginAsync = async ({
       AppConstants.SECURE_STORE.BIOMETRIC_TOKEN,
     );
     useAuthStore.getState().setBiometricEnabled(!!storedBiometricToken);
+
+    await fullPull();
 
     return { success: true };
   } catch (err: any) {
@@ -165,6 +171,27 @@ export const biometricLoginAsync = async (): Promise<{ success: boolean; error?:
     if (!biometricToken) {
       return { success: false, error: i18n.t('biometric.notSetup') };
     }
+
+    const netState = await NetInfo.fetch();
+    const isOnline = !!(netState.isConnected && netState.isInternetReachable);
+
+    if (!isOnline) {
+      const [userId, roleId, userName] = await Promise.all([
+        SecureStore.getItemAsync(AppConstants.SECURE_STORE.USER_ID),
+        SecureStore.getItemAsync(AppConstants.SECURE_STORE.ROLE_ID),
+        SecureStore.getItemAsync(AppConstants.SECURE_STORE.USER_NAME),
+      ]);
+      if (!userId || !roleId || !userName) {
+        return { success: false, error: i18n.t('biometric.sessionExpired') };
+      }
+      useAuthStore.getState().setAuth({
+        userId: Number(userId),
+        roleId: Number(roleId),
+        userName,
+      });
+      return { success: true };
+    }
+
     const response = await authBiometricLogin({ biometricToken });
     const res = response as unknown as LoginResponse;
     if (!res.success || !res.data) {
@@ -297,18 +324,23 @@ export const resetPasswordAsync = async (
   }
 };
 
-export const logoutAsync = async (): Promise<{ success: boolean; error?: string }> => {
+export const logoutAsync = async (
+  opts: { force?: boolean } = {},
+): Promise<{ success: boolean; error?: string; hasPending?: boolean }> => {
+  const { pendingChanges } = useSyncStore.getState();
+
+  if (pendingChanges.length > 0 && !opts.force) {
+    return { success: false, hasPending: true };
+  }
+
   try {
     const refreshToken = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.REFRESH_TOKEN);
 
-    // Call backend logout API (revoke refresh token)
-    // pushToken is optional - only needed if you're using push notifications
     if (refreshToken) {
       const payload: LogoutRequest = { refreshToken };
       await authLogout(payload);
     }
 
-    // Clear session tokens — keep BIOMETRIC_TOKEN so the lock screen can re-authenticate
     await Promise.all([
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN),
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.REFRESH_TOKEN),
@@ -318,18 +350,18 @@ export const logoutAsync = async (): Promise<{ success: boolean; error?: string 
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.EMAIL),
     ]);
 
-    // Clear auth store (but preserve onboardingCompleted and isBiometricEnabled)
+    await clearAllTables();
     useAuthStore.getState().clearAuth();
 
     return { success: true };
   } catch (err: any) {
     console.error('Logout error:', err);
-    // Even if API call fails, clear session tokens (keep biometric token)
     await Promise.all([
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN),
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.REFRESH_TOKEN),
     ]);
+    await clearAllTables();
     useAuthStore.getState().clearAuth();
-    return { success: true }; // Return success so user can still logout
+    return { success: true };
   }
 };

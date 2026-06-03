@@ -3,6 +3,8 @@ import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 
 import { AppConstants } from '@constants/appConstants';
+
+import { initDb } from '../core/sync';
 import { AuthStore } from '../types/authStore.types';
 
 export const useAuthStore = create<AuthStore>((set) => ({
@@ -34,6 +36,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
   setBiometricEnabled: (enabled) => set({ isBiometricEnabled: enabled }),
 
   hydrate: async () => {
+    await initDb();
+
     const onboardingFile = new File(Paths.document, AppConstants.FILES.ONBOARDING_COMPLETED);
     const [accessToken, userId, roleId, userName, biometricToken] = await Promise.all([
       SecureStore.getItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN),
