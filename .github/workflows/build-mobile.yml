@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Parse tag
         id: tag
@@ -53,14 +55,8 @@ jobs:
 
       - name: Patch app version and build number
         run: |
-          node -e "
-            const fs = require('fs');
-            let raw = fs.readFileSync('./app.config.js', 'utf8');
-            raw = raw.replace(/version:\s*'[^']*'/, \"version: '${{ steps.tag.outputs.version }}'\");
-            raw = raw.replace(/buildNumber:\s*'[^']*'/, \"buildNumber: '${{ steps.tag.outputs.build }}'\");
-            raw = raw.replace(/versionCode:\s*[0-9]+/, 'versionCode: ${{ steps.tag.outputs.build }}');
-            fs.writeFileSync('./app.config.js', raw);
-          "
+          sed -i "s/versionCode [0-9]*/versionCode ${{ steps.tag.outputs.build }}/" android/app/build.gradle
+          sed -i "s/versionName \"[^\"]*\"/versionName \"${{ steps.tag.outputs.version }}\"/" android/app/build.gradle
 
       - name: Build Android with EAS
         id: eas_build
