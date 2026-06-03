@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { AppConstants } from '@constants/appConstants';
 
 import { biometricLoginAsync, biometricSetupAsync } from '../core/auth';
+import { useAuthStore } from '../stores/authStore';
 import { BiometricNavProp } from '../types/navigation.types';
 import { showError, showSuccess } from '../utils/toast';
 
@@ -82,15 +83,22 @@ export const useBiometric = (navigation: BiometricNavProp) => {
     error,
     lastSyncMinutes: 12,
     onAuthenticate: runAuthenticate,
-    onSwitchAccount: () => navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN),
+    onSwitchAccount: () => {
+      SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.BIOMETRIC_TOKEN).catch(() => {});
+      useAuthStore.getState().setBiometricEnabled(false);
+      navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN);
+    },
+    onUsePassword: () => {
+      navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN);
+    },
   };
 };
 
 export const offerBiometricSetup = async (t: (key: string) => string): Promise<void> => {
   const hasHardware = await LocalAuthentication.hasHardwareAsync();
   const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-  const existingToken = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.BIOMETRIC_TOKEN);
-  if (!hasHardware || !isEnrolled || existingToken) return;
+  const isBiometricEnabled = useAuthStore.getState().isBiometricEnabled;
+  if (!hasHardware || !isEnrolled || isBiometricEnabled) return;
 
   Alert.alert(
     t('biometric.setupTitle'),

@@ -55,6 +55,7 @@ export const BiometricComponent = ({
   lastSyncMinutes,
   onAuthenticate,
   onSwitchAccount,
+  onUsePassword,
 }: BiometricComponentProps) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -92,7 +93,12 @@ export const BiometricComponent = ({
           </View>
 
           {/* Fingerprint with 3 animated rings */}
-          <View style={styles.fingerprintSection}>
+          <TouchableOpacity
+            style={styles.fingerprintSection}
+            onPress={onAuthenticate}
+            activeOpacity={0.75}
+            disabled={isPending}
+          >
             {rings.map((ring) => (
               <AnimatedRing key={ring.id} delay={ring.delay} />
             ))}
@@ -100,11 +106,11 @@ export const BiometricComponent = ({
               colors={[colors.primary, colors.primaryDark]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={styles.gradientCircle}
+              style={[styles.gradientCircle, isPending && styles.gradientCirclePending]}
             >
               <FingerprintIcon size={56} color="#fff" />
             </LinearGradient>
-          </View>
+          </TouchableOpacity>
 
           {/* Labels */}
           <View style={styles.labelSection}>
@@ -127,7 +133,7 @@ export const BiometricComponent = ({
               <Text style={styles.statusSubtitle}>{t('sync.allDataUpToDate')}</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.ghostButton} onPress={onSwitchAccount} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.ghostButton} onPress={onUsePassword} activeOpacity={0.7}>
             <Text style={styles.ghostButtonText}>{t('biometric.usePassword')}</Text>
           </TouchableOpacity>
         </View>

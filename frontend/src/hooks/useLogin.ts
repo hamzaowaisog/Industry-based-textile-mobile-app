@@ -7,6 +7,7 @@ import { AppConstants } from '@constants/appConstants';
 
 import { loginAsync } from '../core/auth';
 import { offerBiometricSetup } from '../hooks/useBiometric';
+import { useAuthStore } from '../stores/authStore';
 import { LoginFormValues } from '../types/login.types';
 import { LoginNavProp } from '../types/navigation.types';
 import { showError } from '../utils/toast';
@@ -14,6 +15,7 @@ import { loginValidationSchema } from '../utils/validation/loginValidation';
 
 export const useLogin = (navigation: LoginNavProp) => {
   const { t } = useTranslation();
+  const isBiometricEnabled = useAuthStore((s) => s.isBiometricEnabled);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -38,6 +40,7 @@ export const useLogin = (navigation: LoginNavProp) => {
     formik,
     showPassword,
     rememberMe,
+    isBiometricEnabled,
     onTogglePassword: () => setShowPassword((p) => !p),
     onToggleRemember: () => setRememberMe((p) => !p),
     onForgotPassword: () => navigation.navigate(AppConstants.SCREENS.AUTH.FORGOT_PASSWORD),

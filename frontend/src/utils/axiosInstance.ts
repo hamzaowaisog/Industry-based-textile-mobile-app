@@ -2,7 +2,8 @@ import axios, { AxiosRequestConfig } from 'axios';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL: string = Constants.expoConfig?.extra?.apiUrl ?? 'http://localhost:5000';
+const API_URL: string = Constants.expoConfig?.extra?.apiUrl;
+console.log('[axiosInstance] API_URL =', API_URL);
 
 const client = axios.create({
   baseURL: API_URL,

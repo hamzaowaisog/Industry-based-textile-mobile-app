@@ -13,6 +13,7 @@
     "@tanstack/react-query": "^5.100.14",
     "axios": "^1.16.1",
     "expo": "~56.0.8",
+    "expo-dev-client": "^56.0.18",
     "expo-font": "^56.0.5",
     "expo-linear-gradient": "^56.0.4",
     "expo-local-authentication": "~56.0.4",
@@ -46,7 +47,8 @@
     "web": "expo start --web",
     "api:generate": "orval --config orval.config.js",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\""
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
+    "eas-build-pre-install": "echo \"$GOOGLE_SERVICES_JSON\" | base64 -d > google-services.json && cp google-services.json android/app/google-services.json && echo \"$ANDROID_KEYSTORE_BASE64\" | base64 -d > android/app/hamzatex-release.keystore"
   },
   "private": true,
   "devDependencies": {

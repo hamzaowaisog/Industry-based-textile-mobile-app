@@ -125,6 +125,9 @@ export const styles = StyleSheet.create({
     shadowRadius: 50,
     elevation: 8,
   },
+  gradientCirclePending: {
+    opacity: 0.55,
+  },
 
   // ── Labels ──
   labelSection: {

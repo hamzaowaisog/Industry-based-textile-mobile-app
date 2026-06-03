@@ -12,6 +12,7 @@ expo-env.d.ts
 # Native
 *.orig.*
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
@@ -35,9 +36,10 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-# Orval generated files
-src/api/generated/
-src/api/models/
+# Orval generated files are committed intentionally — EAS cloud builds need them
+# Regenerate with: npx orval (after updating openapi-spec.json from backend)
+# src/api/generated/
+# src/api/models/
 
 # Firebase config files (sensitive)
 GoogleService-Info.plist
