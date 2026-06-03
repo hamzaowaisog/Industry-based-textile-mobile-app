@@ -27,7 +27,7 @@ jobs:
           VERSION=$(echo "$TAG" | sed 's/^v\([^-]*\)-.*/\1/')
           ENV=$(echo "$TAG" | sed 's/^v[^-]*-\([^-]*\)-.*/\1/')
           BUILD=$(echo "$TAG" | sed 's/.*-//')
-          NOTES=$(git tag -l --format='%(contents)' "$TAG")
+          NOTES=$(git for-each-ref --format='%(contents)' "refs/tags/$TAG")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "env=$ENV"         >> $GITHUB_OUTPUT
           echo "build=$BUILD"     >> $GITHUB_OUTPUT
