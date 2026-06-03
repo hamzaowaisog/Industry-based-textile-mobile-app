@@ -43,6 +43,12 @@ jobs:
           git config user.email "mirror@hamzatex.com"
           git config user.name "Mirror Bot"
           git checkout -b public-mirror
-          git rm -r --cached .github/ .agent/ .agents/ .agentvibes/ .claude/ .cursor/ .vscode/ CLAUDE.md .mcp.json .graphifyignore skills-lock.json 2>/dev/null || true
+          for path in .github .agent .agents .agentvibes .claude .cursor .vscode CLAUDE.md .mcp.json .graphifyignore skills-lock.json; do
+            if [ -e "$path" ]; then
+              git rm -r --cached "$path" 2>/dev/null || true
+              rm -rf "$path"
+            fi
+          done
+          git add -A
           git commit -m "chore: remove CI/agent files from public mirror" --allow-empty
           git push -f public public-mirror:main
