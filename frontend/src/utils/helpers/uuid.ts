@@ -1,3 +1,5 @@
-import 'react-native-get-random-values';
-
-export const generateUUID = (): string => crypto.randomUUID();
+export const generateUUID = (): string => {
+  const now = Date.now().toString(36);
+  const rand = Math.random().toString(36).slice(2, 10);
+  return `${now}-${rand}`;
+};

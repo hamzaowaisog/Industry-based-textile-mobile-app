@@ -157,6 +157,7 @@ export * from './syncMonthlyCreditDebitDto';
 export * from './syncMonthlyProfitLossDto';
 export * from './syncOrderDto';
 export * from './syncOrderLineDto';
+export * from './syncPaymentAllocationDto';
 export * from './syncPaymentDto';
 export * from './syncProductDto';
 export * from './syncPurchaseDto';

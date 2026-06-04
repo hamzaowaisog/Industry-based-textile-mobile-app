@@ -154,7 +154,8 @@ public class PaymentService : IPaymentService
                     PaymentId = payment.Id,
                     OrderId = orderId,
                     PurchaseId = purchaseId,
-                    AllocatedAmount = amount
+                    AllocatedAmount = amount,
+                    CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
                 };
                 _db.PaymentAllocations.Add(allocEntity);
                 allocationEntities.Add(allocEntity);
@@ -585,7 +586,8 @@ public class PaymentService : IPaymentService
                 PaymentId = payment.Id,
                 OrderId = orderId,
                 PurchaseId = purchaseId,
-                AllocatedAmount = toAllocate
+                AllocatedAmount = toAllocate,
+                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
 
             // Stamp InvoiceId on auto-allocation

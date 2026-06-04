@@ -81,6 +81,8 @@ public class SyncPaymentDto
     public decimal Amount { get; set; }
     public DateOnly PaymentDate { get; set; }
     public string? Notes { get; set; }
+    public bool IsReversed { get; set; }
+    public int? OriginalPaymentId { get; set; }
     public DateOnly? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
@@ -113,6 +115,8 @@ public class SyncStockMovementDto
     public decimal? Qty { get; set; }
     public decimal? UnitCost { get; set; }
     public decimal? UnitPrice { get; set; }
+    public decimal? AverageCostAtMovement { get; set; }
+    public decimal? AveragePriceAtMovement { get; set; }
     public DateOnly MovementDate { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
@@ -155,6 +159,7 @@ public class SyncTransactionDto
     public int? UserId { get; set; }
     public int? OrderId { get; set; }
     public int? PurchaseId { get; set; }
+    public int? InvoiceId { get; set; }
     public int? TransTypeId { get; set; }
     public int? TransModeId { get; set; }
     public int? TransCategoryId { get; set; }
@@ -176,6 +181,7 @@ public class SyncInvoiceDto
     public int? OrderId { get; set; }
     public int? PurchaseId { get; set; }
     public int? ClientId { get; set; }
+    public int? CreatedByUserId { get; set; }
     public int InvoiceStatusId { get; set; }
     public DateOnly? IssueDate { get; set; }
     public DateOnly? DueDate { get; set; }
@@ -194,6 +200,23 @@ public class SyncInvoiceLineDto
     public DateTime? UpdatedAt { get; set; }
 }
 
+public class SyncPaymentAllocationDto
+{
+    public string? LocalId { get; set; }
+    public int? ServerId { get; set; }
+    public int Version { get; set; }
+    public bool ForceOverwrite { get; set; }
+    public int Id { get; set; }
+    public int PaymentId { get; set; }
+    public string? PaymentLocalId { get; set; }
+    public int? OrderId { get; set; }
+    public int? PurchaseId { get; set; }
+    public int? InvoiceId { get; set; }
+    public decimal AllocatedAmount { get; set; }
+    public DateOnly? CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+}
+
 // ─── Push request / response ─────────────────────────────────────────────────
 
 public class SyncPushDto
@@ -203,6 +226,7 @@ public class SyncPushDto
     public List<SyncOrderDto> Orders { get; set; } = [];
     public List<SyncPurchaseDto> Purchases { get; set; } = [];
     public List<SyncPaymentDto> Payments { get; set; } = [];
+    public List<SyncPaymentAllocationDto> PaymentAllocations { get; set; } = [];
     public List<SyncExpenseDto> Expenses { get; set; } = [];
     public List<SyncStockMovementDto> StockMovements { get; set; } = [];
     public List<SyncTransactionDto> Transactions { get; set; } = [];
@@ -237,6 +261,7 @@ public class SyncFullPullResponseDto
     public List<SyncOrderDto> Orders { get; set; } = [];
     public List<SyncPurchaseDto> Purchases { get; set; } = [];
     public List<SyncPaymentDto> Payments { get; set; } = [];
+    public List<SyncPaymentAllocationDto> PaymentAllocations { get; set; } = [];
     public List<SyncExpenseDto> Expenses { get; set; } = [];
     public List<SyncStockMovementDto> StockMovements { get; set; } = [];
     public List<SyncTransactionDto> Transactions { get; set; } = [];

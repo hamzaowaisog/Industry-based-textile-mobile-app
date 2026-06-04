@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import type { SyncExpenseDto } from '@api/models';
 import type { InsertExpense, LocalExpense } from '../../types/db.types';
 import { generateUUID } from '@utils/helpers/uuid';
+import { toISODate } from '@utils/helpers/dateConvert';
 
 import { db } from '../index';
 import { expenses } from '../schema';
@@ -16,10 +17,12 @@ export const insertManyExpenses = (records: SyncExpenseDto[]): void => {
     amount: r.amount ?? 0,
     transModeId: r.transModeId ?? 1,
     transCategoryId: r.transCategoryId ?? null,
-    expenseDate: r.expenseDate ?? new Date().toISOString().slice(0, 10),
+    expenseDate: toISODate(r.expenseDate) ?? new Date().toISOString().slice(0, 10),
     notes: r.notes ?? null,
     isSynced: true,
-    createdAt: r.createdAt ?? null,
+    createdAt: toISODate(r.createdAt) ?? null,
+    version: r.version ?? 0,
+    updatedAt: r.updatedAt ?? null,
   }));
   db.insert(expenses).values(values).run();
 };

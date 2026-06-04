@@ -152,6 +152,16 @@ const migrations: Migration[] = [
         trans_date TEXT,
         notes TEXT
       );
+      CREATE TABLE IF NOT EXISTS payment_allocations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      local_id TEXT NOT NULL,
+      server_id INTEGER,
+      payment_server_id INTEGER,
+      order_server_id INTEGER,
+      purchase_server_id INTEGER,
+      invoice_server_id INTEGER,
+      allocated_amount REAL NOT NULL
+    );
       CREATE TABLE IF NOT EXISTS lookups (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         type TEXT NOT NULL,
@@ -165,6 +175,115 @@ const migrations: Migration[] = [
     `,
   },
 ];
+
+migrations.push({
+  version: 2,
+  sql: `
+    ALTER TABLE payments ADD COLUMN is_reversed INTEGER DEFAULT 0;
+    ALTER TABLE payments ADD COLUMN original_payment_server_id INTEGER;
+  `,
+});
+
+migrations.push({
+  version: 3,
+  sql: `
+    ALTER TABLE invoices ADD COLUMN issue_date TEXT;
+    ALTER TABLE invoices ADD COLUMN due_date TEXT;
+  `,
+});
+
+migrations.push({
+  version: 4,
+  sql: `
+    ALTER TABLE clients ADD COLUMN version INTEGER DEFAULT 0;
+    ALTER TABLE clients ADD COLUMN updated_at TEXT;
+
+    ALTER TABLE products ADD COLUMN version INTEGER DEFAULT 0;
+    ALTER TABLE products ADD COLUMN updated_at TEXT;
+    ALTER TABLE products ADD COLUMN cost_change_count INTEGER DEFAULT 0;
+    ALTER TABLE products ADD COLUMN price_change_count INTEGER DEFAULT 0;
+    ALTER TABLE products ADD COLUMN total_quantity_sold REAL DEFAULT 0;
+    ALTER TABLE products ADD COLUMN total_quantity_purchased REAL DEFAULT 0;
+
+    ALTER TABLE orders ADD COLUMN version INTEGER DEFAULT 0;
+    ALTER TABLE orders ADD COLUMN updated_at TEXT;
+
+    ALTER TABLE order_lines ADD COLUMN version INTEGER DEFAULT 0;
+    ALTER TABLE order_lines ADD COLUMN updated_at TEXT;
+
+    ALTER TABLE purchases ADD COLUMN version INTEGER DEFAULT 0;
+    ALTER TABLE purchases ADD COLUMN updated_at TEXT;
+
+    ALTER TABLE purchase_lines ADD COLUMN version INTEGER DEFAULT 0;
+    ALTER TABLE purchase_lines ADD COLUMN updated_at TEXT;
+
+    ALTER TABLE payments ADD COLUMN version INTEGER DEFAULT 0;
+    ALTER TABLE payments ADD COLUMN updated_at TEXT;
+
+    ALTER TABLE payment_allocations ADD COLUMN is_synced INTEGER DEFAULT 0;
+    ALTER TABLE payment_allocations ADD COLUMN version INTEGER DEFAULT 0;
+    ALTER TABLE payment_allocations ADD COLUMN updated_at TEXT;
+
+    ALTER TABLE expenses ADD COLUMN version INTEGER DEFAULT 0;
+    ALTER TABLE expenses ADD COLUMN updated_at TEXT;
+
+    ALTER TABLE stock_movements ADD COLUMN version INTEGER DEFAULT 0;
+    ALTER TABLE stock_movements ADD COLUMN updated_at TEXT;
+    ALTER TABLE stock_movements ADD COLUMN average_cost_at_movement REAL;
+    ALTER TABLE stock_movements ADD COLUMN average_price_at_movement REAL;
+
+    ALTER TABLE invoices ADD COLUMN version INTEGER DEFAULT 0;
+    ALTER TABLE invoices ADD COLUMN updated_at TEXT;
+    ALTER TABLE invoices ADD COLUMN created_by_user_server_id INTEGER;
+
+    ALTER TABLE invoice_lines ADD COLUMN version INTEGER DEFAULT 0;
+    ALTER TABLE invoice_lines ADD COLUMN updated_at TEXT;
+
+    ALTER TABLE transactions ADD COLUMN version INTEGER DEFAULT 0;
+    ALTER TABLE transactions ADD COLUMN updated_at TEXT;
+    ALTER TABLE transactions ADD COLUMN local_id TEXT;
+    ALTER TABLE transactions ADD COLUMN invoice_id INTEGER;
+  `,
+});
+
+migrations.push({
+  version: 5,
+  sql: `
+    ALTER TABLE payment_allocations ADD COLUMN payment_local_id TEXT;
+  `,
+});
+
+migrations.push({
+  version: 6,
+  sql: `
+    ALTER TABLE payment_allocations ADD COLUMN created_at TEXT;
+  `,
+});
+
+// Remediation: devices that had v1 applied before payment_allocations was added
+// will have failed v4/v5/v6 silently. This creates the table with all columns
+// if it still doesn't exist, so those deferred ALTER TABLE statements can safely
+// be retried (the runner below tolerates duplicate-column errors per statement).
+migrations.push({
+  version: 7,
+  sql: `
+    CREATE TABLE IF NOT EXISTS payment_allocations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      local_id TEXT NOT NULL,
+      server_id INTEGER,
+      payment_server_id INTEGER,
+      payment_local_id TEXT,
+      order_server_id INTEGER,
+      purchase_server_id INTEGER,
+      invoice_server_id INTEGER,
+      allocated_amount REAL NOT NULL,
+      is_synced INTEGER DEFAULT 0,
+      version INTEGER DEFAULT 0,
+      updated_at TEXT,
+      created_at TEXT
+    );
+  `,
+});
 
 export const runMigrations = async (): Promise<void> => {
   await sqlite.execAsync(`
@@ -181,7 +300,19 @@ export const runMigrations = async (): Promise<void> => {
 
   for (const migration of migrations) {
     if (!appliedVersions.has(migration.version)) {
-      await sqlite.execAsync(migration.sql);
+      const statements = migration.sql
+        .split(';')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
+      for (const statement of statements) {
+        try {
+          await sqlite.execAsync(statement + ';');
+        } catch (e) {
+          console.warn(`Migration v${migration.version} statement skipped:`, e);
+        }
+      }
+
       await sqlite.runAsync('INSERT INTO _migrations (version, applied_at) VALUES (?, ?)', [
         migration.version,
         new Date().toISOString(),

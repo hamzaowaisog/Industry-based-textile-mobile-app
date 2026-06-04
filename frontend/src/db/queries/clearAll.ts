@@ -9,6 +9,7 @@ export const clearAllTables = async (): Promise<void> => {
     DELETE FROM purchases;
     DELETE FROM purchase_lines;
     DELETE FROM payments;
+    DELETE FROM payment_allocations;
     DELETE FROM expenses;
     DELETE FROM stock_movements;
     DELETE FROM invoices;

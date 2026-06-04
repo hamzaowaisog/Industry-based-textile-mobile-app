@@ -9,6 +9,7 @@ import type { SyncClientDto } from './syncClientDto';
 import type { SyncExpenseDto } from './syncExpenseDto';
 import type { SyncInvoiceDto } from './syncInvoiceDto';
 import type { SyncOrderDto } from './syncOrderDto';
+import type { SyncPaymentAllocationDto } from './syncPaymentAllocationDto';
 import type { SyncPaymentDto } from './syncPaymentDto';
 import type { SyncProductDto } from './syncProductDto';
 import type { SyncPurchaseDto } from './syncPurchaseDto';
@@ -26,6 +27,8 @@ export interface SyncPushDto {
   purchases?: SyncPurchaseDto[] | null;
   /** @nullable */
   payments?: SyncPaymentDto[] | null;
+  /** @nullable */
+  paymentAllocations?: SyncPaymentAllocationDto[] | null;
   /** @nullable */
   expenses?: SyncExpenseDto[] | null;
   /** @nullable */

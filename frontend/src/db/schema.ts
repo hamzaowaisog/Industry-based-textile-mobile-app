@@ -14,6 +14,8 @@ export const clients = sqliteTable('clients', {
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   isSynced: integer('is_synced', { mode: 'boolean' }).default(false),
   createdAt: text('created_at'),
+  version: integer('version').default(0),
+  updatedAt: text('updated_at'),
 });
 
 export const products = sqliteTable('products', {
@@ -28,9 +30,15 @@ export const products = sqliteTable('products', {
   quantity: real('quantity').default(0),
   averageCost: real('average_cost'),
   averagePrice: real('average_price'),
+  costChangeCount: integer('cost_change_count').default(0),
+  priceChangeCount: integer('price_change_count').default(0),
+  totalQuantitySold: real('total_quantity_sold').default(0),
+  totalQuantityPurchased: real('total_quantity_purchased').default(0),
   reorderLevel: real('reorder_level'),
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   isSynced: integer('is_synced', { mode: 'boolean' }).default(false),
+  version: integer('version').default(0),
+  updatedAt: text('updated_at'),
 });
 
 export const orders = sqliteTable('orders', {
@@ -45,6 +53,8 @@ export const orders = sqliteTable('orders', {
   totalAmount: real('total_amount').default(0),
   isSynced: integer('is_synced', { mode: 'boolean' }).default(false),
   createdAt: text('created_at'),
+  version: integer('version').default(0),
+  updatedAt: text('updated_at'),
 });
 
 export const orderLines = sqliteTable('order_lines', {
@@ -53,6 +63,8 @@ export const orderLines = sqliteTable('order_lines', {
   productServerId: integer('product_server_id'),
   qty: real('qty').notNull(),
   unitPrice: real('unit_price').notNull(),
+  version: integer('version').default(0),
+  updatedAt: text('updated_at'),
 });
 
 export const purchases = sqliteTable('purchases', {
@@ -67,6 +79,8 @@ export const purchases = sqliteTable('purchases', {
   totalAmount: real('total_amount').default(0),
   isSynced: integer('is_synced', { mode: 'boolean' }).default(false),
   createdAt: text('created_at'),
+  version: integer('version').default(0),
+  updatedAt: text('updated_at'),
 });
 
 export const purchaseLines = sqliteTable('purchase_lines', {
@@ -75,6 +89,8 @@ export const purchaseLines = sqliteTable('purchase_lines', {
   productServerId: integer('product_server_id'),
   qty: real('qty').notNull(),
   unitCost: real('unit_cost').notNull(),
+  version: integer('version').default(0),
+  updatedAt: text('updated_at'),
 });
 
 export const payments = sqliteTable('payments', {
@@ -87,8 +103,28 @@ export const payments = sqliteTable('payments', {
   amount: real('amount').notNull(),
   paymentDate: text('payment_date').notNull(),
   notes: text('notes'),
+  isReversed: integer('is_reversed', { mode: 'boolean' }).default(false),
+  originalPaymentServerId: integer('original_payment_server_id'),
   isSynced: integer('is_synced', { mode: 'boolean' }).default(false),
   createdAt: text('created_at'),
+  version: integer('version').default(0),
+  updatedAt: text('updated_at'),
+});
+
+export const paymentAllocations = sqliteTable('payment_allocations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  localId: text('local_id').notNull(),
+  serverId: integer('server_id'),
+  paymentServerId: integer('payment_server_id'),
+  paymentLocalId: text('payment_local_id'),
+  orderServerId: integer('order_server_id'),
+  purchaseServerId: integer('purchase_server_id'),
+  invoiceServerId: integer('invoice_server_id'),
+  allocatedAmount: real('allocated_amount').notNull(),
+  isSynced: integer('is_synced', { mode: 'boolean' }).default(false),
+  createdAt: text('created_at'),
+  version: integer('version').default(0),
+  updatedAt: text('updated_at'),
 });
 
 export const expenses = sqliteTable('expenses', {
@@ -103,6 +139,8 @@ export const expenses = sqliteTable('expenses', {
   notes: text('notes'),
   isSynced: integer('is_synced', { mode: 'boolean' }).default(false),
   createdAt: text('created_at'),
+  version: integer('version').default(0),
+  updatedAt: text('updated_at'),
 });
 
 export const stockMovements = sqliteTable('stock_movements', {
@@ -115,8 +153,12 @@ export const stockMovements = sqliteTable('stock_movements', {
   qty: real('qty').notNull(),
   unitCost: real('unit_cost'),
   unitPrice: real('unit_price'),
+  averageCostAtMovement: real('average_cost_at_movement'),
+  averagePriceAtMovement: real('average_price_at_movement'),
   movementDate: text('movement_date').notNull(),
   isSynced: integer('is_synced', { mode: 'boolean' }).default(false),
+  version: integer('version').default(0),
+  updatedAt: text('updated_at'),
 });
 
 export const invoices = sqliteTable('invoices', {
@@ -127,11 +169,16 @@ export const invoices = sqliteTable('invoices', {
   orderServerId: integer('order_server_id'),
   purchaseServerId: integer('purchase_server_id'),
   clientServerId: integer('client_server_id'),
+  createdByUserServerId: integer('created_by_user_server_id'),
   statusId: integer('status_id').notNull().default(1),
+  issueDate: text('issue_date'),
+  dueDate: text('due_date'),
   totalAmount: real('total_amount').notNull().default(0),
   notes: text('notes'),
   isSynced: integer('is_synced', { mode: 'boolean' }).default(false),
   createdAt: text('created_at'),
+  version: integer('version').default(0),
+  updatedAt: text('updated_at'),
 });
 
 export const invoiceLines = sqliteTable('invoice_lines', {
@@ -141,14 +188,18 @@ export const invoiceLines = sqliteTable('invoice_lines', {
   qty: real('qty').notNull(),
   unitPrice: real('unit_price').notNull(),
   lineTotal: real('line_total').notNull(),
+  version: integer('version').default(0),
+  updatedAt: text('updated_at'),
 });
 
 export const transactions = sqliteTable('transactions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  localId: text('local_id'),
   serverId: integer('server_id').notNull(),
   clientId: integer('client_id'),
   orderId: integer('order_id'),
   purchaseId: integer('purchase_id'),
+  invoiceId: integer('invoice_id'),
   userId: integer('user_id'),
   transTypeId: integer('trans_type_id'),
   transModeId: integer('trans_mode_id'),
@@ -156,6 +207,8 @@ export const transactions = sqliteTable('transactions', {
   amount: real('amount'),
   transDate: text('trans_date'),
   notes: text('notes'),
+  version: integer('version').default(0),
+  updatedAt: text('updated_at'),
 });
 
 export const lookups = sqliteTable('lookups', {

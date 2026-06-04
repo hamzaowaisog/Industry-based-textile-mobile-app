@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import type { SyncPurchaseDto } from '@api/models';
 
 import { generateUUID } from '@utils/helpers/uuid';
+import { toISODate } from '@utils/helpers/dateConvert';
 
 import type {
   InsertPurchase,
@@ -23,11 +24,13 @@ export const insertManyPurchases = (records: SyncPurchaseDto[]): void => {
       supplierServerId: r.supplierId ?? null,
       statusId: r.statusId ?? 1,
       paymentTypeId: r.paymentTypeId ?? 1,
-      purchaseDate: r.purchaseDate ?? new Date().toISOString().slice(0, 10),
+      purchaseDate: toISODate(r.purchaseDate) ?? new Date().toISOString().slice(0, 10),
       notes: r.notes ?? null,
       totalAmount: 0,
       isSynced: true,
-      createdAt: r.createdAt ?? null,
+      createdAt: toISODate(r.createdAt) ?? null,
+      version: r.version ?? 0,
+      updatedAt: r.updatedAt ?? null,
     };
     const result = db.insert(purchases).values(values).run();
     const insertedId = result.lastInsertRowId as number;

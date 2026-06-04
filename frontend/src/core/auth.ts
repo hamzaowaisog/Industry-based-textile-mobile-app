@@ -45,33 +45,38 @@ export const loginAsync = async ({
     // Backend returns 'token' not 'accessToken', and includes 'email'
     const { token, refreshToken, userId, roleId, userName, email } = res.data;
 
-    if (rememberMe) {
-      try {
-        // Ensure all values are non-empty strings before storing
-        const accessTokenStr = String(token || '');
-        const refreshTokenStr = String(refreshToken || '');
-        const userIdStr = String(userId || '');
-        const roleIdStr = String(roleId || '');
-        const userNameStr = String(userName || '');
-        const emailStr = String(email || '');
+    try {
+      const accessTokenStr = String(token || '');
+      const refreshTokenStr = String(refreshToken || '');
+      const userIdStr = String(userId || '');
+      const roleIdStr = String(roleId || '');
+      const userNameStr = String(userName || '');
+      const emailStr = String(email || '');
 
-        // Validate all values are non-empty strings
-        if (!accessTokenStr || !refreshTokenStr || !userIdStr || !roleIdStr || !userNameStr) {
-          throw new Error('Missing required auth data');
-        }
+      if (!accessTokenStr || !refreshTokenStr || !userIdStr || !roleIdStr || !userNameStr) {
+        throw new Error('Missing required auth data');
+      }
 
-        await Promise.all([
-          SecureStore.setItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN, accessTokenStr),
-          SecureStore.setItemAsync(AppConstants.SECURE_STORE.REFRESH_TOKEN, refreshTokenStr),
+      // Always save tokens so the axios interceptor can auth requests this session
+      const secureStoreWrites: Promise<void>[] = [
+        SecureStore.setItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN, accessTokenStr),
+        SecureStore.setItemAsync(AppConstants.SECURE_STORE.REFRESH_TOKEN, refreshTokenStr),
+      ];
+
+      // Remember Me: also persist identity for app restart / biometric
+      if (rememberMe) {
+        secureStoreWrites.push(
           SecureStore.setItemAsync(AppConstants.SECURE_STORE.USER_ID, userIdStr),
           SecureStore.setItemAsync(AppConstants.SECURE_STORE.ROLE_ID, roleIdStr),
           SecureStore.setItemAsync(AppConstants.SECURE_STORE.USER_NAME, userNameStr),
           SecureStore.setItemAsync(AppConstants.SECURE_STORE.EMAIL, emailStr),
-        ]);
-      } catch (secureStoreError) {
-        console.error('SecureStore error:', secureStoreError);
-        return { success: false, error: i18n.t('auth.loginFailed') };
+        );
       }
+
+      await Promise.all(secureStoreWrites);
+    } catch (secureStoreError) {
+      console.error('SecureStore error:', secureStoreError);
+      return { success: false, error: i18n.t('auth.loginFailed') };
     }
 
     useAuthStore.getState().setAuth({ userId, roleId, userName });
@@ -222,6 +227,9 @@ export const biometricLoginAsync = async (): Promise<{ success: boolean; error?:
       SecureStore.setItemAsync(AppConstants.SECURE_STORE.EMAIL, String(email || '')),
     ]);
     useAuthStore.getState().setAuth({ userId, roleId, userName });
+
+    await fullPull();
+
     return { success: true };
   } catch (err: any) {
     const msg = err?.response?.data?.message ?? i18n.t('biometric.loginFailed');

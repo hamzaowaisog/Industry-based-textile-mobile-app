@@ -23,6 +23,8 @@ export interface SyncTransactionDto {
   /** @nullable */
   purchaseId?: number | null;
   /** @nullable */
+  invoiceId?: number | null;
+  /** @nullable */
   transTypeId?: number | null;
   /** @nullable */
   transModeId?: number | null;

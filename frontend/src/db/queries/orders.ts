@@ -9,6 +9,7 @@ import type {
   LocalOrderWithLines,
 } from '../../types/db.types';
 import { generateUUID } from '@utils/helpers/uuid';
+import { toISODate } from '@utils/helpers/dateConvert';
 
 import { db } from '../index';
 import { orderLines, orders } from '../schema';
@@ -22,11 +23,13 @@ export const insertManyOrders = (records: SyncOrderDto[]): void => {
       clientServerId: r.clientId ?? null,
       statusId: r.statusId ?? 1,
       paymentTypeId: r.paymentTypeId ?? 1,
-      orderDate: r.orderDate ?? new Date().toISOString().slice(0, 10),
+      orderDate: toISODate(r.orderDate) ?? new Date().toISOString().slice(0, 10),
       notes: r.notes ?? null,
       totalAmount: 0,
       isSynced: true,
-      createdAt: r.createdAt ?? null,
+      createdAt: toISODate(r.createdAt) ?? null,
+      version: r.version ?? 0,
+      updatedAt: r.updatedAt ?? null,
     };
     const result = db.insert(orders).values(values).run();
     const insertedId = result.lastInsertRowId as number;

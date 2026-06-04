@@ -9,6 +9,7 @@ import type {
   LocalInvoiceWithLines,
 } from '../../types/db.types';
 import { generateUUID } from '@utils/helpers/uuid';
+import { toISODate } from '@utils/helpers/dateConvert';
 
 import { db } from '../index';
 import { invoiceLines, invoices } from '../schema';
@@ -23,11 +24,16 @@ export const insertManyInvoices = (records: SyncInvoiceDto[]): void => {
       orderServerId: r.orderId ?? null,
       purchaseServerId: r.purchaseId ?? null,
       clientServerId: r.clientId ?? null,
+      createdByUserServerId: (r as any).createdByUserId ?? null,
       statusId: r.invoiceStatusId ?? 1,
+      issueDate: toISODate(r.issueDate) ?? null,
+      dueDate: toISODate(r.dueDate) ?? null,
       totalAmount: r.totalAmount ?? 0,
       notes: r.notes ?? null,
       isSynced: true,
-      createdAt: r.createdAt ?? null,
+      createdAt: toISODate(r.createdAt) ?? null,
+      version: r.version ?? 0,
+      updatedAt: r.updatedAt ?? null,
     };
     const result = db.insert(invoices).values(values).run();
     const insertedId = result.lastInsertRowId as number;

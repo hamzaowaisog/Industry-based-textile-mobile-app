@@ -9268,6 +9268,13 @@
             },
             "nullable": true
           },
+          "paymentAllocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyncPaymentAllocationDto"
+            },
+            "nullable": true
+          },
           "expenses": {
             "type": "array",
             "items": {
@@ -9484,6 +9491,12 @@
             "example": 1
           },
           "clientId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "example": 1
+          },
+          "createdByUserId": {
             "type": "integer",
             "format": "int32",
             "nullable": true,
@@ -9791,6 +9804,80 @@
         },
         "additionalProperties": false
       },
+      "SyncPaymentAllocationDto": {
+        "type": "object",
+        "properties": {
+          "localId": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "serverId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "example": 1
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "forceOverwrite": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "paymentId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "paymentLocalId": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "orderId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "example": 1
+          },
+          "purchaseId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "example": 1
+          },
+          "invoiceId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "example": 1
+          },
+          "allocatedAmount": {
+            "type": "number",
+            "format": "double",
+            "example": 150000
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "string"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "SyncPaymentDto": {
         "type": "object",
         "properties": {
@@ -9844,6 +9931,15 @@
             "type": "string",
             "nullable": true,
             "example": "Optional notes here"
+          },
+          "isReversed": {
+            "type": "boolean"
+          },
+          "originalPaymentId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "example": 1
           },
           "createdAt": {
             "type": "string",
@@ -10111,6 +10207,13 @@
             },
             "nullable": true
           },
+          "paymentAllocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyncPaymentAllocationDto"
+            },
+            "nullable": true
+          },
           "expenses": {
             "type": "array",
             "items": {
@@ -10249,6 +10352,16 @@
             "nullable": true,
             "example": 150000
           },
+          "averageCostAtMovement": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "averagePriceAtMovement": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
           "movementDate": {
             "type": "string",
             "format": "date",
@@ -10308,6 +10421,12 @@
             "example": 1
           },
           "purchaseId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "example": 1
+          },
+          "invoiceId": {
             "type": "integer",
             "format": "int32",
             "nullable": true,

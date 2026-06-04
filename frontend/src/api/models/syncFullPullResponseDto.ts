@@ -13,6 +13,7 @@ import type { SyncLookupDto } from './syncLookupDto';
 import type { SyncMonthlyCreditDebitDto } from './syncMonthlyCreditDebitDto';
 import type { SyncMonthlyProfitLossDto } from './syncMonthlyProfitLossDto';
 import type { SyncOrderDto } from './syncOrderDto';
+import type { SyncPaymentAllocationDto } from './syncPaymentAllocationDto';
 import type { SyncPaymentDto } from './syncPaymentDto';
 import type { SyncProductDto } from './syncProductDto';
 import type { SyncPurchaseDto } from './syncPurchaseDto';
@@ -30,6 +31,8 @@ export interface SyncFullPullResponseDto {
   purchases?: SyncPurchaseDto[] | null;
   /** @nullable */
   payments?: SyncPaymentDto[] | null;
+  /** @nullable */
+  paymentAllocations?: SyncPaymentAllocationDto[] | null;
   /** @nullable */
   expenses?: SyncExpenseDto[] | null;
   /** @nullable */

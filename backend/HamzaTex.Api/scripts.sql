@@ -1274,6 +1274,16 @@ CREATE TABLE `EmailVerificationOtps` (
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260531153733_AddEmailVerificationOtp', '9.0.10');
 
+ALTER TABLE `payment_allocations` ADD `LocalId` longtext CHARACTER SET utf8mb4 NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260603232243_AddLocalIdToPaymentAllocation', '9.0.10');
+
+ALTER TABLE `payment_allocations` ADD `CreatedAt` date NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260604081401_AddCreatedAtToPaymentAllocation', '9.0.10');
+
 COMMIT;
 
 

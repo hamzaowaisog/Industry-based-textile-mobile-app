@@ -179,12 +179,22 @@
   "dashboard": {
     "title": "Dashboard",
     "summary": "Summary",
-    "totalSales": "Total Sales",
-    "totalPurchases": "Total Purchases",
-    "totalExpenses": "Total Expenses",
+    "totalSales": "This Month Sales",
+    "lastMonthSales": "Last Month Sales",
+    "totalPurchases": "This Month Purchases",
+    "totalExpenses": "This Month Expenses",
     "netProfit": "Net Profit",
-    "recentOrders": "Recent Orders",
-    "lowStock": "Low Stock Alerts"
+    "totalOutstanding": "Total Outstanding",
+    "operations": "Operations",
+    "todayOrders": "{{count}} orders today ({{total}})",
+    "pendingOrders": "{{count}} pending orders",
+    "unallocatedPayments": "{{count}} unallocated payments",
+    "alerts": "Alerts",
+    "lowStock": "Low Stock Alerts",
+    "lowStockCount": "{{count}} products below reorder level",
+    "overdueInvoices": "{{count}} overdue invoices",
+    "monthlyOverview": "Monthly Overview",
+    "recentOrders": "Recent Orders"
   },
   "clients": {
     "title": "Clients",

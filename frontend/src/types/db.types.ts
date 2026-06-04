@@ -6,6 +6,7 @@ import type {
   lookups,
   orderLines,
   orders,
+  paymentAllocations,
   payments,
   products,
   purchaseLines,
@@ -25,6 +26,7 @@ export type SyncEntity =
   | 'purchase'
   | 'purchaseLine'
   | 'payment'
+  | 'paymentAllocation'
   | 'expense'
   | 'stockMovement'
   | 'invoice'
@@ -58,6 +60,9 @@ export type InsertPurchaseLine = typeof purchaseLines.$inferInsert;
 
 export type LocalPayment = typeof payments.$inferSelect;
 export type InsertPayment = typeof payments.$inferInsert;
+
+export type LocalPaymentAllocation = typeof paymentAllocations.$inferSelect;
+export type InsertPaymentAllocation = typeof paymentAllocations.$inferInsert;
 
 export type LocalExpense = typeof expenses.$inferSelect;
 export type InsertExpense = typeof expenses.$inferInsert;

@@ -25,6 +25,10 @@ export interface SyncStockMovementDto {
   unitCost?: number | null;
   /** @nullable */
   unitPrice?: number | null;
+  /** @nullable */
+  averageCostAtMovement?: number | null;
+  /** @nullable */
+  averagePriceAtMovement?: number | null;
   movementDate?: string;
   /** @nullable */
   updatedAt?: string | null;

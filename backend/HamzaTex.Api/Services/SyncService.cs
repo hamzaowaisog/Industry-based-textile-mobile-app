@@ -93,6 +93,9 @@ public class SyncService : ISyncService
             foreach (var item in model.Payments)
                 results.Add(await ProcessPaymentPush(item, userId, isAdmin));
 
+            foreach (var item in model.PaymentAllocations)
+                results.Add(await ProcessPaymentAllocationPush(item, userId, isAdmin));
+
             foreach (var item in model.Expenses)
                 results.Add(await ProcessExpensePush(item, userId, isAdmin));
 
@@ -382,6 +385,83 @@ public class SyncService : ISyncService
         if (updateResult.Success)
             return Updated(item.LocalId, item.ServerId.Value);
         return Rejected(item.LocalId, updateResult.Message);
+    }
+
+    // ─── PaymentAllocation Push ────────────────────────────────────────────────
+
+    private async Task<SyncItemResultDto> ProcessPaymentAllocationPush(SyncPaymentAllocationDto item, int userId, bool isAdmin)
+    {
+        if (item.ServerId is null)
+        {
+            var existing = await _db.PaymentAllocations
+                .Where(pa => pa.LocalId != null && pa.LocalId == item.LocalId)
+                .FirstOrDefaultAsync();
+            if (existing != null)
+                return Accepted(item.LocalId, existing.Id);
+
+            // Resolve payment: prefer server ID, fall back to localId for offline payments
+            var resolvedPaymentId = item.PaymentId;
+            if (resolvedPaymentId <= 0 && !string.IsNullOrEmpty(item.PaymentLocalId))
+            {
+                var payment = await _db.Payments
+                    .Where(p => p.LocalId == item.PaymentLocalId)
+                    .Select(p => (int?)p.Id)
+                    .FirstOrDefaultAsync();
+                if (payment is null)
+                    return Rejected(item.LocalId, "Referenced payment not found by LocalId.");
+                resolvedPaymentId = payment.Value;
+            }
+
+            if (resolvedPaymentId <= 0)
+                return Rejected(item.LocalId, "PaymentId is required.");
+
+            var allocation = new PaymentAllocation
+            {
+                LocalId = item.LocalId,
+                PaymentId = resolvedPaymentId,
+                OrderId = item.OrderId,
+                PurchaseId = item.PurchaseId,
+                InvoiceId = item.InvoiceId,
+                AllocatedAmount = item.AllocatedAmount,
+                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow),
+            };
+            _db.PaymentAllocations.Add(allocation);
+            await _db.SaveChangesAsync();
+            return Created(item.LocalId, allocation.Id);
+        }
+
+        var server = await _db.PaymentAllocations.FindAsync(item.ServerId.Value);
+        if (server is null)
+            return Rejected(item.LocalId, "Record deleted on server.");
+
+        if (!item.ForceOverwrite && server.Version != item.Version)
+            return Conflict(item.LocalId, server.Version, server);
+
+        // Resolve payment for update as well
+        var updatedPaymentId = item.PaymentId;
+        if (updatedPaymentId <= 0 && !string.IsNullOrEmpty(item.PaymentLocalId))
+        {
+            var payment = await _db.Payments
+                .Where(p => p.LocalId == item.PaymentLocalId)
+                .Select(p => (int?)p.Id)
+                .FirstOrDefaultAsync();
+            if (payment is null)
+                return Rejected(item.LocalId, "Referenced payment not found by LocalId.");
+            updatedPaymentId = payment.Value;
+        }
+
+        if (updatedPaymentId <= 0)
+            return Rejected(item.LocalId, "PaymentId is required.");
+
+        server.PaymentId = updatedPaymentId;
+        server.OrderId = item.OrderId;
+        server.PurchaseId = item.PurchaseId;
+        server.InvoiceId = item.InvoiceId;
+        server.AllocatedAmount = item.AllocatedAmount;
+        server.Version++;
+        server.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        return Updated(item.LocalId, item.ServerId.Value);
     }
 
     // ─── Expense Push ─────────────────────────────────────────────────────────
@@ -715,10 +795,17 @@ public class SyncService : ISyncService
             ? await _db.Invoices.AsNoTracking().Include(i => i.InvoiceLines).ToListAsync()
             : await _db.Invoices.AsNoTracking().Include(i => i.InvoiceLines).Where(i => i.CreatedByUserId == userId).ToListAsync();
 
+        var paymentAllocations = isAdmin
+            ? await _db.PaymentAllocations.AsNoTracking().ToListAsync()
+            : await _db.PaymentAllocations.AsNoTracking()
+                .Include(pa => pa.Payment)
+                .Where(pa => pa.Payment != null && pa.Payment.UserId == userId)
+                .ToListAsync();
+
         var lookups = await LoadLookupsAsync();
         var views = await LoadViewsAsync();
 
-        var response = MapToPullResponse(clients, products, orders, purchases, payments, expenses, stockMovements, transactions, invoices, lookups, views);
+        var response = MapToPullResponse(clients, products, orders, purchases, payments, paymentAllocations, expenses, stockMovements, transactions, invoices, lookups, views);
         return Response<SyncFullPullResponseDto>.SuccessResponse(response, "Full pull completed.");
     }
 
@@ -770,10 +857,18 @@ public class SyncService : ISyncService
             ? await _db.Invoices.AsNoTracking().Include(i => i.InvoiceLines).Where(i => i.UpdatedAt >= since).ToListAsync()
             : await _db.Invoices.AsNoTracking().Include(i => i.InvoiceLines).Where(i => i.CreatedByUserId == userId && i.UpdatedAt >= since).ToListAsync();
 
+        var paymentAllocations = isAdmin
+            ? await _db.PaymentAllocations.AsNoTracking()
+                .Where(pa => pa.UpdatedAt >= since).ToListAsync()
+            : await _db.PaymentAllocations.AsNoTracking()
+                .Include(pa => pa.Payment)
+                .Where(pa => pa.UpdatedAt >= since && pa.Payment != null && pa.Payment.UserId == userId)
+                .ToListAsync();
+
         var lookups = await LoadLookupsAsync();
         var views = await LoadViewsAsync();
 
-        var response = MapToPullResponse(clients, products, orders, purchases, payments, expenses, stockMovements, transactions, invoices, lookups, views);
+        var response = MapToPullResponse(clients, products, orders, purchases, payments, paymentAllocations, expenses, stockMovements, transactions, invoices, lookups, views);
         return Response<SyncFullPullResponseDto>.SuccessResponse(response, "Delta pull completed.");
     }
 
@@ -863,6 +958,7 @@ public class SyncService : ISyncService
         List<Order> orders,
         List<Purchase> purchases,
         List<Payment> payments,
+        List<PaymentAllocation> paymentAllocations,
         List<Expense> expenses,
         List<StockMovement> stockMovements,
         List<Transaction> transactions,
@@ -875,6 +971,8 @@ public class SyncService : ISyncService
             Clients = clients.Select(c => new SyncClientDto
             {
                 LocalId = c.LocalId,
+                ServerId = c.Id,
+                Version = c.Version,
                 Name = c.Name,
                 ClientTypeId = c.ClientTypeId,
                 UserId = c.UserId,
@@ -891,7 +989,9 @@ public class SyncService : ISyncService
             Products = products.Select(p => new SyncProductDto
             {
                 LocalId = p.LocalId,
+                ServerId = p.Id,
                 Id = p.Id,
+                Version = p.Version,
                 Name = p.Name,
                 Sku = p.Sku,
                 Unit = p.Unit,
@@ -913,6 +1013,8 @@ public class SyncService : ISyncService
             Orders = orders.Select(o => new SyncOrderDto
             {
                 LocalId = o.LocalId,
+                ServerId = o.Id,
+                Version = o.Version,
                 ClientId = o.ClientId,
                 StatusId = o.StatusId,
                 PaymentTypeId = o.PaymentTypeId,
@@ -932,6 +1034,8 @@ public class SyncService : ISyncService
             Purchases = purchases.Select(p => new SyncPurchaseDto
             {
                 LocalId = p.LocalId,
+                ServerId = p.Id,
+                Version = p.Version,
                 SupplierId = p.SupplierId,
                 StatusId = p.StatusId,
                 PaymentTypeId = p.PaymentTypeId,
@@ -951,19 +1055,40 @@ public class SyncService : ISyncService
             Payments = payments.Select(p => new SyncPaymentDto
             {
                 LocalId = p.LocalId,
+                ServerId = p.Id,
+                Version = p.Version,
                 PartyClientId = p.PartyClientId,
                 PaymentDirectionId = p.PaymentDirectionId,
                 TransModeId = p.TransModeId,
                 Amount = p.Amount,
                 PaymentDate = p.PaymentDate,
                 Notes = p.Notes,
+                IsReversed = p.IsReversed,
+                OriginalPaymentId = p.OriginalPaymentId,
                 CreatedAt = p.CreatedAt,
                 UpdatedAt = p.UpdatedAt
+            }).ToList(),
+
+            PaymentAllocations = paymentAllocations.Select(pa => new SyncPaymentAllocationDto
+            {
+                LocalId = pa.LocalId,
+                ServerId = pa.Id,
+                Id = pa.Id,
+                Version = pa.Version,
+                PaymentId = pa.PaymentId,
+                OrderId = pa.OrderId,
+                PurchaseId = pa.PurchaseId,
+                InvoiceId = pa.InvoiceId,
+                AllocatedAmount = pa.AllocatedAmount,
+                CreatedAt = pa.CreatedAt,
+                UpdatedAt = pa.UpdatedAt
             }).ToList(),
 
             Expenses = expenses.Select(e => new SyncExpenseDto
             {
                 LocalId = e.LocalId,
+                ServerId = e.Id,
+                Version = e.Version,
                 ExpenseTypeId = e.ExpenseTypeId,
                 Amount = e.Amount,
                 TransModeId = e.TransModeId,
@@ -977,12 +1102,16 @@ public class SyncService : ISyncService
             StockMovements = stockMovements.Select(sm => new SyncStockMovementDto
             {
                 LocalId = sm.LocalId,
+                ServerId = sm.Id,
+                Version = sm.Version,
                 ProductId = sm.ProductId,
                 MovementTypeId = sm.MovementTypeId,
                 MovementSourceId = sm.MovementSourceId,
                 Qty = sm.Qty,
                 UnitCost = sm.UnitCost,
                 UnitPrice = sm.UnitPrice,
+                AverageCostAtMovement = sm.AverageCostAtMovement,
+                AveragePriceAtMovement = sm.AveragePriceAtMovement,
                 MovementDate = sm.MovementDate,
                 UpdatedAt = sm.UpdatedAt
             }).ToList(),
@@ -990,11 +1119,14 @@ public class SyncService : ISyncService
             Transactions = transactions.Select(t => new SyncTransactionDto
             {
                 LocalId = t.LocalId,
+                ServerId = t.Id,
                 Id = t.Id,
+                Version = t.Version,
                 ClientId = t.ClientId,
                 UserId = t.UserId,
                 OrderId = t.OrderId,
                 PurchaseId = t.PurchaseId,
+                InvoiceId = t.InvoiceId,
                 TransTypeId = t.TransTypeId,
                 TransModeId = t.TransModeId,
                 TransCategoryId = t.TransCategoryId,
@@ -1008,11 +1140,14 @@ public class SyncService : ISyncService
             Invoices = invoices.Select(i => new SyncInvoiceDto
             {
                 LocalId = i.LocalId,
+                ServerId = i.Id,
                 Id = i.Id,
+                Version = i.Version,
                 InvoiceNumber = i.InvoiceNumber,
                 OrderId = i.OrderId,
                 PurchaseId = i.PurchaseId,
                 ClientId = i.ClientId,
+                CreatedByUserId = i.CreatedByUserId,
                 InvoiceStatusId = i.InvoiceStatusId,
                 IssueDate = i.IssueDate,
                 DueDate = i.DueDate,

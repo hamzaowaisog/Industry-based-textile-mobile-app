@@ -7,6 +7,7 @@ import { insertManyExpenses } from '@db/queries/expenses';
 import { insertManyInvoices } from '@db/queries/invoices';
 import { insertManyLookups } from '@db/queries/lookups';
 import { insertManyOrders } from '@db/queries/orders';
+import { insertManyPaymentAllocations } from '@db/queries/paymentAllocations';
 import { insertManyPayments } from '@db/queries/payments';
 import { insertManyProducts } from '@db/queries/products';
 import { insertManyPurchases } from '@db/queries/purchases';
@@ -44,6 +45,8 @@ export const fullPull = async (): Promise<{ success: boolean; error?: string }> 
     insertManyOrders(data.orders ?? []);
     insertManyPurchases(data.purchases ?? []);
     insertManyPayments(data.payments ?? []);
+    insertManyPaymentAllocations((data as any).paymentAllocations ?? []);
+
     insertManyExpenses(data.expenses ?? []);
     insertManyStockMovements(data.stockMovements ?? []);
     insertManyInvoices(data.invoices ?? []);
@@ -83,17 +86,18 @@ export const push = async (): Promise<{ success: boolean; error?: string }> => {
   const groupBy = (changes: PendingChange[], entity: string) =>
     changes.filter((c) => c.entity === entity).map((c) => c.data);
 
-  const pushDto: SyncPushDto = {
+  const pushDto = {
     clients: groupBy(pendingChanges, 'client') as any,
     products: groupBy(pendingChanges, 'product') as any,
     orders: groupBy(pendingChanges, 'order') as any,
     purchases: groupBy(pendingChanges, 'purchase') as any,
     payments: groupBy(pendingChanges, 'payment') as any,
+    paymentAllocations: groupBy(pendingChanges, 'paymentAllocation') as any,
     expenses: groupBy(pendingChanges, 'expense') as any,
     stockMovements: groupBy(pendingChanges, 'stockMovement') as any,
     invoices: groupBy(pendingChanges, 'invoice') as any,
     transactions: groupBy(pendingChanges, 'transaction') as any,
-  };
+  } as SyncPushDto;
 
   try {
     const response = await syncPush(pushDto);

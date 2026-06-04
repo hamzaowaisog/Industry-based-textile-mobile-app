@@ -6,26 +6,24 @@
  * OpenAPI spec version: v1
  */
 
-export interface SyncPaymentDto {
+export interface SyncPaymentAllocationDto {
   /** @nullable */
   localId?: string | null;
   /** @nullable */
   serverId?: number | null;
   version?: number;
   forceOverwrite?: boolean;
+  id?: number;
+  paymentId?: number;
   /** @nullable */
-  partyClientId?: number | null;
+  paymentLocalId?: string | null;
   /** @nullable */
-  paymentDirectionId?: number | null;
+  orderId?: number | null;
   /** @nullable */
-  transModeId?: number | null;
-  amount?: number;
-  paymentDate?: string;
+  purchaseId?: number | null;
   /** @nullable */
-  notes?: string | null;
-  isReversed?: boolean;
-  /** @nullable */
-  originalPaymentId?: number | null;
+  invoiceId?: number | null;
+  allocatedAmount?: number;
   /** @nullable */
   createdAt?: string | null;
   /** @nullable */

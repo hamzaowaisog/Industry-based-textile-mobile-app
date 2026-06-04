@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import type { SyncPaymentDto } from '@api/models';
 import type { InsertPayment, LocalPayment } from '../../types/db.types';
 import { generateUUID } from '@utils/helpers/uuid';
+import { toISODate } from '@utils/helpers/dateConvert';
 
 import { db } from '../index';
 import { payments } from '../schema';
@@ -16,10 +17,14 @@ export const insertManyPayments = (records: SyncPaymentDto[]): void => {
     paymentDirectionId: r.paymentDirectionId ?? 1,
     transModeId: r.transModeId ?? 1,
     amount: r.amount ?? 0,
-    paymentDate: r.paymentDate ?? new Date().toISOString().slice(0, 10),
+    paymentDate: toISODate(r.paymentDate) ?? new Date().toISOString().slice(0, 10),
     notes: r.notes ?? null,
+    isReversed: (r as any).isReversed ?? false,
+    originalPaymentServerId: (r as any).originalPaymentId ?? null,
     isSynced: true,
-    createdAt: r.createdAt ?? null,
+    createdAt: toISODate(r.createdAt) ?? null,
+    version: r.version ?? 0,
+    updatedAt: r.updatedAt ?? null,
   }));
   db.insert(payments).values(values).run();
 };

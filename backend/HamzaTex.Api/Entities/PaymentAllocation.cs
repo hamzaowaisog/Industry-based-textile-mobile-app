@@ -16,11 +16,15 @@ public partial class PaymentAllocation
 
     public int PaymentId { get; set; }
 
+    public string? LocalId { get; set; }
+
     public int? OrderId { get; set; }
 
     public int? PurchaseId { get; set; }
 
     public decimal AllocatedAmount { get; set; }
+
+    public DateOnly? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 

@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import type { SyncClientDto } from '@api/models';
 import type { InsertClient, LocalClient } from '../../types/db.types';
 import { generateUUID } from '@utils/helpers/uuid';
+import { toISODate } from '@utils/helpers/dateConvert';
 
 import { db } from '../index';
 import { clients } from '../schema';
@@ -21,7 +22,9 @@ export const insertManyClients = (records: SyncClientDto[]): void => {
     notes: r.notes ?? null,
     isActive: r.isActive ?? true,
     isSynced: true,
-    createdAt: r.createdAt ?? null,
+    createdAt: toISODate(r.createdAt) ?? null,
+    version: r.version ?? 0,
+    updatedAt: r.updatedAt ?? null,
   }));
   db.insert(clients).values(values).run();
 };

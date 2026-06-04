@@ -22,10 +22,10 @@ client.interceptors.response.use(
     const original: AxiosRequestConfig & { _retry?: boolean } = error.config;
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true;
+      const refreshToken = await SecureStore.getItemAsync('refreshToken');
+      if (!refreshToken) return Promise.reject(error);
       try {
-        const refreshToken = await SecureStore.getItemAsync('refreshToken');
-        const { data } = await axios.post(`${API_URL}/Auth/refresh`, { refreshToken });
-        // Backend returns 'token' not 'accessToken'
+        const { data } = await axios.post(`${API_URL}/api/Auth/refresh`, { refreshToken });
         await SecureStore.setItemAsync('accessToken', data.data.token);
         await SecureStore.setItemAsync('refreshToken', data.data.refreshToken);
         client.defaults.headers.common.Authorization = `Bearer ${data.data.token}`;

@@ -23,6 +23,8 @@ export interface SyncInvoiceDto {
   purchaseId?: number | null;
   /** @nullable */
   clientId?: number | null;
+  /** @nullable */
+  createdByUserId?: number | null;
   invoiceStatusId?: number;
   /** @nullable */
   issueDate?: string | null;

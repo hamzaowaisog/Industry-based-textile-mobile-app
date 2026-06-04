@@ -20,9 +20,15 @@ export const insertManyProducts = (records: SyncProductDto[]): void => {
     quantity: r.quantity ?? 0,
     averageCost: r.averageCost ?? null,
     averagePrice: r.averagePrice ?? null,
+    costChangeCount: r.costChangeCount ?? 0,
+    priceChangeCount: r.priceChangeCount ?? 0,
+    totalQuantitySold: r.totalQuantitySold ?? 0,
+    totalQuantityPurchased: r.totalQuantityPurchased ?? 0,
     reorderLevel: r.reorderLevel ?? null,
     isActive: r.isActive ?? true,
     isSynced: true,
+    version: r.version ?? 0,
+    updatedAt: r.updatedAt ?? null,
   }));
   db.insert(products).values(values).run();
 };
