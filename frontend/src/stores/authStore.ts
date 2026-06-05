@@ -4,6 +4,7 @@ import { create } from 'zustand';
 
 import { AppConstants } from '@constants/appConstants';
 
+import { clearAllTables } from '../db/queries/clearAll';
 import { initDb } from '../core/sync';
 import { AuthStore } from '../types/authStore.types';
 
@@ -28,8 +29,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
       roleId: null,
       userName: null,
       isAuthenticated: false,
-      // Note: Don't reset onboardingCompleted - it should persist
-      // Note: Don't reset isBiometricEnabled - it should persist
     }),
 
   setOnboardingCompleted: (completed) => set({ onboardingCompleted: completed }),
@@ -54,14 +53,13 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
     if (accessToken && userId && roleId && userName) {
       if (!biometricToken) {
-        // No biometric lock — authenticate directly from stored tokens
         update.userId = Number(userId);
         update.roleId = Number(roleId);
         update.userName = userName;
         update.isAuthenticated = true;
       }
-      // biometricToken present → leave isAuthenticated = false so AuthNavigator
-      // shows BiometricScreen as the lock screen before granting access
+    } else {
+      await clearAllTables();
     }
 
     set({ ...(update as Partial<AuthStore>), hydrated: true });

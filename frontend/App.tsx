@@ -5,6 +5,7 @@ import React, { useEffect } from 'react';
 import NetInfo from '@react-native-community/netinfo';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import BootSplash from 'react-native-bootsplash';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import { enableScreens } from 'react-native-screens';
 
@@ -44,9 +45,11 @@ export default function App() {
   }, [hydrate]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <RootNavigator />
-      <Toast config={toastConfig} position="bottom" bottomOffset={40} />
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <RootNavigator />
+        <Toast config={toastConfig} position="bottom" bottomOffset={40} />
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }

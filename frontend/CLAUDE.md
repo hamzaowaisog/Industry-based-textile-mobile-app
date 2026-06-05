@@ -170,6 +170,47 @@ digits.length < 6       // magic number inline
 | `core/<domain>.ts` | Raw async API calls, SecureStore reads/writes, store mutations | React hooks, JSX |
 | `utils/helpers/<name>.ts` | Pure functions, no React | Side effects, API calls |
 
+### 3a. Data Mapping — Always in Helpers, Never Inline
+
+Any function that transforms, maps, or shapes data — whether from the API, SQLite, or any other source — must live in `src/utils/helpers/`. This keeps components and hooks clean and makes mapping logic independently testable.
+
+**This covers:**
+- API response → component prop shape (e.g. `mapOrderToRow`)
+- DB row → domain model (e.g. `mapDbClientToClient`)
+- Number/date/string formatting (e.g. `formatCompactNumber`, `formatDate`)
+- Static display data structures with icon/color/label configs (e.g. `FORGOT_PASSWORD_STEPS`)
+- Any `Array.map / .filter / .reduce` whose callback contains logic beyond a simple prop access
+
+```ts
+// ✅ correct — transform lives in utils/helpers/orderMappers.ts
+import { mapOrderToRow } from '@utils/helpers/orderMappers';
+const rows = orders.map(mapOrderToRow);   // in hook, rows passed as prop to component
+
+// ❌ wrong — mapping logic inline in hook or component
+const rows = orders.map((o) => ({
+  id: o.orderId,
+  label: `#${o.orderId} · ${o.clientName}`,
+  total: formatCompactNumber(o.total),
+}));
+
+// ✅ correct — formatter in utils/helpers/formatNumber.ts
+import { formatCompactNumber } from '@utils/helpers/formatNumber';
+
+// ❌ wrong — formatter defined at top of component file
+const fmt = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(0)}K` : String(n);
+
+// ✅ correct — static display config in utils/helpers/forgotPasswordContent.ts
+import { FORGOT_PASSWORD_STEPS } from '@utils/helpers/forgotPasswordContent';
+
+// ❌ wrong — display config array built inside component body
+const steps = [{ Icon: MailIcon, bg: colors.primaryLight, label: t('forgotPassword.step1') }];
+```
+
+**Naming conventions for helper files:**
+- Mappers: `src/utils/helpers/<feature>Mappers.ts` — exports `map<Source>To<Target>` functions
+- Formatters: `src/utils/helpers/format<Domain>.ts` — exports `format<Thing>` functions
+- Static configs: `src/utils/helpers/<feature>Content.ts` — exports `SCREAMING_SNAKE_CASE` constants
+
 ### 4. Props Pattern
 
 - Hooks return a flat object; screens spread it directly into the component: `<FooComponent {...handlers} />`.

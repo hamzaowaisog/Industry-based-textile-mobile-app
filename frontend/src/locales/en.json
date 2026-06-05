@@ -83,7 +83,8 @@
     "invalidOtp": "Invalid or expired OTP.",
     "resetFailed": "Password reset failed.",
     "resetFailedRetry": "Password reset failed. Please try again.",
-    "registerFailed": "Registration failed. Please try again."
+    "registerFailed": "Registration failed. Please try again.",
+    "logoutSuccess": "You have been signed out."
   },
   "login": {
     "welcomeBack": "Welcome back",
@@ -194,7 +195,9 @@
     "lowStockCount": "{{count}} products below reorder level",
     "overdueInvoices": "{{count}} overdue invoices",
     "monthlyOverview": "Monthly Overview",
-    "recentOrders": "Recent Orders"
+    "recentOrders": "Recent Orders",
+    "online": "Online",
+    "offline": "Offline"
   },
   "clients": {
     "title": "Clients",
@@ -315,6 +318,35 @@
         "point2": "Outstanding balance reports",
         "point3": "PDF export & share"
       }
+    }
+  },
+  "drawer": {
+    "companyTagline": "Textile Trading Co.",
+    "roleAdmin": "Owner · Admin",
+    "roleStaff": "Staff",
+    "sections": {
+      "main": "Main",
+      "finance": "Finance",
+      "inventory": "Inventory",
+      "insights": "Insights"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "clients": "Clients",
+      "orders": "Orders",
+      "products": "Products",
+      "purchases": "Purchases",
+      "payments": "Payments",
+      "invoices": "Invoices",
+      "expenses": "Expenses",
+      "stockMoves": "Stock Moves",
+      "transactions": "Transactions",
+      "reports": "Reports",
+      "users": "Team & Roles"
+    },
+    "footer": {
+      "settings": "Settings",
+      "signOut": "Sign out"
     }
   },
   "validation": {

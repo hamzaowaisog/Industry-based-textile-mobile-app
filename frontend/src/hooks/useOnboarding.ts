@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { BackHandler } from 'react-native';
 
+import { useFocusEffect } from '@react-navigation/native';
 import { File, Paths } from 'expo-file-system';
 
 import { AppConstants } from '@constants/appConstants';
@@ -12,10 +14,17 @@ export const useOnboarding = (navigation: OnboardingNavProp) => {
   const [slideIndex, setSlideIndex] = useState(0);
   const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
 
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
+      return () => sub.remove();
+    }, []),
+  );
+
   const completeOnboarding = async () => {
     new File(Paths.document, AppConstants.FILES.ONBOARDING_COMPLETED).write('1');
     setOnboardingCompleted(true);
-    navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN);
+    navigation.reset({ index: 0, routes: [{ name: AppConstants.SCREENS.AUTH.LOGIN }] });
   };
 
   const handleContinue = () => {

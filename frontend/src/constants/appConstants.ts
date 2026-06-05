@@ -67,5 +67,62 @@ export const AppConstants = {
       TERMS: 'Terms',
       PRIVACY: 'Privacy',
     },
+    MAIN: {
+      // Drawer-level routes
+      DASHBOARD: 'Dashboard',
+      CLIENTS_STACK: 'ClientsStack',
+      ORDERS_STACK: 'OrdersStack',
+      PRODUCTS_STACK: 'ProductsStack',
+      PURCHASES_STACK: 'PurchasesStack',
+      PAYMENTS_STACK: 'PaymentsStack',
+      INVOICES_STACK: 'InvoicesStack',
+      EXPENSES_STACK: 'ExpensesStack',
+      STOCK_STACK: 'StockStack',
+      LEDGER_STACK: 'LedgerStack',
+      REPORTS_STACK: 'ReportsStack',
+      USERS_STACK: 'UsersStack',
+      SETTINGS: 'Settings',
+      // Client stack
+      CLIENT_LIST: 'ClientList',
+      CLIENT_DETAIL: 'ClientDetail',
+      CLIENT_FORM: 'ClientForm',
+      // Order stack
+      ORDER_LIST: 'OrderList',
+      ORDER_DETAIL: 'OrderDetail',
+      CREATE_ORDER: 'CreateOrder',
+      // Product stack
+      PRODUCT_LIST: 'ProductList',
+      PRODUCT_DETAIL: 'ProductDetail',
+      PRODUCT_FORM: 'ProductForm',
+      // Purchase stack
+      PURCHASE_LIST: 'PurchaseList',
+      PURCHASE_DETAIL: 'PurchaseDetail',
+      CREATE_PURCHASE: 'CreatePurchase',
+      // Payment stack
+      PAYMENT_LIST: 'PaymentList',
+      RECORD_PAYMENT: 'RecordPayment',
+      // Invoice stack
+      INVOICE_LIST: 'InvoiceList',
+      INVOICE_DETAIL: 'InvoiceDetail',
+      INVOICE_FORM: 'InvoiceForm',
+      // Expense stack
+      EXPENSE_LIST: 'ExpenseList',
+      ADD_EXPENSE: 'AddExpense',
+      // Stock stack
+      STOCK_MOVE_LIST: 'StockMoveList',
+      ADD_STOCK_MOVE: 'AddStockMove',
+      // Ledger stack
+      TRANSACTION_LIST: 'TransactionList',
+      // Report stack
+      REPORTS_HUB: 'ReportsHub',
+      PROFIT_LOSS: 'ProfitLoss',
+      CLIENT_BALANCE: 'ClientBalance',
+      CLIENT_BALANCE_DETAIL: 'ClientBalanceDetail',
+      CREDIT_DEBIT: 'CreditDebit',
+      SUMMARY_REPORT: 'SummaryReport',
+      // User stack
+      USER_LIST: 'UserList',
+      CREATE_USER: 'CreateUser',
+    },
   } as const,
 } as const;

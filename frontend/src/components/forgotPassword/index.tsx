@@ -14,16 +14,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import {
-  ArrowLeftIcon,
-  CheckIcon,
-  LockIcon,
-  MailIcon,
-  WeavePattern,
-} from '@constants/svgAssets';
+import { ArrowLeftIcon, MailIcon, WeavePattern } from '@constants/svgAssets';
 import { colors } from '@theme/colors';
-import { ForgotPasswordComponentProps } from '../../types/forgotPassword.types';
+import { FORGOT_PASSWORD_STEPS } from '@utils/helpers/forgotPasswordContent';
 
+import { ForgotPasswordComponentProps } from '../../types/forgotPassword.types';
 import { styles } from './styles';
 
 export const ForgotPasswordComponent = ({
@@ -34,12 +29,6 @@ export const ForgotPasswordComponent = ({
 }: ForgotPasswordComponentProps) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-
-  const steps = [
-    { Icon: MailIcon, bg: colors.primaryLight, color: colors.primary, label: t('forgotPassword.step1') },
-    { Icon: LockIcon, bg: colors.warningLight, color: colors.warning, label: t('forgotPassword.step2') },
-    { Icon: CheckIcon, bg: colors.successLight, color: colors.success, label: t('forgotPassword.step3') },
-  ];
 
   return (
     <View style={styles.container}>
@@ -121,15 +110,15 @@ export const ForgotPasswordComponent = ({
 
           {/* Step strip */}
           <View style={styles.stepStrip}>
-            {steps.map((step, i) => (
+            {FORGOT_PASSWORD_STEPS.map((step, i) => (
               <React.Fragment key={i}>
                 <View style={styles.stepItem}>
                   <View style={[styles.stepIconBox, { backgroundColor: step.bg }]}>
                     <step.Icon size={18} color={step.color} />
                   </View>
-                  <Text style={styles.stepLabel}>{step.label}</Text>
+                  <Text style={styles.stepLabel}>{t(step.labelKey)}</Text>
                 </View>
-                {i < steps.length - 1 && <View style={styles.stepConnector} />}
+                {i < FORGOT_PASSWORD_STEPS.length - 1 && <View style={styles.stepConnector} />}
               </React.Fragment>
             ))}
           </View>

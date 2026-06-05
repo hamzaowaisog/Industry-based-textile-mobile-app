@@ -39,4 +39,5 @@ export type DashboardComponentProps = {
   summary: DashboardSummary | null;
   monthlyOverview: MonthlyOverviewItem[];
   onLogout: () => void;
+  onOpenDrawer: () => void;
 };

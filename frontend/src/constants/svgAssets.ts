@@ -14,3 +14,20 @@ export { WeavePattern } from '../../assets/svg/WeavePattern';
 export { OnboardingSlide1 } from '../../assets/svg/illustrations/OnboardingSlide1';
 export { OnboardingSlide2 } from '../../assets/svg/illustrations/OnboardingSlide2';
 export { OnboardingSlide3 } from '../../assets/svg/illustrations/OnboardingSlide3';
+export {
+  HomeIcon,
+  UsersIcon,
+  ShoppingBagIcon,
+  BoxIcon,
+  TruckIcon,
+  CreditCardIcon,
+  FileTextIcon,
+  ReceiptIcon,
+  TagIcon,
+  CoinsIcon,
+  BarChartIcon,
+  UserIcon,
+  SettingsIcon,
+  LogOutIcon,
+  MenuIcon,
+} from '../../assets/svg/icons/DrawerIconSet';

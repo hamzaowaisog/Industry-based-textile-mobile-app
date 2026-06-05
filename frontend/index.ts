@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import './src/utils/reactotron';
 import './src/utils/i18n';
 

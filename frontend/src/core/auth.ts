@@ -42,7 +42,6 @@ export const loginAsync = async ({
       return { success: false, error: res.message ?? i18n.t('auth.loginFailed') };
     }
 
-    // Backend returns 'token' not 'accessToken', and includes 'email'
     const { token, refreshToken, userId, roleId, userName, email } = res.data;
 
     try {
@@ -57,13 +56,11 @@ export const loginAsync = async ({
         throw new Error('Missing required auth data');
       }
 
-      // Always save tokens so the axios interceptor can auth requests this session
       const secureStoreWrites: Promise<void>[] = [
         SecureStore.setItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN, accessTokenStr),
         SecureStore.setItemAsync(AppConstants.SECURE_STORE.REFRESH_TOKEN, refreshTokenStr),
       ];
 
-      // Remember Me: also persist identity for app restart / biometric
       if (rememberMe) {
         secureStoreWrites.push(
           SecureStore.setItemAsync(AppConstants.SECURE_STORE.USER_ID, userIdStr),

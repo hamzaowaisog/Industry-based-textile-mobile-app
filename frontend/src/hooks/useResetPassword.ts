@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { BackHandler } from 'react-native';
 
+import { useFocusEffect } from '@react-navigation/native';
 import { useFormik } from 'formik';
 import { useTranslation } from 'react-i18next';
 
@@ -20,6 +22,21 @@ export const useResetPassword = (
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  const goToLogin = useCallback(
+    () => navigation.reset({ index: 0, routes: [{ name: AppConstants.SCREENS.AUTH.LOGIN }] }),
+    [navigation],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+        goToLogin();
+        return true;
+      });
+      return () => sub.remove();
+    }, [goToLogin]),
+  );
+
   const formik = useFormik<ResetPasswordFormValues>({
     initialValues: { newPassword: '', confirmPassword: '' },
     validationSchema: resetPasswordValidationSchema,
@@ -32,7 +49,7 @@ export const useResetPassword = (
       });
       if (result.success) {
         showSuccess(t('resetPassword.successTitle'), t('resetPassword.successSubtitle'));
-        navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN);
+        goToLogin();
       } else {
         showError(t('resetPassword.errorTitle'), result.error);
       }
@@ -46,6 +63,6 @@ export const useResetPassword = (
     showConfirm,
     onToggleNew: () => setShowNew((v) => !v),
     onToggleConfirm: () => setShowConfirm((v) => !v),
-    onBack: () => navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN),
+    onBack: goToLogin,
   };
 };

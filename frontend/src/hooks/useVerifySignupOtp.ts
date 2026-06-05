@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { TextInput } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { BackHandler, TextInput } from 'react-native';
 
+import { useFocusEffect } from '@react-navigation/native';
 import { useFormik } from 'formik';
 import { useTranslation } from 'react-i18next';
 
@@ -11,12 +12,7 @@ import { VerifySignupOtpNavProp } from '../types/navigation.types';
 import { OtpVerificationFormValues } from '../types/otpVerification.types';
 import { showError, showSuccess } from '../utils/toast';
 import { otpVerificationValidationSchema } from '../utils/validation/otpVerificationValidation';
-
-const secondsUntil = (isoString?: string): number => {
-  if (!isoString) return 0;
-  const diff = Math.floor((new Date(isoString).getTime() - Date.now()) / 1000);
-  return diff > 0 ? diff : 0;
-};
+import { secondsUntil } from '../utils/helpers/otpHelpers';
 
 export const useVerifySignupOtp = (
   navigation: VerifySignupOtpNavProp,
@@ -25,6 +21,21 @@ export const useVerifySignupOtp = (
 ) => {
   const { t } = useTranslation();
   const [secondsLeft, setSecondsLeft] = useState(() => secondsUntil(nextResendAt) || 30);
+
+  const goToLogin = useCallback(
+    () => navigation.reset({ index: 0, routes: [{ name: AppConstants.SCREENS.AUTH.LOGIN }] }),
+    [navigation],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+        goToLogin();
+        return true;
+      });
+      return () => sub.remove();
+    }, [goToLogin]),
+  );
   const [isResending, setIsResending] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -60,7 +71,7 @@ export const useVerifySignupOtp = (
       const result = await verifySignupOtpAsync({ email, code: values.code });
       if (result.success) {
         showSuccess(t('otpVerification.verifySuccessTitle'), t('otpVerification.verifySuccessSubtitle'));
-        navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN);
+        goToLogin();
       } else {
         showError(t('otpVerification.verifyErrorTitle'), result.error);
       }
@@ -117,6 +128,6 @@ export const useVerifySignupOtp = (
     onFocus: (i: number) => setFocusedIndex(i),
     onBlur: () => setFocusedIndex(null),
     onResend: handleResend,
-    onBack: () => navigation.navigate(AppConstants.SCREENS.AUTH.LOGIN),
+    onBack: goToLogin,
   };
 };
