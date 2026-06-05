@@ -1,35 +1,62 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { useFocusEffect } from '@react-navigation/native';
 
 import { useDashboardGetMonthlyOverview, useDashboardGetSummary } from '@api/generated/dashboard/dashboard';
-import { useTranslation } from 'react-i18next';
 
+import { useAuthStore } from '@stores/authStore';
 import { useSyncStore } from '@stores/syncStore';
 
-import { logoutAsync } from '../core/auth';
-import { computeDashboardSummary, computeMonthlyOverview } from '../db/queries/dashboard';
-import { showError, showSuccess } from '../utils/toast';
-import { mapApiMonthly, mapApiSummary, mapLocalMonthly, mapLocalSummary } from '../utils/helpers/dashboardMappers';
-import type { DashboardSummary, MonthlyOverviewItem } from '../types/dashboard.types';
+import { computeDashboardSummary, computeMonthlyOverview } from '@db/queries/dashboard';
+import { mapApiMonthly, mapApiSummary, mapLocalMonthly, mapLocalSummary } from '@utils/helpers/dashboardMappers';
+import type { DashboardSummary, MonthlyOverviewItem } from '../../src/types/dashboard.types';
+
+import { useSyncBottomSheet } from './useSyncBottomSheet';
 
 export const useDashboard = () => {
-  const { t } = useTranslation();
   const isOnline = useSyncStore((s) => s.isOnline);
+  const isSyncing = useSyncStore((s) => s.isSyncing);
+  const userName = useAuthStore((s) => s.userName) ?? '';
+
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [offlineSummary, setOfflineSummary] = useState<DashboardSummary | null>(null);
   const [offlineMonthly, setOfflineMonthly] = useState<MonthlyOverviewItem[]>([]);
+  const isFirstMount = useRef(true);
 
   const summaryQuery = useDashboardGetSummary({ query: { enabled: isOnline } });
   const monthlyQuery = useDashboardGetMonthlyOverview(undefined, { query: { enabled: isOnline } });
 
-  // Load offline data via useEffect (not during render)
+  const syncSheet = useSyncBottomSheet(() => {
+    summaryQuery.refetch();
+    monthlyQuery.refetch();
+  });
+
+  // Refetch or re-read local DB every time the screen comes into focus.
+  useFocusEffect(
+    useCallback(() => {
+      if (isOnline) {
+        summaryQuery.refetch();
+        monthlyQuery.refetch();
+      } else {
+        setOfflineSummary(mapLocalSummary(computeDashboardSummary()));
+        setOfflineMonthly(mapLocalMonthly(computeMonthlyOverview()));
+      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOnline])
+  );
+
+  // When isOnline flips, show skeleton until the new data source is ready.
   useEffect(() => {
     if (!isOnline) {
-      const local = computeDashboardSummary();
-      setOfflineSummary(mapLocalSummary(local));
+      setOfflineSummary(mapLocalSummary(computeDashboardSummary()));
       setOfflineMonthly(mapLocalMonthly(computeMonthlyOverview()));
     }
+    if (!isFirstMount.current) {
+      setIsTransitioning(true);
+    }
+    isFirstMount.current = false;
   }, [isOnline]);
 
-  // Online data
   const apiSummary = (summaryQuery.data as any)?.data ?? summaryQuery.data;
   const onlineSummary = apiSummary ? mapApiSummary(apiSummary) : null;
 
@@ -39,20 +66,28 @@ export const useDashboard = () => {
   const summary = isOnline ? onlineSummary : offlineSummary;
   const monthlyOverview = isOnline ? onlineMonthly : offlineMonthly;
 
-  const onLogout = async () => {
-    const result = await logoutAsync();
-    if (!result.success) {
-      showError(t('auth.logout'), result.error ?? t('auth.logoutFailed'));
-    } else {
-      showSuccess(t('auth.logout'), t('auth.logoutSuccess'));
+  // Clear transition once the appropriate data source has resolved.
+  useEffect(() => {
+    if (isTransitioning && summary !== null) {
+      setIsTransitioning(false);
     }
-  };
+  }, [isTransitioning, summary]);
 
   return {
+    // Dashboard UI props
     isOnline,
-    isLoading: isOnline && (summaryQuery.isLoading || monthlyQuery.isLoading),
+    isLoading: isTransitioning || (isOnline && (summaryQuery.isFetching || monthlyQuery.isFetching)),
+    isSyncing,
     summary,
     monthlyOverview,
-    onLogout,
+    userName,
+    onSync: syncSheet.openSheet,
+
+    // Sync sheet props (threaded to SyncBottomSheet in screen)
+    syncSheetRef: syncSheet.syncSheetRef,
+    syncPhase: syncSheet.syncPhase,
+    pendingCount: syncSheet.pendingCount,
+    pendingChanges: syncSheet.pendingChanges,
+    lastSyncedAt: syncSheet.lastSyncedAt,
   };
 };

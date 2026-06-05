@@ -1,5 +1,11 @@
 import { syncFullPull, syncPush } from '@api/generated/sync/sync';
 import type { SyncFullPullResponseDto, SyncPushDto } from '@api/models';
+
+import { useSyncStore } from '@stores/syncStore';
+
+import i18n from '@utils/i18n';
+import { showError, showSuccess } from '@utils/toast';
+
 import { runMigrations } from '@db/migrate';
 import { clearAllTables } from '@db/queries/clearAll';
 import { insertManyClients } from '@db/queries/clients';
@@ -14,10 +20,10 @@ import { insertManyPurchases } from '@db/queries/purchases';
 import { insertManyStockMovements } from '@db/queries/stockMovements';
 import { setSyncMeta } from '@db/queries/syncMeta';
 import { insertManyTransactions } from '@db/queries/transactions';
-import { useSyncStore } from '@stores/syncStore';
+
+import { AppConstants } from '@constants/appConstants';
+
 import type { PendingChange } from '../types/db.types';
-import i18n from '@utils/i18n';
-import { showError, showSuccess } from '@utils/toast';
 
 export const initDb = async (): Promise<void> => {
   await runMigrations();
@@ -38,8 +44,10 @@ export const fullPull = async (): Promise<{ success: boolean; error?: string }> 
 
     const data = res.data;
 
+    useSyncStore.getState().setSyncPhase(AppConstants.SYNC.PHASES.CLEARING);
     await clearAllTables();
 
+    useSyncStore.getState().setSyncPhase(AppConstants.SYNC.PHASES.PULLING);
     insertManyClients(data.clients ?? []);
     insertManyProducts(data.products ?? []);
     insertManyOrders(data.orders ?? []);
@@ -144,14 +152,18 @@ export const syncNow = async (): Promise<void> => {
   store.setSyncing(true);
   store.setSyncError(null);
 
+  store.setSyncPhase(AppConstants.SYNC.PHASES.PUSHING);
   const pushResult = await push();
   if (!pushResult.success) {
+    store.setSyncPhase(null);
     store.setSyncing(false);
     showError(i18n.t('sync.pushFailedTitle'), pushResult.error ?? '');
     return;
   }
 
   const pullResult = await fullPull();
+
+  store.setSyncPhase(null);
   store.setSyncing(false);
 
   if (!pullResult.success) {

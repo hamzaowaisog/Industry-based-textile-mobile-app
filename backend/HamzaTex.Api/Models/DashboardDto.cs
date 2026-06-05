@@ -33,6 +33,15 @@ public class RecentOrderDto
     public string OrderDate { get; set; } = string.Empty;
 }
 
+public class RecentPurchaseDto
+{
+    public int PurchaseId { get; set; }
+    public string SupplierName { get; set; } = string.Empty;
+    public decimal Total { get; set; }
+    public string StatusName { get; set; } = string.Empty;
+    public string PurchaseDate { get; set; } = string.Empty;
+}
+
 public class DashboardSummaryDto
 {
     public string AsOf { get; set; } = string.Empty;
@@ -41,6 +50,7 @@ public class DashboardSummaryDto
     public DashboardOperationsDto Operations { get; set; } = new();
     public DashboardAlertsDto Alerts { get; set; } = new();
     public List<RecentOrderDto> RecentOrders { get; set; } = [];
+    public List<RecentPurchaseDto> RecentPurchases { get; set; } = [];
 }
 
 public class MonthlyOverviewItemDto

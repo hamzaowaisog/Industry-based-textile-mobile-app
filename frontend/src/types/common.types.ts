@@ -17,3 +17,9 @@ export type SelectOption = {
   label: string;
   value: number;
 };
+
+export type AppBottomSheetProps = {
+  children: import('react').ReactNode;
+  snapPoints: readonly string[];
+  enablePanDownToClose?: boolean;
+};

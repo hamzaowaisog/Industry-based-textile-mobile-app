@@ -12,6 +12,7 @@ export const useSyncStore = create<SyncStore>()(
       pendingCount: 0,
       lastSyncedAt: null,
       isSyncing: false,
+      syncPhase: null,
       syncError: null,
       isOnline: true,
       pendingChanges: [],
@@ -29,6 +30,7 @@ export const useSyncStore = create<SyncStore>()(
         }),
 
       setSyncing: (isSyncing) => set({ isSyncing }),
+      setSyncPhase: (syncPhase) => set({ syncPhase }),
       setSyncError: (syncError) => set({ syncError }),
       setLastSyncedAt: (lastSyncedAt) => set({ lastSyncedAt }),
       setIsOnline: (isOnline) => set({ isOnline }),

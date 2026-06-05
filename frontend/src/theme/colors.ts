@@ -12,6 +12,8 @@ export const colors = {
 
   warning: '#FF8800',
   warningLight: '#FFF3E0',
+  warningBorder: '#FFE0B2',
+  warningText: '#B45309',
 
   violet: '#7C3AED',
   violetLight: '#F5F3FF',

@@ -1,6 +1,8 @@
+import { colors } from '@theme/colors';
+
 import type { LocalDashboardSummary, LocalMonthlyOverviewItem } from '@db/queries/dashboard';
 
-import type { DashboardSummary, MonthlyOverviewItem } from '../../types/dashboard.types';
+import type { DashboardSummary, GiftedBarItem, MonthlyOverviewItem, RevenueTrend } from '../../types/dashboard.types';
 
 export const mapApiSummary = (d: any): DashboardSummary => ({
   asOf: d.asOf ?? '',
@@ -22,6 +24,13 @@ export const mapApiSummary = (d: any): DashboardSummary => ({
     total: o.total,
     statusName: o.statusName,
     orderDate: o.orderDate,
+  })),
+  recentPurchases: (d.recentPurchases ?? []).map((p: any) => ({
+    purchaseId: p.purchaseId,
+    supplierName: p.supplierName,
+    total: p.total,
+    statusName: p.statusName,
+    purchaseDate: p.purchaseDate,
   })),
 });
 
@@ -49,6 +58,7 @@ export const mapLocalSummary = (s: LocalDashboardSummary): DashboardSummary => (
   lowStockCount: s.alerts.lowStockCount,
   overdueInvoicesCount: s.alerts.overdueInvoicesCount,
   recentOrders: s.recentOrders,
+  recentPurchases: s.recentPurchases,
 });
 
 export const mapLocalMonthly = (items: LocalMonthlyOverviewItem[]): MonthlyOverviewItem[] =>
@@ -59,3 +69,34 @@ export const mapLocalMonthly = (items: LocalMonthlyOverviewItem[]): MonthlyOverv
     totalExpenses: i.totalExpenses,
     netProfit: i.netProfit,
   }));
+
+export const computeRevenueTrend = (thisMonth: number, lastMonth: number): RevenueTrend | null => {
+  if (lastMonth <= 0) return null;
+  const raw = Math.round(((thisMonth - lastMonth) / lastMonth) * 100);
+  return { pct: Math.abs(raw), up: raw >= 0 };
+};
+
+export const mapMonthlyToBarData = (items: MonthlyOverviewItem[]): GiftedBarItem[] =>
+  items.slice(-6).flatMap((m, i, arr) => [
+    {
+      value: m.totalSales,
+      frontColor: colors.primary,
+      label: m.month,
+      labelWidth: 44,
+      labelTextStyle: { fontSize: 11, fontWeight: '600' as const, color: colors.textSecondary, textAlign: 'center' as const },
+      barWidth: 10,
+      spacing: 2,
+    },
+    {
+      value: m.totalPurchases,
+      frontColor: colors.warning,
+      barWidth: 10,
+      spacing: 2,
+    },
+    {
+      value: m.totalExpenses,
+      frontColor: colors.danger,
+      barWidth: 10,
+      spacing: i === arr.length - 1 ? 2 : 20,
+    },
+  ]);

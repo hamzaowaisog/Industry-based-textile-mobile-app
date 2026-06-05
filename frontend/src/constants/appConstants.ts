@@ -37,11 +37,34 @@ export const AppConstants = {
   SYNC: {
     MAX_RETRY_COUNT: 3,
     STORE_KEY: 'hamzatex-sync-store',
+    SNAP_POINTS: ['62%'],
+    PROGRESS: {
+      INIT: 5,
+      PUSHING: 20,
+      CLEARING: 55,
+      PULLING: 80,
+      DONE: 100,
+    },
+    PHASES: {
+      PUSHING: 'pushing',
+      CLEARING: 'clearing',
+      PULLING: 'pulling',
+    } as const,
   },
 
   // Local DB
   DB: {
     NAME: 'hamzatex.db',
+  },
+
+  // Currency display
+  CURRENCY: {
+    PREFIX: 'Rs ',
+  },
+
+  // Locale
+  LOCALE: {
+    DATE: 'en-US' as const,
   },
 
   // Date format

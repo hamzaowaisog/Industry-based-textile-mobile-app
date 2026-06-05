@@ -31,3 +31,6 @@ export {
   LogOutIcon,
   MenuIcon,
 } from '../../assets/svg/icons/DrawerIconSet';
+export { SearchIcon } from '../../assets/svg/icons/SearchIcon';
+export { BellIcon } from '../../assets/svg/icons/BellIcon';
+export { ClockIcon } from '../../assets/svg/icons/ClockIcon';

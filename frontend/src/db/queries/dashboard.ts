@@ -31,12 +31,21 @@ export type LocalRecentOrder = {
   orderDate: string;
 };
 
+export type LocalRecentPurchase = {
+  purchaseId: number;
+  supplierName: string;
+  total: number;
+  statusName: string;
+  purchaseDate: string;
+};
+
 export type LocalDashboardSummary = {
   asOf: string;
   financials: LocalDashboardFinancials;
   operations: LocalDashboardOperations;
   alerts: LocalDashboardAlerts;
   recentOrders: LocalRecentOrder[];
+  recentPurchases: LocalRecentPurchase[];
 };
 
 export type LocalMonthlyOverviewItem = {
@@ -190,13 +199,11 @@ export const computeDashboardSummary = (limit = 5): LocalDashboardSummary => {
   );
 
   // ── Recent Orders ──
-  // Backend: ORDER BY orderDate DESC, Id DESC; total = sum(ol.Qty * ol.UnitPrice)
-  // Get status names from lookups table
-  const statusRows = sqlite.getAllSync<{ server_id: number; name: string }>(
+  const orderStatusRows = sqlite.getAllSync<{ server_id: number; name: string }>(
     `SELECT server_id, name FROM lookups WHERE type = 'orderStatus'`,
   );
-  const statusNames: Record<number, string> = {};
-  for (const s of statusRows) statusNames[s.server_id] = s.name;
+  const orderStatusNames: Record<number, string> = {};
+  for (const s of orderStatusRows) orderStatusNames[s.server_id] = s.name;
 
   const recentOrders = sqlite.getAllSync<{
     order_id: number;
@@ -215,6 +222,34 @@ export const computeDashboardSummary = (limit = 5): LocalDashboardSummary => {
      LEFT JOIN order_lines ol ON ol.order_id = o.id
      GROUP BY o.server_id
      ORDER BY o.order_date DESC, o.server_id DESC
+     LIMIT ?`,
+    [limit],
+  );
+
+  // ── Recent Purchases ──
+  const purchaseStatusRows = sqlite.getAllSync<{ server_id: number; name: string }>(
+    `SELECT server_id, name FROM lookups WHERE type = 'purchaseStatus'`,
+  );
+  const purchaseStatusNames: Record<number, string> = {};
+  for (const s of purchaseStatusRows) purchaseStatusNames[s.server_id] = s.name;
+
+  const recentPurchasesRaw = sqlite.getAllSync<{
+    purchase_id: number;
+    supplier_name: string | null;
+    total: number;
+    status_id: number;
+    purchase_date: string;
+  }>(
+    `SELECT p.server_id AS purchase_id,
+            c.name AS supplier_name,
+            COALESCE(SUM(pl.qty * pl.unit_cost), 0) AS total,
+            p.status_id,
+            p.purchase_date
+     FROM purchases p
+     LEFT JOIN clients c ON c.server_id = p.supplier_server_id
+     LEFT JOIN purchase_lines pl ON pl.purchase_id = p.id
+     GROUP BY p.server_id
+     ORDER BY p.purchase_date DESC, p.server_id DESC
      LIMIT ?`,
     [limit],
   );
@@ -243,8 +278,15 @@ export const computeDashboardSummary = (limit = 5): LocalDashboardSummary => {
       orderId: r.order_id,
       clientName: r.client_name ?? '',
       total: r.total,
-      statusName: statusNames[r.status_id] ?? 'Unknown',
+      statusName: orderStatusNames[r.status_id] ?? 'Unknown',
       orderDate: r.order_date,
+    })),
+    recentPurchases: recentPurchasesRaw.map((p) => ({
+      purchaseId: p.purchase_id,
+      supplierName: p.supplier_name ?? '',
+      total: p.total,
+      statusName: purchaseStatusNames[p.status_id] ?? 'Unknown',
+      purchaseDate: p.purchase_date,
     })),
   };
 };

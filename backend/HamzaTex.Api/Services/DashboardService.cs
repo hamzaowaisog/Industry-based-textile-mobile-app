@@ -136,6 +136,26 @@ public class DashboardService : IDashboardService
             OrderDate = o.OrderDate.ToString("dd MMM, yyyy")
         }).ToList();
 
+        // ── Recent Purchases ────────────────────────────────────────────────
+        var recentPurchasesRaw = await _db.Purchases.AsNoTracking()
+            .Where(p => isAdmin || p.Supplier.UserId == userId)
+            .Include(p => p.Supplier)
+            .Include(p => p.PurchaseLines)
+            .Include(p => p.Status)
+            .OrderByDescending(p => p.PurchaseDate)
+            .ThenByDescending(p => p.Id)
+            .Take(5)
+            .ToListAsync();
+
+        var recentPurchases = recentPurchasesRaw.Select(p => new RecentPurchaseDto
+        {
+            PurchaseId = p.Id,
+            SupplierName = p.Supplier?.Name ?? string.Empty,
+            Total = p.PurchaseLines.Sum(pl => pl.Qty * pl.UnitCost),
+            StatusName = p.Status?.Name ?? string.Empty,
+            PurchaseDate = p.PurchaseDate.ToString("dd MMM, yyyy")
+        }).ToList();
+
         // ── Build response ──────────────────────────────────────────────────
         var dto = new DashboardSummaryDto
         {
@@ -161,7 +181,8 @@ public class DashboardService : IDashboardService
                 LowStockCount = lowStockCount,
                 OverdueInvoicesCount = overdueInvoicesCount
             },
-            RecentOrders = recentOrders
+            RecentOrders = recentOrders,
+            RecentPurchases = recentPurchases
         };
 
         return Response<DashboardSummaryDto>.SuccessResponse(dto, "Dashboard summary");

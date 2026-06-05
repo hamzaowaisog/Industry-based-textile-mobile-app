@@ -1,170 +1,291 @@
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { MenuIcon } from '@constants/svgAssets';
+import { QUICK_ACTION_CONFIGS, getStatCardConfigs } from '@utils/helpers/dashboardContent';
+import { computeRevenueTrend } from '@utils/helpers/dashboardMappers';
 import { formatCompactNumber as fmt } from '@utils/helpers/formatNumber';
+import { getGreetingKey } from '@utils/helpers/greetingHelpers';
+
+import { colors } from '@theme/colors';
+
+import { AppConstants } from '@constants/appConstants';
+import {
+  BellIcon,
+  BoxIcon,
+  MenuIcon,
+  RefreshIcon,
+  SearchIcon,
+  ShoppingBagIcon,
+} from '@constants/svgAssets';
 
 import type { DashboardComponentProps } from '../../types/dashboard.types';
+import { BarChart } from './BarChart';
+import { DashboardSkeleton } from './DashboardSkeleton';
+import { FinancialCell } from './FinancialCell';
+import { OrderRow } from './OrderRow';
+import { PurchaseRow } from './PurchaseRow';
+import { StatCardItem } from './StatCardItem';
 import { styles } from './styles';
 
 export const DashboardComponent = ({
   isOnline,
   isLoading,
+  isSyncing,
   summary,
   monthlyOverview,
-  onLogout,
+  userName,
   onOpenDrawer,
+  onSync,
+  onNewOrder,
+  onViewAllOrders,
 }: DashboardComponentProps) => {
   const { t } = useTranslation();
 
+  const today = new Date().toLocaleDateString(AppConstants.LOCALE.DATE, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const greetingKey = getGreetingKey();
+  const revenueTrend = summary
+    ? computeRevenueTrend(summary.thisMonthRevenue, summary.lastMonthRevenue)
+    : null;
+  const statCards = summary ? getStatCardConfigs(summary, t) : [];
+  const quickActionCallbacks = [onNewOrder, () => {}, () => {}, () => {}];
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <SafeAreaView edges={['top', 'bottom']}>
-        {/* Header + Online indicator */}
-        <View style={styles.headerRow}>
-          <View style={styles.headerLeft}>
-            <TouchableOpacity onPress={onOpenDrawer} activeOpacity={0.7} style={styles.hamburger}>
-              <MenuIcon />
-            </TouchableOpacity>
-            <Text style={styles.title}>{t('dashboard.title')}</Text>
-          </View>
-          <View style={styles.onlineRow}>
-            <View style={[styles.onlineDot, isOnline ? styles.dotOnline : styles.dotOffline]} />
-            <Text style={[styles.onlineText, !isOnline && styles.onlineTextOffline]}>
-              {isOnline ? t('dashboard.online') : t('dashboard.offline')}
+    <View style={styles.root}>
+      <SafeAreaView edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.hamburger} onPress={onOpenDrawer} activeOpacity={0.7}>
+            <MenuIcon size={22} color={colors.text} />
+          </TouchableOpacity>
+
+          <View style={styles.greetingBlock}>
+            <Text style={styles.greetingDate}>{today}</Text>
+            <Text style={styles.greetingName} numberOfLines={2}>
+              {t(greetingKey)}, {userName}
             </Text>
           </View>
+
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={[styles.iconBtn, !isOnline && styles.iconBtnDisabled]}
+              onPress={onSync}
+              disabled={isSyncing || !isOnline}
+              activeOpacity={0.7}
+            >
+              <RefreshIcon size={20} color={isSyncing ? colors.primary : colors.text} />
+              {!isSyncing && (
+                <View
+                  style={[
+                    styles.connectivityDot,
+                    { backgroundColor: isOnline ? colors.success : colors.danger },
+                  ]}
+                />
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+              <SearchIcon size={20} color={colors.text} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+              <BellIcon size={20} color={colors.text} />
+            </TouchableOpacity>
+          </View>
         </View>
+      </SafeAreaView>
 
-        {/* Loading */}
-        {isLoading && <ActivityIndicator size="large" style={styles.loader} />}
+      {isLoading && <DashboardSkeleton />}
 
-        {summary && !isLoading && (
-          <>
-            {/* Financials */}
+      {!isLoading && !summary && (
+        <View style={styles.errorWrap}>
+          <Text style={styles.errorText}>{t('dashboard.loadError')}</Text>
+          <Text style={styles.errorSub}>{t('dashboard.loadErrorSub')}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={onSync} activeOpacity={0.8}>
+            <Text style={styles.retryText}>{t('dashboard.tapToRetry')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {!isLoading && summary && (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.statScrollContent}
+          >
+            {statCards.map((card) => (
+              <StatCardItem
+                key={card.label}
+                tint={card.tint}
+                icon={<card.Icon size={18} color={card.tint} />}
+                label={card.label}
+                value={card.value}
+                sub={card.sub}
+              />
+            ))}
+          </ScrollView>
+
+          <View style={styles.section}>
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionTitle}>{t('dashboard.thisMonthFinancials')}</Text>
+            </View>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>{t('dashboard.summary')}</Text>
-              <View style={styles.statGrid}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{fmt(summary.thisMonthRevenue)}</Text>
-                  <Text style={styles.statLabel}>{t('dashboard.totalSales')}</Text>
+              <View style={styles.financialsGrid}>
+                <View style={styles.financialsRow}>
+                  <FinancialCell
+                    label={t('dashboard.finRevenue')}
+                    value={`${AppConstants.CURRENCY.PREFIX}${fmt(summary.thisMonthRevenue)}`}
+                    borderRight
+                    borderBottom
+                    trend={revenueTrend}
+                    trendVsLabel={t('dashboard.vsLastMonth')}
+                  />
+                  <FinancialCell
+                    label={t('dashboard.finLastMonth')}
+                    value={`${AppConstants.CURRENCY.PREFIX}${fmt(summary.lastMonthRevenue)}`}
+                    borderBottom
+                    padLeft
+                  />
                 </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{fmt(summary.lastMonthRevenue)}</Text>
-                  <Text style={styles.statLabel}>{t('dashboard.lastMonthSales')}</Text>
+                <View style={styles.financialsRow}>
+                  <FinancialCell
+                    label={t('dashboard.finPurchases')}
+                    value={`${AppConstants.CURRENCY.PREFIX}${fmt(summary.thisMonthPurchases)}`}
+                    borderRight
+                    padTop
+                  />
+                  <FinancialCell
+                    label={t('dashboard.finExpenses')}
+                    value={`${AppConstants.CURRENCY.PREFIX}${fmt(summary.thisMonthExpenses)}`}
+                    padLeft
+                    padTop
+                  />
                 </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{fmt(summary.thisMonthPurchases)}</Text>
-                  <Text style={styles.statLabel}>{t('dashboard.totalPurchases')}</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{fmt(summary.thisMonthExpenses)}</Text>
-                  <Text style={styles.statLabel}>{t('dashboard.totalExpenses')}</Text>
-                </View>
-                <View style={[styles.statItem, styles.statHighlight]}>
-                  <Text style={[styles.statValue, styles.profitValue]}>
+                <View
+                  style={[
+                    styles.financialNetProfitRow,
+                    {
+                      backgroundColor:
+                        summary.thisMonthNetProfit >= 0
+                          ? `${colors.success}15`
+                          : `${colors.danger}15`,
+                    },
+                  ]}
+                >
+                  <Text style={styles.financialNetProfitLabel}>{t('dashboard.finNetProfit')}</Text>
+                  <Text
+                    style={[
+                      styles.financialNetProfitValue,
+                      { color: summary.thisMonthNetProfit >= 0 ? colors.success : colors.danger },
+                    ]}
+                  >
+                    {AppConstants.CURRENCY.PREFIX}
                     {fmt(summary.thisMonthNetProfit)}
                   </Text>
-                  <Text style={styles.statLabel}>{t('dashboard.netProfit')}</Text>
-                </View>
-                <View style={[styles.statItem, styles.statWarn]}>
-                  <Text style={[styles.statValue, styles.warnValue]}>
-                    {fmt(summary.totalOutstanding)}
-                  </Text>
-                  <Text style={styles.statLabel}>{t('dashboard.totalOutstanding')}</Text>
                 </View>
               </View>
             </View>
+          </View>
 
-            {/* Operations */}
+          <View style={styles.section}>
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionTitle}>{t('dashboard.monthlyOverview')}</Text>
+              <Text style={styles.sectionAction}>{t('dashboard.lastNMonths')}</Text>
+            </View>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>{t('dashboard.operations')}</Text>
-              <View style={styles.opsGrid}>
-                <Text style={styles.rowText}>
-                  {t('dashboard.todayOrders', {
-                    count: summary.todayOrdersCount,
-                    total: fmt(summary.todayOrdersTotal),
-                  })}
-                </Text>
-                <Text style={styles.rowText}>
-                  {t('dashboard.pendingOrders', { count: summary.pendingOrdersCount })}
-                </Text>
-                <Text style={styles.rowText}>
-                  {t('dashboard.unallocatedPayments', { count: summary.unallocatedPaymentsCount })}
-                </Text>
-              </View>
+              {monthlyOverview.length > 0 ? (
+                <BarChart data={monthlyOverview} />
+              ) : (
+                <View style={styles.emptyWrap}>
+                  <Text style={styles.emptyText}>{t('dashboard.noMonthlyData')}</Text>
+                </View>
+              )}
             </View>
+          </View>
 
-            {/* Alerts */}
+          <View style={styles.section}>
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionTitle}>{t('dashboard.quickActions')}</Text>
+              <Text style={styles.sectionAction}>{t('dashboard.seeAll')}</Text>
+            </View>
+            <View style={styles.quickGrid}>
+              {QUICK_ACTION_CONFIGS.map((cfg, i) => (
+                <TouchableOpacity
+                  key={cfg.labelKey}
+                  style={styles.quickBtn}
+                  onPress={quickActionCallbacks[i]}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.quickActionTile, { backgroundColor: `${cfg.color}22` }]}>
+                    <cfg.Icon size={18} color={cfg.color} />
+                  </View>
+                  <Text style={styles.quickLabel}>{t(cfg.labelKey)}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionTitle}>{t('dashboard.recentOrders')}</Text>
+              <TouchableOpacity onPress={onViewAllOrders} activeOpacity={0.7}>
+                <Text style={styles.sectionAction}>{t('dashboard.viewAll')}</Text>
+              </TouchableOpacity>
+            </View>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>{t('dashboard.alerts')}</Text>
-              <View style={styles.opsGrid}>
-                <View style={styles.alertRow}>
-                  <View
-                    style={[
-                      styles.alertDot,
-                      summary.lowStockCount > 0 ? styles.alertDotWarn : styles.alertDotOk,
-                    ]}
-                  />
-                  <Text style={styles.rowText}>
-                    {t('dashboard.lowStockCount', { count: summary.lowStockCount })}
-                  </Text>
+              {summary.recentOrders.length === 0 ? (
+                <View style={styles.emptyWrap}>
+                  <ShoppingBagIcon size={28} color={colors.divider} />
+                  <Text style={styles.emptyText}>{t('dashboard.noRecentOrders')}</Text>
                 </View>
-                <View style={styles.alertRow}>
-                  <View
-                    style={[
-                      styles.alertDot,
-                      summary.overdueInvoicesCount > 0 ? styles.alertDotWarn : styles.alertDotOk,
-                    ]}
+              ) : (
+                summary.recentOrders.map((order, i) => (
+                  <OrderRow
+                    key={order.orderId}
+                    order={order}
+                    isLast={i === summary.recentOrders.length - 1}
                   />
-                  <Text style={styles.rowText}>
-                    {t('dashboard.overdueInvoices', { count: summary.overdueInvoicesCount })}
-                  </Text>
-                </View>
-              </View>
+                ))
+              )}
             </View>
+          </View>
 
-            {/* Monthly Overview */}
-            {monthlyOverview.length > 0 && (
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>{t('dashboard.monthlyOverview')}</Text>
-                {monthlyOverview.map((m) => (
-                  <View key={m.month} style={styles.monthRow}>
-                    <Text style={styles.monthLabel}>{m.month}</Text>
-                    <Text style={styles.monthSales}>{fmt(m.totalSales)}</Text>
-                    <Text style={styles.monthPurchases}>{fmt(m.totalPurchases)}</Text>
-                    <Text style={[styles.monthProfit, m.netProfit < 0 && styles.monthLoss]}>
-                      {fmt(m.netProfit)}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
+          <View style={styles.section}>
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionTitle}>{t('dashboard.recentPurchases')}</Text>
+              <TouchableOpacity activeOpacity={0.7}>
+                <Text style={styles.sectionAction}>{t('dashboard.viewAllPurchases')}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.card}>
+              {summary.recentPurchases.length === 0 ? (
+                <View style={styles.emptyWrap}>
+                  <BoxIcon size={28} color={colors.divider} />
+                  <Text style={styles.emptyText}>{t('dashboard.noRecentPurchases')}</Text>
+                </View>
+              ) : (
+                summary.recentPurchases.map((purchase, i) => (
+                  <PurchaseRow
+                    key={purchase.purchaseId}
+                    purchase={purchase}
+                    isLast={i === summary.recentPurchases.length - 1}
+                  />
+                ))
+              )}
+            </View>
+          </View>
+        </ScrollView>
+      )}
 
-            {/* Recent Orders */}
-            {summary.recentOrders.length > 0 && (
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>{t('dashboard.recentOrders')}</Text>
-                {summary.recentOrders.map((order) => (
-                  <View key={order.orderId} style={styles.orderRow}>
-                    <Text style={styles.orderClient}>{order.clientName}</Text>
-                    <Text style={styles.orderMeta}>
-                      #{order.orderId} · {fmt(order.total)} · {order.statusName}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          </>
-        )}
-
-        {/* Logout */}
-        <TouchableOpacity style={styles.logoutButton} onPress={onLogout} activeOpacity={0.7}>
-          <Text style={styles.logoutButtonText}>{t('settings.logout')}</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    </ScrollView>
+      <SafeAreaView edges={['bottom']} />
+    </View>
   );
 };

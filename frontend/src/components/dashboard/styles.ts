@@ -4,231 +4,246 @@ import { colors } from '@theme/colors';
 import { typography } from '@theme/typography';
 
 export const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  content: {
-    padding: 20,
-    gap: 16,
-  },
 
   // ── Header ──
-  headerRow: {
+  header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 20,
+    gap: 12,
   },
   hamburger: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
+    width: 40,
+    height: 40,
+    marginTop: 2,
+    borderRadius: 11,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: -4,
+    shadowColor: colors.shadowBlack,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  title: {
+  greetingBlock: {
+    flex: 1,
+    minWidth: 0,
+  },
+  greetingDate: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  greetingName: {
     fontFamily: typography.fontFamily.bold,
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: colors.text,
+    letterSpacing: -0.3,
+    marginTop: 2,
   },
-  onlineRow: {
+  headerActions: {
     flexDirection: 'row',
+    gap: 4,
+    marginTop: 2,
+  },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 11,
+    backgroundColor: colors.surface,
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'center',
+    shadowColor: colors.shadowBlack,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  onlineDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  iconBtnDisabled: {
+    opacity: 0.4,
   },
-  dotOnline: {
-    backgroundColor: colors.success,
+
+  // ── Scroll ──
+  scroll: {
+    flex: 1,
   },
-  dotOffline: {
-    backgroundColor: colors.danger,
+  scrollContent: {
+    paddingBottom: 24,
   },
-  onlineText: {
+
+  // ── Stat cards ──
+  statScrollContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 8,
+    gap: 12,
+  },
+
+  // ── Section ──
+  section: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+  },
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontFamily: typography.fontFamily.semibold,
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    letterSpacing: -0.2,
+  },
+  sectionAction: {
     fontFamily: typography.fontFamily.semibold,
     fontSize: 13,
     fontWeight: '600',
-    color: colors.success,
-  },
-  onlineTextOffline: {
-    color: colors.danger,
+    color: colors.primary,
   },
 
-  // ── Loader ──
-  loader: {
-    marginTop: 40,
-  },
-
-  // ── Cards ──
+  // ── Card ──
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: colors.shadowBlack,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+
+  // ── Quick actions ──
+  quickGrid: {
+    flexDirection: 'row',
     gap: 10,
   },
-  cardTitle: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  rowText: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
-  },
-
-  // ── Stat grid ──
-  statGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  statItem: {
+  quickBtn: {
     flex: 1,
-    minWidth: '45%',
-    backgroundColor: colors.bgAlt,
-    borderRadius: 10,
-    padding: 12,
-    gap: 4,
-  },
-  statHighlight: {
-    backgroundColor: `${colors.success}15`,
-  },
-  statWarn: {
-    backgroundColor: `${colors.warning}15`,
-  },
-  statValue: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  profitValue: {
-    color: colors.success,
-  },
-  warnValue: {
-    color: colors.warning,
-  },
-  statLabel: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 11,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-
-  // ── Operations ──
-  opsGrid: {
-    gap: 6,
-  },
-
-  // ── Alerts ──
-  alertRow: {
-    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 4,
     alignItems: 'center',
     gap: 8,
+    shadowColor: colors.shadowBlack,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  alertDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  quickActionTile: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  alertDotWarn: {
-    backgroundColor: colors.warning,
-  },
-  alertDotOk: {
-    backgroundColor: colors.success,
+  quickLabel: {
+    fontFamily: typography.fontFamily.semibold,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.text,
+    textAlign: 'center',
   },
 
-  // ── Monthly overview ──
-  monthRow: {
-    flexDirection: 'row',
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    gap: 8,
+  // ── Financials grid ──
+  financialsGrid: {
+    gap: 0,
   },
-  monthLabel: {
-    flex: 1,
+  financialsRow: {
+    flexDirection: 'row',
+  },
+  financialNetProfitRow: {
+    marginTop: 4,
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+  },
+  financialNetProfitLabel: {
     fontFamily: typography.fontFamily.medium,
     fontSize: 12,
     fontWeight: '500',
     color: colors.textSecondary,
+    marginBottom: 4,
   },
-  monthSales: {
-    flex: 1,
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.text,
-    textAlign: 'right',
-  },
-  monthPurchases: {
-    flex: 1,
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.text,
-    textAlign: 'right',
-  },
-  monthProfit: {
-    flex: 1,
+  financialNetProfitValue: {
     fontFamily: typography.fontFamily.bold,
-    fontSize: 12,
+    fontSize: 22,
     fontWeight: '700',
-    color: colors.success,
-    textAlign: 'right',
-  },
-  monthLoss: {
-    color: colors.danger,
+    letterSpacing: -0.5,
   },
 
-  // ── Recent orders ──
-  orderRow: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    gap: 2,
+  // ── Connectivity dot (green = online, red = offline) ──
+  connectivityDot: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    borderWidth: 1.5,
+    borderColor: colors.surface,
   },
-  orderClient: {
+
+  // ── Empty state (recent orders) ──
+  emptyWrap: {
+    alignItems: 'center',
+    paddingVertical: 28,
+    gap: 8,
+  },
+  emptyText: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.textTertiary,
+    textAlign: 'center',
+  },
+
+  // ── Error state ──
+  errorWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+    gap: 8,
+  },
+  errorText: {
+    fontFamily: typography.fontFamily.semibold,
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  errorSub: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  retryBtn: {
+    marginTop: 16,
+    paddingHorizontal: 28,
+    paddingVertical: 11,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+  },
+  retryText: {
     fontFamily: typography.fontFamily.semibold,
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
-  },
-  orderMeta: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 12,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-
-  // ── Logout ──
-  logoutButton: {
-    backgroundColor: colors.danger,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  logoutButtonText: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textInverse,
+    color: colors.white,
   },
 });
