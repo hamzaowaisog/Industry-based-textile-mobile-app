@@ -4,6 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > **Always read the exact versioned Expo docs at https://docs.expo.dev/versions/v56.0.0/ before writing any Expo-specific code.**
 
+## Design Reference
+
+All screens must be implemented pixel-accurately from the v3 design prototype:
+
+```
+frontend/textile-erp/project/design_handoff_hamzatex_erp/
+  README.md                    ← start here (implementation guide)
+  mobile-design-prompt.md      ← full 37-screen spec with exact backend endpoints per screen
+  proto/v3/
+    tokens.jsx                 ← colors, type scale, radii, shadows, status badge map (source of truth)
+    icons.jsx                  ← ~60 SVG icons used in the design
+    ui.jsx                     ← shared primitives reference: Btn, Card, Input, Badge, Row, StatCard, etc.
+    screens-<section>.jsx      ← one file per section; every px and hex is explicit in source
+  app-icons/                   ← production iOS + Android icon set
+```
+
+**Before implementing any screen**, read the corresponding `screens-*.jsx` file. Every value — padding, color, font weight, radius — is spelled out in the source.
+
 ---
 
 ## Commands
@@ -101,8 +119,13 @@ Three Zustand stores:
 ### Navigation
 
 - `RootNavigator` — switches between `AuthNavigator` and `MainNavigator` based on `isAuthenticated`.
-- `AuthNavigator` — native stack: Login → ForgotPassword → VerifyOtp → ResetPassword. Password reset is OTP-based (not email link): ForgotPassword calls `POST /api/auth/forgot-password` (returns `nextResendAt`); VerifyOtp calls `POST /api/auth/verify-reset-otp` with `{ email, code }` (returns `resetToken`); ResetPassword calls `POST /api/auth/reset-password` with `{ email, resetToken, newPassword, confirmPassword }`. The email the user typed is carried through all three screens client-side — the backend never returns it. VerifyOtp screen must show a 30-second resend cooldown timer using `nextResendAt`.
-- `MainNavigator` — bottom tabs: Dashboard, Clients, Products, Orders, Payments, Reports (admin only), Settings. Role check: `roleId === 1` = Admin, `roleId === 2` = Staff (constants in `AppConstants.ROLES`).
+- `AuthNavigator` — native stack: Splash → Welcome → Onboarding → Login → Biometric → ForgotPassword → VerifyOtp → ResetPassword (also Register, Terms, Privacy). Password reset is OTP-based: ForgotPassword calls `POST /api/auth/forgot-password` (returns `nextResendAt`); VerifyOtp calls `POST /api/auth/verify-reset-otp` with `{ email, code }` (returns `resetToken`); ResetPassword calls `POST /api/auth/reset-password` with `{ email, resetToken, newPassword, confirmPassword }`. The email is carried client-side through all three screens — the backend never returns it. VerifyOtp shows a 30-second resend cooldown timer using `nextResendAt`.
+- `MainNavigator` — **side drawer** (`@react-navigation/drawer`, width 296, `drawerType: 'front'`, swipe disabled). `DrawerContent` renders `DrawerComponent` which shows user name, role, online/offline state, and sign-out (disabled when offline). Drawer screens:
+  - `Dashboard` (direct screen — no stack)
+  - `ClientsStack`, `OrdersStack`, `ProductsStack`, `PurchasesStack`, `PaymentsStack`, `InvoicesStack`, `ExpensesStack`, `StockStack`, `LedgerStack`
+  - `ReportsStack`, `UsersStack` — Admin only (roleId === 1)
+  - `Settings` (placeholder)
+- **Note on design spec deviation:** The v3 design prototype specifies bottom tabs (Home/Clients/Orders/Payments/More). The implementation uses a side drawer instead. Do not change this — the drawer is the intentional production choice.
 - All screen param types are in `src/types/navigation.types.ts`.
 
 ### Theme
@@ -313,6 +336,44 @@ import { AppConstants } from '@constants/appConstants';
 import { LoginFormValues } from '../../types/login.types';
 import { styles } from './styles';
 ```
+
+---
+
+## Implementation Status
+
+### Done
+- **Auth flow** — Splash, Welcome, Onboarding ×3, Login, Biometric, ForgotPassword, OTP Verification, ResetPassword, Register, Terms, Privacy
+- **Dashboard** — stat cards (orders, outstanding, pending payments, low stock), bar chart (monthly overview), recent orders/purchases list, SyncStatusBar, OfflineBanner, skeleton loader; data from SQLite + live API
+- **Navigation skeleton** — `RootNavigator`, `AuthNavigator`, `MainNavigator` (drawer), `DrawerContent`, all 13 domain stacks registered
+- **Offline DB** — `src/db/` with full schema (`schema.ts`), migrations (`migrate.ts`), and query files for every domain
+- **API layer** — full Orval-generated client (`src/api/generated/`), `axiosInstance.ts` with JWT bearer + 401 refresh
+- **Stores** — `authStore`, `lookupsStore`, `syncStore`
+- **Core** — `core/auth.ts`, `core/sync.ts`
+- **Common components** — `AppBottomSheet`, `AppToast`, `SyncBottomSheet`
+- **Theme** — `colors.ts`, `typography.ts`, `spacing.ts` aligned to v3 tokens
+- **i18n** — `src/locales/en.json` with all current keys
+
+### Still Needed (domain stacks are placeholder only)
+
+| Feature | Screens | Design ref |
+|---|---|---|
+| Clients | List, Detail (tabbed), Form | `screens-clients.jsx` |
+| Products | List, Detail (stat grid + line chart), Form | `screens-products.jsx` |
+| Orders | List, Detail, Create (3-step) | `screens-orders.jsx` |
+| Purchases | List, Detail, Create | `screens-purchases.jsx` |
+| Payments | List, Record payment | `screens-finance.jsx` |
+| Invoices | List, Detail + PDF viewer | `screens-finance.jsx` |
+| Expenses | List, Add | `screens-finance.jsx` |
+| Stock Movements | List, Add | `screens-stock-trans.jsx` |
+| Transactions / Ledger | List | `screens-stock-trans.jsx` |
+| Reports | Hub + 5 report screens (Admin only) | `screens-reports-extra.jsx` |
+| Users | List, Create (Admin only) | `screens-admin.jsx` |
+| Settings | Profile, security, sync, notifications, sign-out | `screens-system.jsx` |
+| Sync Status | Full sync flow UI | `screens-system.jsx` |
+| Change Password | Form + strength indicator | `screens-system.jsx` |
+| Notification Center | List, deep-link taps | `screens-extras.jsx` |
+
+For each screen also implement: loading skeleton, empty state (illustration + CTA), error state (message + retry).
 
 ---
 

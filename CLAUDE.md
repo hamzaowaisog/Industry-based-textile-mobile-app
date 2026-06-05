@@ -335,19 +335,36 @@ private int? GetUserId()
 
 ## Frontend State
 
-Auth screens are implemented. See `frontend/CLAUDE.md` for the full frontend architecture.
+See `frontend/CLAUDE.md` for full architecture rules. Design reference: `frontend/textile-erp/project/design_handoff_hamzatex_erp/` (97-screen v3 prototype — the visual source of truth for every screen).
 
 **Done:**
 - `App.tsx` — QueryClientProvider, Toast renderer, splash hide, auth hydration
-- `AuthNavigator` — Login → ForgotPassword → VerifyOtp (OTP entry) → ResetPassword
-- Login screen — Formik + Yup, username/password, biometric stub, remember me
-- ForgotPassword screen — email input, 3-step strip, gradient hero layout
-- `src/core/auth.ts`, `useLogin`, `useForgotPassword` hooks
-- `src/utils/axiosInstance.ts` — Axios with JWT bearer + 401 refresh
-- Zustand `authStore`, `lookupsStore`, `syncStore`
-- Toast system (`react-native-toast-message` + `src/utils/toast.ts`)
+- Full auth flow: Splash → Welcome → Onboarding (×3) → Login → Biometric → ForgotPassword → OTP Verification → ResetPassword; also Register, Terms, Privacy screens
+- `MainNavigator` — side drawer (`@react-navigation/drawer`), width 296, all 13 domain stacks registered; `DashboardScreen` is a direct drawer screen (no stack)
+- `DrawerContent` / `DrawerComponent` — user name, role, online/offline indicator, sign-out (disabled when offline)
+- Dashboard screen — stat cards, bar chart, recent orders/purchases, SyncStatusBar, OfflineBanner, skeleton loader; backed by real API + SQLite
+- SQLite offline DB — `src/db/` with full schema, migrations, and query files for every domain (clients, orders, purchases, payments, invoices, expenses, stock, transactions, reports, lookups, sync meta)
+- Orval-generated API client — all 21 backend tag groups in `src/api/generated/`
+- Zustand stores: `authStore`, `lookupsStore`, `syncStore`
+- `core/auth.ts`, `core/sync.ts`
+- Full i18n (`src/locales/en.json`), theme (`colors`, `typography`, `spacing`), toast system, `AppBottomSheet`, `SyncBottomSheet`
 
-**Still needed:** OTP screen, ResetPassword screen, all post-login screens (Dashboard, Clients, Products, Orders, Payments, Reports, Settings).
+**Still needed (all domain stacks contain placeholder screens only):**
+- Clients (List, Detail tabbed, Form)
+- Products (List, Detail with chart, Form)
+- Orders (List, Detail, Create 3-step)
+- Purchases (List, Detail, Create)
+- Payments (List, Record)
+- Invoices (List, Detail + PDF viewer)
+- Expenses (List, Add)
+- Stock Movements (List, Add)
+- Transactions / Ledger (List)
+- Reports (Hub, P&L, Client Balances, Credit/Debit, Summary, Client Detail) — Admin only
+- Users (List, Create) — Admin only
+- Settings screen
+- Sync Status screen
+- Notification Center screen
+- Change Password screen
 
 See `todo/12-frontend.md` for the full plan.
 
