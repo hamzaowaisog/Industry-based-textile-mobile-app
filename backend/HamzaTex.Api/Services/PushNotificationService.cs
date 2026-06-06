@@ -17,6 +17,9 @@ public interface IPushNotificationService
 
     /// <summary>Send a templated notification by catalog type, replacing {var} placeholders in title/body.</summary>
     Task SendTypedAsync(int userId, string notificationType, Dictionary<string, string> templateVars);
+
+    /// <summary>Validate a notification payload against FCM without delivering. Returns the FCM message ID and the full data payload.</summary>
+    Task<(string MessageId, Dictionary<string, string> Payload)> SendDryRunAsync(string notificationType, Dictionary<string, string> templateVars);
 }
 
 public class PushNotificationService : IPushNotificationService
@@ -145,6 +148,43 @@ public class PushNotificationService : IPushNotificationService
         };
 
         await SendToUserAsync(userId, title, body, data);
+    }
+
+    public async Task<(string MessageId, Dictionary<string, string> Payload)> SendDryRunAsync(
+        string notificationType, Dictionary<string, string> templateVars)
+    {
+        if (!_isConfigured)
+            return ("NOT_CONFIGURED", new Dictionary<string, string>());
+
+        if (!_catalog.TryGetValue(notificationType, out var template))
+            return ("UNKNOWN_TYPE", new Dictionary<string, string>());
+
+        var title = ReplacePlaceholders(template.Title, templateVars);
+        var body  = ReplacePlaceholders(template.Body,  templateVars);
+
+        var payload = new Dictionary<string, string>(templateVars)
+        {
+            ["type"]      = notificationType,
+            ["title"]     = title,
+            ["body"]      = body,
+            ["screen"]    = BuildScreen(notificationType, templateVars),
+            ["timestamp"] = DateTime.UtcNow.ToString("O")
+        };
+
+        var message = new Message
+        {
+            Topic = "dry-run-validation",
+            Data  = payload,
+            Android = new AndroidConfig { Priority = Priority.High },
+            Apns = new ApnsConfig
+            {
+                Headers = new Dictionary<string, string> { ["apns-priority"] = "10" },
+                Aps = new Aps { ContentAvailable = true }
+            }
+        };
+
+        var messageId = await FirebaseMessaging.DefaultInstance.SendAsync(message, dryRun: true);
+        return (messageId, payload);
     }
 
     private static string ReplacePlaceholders(string template, Dictionary<string, string> vars)

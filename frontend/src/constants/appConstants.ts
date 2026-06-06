@@ -14,6 +14,8 @@ export const AppConstants = {
     USER_NAME: 'userName',
     EMAIL: 'userEmail',
     BIOMETRIC_TOKEN: 'biometricToken',
+    PUSH_TOKEN: 'push_token',
+    NOTIFICATIONS_PROMPTED: 'notifications_prompted',
   },
 
   // File-system markers (cleared on reinstall, unlike Keychain)
@@ -105,6 +107,8 @@ export const AppConstants = {
       REPORTS_STACK: 'ReportsStack',
       USERS_STACK: 'UsersStack',
       SETTINGS: 'Settings',
+      MORE: 'More',
+      NOTIFICATION_CENTER: 'NotificationCenter',
       // Client stack
       CLIENT_LIST: 'ClientList',
       CLIENT_DETAIL: 'ClientDetail',
@@ -148,4 +152,21 @@ export const AppConstants = {
       CREATE_USER: 'CreateUser',
     },
   } as const,
+
+  NOTIFICATION_TYPES: {
+    ORDER_CREATED: 'order_created',
+    ORDER_DELIVERED: 'order_delivered',
+    ORDER_CANCELLED: 'order_cancelled',
+    PURCHASE_DELIVERED: 'purchase_delivered',
+    PAYMENT_RECEIVED: 'payment_received',
+    PAYMENT_PAID: 'payment_paid',
+    PAYMENT_REVERSED: 'payment_reversed',
+    INVOICE_ISSUED: 'invoice_issued',
+    INVOICE_OVERDUE: 'invoice_overdue',
+    LOW_STOCK: 'low_stock',
+    EXPENSE_APPROVED: 'expense_approved',
+    SYNC_COMPLETE: 'sync_complete',
+    SYNC_PARTIAL: 'sync_partial',
+    SYNC_FAILED: 'sync_failed',
+  },
 } as const;

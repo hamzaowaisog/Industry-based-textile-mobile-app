@@ -6,21 +6,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { QUICK_ACTION_CONFIGS, getStatCardConfigs } from '@utils/helpers/dashboardContent';
 import { computeRevenueTrend } from '@utils/helpers/dashboardMappers';
 import { formatCompactNumber as fmt } from '@utils/helpers/formatNumber';
+import { formatRelativeTime } from '@utils/helpers/formatRelativeTime';
 import { getGreetingKey } from '@utils/helpers/greetingHelpers';
+import { getNotificationIcon } from '@utils/helpers/notificationMappers';
 
 import { colors } from '@theme/colors';
 
 import { AppConstants } from '@constants/appConstants';
 import {
   BellIcon,
-  BoxIcon,
   MenuIcon,
   RefreshIcon,
-  SearchIcon,
   ShoppingBagIcon,
+  TruckIcon,
 } from '@constants/svgAssets';
 
 import type { DashboardComponentProps } from '../../types/dashboard.types';
+import type { NotificationItem } from '../../types/notifications.types';
 import { BarChart } from './BarChart';
 import { DashboardSkeleton } from './DashboardSkeleton';
 import { FinancialCell } from './FinancialCell';
@@ -40,6 +42,11 @@ export const DashboardComponent = ({
   onSync,
   onNewOrder,
   onViewAllOrders,
+  unreadCount,
+  unreadNotifications,
+  onBell,
+  onSeeAll,
+  onNotificationPress,
 }: DashboardComponentProps) => {
   const { t } = useTranslation();
 
@@ -56,11 +63,18 @@ export const DashboardComponent = ({
   const statCards = summary ? getStatCardConfigs(summary, t) : [];
   const quickActionCallbacks = [onNewOrder, () => {}, () => {}, () => {}];
 
+  const badgeLabel = unreadCount > 99 ? '99+' : String(unreadCount);
+
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.hamburger} onPress={onOpenDrawer} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={styles.hamburger}
+            onPress={onOpenDrawer}
+            activeOpacity={0.7}
+            hitSlop={10}
+          >
             <MenuIcon size={22} color={colors.text} />
           </TouchableOpacity>
 
@@ -77,6 +91,7 @@ export const DashboardComponent = ({
               onPress={onSync}
               disabled={isSyncing || !isOnline}
               activeOpacity={0.7}
+              hitSlop={10}
             >
               <RefreshIcon size={20} color={isSyncing ? colors.primary : colors.text} />
               {!isSyncing && (
@@ -88,11 +103,13 @@ export const DashboardComponent = ({
                 />
               )}
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
-              <SearchIcon size={20} color={colors.text} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.iconBtn} onPress={onBell} activeOpacity={0.7} hitSlop={10}>
               <BellIcon size={20} color={colors.text} />
+              {unreadCount > 0 && (
+                <View style={styles.bellBadge}>
+                  <Text style={styles.bellBadgeText}>{badgeLabel}</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -104,7 +121,7 @@ export const DashboardComponent = ({
         <View style={styles.errorWrap}>
           <Text style={styles.errorText}>{t('dashboard.loadError')}</Text>
           <Text style={styles.errorSub}>{t('dashboard.loadErrorSub')}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={onSync} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.retryBtn} onPress={onSync} activeOpacity={0.8} hitSlop={10}>
             <Text style={styles.retryText}>{t('dashboard.tapToRetry')}</Text>
           </TouchableOpacity>
         </View>
@@ -214,7 +231,9 @@ export const DashboardComponent = ({
           <View style={styles.section}>
             <View style={styles.sectionRow}>
               <Text style={styles.sectionTitle}>{t('dashboard.quickActions')}</Text>
-              <Text style={styles.sectionAction}>{t('dashboard.seeAll')}</Text>
+              <TouchableOpacity onPress={onSeeAll} activeOpacity={0.7} hitSlop={10}>
+                <Text style={styles.sectionAction}>{t('dashboard.seeAll')}</Text>
+              </TouchableOpacity>
             </View>
             <View style={styles.quickGrid}>
               {QUICK_ACTION_CONFIGS.map((cfg, i) => (
@@ -223,6 +242,7 @@ export const DashboardComponent = ({
                   style={styles.quickBtn}
                   onPress={quickActionCallbacks[i]}
                   activeOpacity={0.7}
+                  hitSlop={10}
                 >
                   <View style={[styles.quickActionTile, { backgroundColor: `${cfg.color}22` }]}>
                     <cfg.Icon size={18} color={cfg.color} />
@@ -236,7 +256,7 @@ export const DashboardComponent = ({
           <View style={styles.section}>
             <View style={styles.sectionRow}>
               <Text style={styles.sectionTitle}>{t('dashboard.recentOrders')}</Text>
-              <TouchableOpacity onPress={onViewAllOrders} activeOpacity={0.7}>
+              <TouchableOpacity onPress={onViewAllOrders} activeOpacity={0.7} hitSlop={10}>
                 <Text style={styles.sectionAction}>{t('dashboard.viewAll')}</Text>
               </TouchableOpacity>
             </View>
@@ -247,11 +267,11 @@ export const DashboardComponent = ({
                   <Text style={styles.emptyText}>{t('dashboard.noRecentOrders')}</Text>
                 </View>
               ) : (
-                summary.recentOrders.map((order, i) => (
+                summary.recentOrders.slice(0, 3).map((order, i, arr) => (
                   <OrderRow
                     key={order.orderId}
                     order={order}
-                    isLast={i === summary.recentOrders.length - 1}
+                    isLast={i === arr.length - 1}
                   />
                 ))
               )}
@@ -261,24 +281,66 @@ export const DashboardComponent = ({
           <View style={styles.section}>
             <View style={styles.sectionRow}>
               <Text style={styles.sectionTitle}>{t('dashboard.recentPurchases')}</Text>
-              <TouchableOpacity activeOpacity={0.7}>
+              <TouchableOpacity activeOpacity={0.7} hitSlop={10}>
                 <Text style={styles.sectionAction}>{t('dashboard.viewAllPurchases')}</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.card}>
               {summary.recentPurchases.length === 0 ? (
                 <View style={styles.emptyWrap}>
-                  <BoxIcon size={28} color={colors.divider} />
+                  <TruckIcon size={28} color={colors.divider} />
                   <Text style={styles.emptyText}>{t('dashboard.noRecentPurchases')}</Text>
                 </View>
               ) : (
-                summary.recentPurchases.map((purchase, i) => (
+                summary.recentPurchases.slice(0, 3).map((purchase, i, arr) => (
                   <PurchaseRow
                     key={purchase.purchaseId}
                     purchase={purchase}
-                    isLast={i === summary.recentPurchases.length - 1}
+                    isLast={i === arr.length - 1}
                   />
                 ))
+              )}
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionTitle}>{t('dashboard.recentNotifications')}</Text>
+              <TouchableOpacity onPress={onBell} activeOpacity={0.7} hitSlop={10}>
+                <Text style={styles.sectionAction}>{t('dashboard.viewAll')}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.card}>
+              {unreadNotifications.length === 0 ? (
+                <View style={styles.emptyWrap}>
+                  <BellIcon size={28} color={colors.divider} />
+                  <Text style={styles.emptyText}>{t('notifications.emptyTitle')}</Text>
+                </View>
+              ) : (
+                unreadNotifications.slice(0, 3).map((item: NotificationItem, i: number, arr) => {
+                  const { Icon, color } = getNotificationIcon(item.type);
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.notifRow,
+                        i < arr.length - 1 && styles.notifRowBorder,
+                      ]}
+                      onPress={() => onNotificationPress(item)}
+                      activeOpacity={0.7}
+                      hitSlop={10}
+                    >
+                      <View style={[styles.notifIcon, { backgroundColor: `${color}18` }]}>
+                        <Icon size={16} color={color} />
+                      </View>
+                      <View style={styles.notifContent}>
+                        <Text style={styles.notifTitle} numberOfLines={1}>{item.title}</Text>
+                        <Text style={styles.notifBody} numberOfLines={1}>{item.body}</Text>
+                      </View>
+                      <Text style={styles.notifTime}>{formatRelativeTime(item.createdAt)}</Text>
+                    </TouchableOpacity>
+                  );
+                })
               )}
             </View>
           </View>

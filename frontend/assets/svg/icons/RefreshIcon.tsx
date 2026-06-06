@@ -1,13 +1,8 @@
-import React from 'react';
-
 import Svg, { Path } from 'react-native-svg';
 
-interface RefreshIconProps {
-  size?: number;
-  color?: string;
-}
+import type { IconProps } from '../../../src/types/icon.types';
 
-export const RefreshIcon = ({ size = 13, color = '#6B7280' }: RefreshIconProps) => (
+export const RefreshIcon = ({ size = 13, color = '#6B7280' }: IconProps) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M4 4v5h5M20 20v-5h-5"

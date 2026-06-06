@@ -5,7 +5,7 @@ import { formatCompactNumber as fmt } from '@utils/helpers/formatNumber';
 
 import { colors } from '@theme/colors';
 
-import { BoxIcon } from '@constants/svgAssets';
+import { TruckIcon } from '@constants/svgAssets';
 
 import type { PurchaseRowProps } from '../../../types/dashboard.types';
 import { styles } from './styles';
@@ -16,7 +16,7 @@ export const PurchaseRow = ({ purchase, isLast }: PurchaseRowProps) => {
     <>
       <View style={styles.row}>
         <View style={styles.iconTile}>
-          <BoxIcon size={20} color={colors.warning} />
+          <TruckIcon size={20} color={colors.warning} />
         </View>
         <View style={styles.info}>
           <Text style={styles.supplier} numberOfLines={1}>

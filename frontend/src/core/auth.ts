@@ -342,9 +342,13 @@ export const logoutAsync = async (
     const refreshToken = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.REFRESH_TOKEN);
 
     if (refreshToken) {
-      const payload: LogoutRequest = { refreshToken };
+      const pushToken = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.PUSH_TOKEN);
+      const payload: LogoutRequest = { refreshToken, pushToken: pushToken ?? undefined };
       await authLogout(payload);
     }
+
+    const { useDeviceStore } = await import('../stores/deviceStore');
+    await useDeviceStore.getState().unregisterFromPush();
 
     await Promise.all([
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN),
@@ -353,6 +357,7 @@ export const logoutAsync = async (
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.ROLE_ID),
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.USER_NAME),
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.EMAIL),
+      // NOTIFICATIONS_PROMPTED intentionally NOT deleted — persists so modal doesn't re-show
     ]);
 
     await clearAllTables();

@@ -5,7 +5,7 @@ import { DashboardComponent } from '@components/dashboard';
 import { SyncBottomSheet } from '@components/sync/SyncBottomSheet';
 import { AppConstants } from '@constants/appConstants';
 import { useDashboard } from '@hooks/useDashboard';
-import { MainDrawerParamList } from '@types/navigation.types';
+import { MainDrawerParamList } from '../../types/navigation.types';
 
 export const DashboardScreen = () => {
   const navigation = useNavigation<DrawerNavigationProp<MainDrawerParamList>>();
@@ -25,6 +25,11 @@ export const DashboardScreen = () => {
         onOpenDrawer={() => navigation.openDrawer()}
         onNewOrder={() => (navigation as any).navigate(S.ORDERS_STACK)}
         onViewAllOrders={() => (navigation as any).navigate(S.ORDERS_STACK)}
+        unreadCount={dash.unreadCount}
+        unreadNotifications={dash.unreadNotifications}
+        onBell={dash.onBell}
+        onSeeAll={dash.onSeeAll}
+        onNotificationPress={dash.onNotificationPress}
       />
       <SyncBottomSheet
         ref={dash.syncSheetRef}

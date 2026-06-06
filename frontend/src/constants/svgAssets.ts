@@ -34,3 +34,7 @@ export {
 export { SearchIcon } from '../../assets/svg/icons/SearchIcon';
 export { BellIcon } from '../../assets/svg/icons/BellIcon';
 export { ClockIcon } from '../../assets/svg/icons/ClockIcon';
+export { PlusIcon } from '../../assets/svg/icons/PlusIcon';
+export { WalletIcon } from '../../assets/svg/icons/WalletIcon';
+export { AlertIcon } from '../../assets/svg/icons/AlertIcon';
+export { CloudIcon } from '../../assets/svg/icons/CloudIcon';

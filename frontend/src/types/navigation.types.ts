@@ -84,6 +84,16 @@ export type UserStackParamList = {
   CreateUser: undefined;
 };
 
+// ── Main stack (wraps drawer + modal screens) ──────────────────────────────────
+
+export type MainStackParamList = {
+  DrawerRoot: NavigatorScreenParams<MainDrawerParamList>;
+  More: undefined;
+  NotificationCenter: undefined;
+};
+
+export type MainStackNavProp = NativeStackNavigationProp<MainStackParamList>;
+
 // ── Drawer param list ──────────────────────────────────────────────────────────
 
 export type MainDrawerParamList = {

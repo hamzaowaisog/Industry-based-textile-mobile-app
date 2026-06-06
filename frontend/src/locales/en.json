@@ -261,7 +261,8 @@
     "noMonthlyData": "No monthly data yet",
     "loadError": "Could not load dashboard",
     "loadErrorSub": "Check your connection and try again",
-    "tapToRetry": "Retry"
+    "tapToRetry": "Retry",
+    "recentNotifications": "Recent Notifications"
   },
   "clients": {
     "title": "Clients",
@@ -455,5 +456,34 @@
       "contact": "7. Contact Us",
       "contactBody": "For any questions or concerns about this Privacy Policy or your data, please contact us through the application's Settings screen or email us at privacy@hamzatex.com."
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "emptyTitle": "You're all caught up",
+    "emptySubtext": "No unread notifications",
+    "deleteAction": "Delete",
+    "previewSectionTitle": "Recent Notifications",
+    "permissionTitle": "Stay in the loop",
+    "permissionBody": "Get real-time alerts for orders, payments, stock alerts, and sync updates.",
+    "permissionAllow": "Allow Notifications",
+    "permissionNotNow": "Not Now"
+  },
+  "more": {
+    "title": "More",
+    "allTools": "All tools",
+    "orders": "Orders",
+    "purchases": "Purchases",
+    "payments": "Payments",
+    "invoices": "Invoices",
+    "expenses": "Expenses",
+    "products": "Products",
+    "stockMovements": "Stock Movements",
+    "transactions": "Transactions",
+    "syncStatus": "Sync Status",
+    "notifications": "Notifications",
+    "reports": "Reports",
+    "users": "Users",
+    "settings": "Settings"
   }
 }

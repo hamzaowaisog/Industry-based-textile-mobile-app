@@ -285,6 +285,21 @@ migrations.push({
   `,
 });
 
+migrations.push({
+  version: 8,
+  sql: `
+    CREATE TABLE IF NOT EXISTS notifications (
+      id         TEXT    PRIMARY KEY,
+      type       TEXT    NOT NULL,
+      title      TEXT    NOT NULL,
+      body       TEXT    NOT NULL,
+      entity_id  INTEGER,
+      is_read    INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT    NOT NULL
+    );
+  `,
+});
+
 export const runMigrations = async (): Promise<void> => {
   await sqlite.execAsync(`
     CREATE TABLE IF NOT EXISTS _migrations (

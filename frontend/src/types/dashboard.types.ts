@@ -1,3 +1,5 @@
+import type { NotificationItem } from './notifications.types';
+
 export type RecentOrder = {
   orderId: number;
   clientName: string;
@@ -163,4 +165,10 @@ export type DashboardComponentProps = {
   onSync: () => void;
   onNewOrder: () => void;
   onViewAllOrders: () => void;
+  // Notification props
+  unreadCount: number;
+  unreadNotifications: NotificationItem[];
+  onBell: () => void;
+  onSeeAll: () => void;
+  onNotificationPress: (item: NotificationItem) => void;
 };
