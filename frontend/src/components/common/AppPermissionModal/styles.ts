@@ -21,7 +21,6 @@ export const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 20,
-    backgroundColor: `${colors.primary}18`,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
@@ -42,25 +41,24 @@ export const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 8,
   },
-  allowBtn: {
+  primaryBtn: {
     width: '100%',
-    backgroundColor: colors.primary,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
   },
-  allowText: {
+  primaryText: {
     fontFamily: typography.fontFamily.bold,
     fontSize: 16,
     fontWeight: '700',
     color: colors.textInverse,
   },
-  notNowBtn: {
+  secondaryBtn: {
     width: '100%',
     paddingVertical: 12,
     alignItems: 'center',
   },
-  notNowText: {
+  secondaryText: {
     fontFamily: typography.fontFamily.semibold,
     fontSize: 15,
     fontWeight: '600',

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import NetInfo from '@react-native-community/netinfo';
@@ -9,6 +9,7 @@ import 'react-native-get-random-values';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
 import Toast from 'react-native-toast-message';
+import { useTranslation } from 'react-i18next';
 
 import { useAuthStore } from '@stores/authStore';
 import { useDeviceStore } from '@stores/deviceStore';
@@ -18,10 +19,16 @@ import { useSyncStore } from '@stores/syncStore';
 import { RootNavigator } from '@navigation/RootNavigator';
 
 import { toastConfig } from '@components/common/AppToast';
-import { NotificationBanner } from '@components/common/NotificationBanner';
-import { NotificationPermissionModal } from '@components/common/NotificationPermissionModal';
+import { AppBanner } from '@components/common/AppBanner';
+import { AppPermissionModal } from '@components/common/AppPermissionModal';
 
 import { useNotificationListeners } from '@hooks/useNotificationListeners';
+
+import { BellIcon } from '@constants/svgAssets';
+import { colors } from '@theme/colors';
+import { markAsRead } from '@db/queries/notifications';
+import { handleDeepLink } from '@utils/helpers/notificationDeepLink';
+import { getNotificationIcon } from '@utils/helpers/notificationMappers';
 
 enableScreens();
 
@@ -35,9 +42,13 @@ const queryClient = new QueryClient({
 });
 
 const AppInner = () => {
+  const { t } = useTranslation();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hydrateNotifications = useNotificationStore((s) => s.hydrate);
-  const hydratePromptedFlag = useDeviceStore((s) => s.hydratePromptedFlag);
+
+  const banner = useNotificationStore((s) => s.banner);
+  const { hideBanner, decrementUnread, hydrate: hydrateNotifications } = useNotificationStore();
+
+  const { hasBeenPrompted, registerForPush, declineNotifications, hydratePromptedFlag } = useDeviceStore();
 
   useNotificationListeners();
 
@@ -48,11 +59,40 @@ const AppInner = () => {
     }
   }, [isAuthenticated, hydrateNotifications, hydratePromptedFlag]);
 
+  const handleBannerPress = useCallback(async () => {
+    if (!banner) return;
+    hideBanner();
+    await markAsRead(banner.id);
+    decrementUnread(1);
+    handleDeepLink(banner.type, banner.entityId);
+  }, [banner, hideBanner, decrementUnread]);
+
+  const bannerIcon = banner ? getNotificationIcon(banner.type) : null;
+
   return (
     <>
       <RootNavigator />
-      <NotificationBanner />
-      {isAuthenticated && <NotificationPermissionModal />}
+      <AppBanner
+        visible={!!banner}
+        title={banner?.title ?? ''}
+        body={banner?.body ?? ''}
+        Icon={bannerIcon?.Icon ?? BellIcon}
+        iconColor={bannerIcon?.color ?? colors.primary}
+        onPress={handleBannerPress}
+        onDismiss={hideBanner}
+      />
+      {isAuthenticated && (
+        <AppPermissionModal
+          visible={!hasBeenPrompted}
+          Icon={BellIcon}
+          title={t('notifications.permissionTitle')}
+          body={t('notifications.permissionBody')}
+          primaryLabel={t('notifications.permissionAllow')}
+          secondaryLabel={t('notifications.permissionNotNow')}
+          onPrimary={registerForPush}
+          onSecondary={declineNotifications}
+        />
+      )}
       <Toast config={toastConfig} position="bottom" bottomOffset={40} />
     </>
   );

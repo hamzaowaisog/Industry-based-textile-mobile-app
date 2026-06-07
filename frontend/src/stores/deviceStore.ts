@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { PermissionsAndroid, Platform } from 'react-native';
 
 import {
   AuthorizationStatus,
@@ -44,6 +44,17 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
 
   registerForPush: async () => {
     try {
+      if (Platform.OS === 'android' && Platform.Version >= 33) {
+        const result = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        );
+        if (result !== PermissionsAndroid.RESULTS.GRANTED) {
+          await SecureStore.setItemAsync(AppConstants.SECURE_STORE.NOTIFICATIONS_PROMPTED, 'true');
+          set({ notificationsEnabled: false, hasBeenPrompted: true });
+          return;
+        }
+      }
+
       const status = await requestPermission(fcm);
       const authorized =
         status === AuthorizationStatus.AUTHORIZED ||
@@ -90,6 +101,8 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
   },
 
   checkPermissionStatus: async () => {
+    if (!get().hasBeenPrompted) return;
+
     try {
       const status = await hasPermission(fcm);
       const authorized =
