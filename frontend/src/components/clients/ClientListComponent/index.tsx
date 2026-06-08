@@ -10,10 +10,9 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 import { colors } from '@theme/colors';
-import { MenuIcon, SearchIcon, PlusIcon, UsersIcon } from '@constants/svgAssets';
+import { MenuIcon, SearchIcon, PlusIcon, UsersIcon, TrashIcon } from '@constants/svgAssets';
 
 import type { ClientFilter, ClientListComponentProps, ClientRow } from '../../../types/clients.types';
 import { formatPKR } from '@utils/helpers/clientMappers';
@@ -49,20 +48,10 @@ const ClientRowCard = ({
         ? t('clients.youOwe')
         : null;
 
-  const renderRightActions = () => (
-    <TouchableOpacity
-      style={styles.deleteAction}
-      onPress={() => onDelete(item.serverId, item.localId, item.name)}
-      activeOpacity={0.8}
-    >
-      <Text style={styles.deleteLabel}>{t('common.delete')}</Text>
-    </TouchableOpacity>
-  );
-
   return (
-    <ReanimatedSwipeable renderRightActions={renderRightActions} overshootRight={false}>
+    <View style={styles.rowCard}>
       <TouchableOpacity
-        style={styles.rowCard}
+        style={styles.rowContent}
         onPress={() => onPress(item.serverId, item.localId)}
         activeOpacity={0.7}
       >
@@ -92,7 +81,15 @@ const ClientRowCard = ({
           )}
         </View>
       </TouchableOpacity>
-    </ReanimatedSwipeable>
+
+      <TouchableOpacity
+        style={styles.deleteBtn}
+        onPress={() => onDelete(item.serverId, item.localId, item.name)}
+        activeOpacity={0.7}
+      >
+        <TrashIcon size={18} color={colors.danger} />
+      </TouchableOpacity>
+    </View>
   );
 };
 

@@ -99,12 +99,17 @@ export const styles = StyleSheet.create({
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 3,
     elevation: 2,
+  },
+  rowContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   avatar: {
     width: 44,
@@ -153,21 +158,14 @@ export const styles = StyleSheet.create({
     color: colors.textTertiary,
   },
 
-  // Swipe delete
-  deleteAction: {
-    backgroundColor: colors.danger,
-    justifyContent: 'center',
+  // Delete button
+  deleteBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: 'center',
-    width: 80,
-    borderRadius: 16,
+    justifyContent: 'center',
     marginLeft: 8,
-  },
-  deleteLabel: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.surface,
-    marginTop: 4,
   },
 
   // FAB

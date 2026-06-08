@@ -123,21 +123,38 @@ export const refreshClientsFromApi = async (): Promise<void> => {
 };
 
 export const fetchClientDetailFromApi = async (serverId: number): Promise<ClientDetail | null> => {
-  const netState = await NetInfo.fetch();
-
-  if (!netState.isConnected) {
-    const local = getClientByServerId(serverId);
-    return local ? mapLocalClientToDetail(local) : null;
-  }
-
   const local = getClientByServerId(serverId);
+  if (!local) return null;
+
+  const base = mapLocalClientToDetail(local);
+
+  const netState = await NetInfo.fetch();
+  if (!netState.isConnected) return base;
+
   try {
     const res = await clientGetClientById(serverId);
     const r = unwrap<any>(res);
-    if (!r.success || !r.data) return local ? mapLocalClientToDetail(local) : null;
-    return mapApiClientDetail(r.data, local);
+    if (!r.success || !r.data) return base;
+
+    const api = mapApiClientDetail(r.data, local);
+
+    return {
+      ...base,
+      balance: api.balance,
+      outstanding: api.outstanding,
+      totalOrderCount: api.totalOrderCount,
+      totalOrderAmount: api.totalOrderAmount,
+      totalPurchaseCount: api.totalPurchaseCount,
+      totalPurchaseAmount: api.totalPurchaseAmount,
+      totalPaymentsIn: api.totalPaymentsIn,
+      totalPaymentsOut: api.totalPaymentsOut,
+      orders: api.orders,
+      purchases: api.purchases,
+      payments: api.payments,
+      recentTransactions: api.recentTransactions,
+    };
   } catch {
-    return local ? mapLocalClientToDetail(local) : null;
+    return base;
   }
 };
 

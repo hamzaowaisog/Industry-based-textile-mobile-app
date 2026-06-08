@@ -29,7 +29,10 @@ export const useClientList = () => {
 
   useFocusEffect(
     useCallback(() => {
-      refreshFromDb();
+      const task = InteractionManager.runAfterInteractions(() => {
+        refreshFromDb();
+      });
+      return () => task.cancel();
     }, [refreshFromDb]),
   );
 

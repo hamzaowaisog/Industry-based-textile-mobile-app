@@ -20,6 +20,7 @@ const S = AppConstants.SCREENS.MAIN;
 
 export const MORE_ITEMS: MoreItemConfig[] = [
   { key: 'notifications', labelKey: 'more.notifications', Icon: BellIcon,         color: colors.danger,        destination: 'NotificationCenter' },
+  { key: 'clients',       labelKey: 'more.clients',       Icon: UsersIcon,        color: colors.success,       destination: S.CLIENTS_STACK },
   { key: 'orders',        labelKey: 'more.orders',        Icon: ShoppingBagIcon,  color: colors.primary,       destination: S.ORDERS_STACK },
   { key: 'products',      labelKey: 'more.products',      Icon: BoxIcon,          color: colors.primary,       destination: S.PRODUCTS_STACK },
   { key: 'purchases',     labelKey: 'more.purchases',     Icon: TruckIcon,      color: colors.warning,      destination: S.PURCHASES_STACK },

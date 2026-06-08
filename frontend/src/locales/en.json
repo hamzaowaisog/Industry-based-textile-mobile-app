@@ -539,6 +539,7 @@
     "notifications": "Notifications",
     "reports": "Reports",
     "users": "Users",
-    "settings": "Settings"
+    "settings": "Settings",
+    "clients": "Clients"
   }
 }

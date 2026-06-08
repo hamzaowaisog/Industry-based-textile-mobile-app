@@ -43,3 +43,4 @@ export { MapPinIcon } from '../../assets/svg/icons/MapPinIcon';
 export { EditIcon } from '../../assets/svg/icons/EditIcon';
 export { FilterIcon } from '../../assets/svg/icons/FilterIcon';
 export { MoreIcon } from '../../assets/svg/icons/MoreIcon';
+export { TrashIcon } from '../../assets/svg/icons/TrashIcon';

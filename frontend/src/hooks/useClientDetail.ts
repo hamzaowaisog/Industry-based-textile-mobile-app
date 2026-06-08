@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { InteractionManager } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 
@@ -14,18 +15,19 @@ export const useClientDetail = () => {
   const route = useRoute<RouteProp<ClientStackParamList, 'ClientDetail'>>();
   const { clientId } = route.params;
 
-  const { currentClient, detailLoading, fetchClientDetail, clearCurrentClient } = useClientStore();
+  const { currentClient, detailLoading, fetchClientDetail } = useClientStore();
   const [tab, setTab] = useState<ClientTab>(AppConstants.CLIENT_TABS.ORDERS);
 
-  useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() => {
-      fetchClientDetail(clientId);
-    });
-    return () => {
-      task.cancel();
-      clearCurrentClient();
-    };
-  }, [clientId]);
+  useFocusEffect(
+    useCallback(() => {
+      const task = InteractionManager.runAfterInteractions(() => {
+        fetchClientDetail(clientId);
+      });
+      return () => {
+        task.cancel();
+      };
+    }, [clientId]),
+  );
 
   useEffect(() => {
     if (currentClient) {

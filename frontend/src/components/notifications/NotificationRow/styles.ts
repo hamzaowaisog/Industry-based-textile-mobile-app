@@ -7,7 +7,6 @@ export const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
     backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 14,
@@ -17,6 +16,12 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
+  },
+  rowContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   iconWrap: {
     width: 44,
@@ -50,18 +55,12 @@ export const styles = StyleSheet.create({
     color: colors.textTertiary,
     flexShrink: 0,
   },
-  deleteAction: {
-    backgroundColor: colors.danger,
-    justifyContent: 'center',
+  deleteBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
     alignItems: 'center',
-    width: 80,
-    borderRadius: 16,
-    marginBottom: 10,
-  },
-  deleteText: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textInverse,
+    justifyContent: 'center',
+    marginLeft: 8,
   },
 });
