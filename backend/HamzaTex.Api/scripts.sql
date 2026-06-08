@@ -1284,6 +1284,135 @@ ALTER TABLE `payment_allocations` ADD `CreatedAt` date NULL;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260604081401_AddCreatedAtToPaymentAllocation', '9.0.10');
 
+
+                SET @dbname = DATABASE();
+                SET @has_snake = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                                  WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = 'purchases' AND COLUMN_NAME = 'user_id');
+                SET @has_pascal = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                                   WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = 'purchases' AND COLUMN_NAME = 'UserId');
+                SET @sql = IF(@has_snake > 0, 'SELECT 1',
+                           IF(@has_pascal > 0,
+                              'ALTER TABLE `purchases` CHANGE COLUMN `UserId` `user_id` INT NULL',
+                              'ALTER TABLE `purchases` ADD COLUMN `user_id` INT NULL'));
+                PREPARE stmt FROM @sql;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;
+            
+
+
+                SET @dbname = DATABASE();
+                SET @has_snake = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                                  WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'user_id');
+                SET @has_pascal = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                                   WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'UserId');
+                SET @sql = IF(@has_snake > 0, 'SELECT 1',
+                           IF(@has_pascal > 0,
+                              'ALTER TABLE `orders` CHANGE COLUMN `UserId` `user_id` INT NULL',
+                              'ALTER TABLE `orders` ADD COLUMN `user_id` INT NULL'));
+                PREPARE stmt FROM @sql;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;
+            
+
+
+                UPDATE clients
+                SET user_id = (SELECT MIN(id) FROM users)
+                WHERE user_id IS NULL
+                  AND EXISTS (SELECT 1 FROM users);
+            
+
+
+                UPDATE orders o
+                INNER JOIN clients c ON c.id = o.client_id
+                SET o.user_id = c.user_id
+                WHERE o.user_id IS NULL AND c.user_id IS NOT NULL;
+            
+
+
+                UPDATE purchases p
+                INNER JOIN clients c ON c.id = p.supplier_id
+                SET p.user_id = c.user_id
+                WHERE p.user_id IS NULL AND c.user_id IS NOT NULL;
+            
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260608183646_AddUserIdToOrdersAndPurchases', '9.0.10');
+
+
+                SET @dbname = DATABASE();
+                SET @col = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                            WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = 'purchases' AND COLUMN_NAME = 'UserId');
+                SET @sql = IF(@col > 0, 'ALTER TABLE `purchases` CHANGE COLUMN `UserId` `user_id` INT NULL', 'SELECT 1');
+                PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+            
+
+
+                SET @dbname = DATABASE();
+                SET @col = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                            WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'UserId');
+                SET @sql = IF(@col > 0, 'ALTER TABLE `orders` CHANGE COLUMN `UserId` `user_id` INT NULL', 'SELECT 1');
+                PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+            
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260608185146_SyncUserIdColumnMapping', '9.0.10');
+
+DROP VIEW IF EXISTS v_client_balance;
+
+
+CREATE VIEW v_client_balance AS
+SELECT
+    c.id AS client_id,
+    c.name,
+    COALESCE(c.opening_balance, 0)
+    + COALESCE(t.order_total, 0)
+    - COALESCE(p.paid_total, 0) AS balance
+FROM clients c
+LEFT JOIN (
+    SELECT client_id, SUM(amount) AS order_total
+    FROM transactions
+    WHERE trans_category_id = 1
+    GROUP BY client_id
+) t ON t.client_id = c.id
+LEFT JOIN (
+    SELECT party_client_id, SUM(amount) AS paid_total
+    FROM payments
+    WHERE payment_direction_id = 1
+      AND is_reversed = 0
+      AND original_payment_id IS NULL
+    GROUP BY party_client_id
+) p ON p.party_client_id = c.id
+WHERE c.client_type_id = 1
+
+UNION ALL
+
+SELECT
+    c.id,
+    c.name,
+    COALESCE(c.opening_balance, 0)
+    + COALESCE(t.purchase_total, 0)
+    - COALESCE(p.paid_total, 0) AS balance
+FROM clients c
+LEFT JOIN (
+    SELECT client_id, SUM(amount) AS purchase_total
+    FROM transactions
+    WHERE trans_category_id = 2
+    GROUP BY client_id
+) t ON t.client_id = c.id
+LEFT JOIN (
+    SELECT party_client_id, SUM(amount) AS paid_total
+    FROM payments
+    WHERE payment_direction_id = 2
+      AND is_reversed = 0
+      AND original_payment_id IS NULL
+    GROUP BY party_client_id
+) p ON p.party_client_id = c.id
+WHERE c.client_type_id = 2;
+
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260608192927_FixVClientBalanceIncludeOpeningBalance', '9.0.10');
+
 COMMIT;
 
 

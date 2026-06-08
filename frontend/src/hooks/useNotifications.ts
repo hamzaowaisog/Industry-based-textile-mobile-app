@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -21,14 +22,20 @@ export const useNotifications = () => {
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const { unreadCount, decrementUnread, resetUnread } = useNotificationStore();
   const [items, setItems] = useState<NotificationItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const load = useCallback(async () => {
+    setIsLoading(true);
     const data = await getUnreadNotifications();
     setItems(data);
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    void load();
+    const task = InteractionManager.runAfterInteractions(() => {
+      void load();
+    });
+    return () => task.cancel();
   }, [load]);
 
   const onBack = useCallback(() => navigation.goBack(), [navigation]);
@@ -58,5 +65,5 @@ export const useNotifications = () => {
     [decrementUnread],
   );
 
-  return { items, unreadCount, onBack, onMarkAllRead, onRowPress, onRowDelete };
+  return { items, isLoading, unreadCount, onBack, onMarkAllRead, onRowPress, onRowDelete };
 };

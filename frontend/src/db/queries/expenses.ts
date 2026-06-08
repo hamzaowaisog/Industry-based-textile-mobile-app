@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 import type { SyncExpenseDto } from '@api/models';
 import type { InsertExpense, LocalExpense } from '../../types/db.types';
@@ -10,6 +10,8 @@ import { expenses } from '../schema';
 
 export const insertManyExpenses = (records: SyncExpenseDto[]): void => {
   if (!records.length) return;
+  const serverIds = records.map((r) => r.serverId).filter((id): id is number => id != null);
+  if (serverIds.length) db.delete(expenses).where(inArray(expenses.serverId, serverIds)).run();
   const values: InsertExpense[] = records.map((r) => ({
     localId: r.localId ?? generateUUID(),
     serverId: r.serverId ?? null,

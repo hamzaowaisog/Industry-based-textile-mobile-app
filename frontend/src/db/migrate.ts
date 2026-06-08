@@ -300,6 +300,36 @@ migrations.push({
   `,
 });
 
+migrations.push({
+  version: 9,
+  sql: `
+    ALTER TABLE clients ADD COLUMN user_id INTEGER;
+  `,
+});
+
+migrations.push({
+  version: 10,
+  sql: `
+    ALTER TABLE clients ADD COLUMN outstanding_balance REAL;
+  `,
+});
+
+migrations.push({
+  version: 11,
+  sql: `
+    ALTER TABLE orders ADD COLUMN user_id INTEGER;
+    ALTER TABLE purchases ADD COLUMN user_id INTEGER;
+  `,
+});
+
+migrations.push({
+  version: 12,
+  sql: `
+    ALTER TABLE products ADD COLUMN created_at TEXT;
+    ALTER TABLE transactions ADD COLUMN created_at TEXT;
+  `,
+});
+
 export const runMigrations = async (): Promise<void> => {
   await sqlite.execAsync(`
     CREATE TABLE IF NOT EXISTS _migrations (

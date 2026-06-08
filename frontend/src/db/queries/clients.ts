@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 import type { SyncClientDto } from '@api/models';
 import type { InsertClient, LocalClient } from '../../types/db.types';
@@ -10,9 +10,17 @@ import { clients } from '../schema';
 
 export const insertManyClients = (records: SyncClientDto[]): void => {
   if (!records.length) return;
+
+  const serverIds = records.map((r) => r.serverId).filter((id): id is number => id != null);
+  if (serverIds.length) {
+    db.delete(clients).where(inArray(clients.serverId, serverIds)).run();
+  }
+
   const values: InsertClient[] = records.map((r) => ({
     localId: r.localId ?? generateUUID(),
     serverId: r.serverId ?? null,
+    userId: r.userId ?? null,
+    outstandingBalance: r.outstandingBalance ?? r.openingBalance ?? null,
     name: r.name ?? '',
     phone: r.phone ?? null,
     address: r.address ?? null,
@@ -35,7 +43,12 @@ export const insertClient = (data: Omit<InsertClient, 'id' | 'localId' | 'isSync
   return localId;
 };
 
-export const getAllClients = (): LocalClient[] => db.select().from(clients).all();
+export const getAllClients = (userId?: number | null): LocalClient[] => {
+  if (userId != null) {
+    return db.select().from(clients).where(eq(clients.userId, userId)).all();
+  }
+  return db.select().from(clients).all();
+};
 
 export const getClientByLocalId = (localId: string): LocalClient | null => {
   const rows = db.select().from(clients).where(eq(clients.localId, localId)).limit(1).all();

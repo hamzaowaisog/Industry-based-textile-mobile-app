@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 import type { InsertPaymentAllocation, LocalPaymentAllocation } from '../../types/db.types';
 import { generateUUID } from '@utils/helpers/uuid';
@@ -8,6 +8,8 @@ import { paymentAllocations } from '../schema';
 
 export const insertManyPaymentAllocations = (records: any[]): void => {
   if (!records.length) return;
+  const serverIds = records.map((r) => r.serverId ?? r.id).filter((id): id is number => id != null);
+  if (serverIds.length) db.delete(paymentAllocations).where(inArray(paymentAllocations.serverId, serverIds)).run();
   const values: InsertPaymentAllocation[] = records.map((r) => ({
     localId: r.localId ?? generateUUID(),
     serverId: r.serverId ?? r.id ?? null,

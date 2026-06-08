@@ -30,4 +30,6 @@ export interface SyncPaymentDto {
   createdAt?: string | null;
   /** @nullable */
   updatedAt?: string | null;
+  /** @nullable */
+  operation?: string | null;
 }

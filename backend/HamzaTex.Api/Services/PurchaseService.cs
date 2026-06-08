@@ -81,6 +81,7 @@ public class PurchaseService : IPurchaseService
         var purchase = new Purchase
         {
             SupplierId = model.SupplierId,
+            UserId = userId,
             StatusId = StatusPending,
             PaymentTypeId = model.PaymentTypeId,
             PurchaseDate = model.PurchaseDate,
@@ -113,7 +114,7 @@ public class PurchaseService : IPurchaseService
         if (purchase is null)
             return Response<PurchaseDto>.ErrorResponse("Not found", "Purchase not found.");
 
-        if (!isAdmin && purchase.Supplier?.UserId != userId)
+        if (!isAdmin && purchase.UserId != userId)
             return Response<PurchaseDto>.ErrorResponse("Not found", "Purchase not found.");
 
         return Response<PurchaseDto>.SuccessResponse(ToDto(purchase), "Purchase fetched successfully.");
@@ -131,7 +132,7 @@ public class PurchaseService : IPurchaseService
     public async Task<Response<List<PurchaseDto>>> GetAllByUserIdAsync(int userId)
     {
         var purchases = await PurchaseQueryWithIncludes()
-            .Where(p => p.Supplier != null && p.Supplier.UserId == userId)
+            .Where(p => p.UserId == userId)
             .OrderBy(p => p.PurchaseDate)
             .ToListAsync();
 
@@ -153,7 +154,7 @@ public class PurchaseService : IPurchaseService
         var query = PurchaseQueryWithIncludes();
 
         if (!isAdmin)
-            query = query.Where(p => p.Supplier != null && p.Supplier.UserId == userId);
+            query = query.Where(p => p.UserId == userId);
 
         if (supplierId.HasValue)
             query = query.Where(p => p.SupplierId == supplierId.Value);
@@ -183,7 +184,7 @@ public class PurchaseService : IPurchaseService
         if (purchase is null)
             return Response<PurchaseDto>.ErrorResponse("Not found", "Purchase not found.");
 
-        if (!isAdmin && purchase.Supplier?.UserId != userId)
+        if (!isAdmin && purchase.UserId != userId)
             return Response<PurchaseDto>.ErrorResponse("Not found", "Purchase not found.");
 
         var previousStatusId = purchase.StatusId ?? 0;

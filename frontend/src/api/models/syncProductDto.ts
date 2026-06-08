@@ -46,4 +46,6 @@ export interface SyncProductDto {
   createdAt?: string | null;
   /** @nullable */
   updatedAt?: string | null;
+  /** @nullable */
+  operation?: string | null;
 }

@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 import type { SyncPurchaseDto } from '@api/models';
 
@@ -17,10 +17,17 @@ import { purchaseLines, purchases } from '../schema';
 
 export const insertManyPurchases = (records: SyncPurchaseDto[]): void => {
   if (!records.length) return;
+  const serverIds = records.map((r) => r.serverId).filter((id): id is number => id != null);
+  if (serverIds.length) {
+    const existingIds = db.select({ id: purchases.id }).from(purchases).where(inArray(purchases.serverId, serverIds)).all().map((p) => p.id);
+    if (existingIds.length) db.delete(purchaseLines).where(inArray(purchaseLines.purchaseId, existingIds)).run();
+    db.delete(purchases).where(inArray(purchases.serverId, serverIds)).run();
+  }
   for (const r of records) {
     const values: InsertPurchase = {
       localId: r.localId ?? generateUUID(),
       serverId: r.serverId ?? null,
+      userId: r.userId ?? null,
       supplierServerId: r.supplierId ?? null,
       statusId: r.statusId ?? 1,
       paymentTypeId: r.paymentTypeId ?? 1,

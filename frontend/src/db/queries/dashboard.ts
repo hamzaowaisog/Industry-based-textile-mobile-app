@@ -120,11 +120,9 @@ export const computeDashboardSummary = (limit = 5): LocalDashboardSummary => {
   )[0];
   const lastMonthRevenue = prevFin?.sales ?? 0;
 
-  // ── Total outstanding = sum of positive client balances ──
-  // Mirrors backend: VClientBalances.Where(b => b.Balance > 0).Sum()
   const outstanding = sqlite.getAllSync<{ total: number | null }>(
     `SELECT COALESCE(SUM(CASE WHEN bal > 0 THEN bal ELSE 0 END), 0) AS total FROM (
-       SELECT COALESCE(t.doc_total, 0) - COALESCE(p.paid_total, 0) AS bal
+       SELECT COALESCE(c.opening_balance, 0) + COALESCE(t.doc_total, 0) - COALESCE(p.paid_total, 0) AS bal
        FROM clients c
        LEFT JOIN (
          SELECT client_id, SUM(amount) AS doc_total
@@ -140,7 +138,7 @@ export const computeDashboardSummary = (limit = 5): LocalDashboardSummary => {
 
        UNION ALL
 
-       SELECT COALESCE(t.doc_total, 0) - COALESCE(p.paid_total, 0)
+       SELECT COALESCE(c.opening_balance, 0) + COALESCE(t.doc_total, 0) - COALESCE(p.paid_total, 0)
        FROM clients c
        LEFT JOIN (
          SELECT client_id, SUM(amount) AS doc_total

@@ -7,17 +7,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@theme/colors';
 
-import { ArrowLeftIcon, BellIcon } from '@constants/svgAssets';
+import { ArrowLeftIcon, BellIcon, CheckIcon } from '@constants/svgAssets';
 
 import type {
   NotificationCenterComponentProps,
   NotificationItem,
 } from '../../types/notifications.types';
 import { NotificationRow } from './NotificationRow';
+import { NotificationSkeleton } from './NotificationSkeleton';
 import { styles } from './styles';
 
 export const NotificationsComponent = ({
   items,
+  isLoading,
   unreadCount,
   onBack,
   onMarkAllRead,
@@ -46,11 +48,23 @@ export const NotificationsComponent = ({
         )}
       </View>
 
-      {items.length === 0 ? (
+      {isLoading ? (
+        <NotificationSkeleton />
+      ) : items.length === 0 ? (
         <View style={styles.emptyWrap}>
-          <BellIcon size={56} color={colors.divider} />
-          <Text style={styles.emptyTitle}>{t('notifications.emptyTitle')}</Text>
-          <Text style={styles.emptySub}>{t('notifications.emptySubtext')}</Text>
+          <View style={styles.emptyIconBubble}>
+            <BellIcon size={58} color={colors.success} />
+            <View style={styles.emptyCheckBadge}>
+              <CheckIcon size={20} color={colors.surface} />
+            </View>
+          </View>
+          <View style={styles.emptyTextWrap}>
+            <Text style={styles.emptyTitle}>{t('notifications.emptyTitle')}</Text>
+            <Text style={styles.emptySub}>{t('notifications.emptySubtext')}</Text>
+          </View>
+          <TouchableOpacity activeOpacity={0.7}>
+            <Text style={styles.emptySettings}>{t('notifications.emptySettings')}</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList

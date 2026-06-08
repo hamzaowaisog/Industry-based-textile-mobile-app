@@ -1,14 +1,17 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 import type { SyncProductDto } from '@api/models';
 import type { InsertProduct, LocalProduct } from '../../types/db.types';
 import { generateUUID } from '@utils/helpers/uuid';
+import { toISODate } from '@utils/helpers/dateConvert';
 
 import { db } from '../index';
 import { products } from '../schema';
 
 export const insertManyProducts = (records: SyncProductDto[]): void => {
   if (!records.length) return;
+  const serverIds = records.map((r) => r.serverId ?? r.id).filter((id): id is number => id != null);
+  if (serverIds.length) db.delete(products).where(inArray(products.serverId, serverIds)).run();
   const values: InsertProduct[] = records.map((r) => ({
     localId: r.localId ?? generateUUID(),
     serverId: r.serverId ?? r.id ?? null,
@@ -27,6 +30,7 @@ export const insertManyProducts = (records: SyncProductDto[]): void => {
     reorderLevel: r.reorderLevel ?? null,
     isActive: r.isActive ?? true,
     isSynced: true,
+    createdAt: toISODate(r.createdAt) ?? null,
     version: r.version ?? 0,
     updatedAt: r.updatedAt ?? null,
   }));

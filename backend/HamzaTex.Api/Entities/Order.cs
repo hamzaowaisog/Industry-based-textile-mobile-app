@@ -20,6 +20,8 @@ public partial class Order
 
     public int? ClientId { get; set; }
 
+    public int? UserId { get; set; }
+
     public int? StatusId { get; set; }
     
     public int? PaymentTypeId { get; set; }

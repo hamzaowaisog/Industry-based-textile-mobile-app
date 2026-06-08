@@ -32,4 +32,6 @@ export interface SyncStockMovementDto {
   movementDate?: string;
   /** @nullable */
   updatedAt?: string | null;
+  /** @nullable */
+  operation?: string | null;
 }

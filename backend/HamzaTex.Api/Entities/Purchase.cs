@@ -19,6 +19,8 @@ public partial class Purchase
 
     public int? SupplierId { get; set; }
 
+    public int? UserId { get; set; }
+
     public int? StatusId { get; set; }
 
     public int? PaymentTypeId { get; set; }

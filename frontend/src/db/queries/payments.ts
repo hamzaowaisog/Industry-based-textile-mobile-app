@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 import type { SyncPaymentDto } from '@api/models';
 import type { InsertPayment, LocalPayment } from '../../types/db.types';
@@ -10,6 +10,8 @@ import { payments } from '../schema';
 
 export const insertManyPayments = (records: SyncPaymentDto[]): void => {
   if (!records.length) return;
+  const serverIds = records.map((r) => r.serverId).filter((id): id is number => id != null);
+  if (serverIds.length) db.delete(payments).where(inArray(payments.serverId, serverIds)).run();
   const values: InsertPayment[] = records.map((r) => ({
     localId: r.localId ?? generateUUID(),
     serverId: r.serverId ?? null,

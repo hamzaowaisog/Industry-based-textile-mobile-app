@@ -38,3 +38,8 @@ export { PlusIcon } from '../../assets/svg/icons/PlusIcon';
 export { WalletIcon } from '../../assets/svg/icons/WalletIcon';
 export { AlertIcon } from '../../assets/svg/icons/AlertIcon';
 export { CloudIcon } from '../../assets/svg/icons/CloudIcon';
+export { PhoneIcon } from '../../assets/svg/icons/PhoneIcon';
+export { MapPinIcon } from '../../assets/svg/icons/MapPinIcon';
+export { EditIcon } from '../../assets/svg/icons/EditIcon';
+export { FilterIcon } from '../../assets/svg/icons/FilterIcon';
+export { MoreIcon } from '../../assets/svg/icons/MoreIcon';

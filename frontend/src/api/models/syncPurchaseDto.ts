@@ -15,6 +15,8 @@ export interface SyncPurchaseDto {
   version?: number;
   forceOverwrite?: boolean;
   /** @nullable */
+  userId?: number | null;
+  /** @nullable */
   supplierId?: number | null;
   /** @nullable */
   statusId?: number | null;
@@ -29,4 +31,6 @@ export interface SyncPurchaseDto {
   updatedAt?: string | null;
   /** @nullable */
   purchaseLines?: SyncPurchaseLineDto[] | null;
+  /** @nullable */
+  operation?: string | null;
 }

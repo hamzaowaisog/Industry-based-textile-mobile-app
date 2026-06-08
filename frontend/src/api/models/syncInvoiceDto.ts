@@ -38,4 +38,6 @@ export interface SyncInvoiceDto {
   updatedAt?: string | null;
   /** @nullable */
   invoiceLines?: SyncInvoiceLineDto[] | null;
+  /** @nullable */
+  operation?: string | null;
 }

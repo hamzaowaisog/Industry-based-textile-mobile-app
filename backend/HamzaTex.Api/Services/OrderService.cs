@@ -81,6 +81,7 @@ public class OrderService : IOrderService
         var order = new Order
         {
             ClientId = model.ClientId,
+            UserId = userId,
             StatusId = StatusPending,
             PaymentTypeId = model.PaymentTypeId,
             OrderDate = model.OrderDate,
@@ -119,7 +120,7 @@ public class OrderService : IOrderService
         if (order is null)
             return Response<OrderDto>.ErrorResponse("Not found", "Order not found.");
 
-        if (!isAdmin && order.Client?.UserId != userId)
+        if (!isAdmin && order.UserId != userId)
             return Response<OrderDto>.ErrorResponse("Not found", "Order not found.");
 
         return Response<OrderDto>.SuccessResponse(ToDto(order), "Order fetched successfully.");
@@ -137,7 +138,7 @@ public class OrderService : IOrderService
     public async Task<Response<List<OrderDto>>> GetAllByUserIdAsync(int userId)
     {
         var orders = await OrderQueryWithIncludes()
-            .Where(o => o.Client != null && o.Client.UserId == userId)
+            .Where(o => o.UserId == userId)
             .OrderBy(o => o.OrderDate)
             .ToListAsync();
 
@@ -159,7 +160,7 @@ public class OrderService : IOrderService
         var query = OrderQueryWithIncludes();
 
         if (!isAdmin)
-            query = query.Where(o => o.Client != null && o.Client.UserId == userId);
+            query = query.Where(o => o.UserId == userId);
 
         if (clientId.HasValue)
             query = query.Where(o => o.ClientId == clientId.Value);
@@ -189,7 +190,7 @@ public class OrderService : IOrderService
         if (order is null)
             return Response<OrderDto>.ErrorResponse("Not found", "Order not found.");
 
-        if (!isAdmin && order.Client?.UserId != userId)
+        if (!isAdmin && order.UserId != userId)
             return Response<OrderDto>.ErrorResponse("Not found", "Order not found.");
 
         var previousStatusId = order.StatusId ?? 0;

@@ -29,6 +29,15 @@ export const AppConstants = {
     STAFF: 2,
   },
 
+  // Client detail tabs
+  CLIENT_TABS: {
+    ORDERS: 'orders',
+    PURCHASES: 'purchases',
+    PAYMENTS: 'payments',
+    INVOICES: 'invoices',
+    TRANSACTIONS: 'transactions',
+  },
+
   // Pagination
   PAGINATION: {
     DEFAULT_PAGE: 1,

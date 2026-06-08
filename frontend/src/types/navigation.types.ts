@@ -30,7 +30,7 @@ export type ClientStackParamList = {
 export type OrderStackParamList = {
   OrderList: undefined;
   OrderDetail: { orderId: number };
-  CreateOrder: undefined;
+  CreateOrder: { clientId?: number; clientName?: string } | undefined;
 };
 
 export type ProductStackParamList = {
@@ -42,12 +42,12 @@ export type ProductStackParamList = {
 export type PurchaseStackParamList = {
   PurchaseList: undefined;
   PurchaseDetail: { purchaseId: number };
-  CreatePurchase: undefined;
+  CreatePurchase: { clientId?: number; clientName?: string } | undefined;
 };
 
 export type PaymentStackParamList = {
   PaymentList: undefined;
-  RecordPayment: { clientId?: number };
+  RecordPayment: { clientId?: number; clientName?: string };
 };
 
 export type InvoiceStackParamList = {

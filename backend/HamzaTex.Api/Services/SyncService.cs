@@ -111,7 +111,7 @@ public class SyncService : ISyncService
             var pushResult = new SyncPushResultDto
             {
                 Results = results,
-                AcceptedCount = results.Count(r => r.Status is "created" or "updated" or "accepted"),
+                AcceptedCount = results.Count(r => r.Status is "created" or "updated" or "accepted" or "deleted"),
                 RejectedCount = results.Count(r => r.Status is "rejected" or "conflict"),
                 ServerTime = DateTime.UtcNow
             };
@@ -135,6 +135,16 @@ public class SyncService : ISyncService
 
     private async Task<SyncItemResultDto> ProcessClientPush(SyncClientDto item, int userId, bool isAdmin)
     {
+        if (item.Operation == "delete")
+        {
+            if (item.ServerId is null)
+                return Accepted(item.LocalId, null);
+            var deleteResult = await _clientService.DeleteByIdAsync(item.ServerId.Value);
+            if (deleteResult.Success)
+                return Deleted(item.LocalId, item.ServerId.Value);
+            return Rejected(item.LocalId, deleteResult.Message);
+        }
+
         if (item.ServerId is null)
         {
             var existing = await _db.Clients
@@ -170,12 +180,13 @@ public class SyncService : ISyncService
             return Rejected(item.LocalId, "Record deleted on server.");
 
         if (!item.ForceOverwrite && server.Version != item.Version)
-            return Conflict(item.LocalId, server.Version, server);
+            return Conflict(item.LocalId, server.Id, server.Version, server);
 
         var updateDto = new UpdateClientByIdDto
         {
             Name = item.Name,
             ClientTypeId = item.ClientTypeId ?? server.ClientTypeId ?? 0,
+            UserId = server.UserId,
             Phone = item.Phone,
             Address = item.Address,
             CreditLimit = item.CreditLimit,
@@ -193,6 +204,16 @@ public class SyncService : ISyncService
 
     private async Task<SyncItemResultDto> ProcessOrderPush(SyncOrderDto item, int userId, bool isAdmin)
     {
+        if (item.Operation == "delete")
+        {
+            if (item.ServerId is null)
+                return Accepted(item.LocalId, null);
+            var deleteResult = await _orderService.DeleteByIdAsync(item.ServerId.Value);
+            if (deleteResult.Success)
+                return Deleted(item.LocalId, item.ServerId.Value);
+            return Rejected(item.LocalId, deleteResult.Message);
+        }
+
         if (item.ServerId is null)
         {
             var existing = await _db.Orders
@@ -246,7 +267,7 @@ public class SyncService : ISyncService
             return Rejected(item.LocalId, "Record deleted on server.");
 
         if (!item.ForceOverwrite && server.Version != item.Version)
-            return Conflict(item.LocalId, server.Version, server);
+            return Conflict(item.LocalId, server.Id, server.Version, server);
 
         var updateDto = new UpdateOrderDto
         {
@@ -265,6 +286,16 @@ public class SyncService : ISyncService
 
     private async Task<SyncItemResultDto> ProcessPurchasePush(SyncPurchaseDto item, int userId, bool isAdmin)
     {
+        if (item.Operation == "delete")
+        {
+            if (item.ServerId is null)
+                return Accepted(item.LocalId, null);
+            var deleteResult = await _purchaseService.DeleteByIdAsync(item.ServerId.Value);
+            if (deleteResult.Success)
+                return Deleted(item.LocalId, item.ServerId.Value);
+            return Rejected(item.LocalId, deleteResult.Message);
+        }
+
         if (item.ServerId is null)
         {
             var existing = await _db.Purchases
@@ -318,7 +349,7 @@ public class SyncService : ISyncService
             return Rejected(item.LocalId, "Record deleted on server.");
 
         if (!item.ForceOverwrite && server.Version != item.Version)
-            return Conflict(item.LocalId, server.Version, server);
+            return Conflict(item.LocalId, server.Id, server.Version, server);
 
         var updateDto = new UpdatePurchaseDto
         {
@@ -337,6 +368,16 @@ public class SyncService : ISyncService
 
     private async Task<SyncItemResultDto> ProcessPaymentPush(SyncPaymentDto item, int userId, bool isAdmin)
     {
+        if (item.Operation == "delete")
+        {
+            if (item.ServerId is null)
+                return Accepted(item.LocalId, null);
+            var deleteResult = await _paymentService.DeleteByIdAsync(item.ServerId.Value);
+            if (deleteResult.Success)
+                return Deleted(item.LocalId, item.ServerId.Value);
+            return Rejected(item.LocalId, deleteResult.Message);
+        }
+
         if (item.ServerId is null)
         {
             var existing = await _db.Payments
@@ -373,7 +414,7 @@ public class SyncService : ISyncService
             return Rejected(item.LocalId, "Record deleted on server.");
 
         if (!item.ForceOverwrite && server.Version != item.Version)
-            return Conflict(item.LocalId, server.Version, server);
+            return Conflict(item.LocalId, server.Id, server.Version, server);
 
         var updateDto = new UpdatePaymentDto
         {
@@ -391,6 +432,9 @@ public class SyncService : ISyncService
 
     private async Task<SyncItemResultDto> ProcessPaymentAllocationPush(SyncPaymentAllocationDto item, int userId, bool isAdmin)
     {
+        if (item.Operation == "delete")
+            return Rejected(item.LocalId, "PaymentAllocation deletes are not supported via sync.");
+
         if (item.ServerId is null)
         {
             var existing = await _db.PaymentAllocations
@@ -435,7 +479,7 @@ public class SyncService : ISyncService
             return Rejected(item.LocalId, "Record deleted on server.");
 
         if (!item.ForceOverwrite && server.Version != item.Version)
-            return Conflict(item.LocalId, server.Version, server);
+            return Conflict(item.LocalId, server.Id, server.Version, server);
 
         // Resolve payment for update as well
         var updatedPaymentId = item.PaymentId;
@@ -468,6 +512,16 @@ public class SyncService : ISyncService
 
     private async Task<SyncItemResultDto> ProcessExpensePush(SyncExpenseDto item, int userId, bool isAdmin)
     {
+        if (item.Operation == "delete")
+        {
+            if (item.ServerId is null)
+                return Accepted(item.LocalId, null);
+            var deleteResult = await _expenseService.DeleteByIdAsync(item.ServerId.Value);
+            if (deleteResult.Success)
+                return Deleted(item.LocalId, item.ServerId.Value);
+            return Rejected(item.LocalId, deleteResult.Message);
+        }
+
         if (item.ServerId is null)
         {
             var existing = await _db.Expenses
@@ -503,7 +557,7 @@ public class SyncService : ISyncService
             return Rejected(item.LocalId, "Record deleted on server.");
 
         if (!item.ForceOverwrite && server.Version != item.Version)
-            return Conflict(item.LocalId, server.Version, server);
+            return Conflict(item.LocalId, server.Id, server.Version, server);
 
         var updateDto = new UpdateExpenseDto
         {
@@ -522,6 +576,9 @@ public class SyncService : ISyncService
 
     private async Task<SyncItemResultDto> ProcessStockMovementPush(SyncStockMovementDto item, int userId, bool isAdmin)
     {
+        if (item.Operation == "delete")
+            return Rejected(item.LocalId, "StockMovement deletes are not supported via sync.");
+
         if (item.ServerId is not null)
             return Rejected(item.LocalId, "StockMovements cannot be updated, only created.");
 
@@ -558,6 +615,16 @@ public class SyncService : ISyncService
 
     private async Task<SyncItemResultDto> ProcessProductPush(SyncProductDto item, int userId, bool isAdmin)
     {
+        if (item.Operation == "delete")
+        {
+            if (item.ServerId is null)
+                return Accepted(item.LocalId, null);
+            var deleteResult = await _productService.DeleteByIdAsync(item.ServerId.Value, userId);
+            if (deleteResult.Success)
+                return Deleted(item.LocalId, item.ServerId.Value);
+            return Rejected(item.LocalId, deleteResult.Message);
+        }
+
         if (item.ServerId is null)
         {
             var existing = await _db.Products
@@ -598,7 +665,7 @@ public class SyncService : ISyncService
             return Rejected(item.LocalId, "Record deleted on server.");
 
         if (!item.ForceOverwrite && server.Version != item.Version)
-            return Conflict(item.LocalId, server.Version, server);
+            return Conflict(item.LocalId, server.Id, server.Version, server);
 
         var updateDto = new UpdateProductByIdDto
         {
@@ -627,6 +694,16 @@ public class SyncService : ISyncService
 
     private async Task<SyncItemResultDto> ProcessTransactionPush(SyncTransactionDto item, int userId, bool isAdmin)
     {
+        if (item.Operation == "delete")
+        {
+            if (item.ServerId is null)
+                return Accepted(item.LocalId, null);
+            var deleteResult = await _transactionService.DeleteByIdAsync(item.ServerId.Value);
+            if (deleteResult.Success)
+                return Deleted(item.LocalId, item.ServerId.Value);
+            return Rejected(item.LocalId, deleteResult.Message);
+        }
+
         if (item.ServerId is null)
         {
             var existing = await _db.Transactions
@@ -663,7 +740,7 @@ public class SyncService : ISyncService
             return Rejected(item.LocalId, "Record deleted on server.");
 
         if (!item.ForceOverwrite && server.Version != item.Version)
-            return Conflict(item.LocalId, server.Version, server);
+            return Conflict(item.LocalId, server.Id, server.Version, server);
 
         var updateDto = new UpdateTransactionDto
         {
@@ -685,6 +762,16 @@ public class SyncService : ISyncService
 
     private async Task<SyncItemResultDto> ProcessInvoicePush(SyncInvoiceDto item, int userId, bool isAdmin)
     {
+        if (item.Operation == "delete")
+        {
+            if (item.ServerId is null)
+                return Accepted(item.LocalId, null);
+            var deleteResult = await _invoiceService.DeleteByIdAsync(item.ServerId.Value);
+            if (deleteResult.Success)
+                return Deleted(item.LocalId, item.ServerId.Value);
+            return Rejected(item.LocalId, deleteResult.Message);
+        }
+
         if (item.ServerId is null)
         {
             var existing = await _db.Invoices
@@ -726,7 +813,7 @@ public class SyncService : ISyncService
             return Rejected(item.LocalId, "Record deleted on server.");
 
         if (!item.ForceOverwrite && server.Version != item.Version)
-            return Conflict(item.LocalId, server.Version, server);
+            return Conflict(item.LocalId, server.Id, server.Version, server);
 
         var updateDto = new UpdateInvoiceDto
         {
@@ -764,13 +851,13 @@ public class SyncService : ISyncService
         var orders = isAdmin
             ? await _db.Orders.AsNoTracking().Include(o => o.OrderLines).ToListAsync()
             : await _db.Orders.AsNoTracking().Include(o => o.OrderLines)
-                .Where(o => o.Client != null && o.Client.UserId == userId)
+                .Where(o => o.UserId == userId)
                 .ToListAsync();
 
         var purchases = isAdmin
             ? await _db.Purchases.AsNoTracking().Include(p => p.PurchaseLines).ToListAsync()
             : await _db.Purchases.AsNoTracking().Include(p => p.PurchaseLines)
-                .Where(p => p.Supplier != null && p.Supplier.UserId == userId)
+                .Where(p => p.UserId == userId)
                 .ToListAsync();
 
         var payments = isAdmin
@@ -805,7 +892,12 @@ public class SyncService : ISyncService
         var lookups = await LoadLookupsAsync();
         var views = await LoadViewsAsync();
 
-        var response = MapToPullResponse(clients, products, orders, purchases, payments, paymentAllocations, expenses, stockMovements, transactions, invoices, lookups, views);
+        var clientIds = clients.Select(c => c.Id).ToList();
+        var balances = await _db.VClientBalances.AsNoTracking()
+            .Where(v => v.ClientId != null && clientIds.Contains(v.ClientId.Value))
+            .ToDictionaryAsync(v => v.ClientId!.Value, v => v.Balance);
+
+        var response = MapToPullResponse(clients, products, orders, purchases, payments, paymentAllocations, expenses, stockMovements, transactions, invoices, lookups, views, balances);
         return Response<SyncFullPullResponseDto>.SuccessResponse(response, "Full pull completed.");
     }
 
@@ -826,13 +918,13 @@ public class SyncService : ISyncService
         var orders = isAdmin
             ? await _db.Orders.AsNoTracking().Include(o => o.OrderLines).Where(o => o.UpdatedAt >= since).ToListAsync()
             : await _db.Orders.AsNoTracking().Include(o => o.OrderLines)
-                .Where(o => o.UpdatedAt >= since && o.Client != null && o.Client.UserId == userId)
+                .Where(o => o.UserId == userId && o.UpdatedAt >= since)
                 .ToListAsync();
 
         var purchases = isAdmin
             ? await _db.Purchases.AsNoTracking().Include(p => p.PurchaseLines).Where(p => p.UpdatedAt >= since).ToListAsync()
             : await _db.Purchases.AsNoTracking().Include(p => p.PurchaseLines)
-                .Where(p => p.UpdatedAt >= since && p.Supplier != null && p.Supplier.UserId == userId)
+                .Where(p => p.UserId == userId && p.UpdatedAt >= since)
                 .ToListAsync();
 
         var payments = isAdmin
@@ -868,7 +960,12 @@ public class SyncService : ISyncService
         var lookups = await LoadLookupsAsync();
         var views = await LoadViewsAsync();
 
-        var response = MapToPullResponse(clients, products, orders, purchases, payments, paymentAllocations, expenses, stockMovements, transactions, invoices, lookups, views);
+        var clientIds = clients.Select(c => c.Id).ToList();
+        var balances = await _db.VClientBalances.AsNoTracking()
+            .Where(v => v.ClientId != null && clientIds.Contains(v.ClientId.Value))
+            .ToDictionaryAsync(v => v.ClientId!.Value, v => v.Balance);
+
+        var response = MapToPullResponse(clients, products, orders, purchases, payments, paymentAllocations, expenses, stockMovements, transactions, invoices, lookups, views, balances);
         return Response<SyncFullPullResponseDto>.SuccessResponse(response, "Delta pull completed.");
     }
 
@@ -964,7 +1061,8 @@ public class SyncService : ISyncService
         List<Transaction> transactions,
         List<Invoice> invoices,
         LookupSnapshot lookups,
-        ViewSnapshot views)
+        ViewSnapshot views,
+        Dictionary<int, decimal?> clientBalances)
     {
         return new SyncFullPullResponseDto
         {
@@ -980,6 +1078,7 @@ public class SyncService : ISyncService
                 Address = c.Address,
                 CreditLimit = c.CreditLimit,
                 OpeningBalance = c.OpeningBalance,
+                OutstandingBalance = clientBalances.GetValueOrDefault(c.Id) ?? c.OpeningBalance ?? 0,
                 Notes = c.Notes,
                 IsActive = c.IsActive,
                 CreatedAt = c.CreatedAt,
@@ -1015,6 +1114,7 @@ public class SyncService : ISyncService
                 LocalId = o.LocalId,
                 ServerId = o.Id,
                 Version = o.Version,
+                UserId = o.UserId,
                 ClientId = o.ClientId,
                 StatusId = o.StatusId,
                 PaymentTypeId = o.PaymentTypeId,
@@ -1036,6 +1136,7 @@ public class SyncService : ISyncService
                 LocalId = p.LocalId,
                 ServerId = p.Id,
                 Version = p.Version,
+                UserId = p.UserId,
                 SupplierId = p.SupplierId,
                 StatusId = p.StatusId,
                 PaymentTypeId = p.PaymentTypeId,
@@ -1204,7 +1305,7 @@ public class SyncService : ISyncService
         Status = "updated"
     };
 
-    private static SyncItemResultDto Accepted(string? localId, int serverId) => new()
+    private static SyncItemResultDto Accepted(string? localId, int? serverId) => new()
     {
         LocalId = localId,
         ServerId = serverId,
@@ -1218,9 +1319,17 @@ public class SyncService : ISyncService
         Errors = string.IsNullOrWhiteSpace(error) ? [] : [error]
     };
 
-    private static SyncItemResultDto Conflict(string? localId, int serverVersion, object serverRecord) => new()
+    private static SyncItemResultDto Deleted(string? localId, int serverId) => new()
     {
         LocalId = localId,
+        ServerId = serverId,
+        Status = "deleted"
+    };
+
+    private static SyncItemResultDto Conflict(string? localId, int serverId, int serverVersion, object serverRecord) => new()
+    {
+        LocalId = localId,
+        ServerId = serverId,
         Status = "conflict",
         ServerVersion = serverVersion,
         ServerData = JsonSerializer.Serialize(serverRecord, _jsonOpts)

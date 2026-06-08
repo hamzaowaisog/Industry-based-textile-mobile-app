@@ -5,6 +5,7 @@ export type SyncStore = SyncStatus & {
   pendingChanges: PendingChange[];
   addPendingChange: (change: PendingChange) => void;
   removePendingChange: (localId: string) => void;
+  clearPendingChanges: () => void;
   setSyncing: (isSyncing: boolean) => void;
   setSyncPhase: (phase: import('./store.types').SyncPhase) => void;
   setSyncError: (error: string | null) => void;

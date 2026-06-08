@@ -36,23 +36,31 @@ public class ClientService : IClientService
 
     public async Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId)
     {
-        var query = _dbContext.Clients
+        var clients = await _dbContext.Clients
             .AsNoTracking()
-            .Where(client => client.UserId == userId)
-            .Select(client => ToDto(client));
-        var pagedList = await PagedList<ClientDto>.CreateAsync(query, page, pageSize);
+            .Where(c => c.UserId == userId)
+            .OrderBy(c => c.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var total = await _dbContext.Clients.CountAsync(c => c.UserId == userId);
+        var ids = clients.Select(c => c.Id).ToList();
+        var balances = await GetBalancesAsync(ids);
+
+        var dtos = clients.Select(c => ToDto(c, balances.GetValueOrDefault(c.Id))).ToList();
+        var pagedList = new PagedList<ClientDto>(dtos, page, pageSize, total);
         return Response<PagedList<ClientDto>>.SuccessResponse(pagedList, "Clients fetched successfully.");
     }
 
     public async Task<Response<ClientDto>> CreateAsync(CreateClientDto model)
     {
-
         var user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == model.UserId);
         var entity = ToEntity(model);
         await _dbContext.Clients.AddAsync(entity);
         await _dbContext.SaveChangesAsync();
 
-        return Response<ClientDto>.SuccessResponse(ToDto(entity), "Client created.");
+        return Response<ClientDto>.SuccessResponse(ToDto(entity, null), "Client created.");
     }
 
     public async Task<Response<ClientDto>> GetByIdAsync(int id)
@@ -62,61 +70,60 @@ public class ClientService : IClientService
             .FirstOrDefaultAsync();
 
         if (client is null)
-        {
             return Response<ClientDto>.ErrorResponse("Not found", $"Client with id '{id}' was not found.");
-        }
 
-        return Response<ClientDto>.SuccessResponse(ToDto(client), "Client fetched successfully.");
+        var balance = await _dbContext.VClientBalances.AsNoTracking()
+            .Where(v => v.ClientId == id)
+            .Select(v => v.Balance)
+            .FirstOrDefaultAsync();
+
+        return Response<ClientDto>.SuccessResponse(ToDto(client, balance), "Client fetched successfully.");
     }
 
     public async Task<Response<List<ClientDto>>> GetAllAsync()
     {
         var clients = await _dbContext.Clients
+            .AsNoTracking()
             .Include(client => client.User)
             .Where(client => client.User != null)
             .ToListAsync();
-        
+
         if (clients is null)
-        {
             return Response<List<ClientDto>>.ErrorResponse("Not found", "No clients found.");
-        }
 
-        var clientDtos = clients.Select(client => ToDto(client)).ToList();
+        var ids = clients.Select(c => c.Id).ToList();
+        var balances = await GetBalancesAsync(ids);
 
-        return Response<List<ClientDto>>.SuccessResponse(clientDtos, "Clients fetched successfully.");
+        var dtos = clients.Select(c => ToDto(c, balances.GetValueOrDefault(c.Id))).ToList();
+        return Response<List<ClientDto>>.SuccessResponse(dtos, "Clients fetched successfully.");
     }
 
     public async Task<Response<List<ClientDto>>> GetAllByUserIdAsync(int userId)
     {
         var clients = await _dbContext.Clients
-            .Where(client => client.UserId == userId)
+            .AsNoTracking()
+            .Where(c => c.UserId == userId)
             .ToListAsync();
 
         if (clients is null)
-        {
             return Response<List<ClientDto>>.ErrorResponse("Not found", "No clients found.");
-        }
 
-        var clientDtos = clients.Select(client => ToDto(client)).ToList();
+        var ids = clients.Select(c => c.Id).ToList();
+        var balances = await GetBalancesAsync(ids);
 
-        return Response<List<ClientDto>>.SuccessResponse(clientDtos, "Clients fetched successfully.");
+        var dtos = clients.Select(c => ToDto(c, balances.GetValueOrDefault(c.Id))).ToList();
+        return Response<List<ClientDto>>.SuccessResponse(dtos, "Clients fetched successfully.");
     }
-
 
     public async Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model)
     {
-
         var entity = await _dbContext.Clients.Where(client => client.Id == id).FirstOrDefaultAsync();
         var user = await _dbContext.Users.Where(user => user.Id == model.UserId).FirstOrDefaultAsync();
         if (user is null)
-        {
             return Response<ClientDto>.ErrorResponse("Not found", $"User with id '{model.UserId}' was not found.");
-        }
 
         if (entity is null)
-        {
             return Response<ClientDto>.ErrorResponse("Not found", $"Client with id '{id}' was not found.");
-        }
 
         entity.Name = model.Name.Trim();
         entity.ClientTypeId = model.ClientTypeId;
@@ -128,7 +135,12 @@ public class ClientService : IClientService
         entity.IsActive = model.IsActive;
         await _dbContext.SaveChangesAsync();
 
-        return Response<ClientDto>.SuccessResponse(ToDto(entity), "Client updated.");
+        var balance = await _dbContext.VClientBalances.AsNoTracking()
+            .Where(v => v.ClientId == id)
+            .Select(v => v.Balance)
+            .FirstOrDefaultAsync();
+
+        return Response<ClientDto>.SuccessResponse(ToDto(entity, balance), "Client updated.");
     }
 
     public async Task<Response> DeleteByIdAsync(int id)
@@ -153,9 +165,18 @@ public class ClientService : IClientService
         await _dbContext.SaveChangesAsync();
 
         return Response.SuccessResponse("Client deleted.");
-    } 
+    }
 
-    private static ClientDto ToDto(Client entity) =>
+    private async Task<Dictionary<int, decimal?>> GetBalancesAsync(List<int> clientIds)
+    {
+        if (clientIds.Count == 0) return new Dictionary<int, decimal?>();
+        return await _dbContext.VClientBalances
+            .AsNoTracking()
+            .Where(v => v.ClientId != null && clientIds.Contains(v.ClientId.Value))
+            .ToDictionaryAsync(v => v.ClientId!.Value, v => v.Balance);
+    }
+
+    private static ClientDto ToDto(Client entity, decimal? outstandingBalance) =>
         new()
         {
             Id = entity.Id,
@@ -166,6 +187,7 @@ public class ClientService : IClientService
             Address = entity.Address ?? string.Empty,
             CreditLimit = entity.CreditLimit ?? 0,
             OpeningBalance = entity.OpeningBalance ?? 0,
+            OutstandingBalance = outstandingBalance ?? entity.OpeningBalance ?? 0,
             Notes = entity.Notes ?? string.Empty,
             IsActive = entity.IsActive,
             CreatedAt = entity.CreatedAt ?? DateOnly.FromDateTime(DateTime.UtcNow)
@@ -186,4 +208,3 @@ public class ClientService : IClientService
             CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 }
-

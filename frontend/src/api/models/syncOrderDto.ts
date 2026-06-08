@@ -15,6 +15,8 @@ export interface SyncOrderDto {
   version?: number;
   forceOverwrite?: boolean;
   /** @nullable */
+  userId?: number | null;
+  /** @nullable */
   clientId?: number | null;
   /** @nullable */
   statusId?: number | null;
@@ -29,4 +31,6 @@ export interface SyncOrderDto {
   updatedAt?: string | null;
   /** @nullable */
   orderLines?: SyncOrderLineDto[] | null;
+  /** @nullable */
+  operation?: string | null;
 }

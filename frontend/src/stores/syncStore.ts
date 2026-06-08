@@ -29,6 +29,9 @@ export const useSyncStore = create<SyncStore>()(
           return { pendingChanges: updated, pendingCount: updated.length };
         }),
 
+      clearPendingChanges: () =>
+        set({ pendingChanges: [], pendingCount: 0 }),
+
       setSyncing: (isSyncing) => set({ isSyncing }),
       setSyncPhase: (syncPhase) => set({ syncPhase }),
       setSyncError: (syncError) => set({ syncError }),

@@ -34,7 +34,7 @@ export const MoreComponent = ({
         <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7} hitSlop={10}>
           <ArrowLeftIcon size={20} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>{t('more.title')}</Text>
+        <Text style={styles.title} pointerEvents="none">{t('more.title')}</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>

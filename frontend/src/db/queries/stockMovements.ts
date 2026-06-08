@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 import type { SyncStockMovementDto } from '@api/models';
 import type { InsertStockMovement, LocalStockMovement } from '../../types/db.types';
@@ -10,6 +10,8 @@ import { stockMovements } from '../schema';
 
 export const insertManyStockMovements = (records: SyncStockMovementDto[]): void => {
   if (!records.length) return;
+  const serverIds = records.map((r) => r.serverId).filter((id): id is number => id != null);
+  if (serverIds.length) db.delete(stockMovements).where(inArray(stockMovements.serverId, serverIds)).run();
   const values: InsertStockMovement[] = records.map((r) => ({
     localId: r.localId ?? generateUUID(),
     serverId: r.serverId ?? null,

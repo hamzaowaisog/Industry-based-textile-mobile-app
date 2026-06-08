@@ -8,6 +8,7 @@ export const NotificationCenterScreen = () => {
   return (
     <NotificationsComponent
       items={hook.items}
+      isLoading={hook.isLoading}
       unreadCount={hook.unreadCount}
       onBack={hook.onBack}
       onMarkAllRead={hook.onMarkAllRead}

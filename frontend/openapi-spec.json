@@ -1104,6 +1104,54 @@
         }
       }
     },
+    "/api/Debug/test-push": {
+      "post": {
+        "tags": ["Debug"],
+        "summary": "Validate a push notification payload against FCM using dry_run mode.\r\nNo message is delivered to any device. Returns the FCM message ID and the full data payload that would be sent.\r\nSupported types: order_created, order_delivered, order_cancelled, purchase_delivered,\r\npayment_received, payment_paid, payment_reversed, invoice_issued, invoice_overdue,\r\nlow_stock, expense_approved, sync_complete, sync_partial, sync_failed.",
+        "operationId": "debug_testPush",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestPushRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestPushRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestPushRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Device/register": {
       "post": {
         "tags": ["Device"],
@@ -6110,6 +6158,13 @@
               "$ref": "#/components/schemas/RecentOrderDto"
             },
             "nullable": true
+          },
+          "recentPurchases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecentPurchaseDto"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -7375,6 +7430,30 @@
         },
         "additionalProperties": false
       },
+      "ObjectResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "nullable": true
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OrderCreateViewModel": {
         "type": "object",
         "properties": {
@@ -8560,6 +8639,36 @@
         },
         "additionalProperties": false
       },
+      "RecentPurchaseDto": {
+        "type": "object",
+        "properties": {
+          "purchaseId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "supplierName": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "statusName": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "purchaseDate": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "RefreshTokenRequest": {
         "type": "object",
         "properties": {
@@ -9127,6 +9236,10 @@
             "nullable": true,
             "example": 150000
           },
+          "outstandingBalance": {
+            "type": "number",
+            "format": "double"
+          },
           "notes": {
             "type": "string",
             "nullable": true,
@@ -9144,6 +9257,11 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time",
+            "nullable": true,
+            "example": "string"
+          },
+          "operation": {
+            "type": "string",
             "nullable": true,
             "example": "string"
           }
@@ -9224,6 +9342,11 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time",
+            "nullable": true,
+            "example": "string"
+          },
+          "operation": {
+            "type": "string",
             "nullable": true,
             "example": "string"
           }
@@ -9545,6 +9668,11 @@
               "$ref": "#/components/schemas/SyncInvoiceLineDto"
             },
             "nullable": true
+          },
+          "operation": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
           }
         },
         "additionalProperties": false
@@ -9726,6 +9854,12 @@
           "forceOverwrite": {
             "type": "boolean"
           },
+          "userId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "example": 1
+          },
           "clientId": {
             "type": "integer",
             "format": "int32",
@@ -9772,6 +9906,11 @@
               "$ref": "#/components/schemas/SyncOrderLineDto"
             },
             "nullable": true
+          },
+          "operation": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
           }
         },
         "additionalProperties": false
@@ -9874,6 +10013,11 @@
             "format": "date-time",
             "nullable": true,
             "example": "string"
+          },
+          "operation": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
           }
         },
         "additionalProperties": false
@@ -9950,6 +10094,11 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time",
+            "nullable": true,
+            "example": "string"
+          },
+          "operation": {
+            "type": "string",
             "nullable": true,
             "example": "string"
           }
@@ -10066,6 +10215,11 @@
             "format": "date-time",
             "nullable": true,
             "example": "string"
+          },
+          "operation": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
           }
         },
         "additionalProperties": false
@@ -10090,6 +10244,12 @@
           },
           "forceOverwrite": {
             "type": "boolean"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "example": 1
           },
           "supplierId": {
             "type": "integer",
@@ -10137,6 +10297,11 @@
               "$ref": "#/components/schemas/SyncPurchaseLineDto"
             },
             "nullable": true
+          },
+          "operation": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
           }
         },
         "additionalProperties": false
@@ -10372,6 +10537,11 @@
             "format": "date-time",
             "nullable": true,
             "example": "string"
+          },
+          "operation": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
           }
         },
         "additionalProperties": false
@@ -10476,6 +10646,31 @@
             "format": "date-time",
             "nullable": true,
             "example": "string"
+          },
+          "operation": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TestPushRequest": {
+        "type": "object",
+        "properties": {
+          "notificationType": {
+            "type": "string",
+            "description": "Notification type key from the catalog (e.g. \"order_delivered\").",
+            "nullable": true,
+            "example": "string"
+          },
+          "templateVars": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Template variable substitutions (e.g. orderId, clientName, amount).",
+            "nullable": true
           }
         },
         "additionalProperties": false

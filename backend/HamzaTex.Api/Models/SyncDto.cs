@@ -4,6 +4,7 @@ namespace HamzaTex.Api.Models;
 
 public class SyncClientDto
 {
+    public string? Operation { get; set; }
     public string? LocalId { get; set; }
     public int? ServerId { get; set; }
     public int Version { get; set; }
@@ -15,6 +16,7 @@ public class SyncClientDto
     public string? Address { get; set; }
     public decimal? CreditLimit { get; set; }
     public decimal? OpeningBalance { get; set; }
+    public decimal OutstandingBalance { get; set; }
     public string? Notes { get; set; }
     public bool IsActive { get; set; } = true;
     public DateOnly? CreatedAt { get; set; }
@@ -23,10 +25,12 @@ public class SyncClientDto
 
 public class SyncOrderDto
 {
+    public string? Operation { get; set; }
     public string? LocalId { get; set; }
     public int? ServerId { get; set; }
     public int Version { get; set; }
     public bool ForceOverwrite { get; set; }
+    public int? UserId { get; set; }
     public int? ClientId { get; set; }
     public int? StatusId { get; set; }
     public int? PaymentTypeId { get; set; }
@@ -47,10 +51,12 @@ public class SyncOrderLineDto
 
 public class SyncPurchaseDto
 {
+    public string? Operation { get; set; }
     public string? LocalId { get; set; }
     public int? ServerId { get; set; }
     public int Version { get; set; }
     public bool ForceOverwrite { get; set; }
+    public int? UserId { get; set; }
     public int? SupplierId { get; set; }
     public int? StatusId { get; set; }
     public int? PaymentTypeId { get; set; }
@@ -71,6 +77,7 @@ public class SyncPurchaseLineDto
 
 public class SyncPaymentDto
 {
+    public string? Operation { get; set; }
     public string? LocalId { get; set; }
     public int? ServerId { get; set; }
     public int Version { get; set; }
@@ -89,6 +96,7 @@ public class SyncPaymentDto
 
 public class SyncExpenseDto
 {
+    public string? Operation { get; set; }
     public string? LocalId { get; set; }
     public int? ServerId { get; set; }
     public int Version { get; set; }
@@ -105,6 +113,7 @@ public class SyncExpenseDto
 
 public class SyncStockMovementDto
 {
+    public string? Operation { get; set; }
     public string? LocalId { get; set; }
     public int? ServerId { get; set; }
     public int Version { get; set; }
@@ -125,6 +134,7 @@ public class SyncStockMovementDto
 
 public class SyncProductDto
 {
+    public string? Operation { get; set; }
     public string? LocalId { get; set; }
     public int? ServerId { get; set; }
     public int Version { get; set; }
@@ -150,6 +160,7 @@ public class SyncProductDto
 
 public class SyncTransactionDto
 {
+    public string? Operation { get; set; }
     public string? LocalId { get; set; }
     public int? ServerId { get; set; }
     public int Version { get; set; }
@@ -172,6 +183,7 @@ public class SyncTransactionDto
 
 public class SyncInvoiceDto
 {
+    public string? Operation { get; set; }
     public string? LocalId { get; set; }
     public int? ServerId { get; set; }
     public int Version { get; set; }
@@ -202,6 +214,7 @@ public class SyncInvoiceLineDto
 
 public class SyncPaymentAllocationDto
 {
+    public string? Operation { get; set; }
     public string? LocalId { get; set; }
     public int? ServerId { get; set; }
     public int Version { get; set; }

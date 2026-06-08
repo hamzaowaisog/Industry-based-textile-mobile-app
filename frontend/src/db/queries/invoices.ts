@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 import type { SyncInvoiceDto } from '@api/models';
 import type {
@@ -16,6 +16,12 @@ import { invoiceLines, invoices } from '../schema';
 
 export const insertManyInvoices = (records: SyncInvoiceDto[]): void => {
   if (!records.length) return;
+  const serverIds = records.map((r) => r.serverId ?? r.id).filter((id): id is number => id != null);
+  if (serverIds.length) {
+    const existingIds = db.select({ id: invoices.id }).from(invoices).where(inArray(invoices.serverId, serverIds)).all().map((i) => i.id);
+    if (existingIds.length) db.delete(invoiceLines).where(inArray(invoiceLines.invoiceId, existingIds)).run();
+    db.delete(invoices).where(inArray(invoices.serverId, serverIds)).run();
+  }
   for (const r of records) {
     const values: InsertInvoiceRecord = {
       localId: r.localId ?? generateUUID(),

@@ -92,7 +92,11 @@ export const push = async (): Promise<{ success: boolean; error?: string }> => {
   if (!pendingChanges.length) return { success: true };
 
   const groupBy = (changes: PendingChange[], entity: string) =>
-    changes.filter((c) => c.entity === entity).map((c) => c.data);
+    changes.filter((c) => c.entity === entity).map((c) => ({
+      ...c.data,
+      localId: c.localId,
+      operation: c.operation,
+    }));
 
   const pushDto = {
     clients: groupBy(pendingChanges, 'client') as any,
@@ -121,13 +125,15 @@ export const push = async (): Promise<{ success: boolean; error?: string }> => {
     }
 
     const results = res.data?.results ?? [];
+
+    const successStatuses = new Set(['created', 'updated', 'accepted', 'deleted']);
     for (const result of results) {
-      if (result.status === 'accepted') {
+      if (successStatuses.has(result.status)) {
         removePendingChange(result.localId);
       }
     }
 
-    const rejectedCount = results.filter((r) => r.status === 'rejected').length;
+    const rejectedCount = results.filter((r) => r.status === 'rejected' || r.status === 'conflict').length;
     if (rejectedCount > 0) {
       setSyncError(i18n.t('sync.partialFailure', { count: rejectedCount }));
     } else {

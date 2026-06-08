@@ -27,6 +27,7 @@ export interface SyncClientDto {
   creditLimit?: number | null;
   /** @nullable */
   openingBalance?: number | null;
+  outstandingBalance?: number;
   /** @nullable */
   notes?: string | null;
   isActive?: boolean;
@@ -34,4 +35,6 @@ export interface SyncClientDto {
   createdAt?: string | null;
   /** @nullable */
   updatedAt?: string | null;
+  /** @nullable */
+  operation?: string | null;
 }

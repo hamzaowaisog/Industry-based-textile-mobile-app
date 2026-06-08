@@ -113,6 +113,8 @@ export default function App() {
   useEffect(() => {
     void (async () => {
       await hydrate();
+      // TODO: Remove after one run — clears stuck pending changes with wrong localId from before the sync fix
+      // useSyncStore.getState().clearPendingChanges();
       await BootSplash.hide({ fade: true });
     })();
   }, [hydrate]);

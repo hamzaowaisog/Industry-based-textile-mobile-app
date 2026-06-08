@@ -263,6 +263,7 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.ClientId).HasColumnName("client_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.StatusId).HasColumnName("status_id");
             entity.Property(e => e.PaymentTypeId).HasColumnName("payment_type_id");
             entity.Property(e => e.CreatedAt)
@@ -487,6 +488,7 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.SupplierId).HasColumnName("supplier_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.PaymentTypeId).HasColumnName("payment_type_id");
             entity.Property(e => e.PurchaseDate)
                 .HasColumnType("date")

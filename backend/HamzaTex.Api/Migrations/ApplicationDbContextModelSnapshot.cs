@@ -660,6 +660,10 @@ namespace HamzaTex.Api.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
                     b.Property<int>("Version")
                         .HasColumnType("int");
 
@@ -1181,6 +1185,10 @@ namespace HamzaTex.Api.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
 
                     b.Property<int>("Version")
                         .HasColumnType("int");

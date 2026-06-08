@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 import type { SyncOrderDto } from '@api/models';
 import type {
@@ -16,10 +16,17 @@ import { orderLines, orders } from '../schema';
 
 export const insertManyOrders = (records: SyncOrderDto[]): void => {
   if (!records.length) return;
+  const serverIds = records.map((r) => r.serverId).filter((id): id is number => id != null);
+  if (serverIds.length) {
+    const existingIds = db.select({ id: orders.id }).from(orders).where(inArray(orders.serverId, serverIds)).all().map((o) => o.id);
+    if (existingIds.length) db.delete(orderLines).where(inArray(orderLines.orderId, existingIds)).run();
+    db.delete(orders).where(inArray(orders.serverId, serverIds)).run();
+  }
   for (const r of records) {
     const values: InsertOrder = {
       localId: r.localId ?? generateUUID(),
       serverId: r.serverId ?? null,
+      userId: r.userId ?? null,
       clientServerId: r.clientId ?? null,
       statusId: r.statusId ?? 1,
       paymentTypeId: r.paymentTypeId ?? 1,

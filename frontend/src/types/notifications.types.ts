@@ -56,6 +56,7 @@ export type NotificationRowProps = {
 
 export type NotificationCenterComponentProps = {
   items: NotificationItem[];
+  isLoading: boolean;
   unreadCount: number;
   onBack: () => void;
   onMarkAllRead: () => void;
