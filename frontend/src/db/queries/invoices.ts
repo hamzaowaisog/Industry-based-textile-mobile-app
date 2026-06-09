@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
 
 import type { SyncInvoiceDto } from '@api/models';
 import type {
@@ -58,6 +58,9 @@ export const insertManyInvoices = (records: SyncInvoiceDto[]): void => {
 };
 
 export const getAllInvoices = (): LocalInvoiceRecord[] => db.select().from(invoices).all();
+
+export const getInvoicesByClientServerId = (clientServerId: number): LocalInvoiceRecord[] =>
+  db.select().from(invoices).where(eq(invoices.clientServerId, clientServerId)).orderBy(desc(invoices.issueDate)).all();
 
 export const getInvoiceWithLines = (localId: string): LocalInvoiceWithLines | null => {
   const invoice = db

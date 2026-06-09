@@ -1,4 +1,4 @@
-import { inArray } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
 
 import type { SyncTransactionDto } from '@api/models';
 import type { LocalTransaction } from '../../types/db.types';
@@ -33,3 +33,6 @@ export const insertManyTransactions = (records: SyncTransactionDto[]): void => {
 };
 
 export const getAllTransactions = (): LocalTransaction[] => db.select().from(transactions).all();
+
+export const getTransactionsByClientId = (clientId: number): LocalTransaction[] =>
+  db.select().from(transactions).where(eq(transactions.clientId, clientId)).orderBy(desc(transactions.transDate)).all();

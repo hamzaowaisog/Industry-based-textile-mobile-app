@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
 
 import type { SyncOrderDto } from '@api/models';
 import type {
@@ -12,6 +12,7 @@ import { generateUUID } from '@utils/helpers/uuid';
 import { toISODate } from '@utils/helpers/dateConvert';
 
 import { db } from '../index';
+import { getPaidAmountForOrder } from './paymentAllocations';
 import { orderLines, orders } from '../schema';
 
 export const insertManyOrders = (records: SyncOrderDto[]): void => {
@@ -79,3 +80,15 @@ export const getOrderWithLines = (localId: string): LocalOrderWithLines | null =
 
 export const getOrderLinesByOrderId = (orderId: number): LocalOrderLine[] =>
   db.select().from(orderLines).where(eq(orderLines.orderId, orderId)).all();
+
+export type LocalOrderWithPaid = LocalOrder & { amountPaid: number };
+
+export const getOrdersByClientServerId = (clientServerId: number): LocalOrderWithPaid[] => {
+  const rows = db.select().from(orders).where(eq(orders.clientServerId, clientServerId)).orderBy(desc(orders.orderDate)).all();
+  return rows.map((order) => {
+    const lines = db.select().from(orderLines).where(eq(orderLines.orderId, order.id)).all();
+    const total = lines.reduce((sum, l) => sum + l.qty * l.unitPrice, 0);
+    const amountPaid = order.serverId ? getPaidAmountForOrder(order.serverId) : 0;
+    return { ...order, totalAmount: total > 0 ? total : (order.totalAmount ?? 0), amountPaid };
+  });
+};

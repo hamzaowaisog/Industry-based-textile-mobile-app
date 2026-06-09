@@ -1,12 +1,24 @@
 import React from 'react';
 
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { formatPKR, getInitials } from '@utils/helpers/clientMappers';
+import {
+  formatPKR,
+  getInitials,
+  resolveClientBalanceColor,
+  resolveClientBalanceDirection,
+} from '@utils/helpers/clientMappers';
 import { CUSTOMER_TABS, SUPPLIER_TABS } from '@utils/helpers/clientDetailContent';
 
 import { colors } from '@theme/colors';
@@ -16,6 +28,7 @@ import {
   CoinsIcon,
   CreditCardIcon,
   EditIcon,
+  FileTextIcon,
   MapPinIcon,
   PhoneIcon,
   PlusIcon,
@@ -24,37 +37,45 @@ import {
 } from '@constants/svgAssets';
 
 import type { ClientDetailComponentProps } from '../../../types/clients.types';
+import { InvoiceTabRow } from './InvoiceTabRow';
 import { OrderTabRow } from './OrderTabRow';
 import { PaymentTabRow } from './PaymentTabRow';
+import { PurchaseTabRow } from './PurchaseTabRow';
 import { SkeletonDetail } from './SkeletonDetail';
 import { TransactionTabRow } from './TransactionTabRow';
-import { PurchaseTabRow } from './PurchaseTabRow';
 import { styles } from './styles';
 
 export const ClientDetailComponent = ({
   client,
   loading,
+  refreshing,
   tab,
   onTabChange,
+  onRefresh,
   onBack,
   onEdit,
   onPrimaryAction,
   onSecondaryAction,
 }: ClientDetailComponentProps) => {
   const { t } = useTranslation();
+  const { height: windowHeight } = useWindowDimensions();
+  const tabContentMaxHeight = Math.max(240, windowHeight * 0.4);
 
   if (loading || !client) return <SkeletonDetail />;
 
   const isSupplier = client.clientTypeId === 2;
   const initials = getInitials(client.clientName);
-  const balanceColor = client.balance > 0 ? colors.danger : colors.success;
-  const balanceSub = isSupplier
-    ? client.balance > 0
-      ? t('clients.youOwe')
-      : t('clients.theyOweYou')
-    : client.balance > 0
-      ? t('clients.owesYou')
-      : t('clients.youOwe');
+  const balanceDirection = resolveClientBalanceDirection(
+    client.clientTypeId,
+    client.outstanding,
+  );
+  const balanceColor = resolveClientBalanceColor(balanceDirection);
+  const balanceSub =
+    balanceDirection === 'settled'
+      ? t('clients.settled')
+      : balanceDirection === 'receivable'
+        ? t('clients.balanceReceivable')
+        : t('clients.balancePayable');
 
   const tabs = isSupplier ? SUPPLIER_TABS : CUSTOMER_TABS;
 
@@ -69,6 +90,11 @@ export const ClientDetailComponent = ({
         break;
       case 'payments':
         rows = (client.payments ?? []).map((p) => <PaymentTabRow key={p.paymentId} item={p} />);
+        break;
+      case 'invoices':
+        rows = (client.invoices ?? []).map((inv, i) => (
+          <InvoiceTabRow key={inv.invoiceId ?? i} item={inv} />
+        ));
         break;
       case 'transactions':
         rows = (client.recentTransactions ?? []).map((tx) => (
@@ -88,7 +114,17 @@ export const ClientDetailComponent = ({
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+      >
         <LinearGradient
           colors={[colors.primary, colors.primaryDark]}
           start={{ x: 0, y: 0 }}
@@ -120,6 +156,11 @@ export const ClientDetailComponent = ({
                 <View style={styles.headerBadge}>
                   <Text style={styles.headerBadgeText}>{t('clients.active')}</Text>
                 </View>
+                {!client.isSynced && (
+                  <View style={[styles.headerBadge, styles.headerBadgeUnsaved]}>
+                    <Text style={styles.headerBadgeText}>{t('clients.unsavedChanges')}</Text>
+                  </View>
+                )}
               </View>
             </View>
           </View>
@@ -131,7 +172,7 @@ export const ClientDetailComponent = ({
             <Text style={[styles.balanceAmount, { color: balanceColor }]}>
               {formatPKR(client.balance)}
             </Text>
-            <Text style={styles.balanceSub}>{balanceSub}</Text>
+            <Text style={[styles.balanceSub, { color: balanceColor }]}>{balanceSub}</Text>
 
             <View style={styles.actionRow}>
               <TouchableOpacity
@@ -154,6 +195,33 @@ export const ClientDetailComponent = ({
                   {isSupplier ? t('clients.newPurchase') : t('clients.newOrder')}
                 </Text>
               </TouchableOpacity>
+            </View>
+
+            <View style={styles.statRow}>
+              {!isSupplier && (
+                <View style={styles.statChip}>
+                  <Text style={styles.statChipLabel}>{t('clients.statsOrders')}</Text>
+                  <Text style={styles.statChipValue}>
+                    {client.totalOrderCount} · {formatPKR(client.totalOrderAmount)}
+                  </Text>
+                </View>
+              )}
+              {isSupplier && (
+                <View style={styles.statChip}>
+                  <Text style={styles.statChipLabel}>{t('clients.statsPurchases')}</Text>
+                  <Text style={styles.statChipValue}>
+                    {client.totalPurchaseCount} · {formatPKR(client.totalPurchaseAmount)}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.statChip}>
+                <Text style={styles.statChipLabel}>{t('clients.statsPaymentsIn')}</Text>
+                <Text style={styles.statChipValue}>{formatPKR(client.totalPaymentsIn)}</Text>
+              </View>
+              <View style={styles.statChip}>
+                <Text style={styles.statChipLabel}>{t('clients.statsPaymentsOut')}</Text>
+                <Text style={styles.statChipValue}>{formatPKR(client.totalPaymentsOut)}</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -182,6 +250,15 @@ export const ClientDetailComponent = ({
                 key: t('clients.openingBalance'),
                 val: client.openingBalance != null ? formatPKR(client.openingBalance) : '—',
               },
+              ...(client.notes
+                ? [
+                    {
+                      icon: <FileTextIcon size={18} color={colors.primary} />,
+                      key: t('clients.notes'),
+                      val: client.notes,
+                    },
+                  ]
+                : []),
             ].map((row, i, arr) => (
               <View key={i}>
                 <View style={styles.infoRow}>
@@ -214,7 +291,14 @@ export const ClientDetailComponent = ({
               </TouchableOpacity>
             ))}
           </View>
-          <View style={styles.tabContent}>{renderTabContent()}</View>
+          <ScrollView
+            style={[styles.tabContentScroll, { maxHeight: tabContentMaxHeight }]}
+            contentContainerStyle={styles.tabContent}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator={false}
+          >
+            {renderTabContent()}
+          </ScrollView>
         </View>
       </ScrollView>
     </SafeAreaView>

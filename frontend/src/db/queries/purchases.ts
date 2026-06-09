@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
 
 import type { SyncPurchaseDto } from '@api/models';
 
@@ -13,6 +13,7 @@ import type {
   LocalPurchaseWithLines,
 } from '../../types/db.types';
 import { db } from '../index';
+import { getPaidAmountForPurchase } from './paymentAllocations';
 import { purchaseLines, purchases } from '../schema';
 
 export const insertManyPurchases = (records: SyncPurchaseDto[]): void => {
@@ -92,3 +93,15 @@ export const getPurchaseWithLines = (localId: string): LocalPurchaseWithLines | 
 
 export const getPurchaseLinesByPurchaseId = (purchaseId: number): LocalPurchaseLine[] =>
   db.select().from(purchaseLines).where(eq(purchaseLines.purchaseId, purchaseId)).all();
+
+export type LocalPurchaseWithPaid = LocalPurchase & { amountPaid: number };
+
+export const getPurchasesBySupplierServerId = (supplierServerId: number): LocalPurchaseWithPaid[] => {
+  const rows = db.select().from(purchases).where(eq(purchases.supplierServerId, supplierServerId)).orderBy(desc(purchases.purchaseDate)).all();
+  return rows.map((purchase) => {
+    const lines = db.select().from(purchaseLines).where(eq(purchaseLines.purchaseId, purchase.id)).all();
+    const total = lines.reduce((sum, l) => sum + l.qty * l.unitCost, 0);
+    const amountPaid = purchase.serverId ? getPaidAmountForPurchase(purchase.serverId) : 0;
+    return { ...purchase, totalAmount: total > 0 ? total : (purchase.totalAmount ?? 0), amountPaid };
+  });
+};

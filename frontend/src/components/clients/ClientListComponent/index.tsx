@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import {
   Animated,
   FlatList,
+  RefreshControl,
   Text,
   TextInput,
   TouchableOpacity,
@@ -15,7 +16,7 @@ import { colors } from '@theme/colors';
 import { MenuIcon, SearchIcon, PlusIcon, UsersIcon, TrashIcon } from '@constants/svgAssets';
 
 import type { ClientFilter, ClientListComponentProps, ClientRow } from '../../../types/clients.types';
-import { formatPKR } from '@utils/helpers/clientMappers';
+import { formatPKR, resolveClientBalanceColor } from '@utils/helpers/clientMappers';
 import { styles } from './styles';
 
 const FILTER_OPTIONS: { value: ClientFilter; labelKey: string }[] = [
@@ -35,17 +36,12 @@ const ClientRowCard = ({
 }) => {
   const { t } = useTranslation();
   const avatarBg = item.clientTypeId === 1 ? colors.primary : colors.warning;
-  const balanceColor =
-    item.owesYou === true
-      ? colors.danger
-      : item.owesYou === false
-        ? colors.success
-        : colors.textTertiary;
+  const balanceColor = resolveClientBalanceColor(item.balanceDirection);
   const balanceLabel =
-    item.owesYou === true
-      ? t('clients.owesYou')
-      : item.owesYou === false
-        ? t('clients.youOwe')
+    item.balanceDirection === 'receivable'
+      ? t('clients.balanceReceivable')
+      : item.balanceDirection === 'payable'
+        ? t('clients.balancePayable')
         : null;
 
   return (
@@ -67,13 +63,13 @@ const ClientRowCard = ({
         </View>
 
         <View style={styles.rowRight}>
-          {item.owesYou !== null ? (
+          {item.balanceDirection !== 'settled' ? (
             <>
               <Text style={[styles.balanceAmount, { color: balanceColor }]}>
                 {formatPKR(item.balance)}
               </Text>
               {balanceLabel ? (
-                <Text style={styles.balanceLabel}>{balanceLabel}</Text>
+                <Text style={[styles.balanceLabel, { color: balanceColor }]}>{balanceLabel}</Text>
               ) : null}
             </>
           ) : (
@@ -153,10 +149,12 @@ export const ClientListComponent = ({
   filter,
   search,
   loading,
+  refreshing,
   onFilterChange,
   onSearchChange,
   onRowPress,
   onDelete,
+  onRefresh,
   onFab,
   onMenuPress,
   onAddFirstClient,
@@ -231,6 +229,14 @@ export const ClientListComponent = ({
           ItemSeparatorComponent={() => <View style={styles.gap} />}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
         />
       )}
 

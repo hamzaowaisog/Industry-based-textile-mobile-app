@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
 
 import type { SyncPaymentDto } from '@api/models';
 import type { InsertPayment, LocalPayment } from '../../types/db.types';
@@ -43,3 +43,6 @@ export const getPaymentByLocalId = (localId: string): LocalPayment | null => {
   const rows = db.select().from(payments).where(eq(payments.localId, localId)).limit(1).all();
   return rows[0] ?? null;
 };
+
+export const getPaymentsByPartyClientServerId = (partyClientServerId: number): LocalPayment[] =>
+  db.select().from(payments).where(eq(payments.partyClientServerId, partyClientServerId)).orderBy(desc(payments.paymentDate)).all();

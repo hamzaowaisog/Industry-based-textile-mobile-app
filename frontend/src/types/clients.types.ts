@@ -7,8 +7,20 @@ import type {
 } from '@api/models';
 import type { LocalClient } from './db.types';
 
+export type ClientBalanceDirection = 'receivable' | 'payable' | 'settled';
+
 export type ClientFilter = 'all' | 'customers' | 'suppliers';
 export type ClientTab = 'orders' | 'purchases' | 'payments' | 'invoices' | 'transactions';
+
+export type ClientInvoiceSummary = {
+  invoiceId: number | null;
+  invoiceNumber: string | null;
+  issueDate: string | null;
+  dueDate: string | null;
+  statusId: number;
+  statusName: string;
+  totalAmount: number;
+};
 
 export type TabConfig = { id: ClientTab; labelKey: string };
 
@@ -35,7 +47,7 @@ export type ClientRow = {
   clientTypeId: number;
   initials: string;
   balance: number;
-  owesYou: boolean | null;
+  balanceDirection: ClientBalanceDirection;
 };
 
 export type ClientDetail = {
@@ -55,9 +67,12 @@ export type ClientDetail = {
   address: string | null;
   creditLimit: number | null;
   openingBalance: number | null;
+  notes: string | null;
+  isSynced: boolean;
   orders: ClientOrderSummary[];
   purchases: ClientPurchaseSummary[];
   payments: ClientPaymentSummary[];
+  invoices: ClientInvoiceSummary[];
   recentTransactions: ClientTransactionSummary[];
 };
 
@@ -92,10 +107,12 @@ export type ClientListComponentProps = {
   filter: ClientFilter;
   search: string;
   loading: boolean;
+  refreshing: boolean;
   onFilterChange: (f: ClientFilter) => void;
   onSearchChange: (s: string) => void;
   onRowPress: (serverId: number | null, localId: string) => void;
   onDelete: (serverId: number | null, localId: string, name: string) => void;
+  onRefresh: () => void;
   onFab: () => void;
   onMenuPress: () => void;
   onAddFirstClient: () => void;
@@ -104,8 +121,10 @@ export type ClientListComponentProps = {
 export type ClientDetailComponentProps = {
   client: ClientDetail | null;
   loading: boolean;
+  refreshing: boolean;
   tab: ClientTab;
   onTabChange: (t: ClientTab) => void;
+  onRefresh: () => void;
   onBack: () => void;
   onEdit: () => void;
   onPrimaryAction: () => void;

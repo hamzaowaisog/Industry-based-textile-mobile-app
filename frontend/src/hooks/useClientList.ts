@@ -16,6 +16,7 @@ export const useClientList = () => {
   const { clients, fetchClients, deleteClient, refreshFromDb } = useClientStore();
 
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<ClientFilter>('all');
 
@@ -51,6 +52,12 @@ export const useClientList = () => {
       (c) => c.name.toLowerCase().includes(q) || (c.phone ?? '').toLowerCase().includes(q),
     );
   }, [clients, filter, search]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchClients();
+    setRefreshing(false);
+  }, [fetchClients]);
 
   const onMenuPress = useCallback(() => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -100,6 +107,8 @@ export const useClientList = () => {
     search,
     filter,
     loading: isLoading,
+    refreshing,
+    onRefresh,
     onSearchChange: setSearch,
     onFilterChange: setFilter,
     onMenuPress,

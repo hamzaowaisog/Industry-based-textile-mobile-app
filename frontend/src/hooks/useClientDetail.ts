@@ -17,6 +17,7 @@ export const useClientDetail = () => {
 
   const { currentClient, detailLoading, fetchClientDetail } = useClientStore();
   const [tab, setTab] = useState<ClientTab>(AppConstants.CLIENT_TABS.ORDERS);
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -38,6 +39,12 @@ export const useClientDetail = () => {
       );
     }
   }, [currentClient?.clientTypeId]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchClientDetail(clientId);
+    setRefreshing(false);
+  }, [fetchClientDetail, clientId]);
 
   const onBack = useCallback(() => navigation.goBack(), [navigation]);
 
@@ -92,8 +99,10 @@ export const useClientDetail = () => {
   return {
     client: currentClient,
     loading: detailLoading,
+    refreshing,
     tab,
     onTabChange: setTab,
+    onRefresh,
     onBack,
     onEdit,
     onPrimaryAction,

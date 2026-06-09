@@ -26,6 +26,9 @@ export const OrderTabRow = ({ item }: { item: ClientOrderSummary }) => {
       </View>
       <View style={styles.tabRowRight}>
         <Text style={styles.tabRowAmount}>{formatPKR(item.total ?? 0)}</Text>
+        {(item.amountPaid ?? 0) > 0 && (
+          <Text style={styles.tabRowSub}>Paid {formatPKR(item.amountPaid ?? 0)}</Text>
+        )}
         <View style={[styles.tabBadge, { backgroundColor: s.bg }]}>
           <Text style={[styles.tabBadgeText, { color: s.fg }]}>{item.statusName}</Text>
         </View>

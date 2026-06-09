@@ -73,12 +73,40 @@ export const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
+  headerBadgeUnsaved: {
+    backgroundColor: `${colors.warning}40`,
+  },
   headerBadgeText: {
     fontFamily: typography.fontFamily.semibold,
     fontSize: 12,
     fontWeight: '600',
     color: colors.surface,
   },
+
+  // Summary stat chips in balance card
+  statRow: { flexDirection: 'row', gap: 8, marginTop: 14, flexWrap: 'wrap' },
+  statChip: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: colors.background,
+    borderRadius: 10,
+    padding: 10,
+    gap: 2,
+  },
+  statChipLabel: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 11,
+    fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  statChipValue: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text,
+    letterSpacing: 0.1,
+  },
+
 
   // Balance hero card (overlaps header)
   balanceCardWrap: { paddingHorizontal: 24, marginTop: -16 },
@@ -200,7 +228,7 @@ export const styles = StyleSheet.create({
   },
 
   // Tabs
-  tabsWrap: { paddingHorizontal: 24, paddingTop: 24 },
+  tabsWrap: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 32 },
   tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 1,
@@ -223,7 +251,8 @@ export const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   tabTextActive: { color: colors.primary },
-  tabContent: { marginTop: 14, gap: 10 },
+  tabContentScroll: { marginTop: 14 },
+  tabContent: { gap: 10, paddingBottom: 8 },
 
   tabEmpty: {
     paddingVertical: 32,

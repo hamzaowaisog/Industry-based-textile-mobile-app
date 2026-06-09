@@ -66,3 +66,19 @@ export const getPaymentAllocationsByPaymentLocalId = (
     .from(paymentAllocations)
     .where(eq(paymentAllocations.paymentLocalId, paymentLocalId))
     .all();
+
+export const getPaidAmountForOrder = (orderServerId: number): number =>
+  db
+    .select()
+    .from(paymentAllocations)
+    .where(eq(paymentAllocations.orderServerId, orderServerId))
+    .all()
+    .reduce((sum, a) => sum + a.allocatedAmount, 0);
+
+export const getPaidAmountForPurchase = (purchaseServerId: number): number =>
+  db
+    .select()
+    .from(paymentAllocations)
+    .where(eq(paymentAllocations.purchaseServerId, purchaseServerId))
+    .all()
+    .reduce((sum, a) => sum + a.allocatedAmount, 0);

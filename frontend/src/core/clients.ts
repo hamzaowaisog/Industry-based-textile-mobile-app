@@ -4,20 +4,31 @@ import { eq } from 'drizzle-orm';
 import {
   clientGetAllClients,
   clientGetAllClientsByUserId,
-  clientGetClientById,
 } from '@api/generated/client/client';
 import type { ClientCreateViewModel, ClientUpdateViewModel } from '@api/models';
 
 import { useAuthStore } from '@stores/authStore';
 import { useSyncStore } from '@stores/syncStore';
 
-import { mapApiClientDetail, mapLocalClientToDetail } from '@utils/helpers/clientMappers';
+import {
+  mapLocalClientToDetail,
+  mapLocalInvoicesToSummary,
+  mapLocalOrdersToSummary,
+  mapLocalPaymentsToSummary,
+  mapLocalPurchasesToSummary,
+  mapLocalTransactionsToSummary,
+} from '@utils/helpers/clientMappers';
 import { toISODate } from '@utils/helpers/dateConvert';
 import { generateUUID } from '@utils/helpers/uuid';
 import i18n from '@utils/i18n';
 
 import { db } from '@db/index';
 import { getAllClients, getClientByLocalId, getClientByServerId } from '@db/queries/clients';
+import { getInvoicesByClientServerId } from '@db/queries/invoices';
+import { getOrdersByClientServerId } from '@db/queries/orders';
+import { getPaymentsByPartyClientServerId } from '@db/queries/payments';
+import { getPurchasesBySupplierServerId } from '@db/queries/purchases';
+import { getTransactionsByClientId } from '@db/queries/transactions';
 import { clients } from '@db/schema';
 
 import { AppConstants } from '@constants/appConstants';
@@ -25,13 +36,6 @@ import { AppConstants } from '@constants/appConstants';
 import type { ClientDetail } from '../types/clients.types';
 import type { LocalClient } from '../types/db.types';
 
-const unwrap = <T>(res: unknown): { success: boolean; data?: T; error?: string } => {
-  const r = res as { success?: boolean; data?: T; message?: string; errors?: string[] };
-  if (!r?.success) {
-    return { success: false, error: r?.errors?.[0] ?? r?.message ?? i18n.t('common.errorGeneric') };
-  }
-  return { success: true, data: r.data };
-};
 
 export const fetchClientsFromDb = (): LocalClient[] => {
   const { userId, roleId } = useAuthStore.getState();
@@ -128,34 +132,45 @@ export const fetchClientDetailFromApi = async (serverId: number): Promise<Client
 
   const base = mapLocalClientToDetail(local);
 
-  const netState = await NetInfo.fetch();
-  if (!netState.isConnected) return base;
+  const localOrders = getOrdersByClientServerId(serverId);
+  const localPurchases = getPurchasesBySupplierServerId(serverId);
+  const localPayments = getPaymentsByPartyClientServerId(serverId);
+  const localTransactions = getTransactionsByClientId(serverId);
+  const localInvoices = getInvoicesByClientServerId(serverId);
 
-  try {
-    const res = await clientGetClientById(serverId);
-    const r = unwrap<any>(res);
-    if (!r.success || !r.data) return base;
+  const orders = mapLocalOrdersToSummary(localOrders);
+  const purchases = mapLocalPurchasesToSummary(localPurchases);
+  const payments = mapLocalPaymentsToSummary(localPayments);
+  const recentTransactions = mapLocalTransactionsToSummary(localTransactions);
+  const invoices = mapLocalInvoicesToSummary(localInvoices);
 
-    const api = mapApiClientDetail(r.data, local);
+  const totalOrderAmount = localOrders
+    .filter((o) => o.statusId !== 4)
+    .reduce((s, o) => s + (o.totalAmount ?? 0), 0);
+  const totalPurchaseAmount = localPurchases
+    .filter((p) => p.statusId !== 4)
+    .reduce((s, p) => s + (p.totalAmount ?? 0), 0);
+  const totalPaymentsIn = localPayments
+    .filter((p) => p.paymentDirectionId === 1 && !p.isReversed && !p.originalPaymentServerId)
+    .reduce((s, p) => s + p.amount, 0);
+  const totalPaymentsOut = localPayments
+    .filter((p) => p.paymentDirectionId === 2 && !p.isReversed && !p.originalPaymentServerId)
+    .reduce((s, p) => s + p.amount, 0);
 
-    return {
-      ...base,
-      balance: api.balance,
-      outstanding: api.outstanding,
-      totalOrderCount: api.totalOrderCount,
-      totalOrderAmount: api.totalOrderAmount,
-      totalPurchaseCount: api.totalPurchaseCount,
-      totalPurchaseAmount: api.totalPurchaseAmount,
-      totalPaymentsIn: api.totalPaymentsIn,
-      totalPaymentsOut: api.totalPaymentsOut,
-      orders: api.orders,
-      purchases: api.purchases,
-      payments: api.payments,
-      recentTransactions: api.recentTransactions,
-    };
-  } catch {
-    return base;
-  }
+  return {
+    ...base,
+    totalOrderCount: localOrders.length,
+    totalOrderAmount,
+    totalPurchaseCount: localPurchases.length,
+    totalPurchaseAmount,
+    totalPaymentsIn,
+    totalPaymentsOut,
+    orders,
+    purchases,
+    payments,
+    invoices,
+    recentTransactions,
+  };
 };
 
 export const createClientApi = async (
