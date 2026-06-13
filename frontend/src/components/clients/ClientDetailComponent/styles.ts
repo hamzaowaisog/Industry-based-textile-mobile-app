@@ -254,13 +254,4 @@ export const styles = StyleSheet.create({
   tabContentScroll: { marginTop: 14 },
   tabContent: { gap: 10, paddingBottom: 8 },
 
-  tabEmpty: {
-    paddingVertical: 32,
-    alignItems: 'center',
-  },
-  tabEmptyText: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 14,
-    color: colors.textTertiary,
-  },
 });

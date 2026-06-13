@@ -152,4 +152,9 @@ export type ClientFormComponentProps = {
 
 export type StatusStyle = { bg: string; fg: string };
 
+export type ClientTabContentProps = {
+  tab: ClientTab;
+  client: ClientDetail;
+};
+
 export type { ClientDetailViewModel };

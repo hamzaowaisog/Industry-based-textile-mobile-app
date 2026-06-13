@@ -9,17 +9,27 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  rowEven: {
+    paddingVertical: 14,
     backgroundColor: colors.surface,
-  },
-  rowOdd: {
-    backgroundColor: colors.background,
   },
   rowBorder: {
     borderBottomWidth: 1,
     borderBottomColor: colors.divider,
+  },
+  indexCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 9,
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  indexText: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.primary,
   },
   info: {
     flex: 1,
@@ -32,9 +42,9 @@ export const styles = StyleSheet.create({
     color: colors.text,
   },
   sub: {
-    fontFamily: typography.fontFamily.semibold,
+    fontFamily: typography.fontFamily.medium,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     color: colors.textSecondary,
     marginTop: 2,
   },
@@ -44,5 +54,6 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
     letterSpacing: -0.2,
+    flexShrink: 0,
   },
 });

@@ -531,7 +531,8 @@
     "paid": "Paid {{amount}}",
     "detail": {
       "orderDate": "Order date",
-      "dueDate": "Due date",
+      "paymentMethod": "Payment",
+      "totalAmount": "Total amount",
       "lineItems": "Line items · {{count}}",
       "qty": "{{qty}} × {{price}}",
       "subtotal": "Subtotal",
@@ -548,7 +549,9 @@
       "confirmCancel": "Cancel Order",
       "confirmCancelMsg": "This will reverse any stock movements and ledger entries.",
       "cancelOrder": "Cancel Order",
-      "moreOptions": "More Options"
+      "moreOptions": "More Options",
+      "notes": "Notes",
+      "cancelledMsg": "This order has been cancelled"
     },
     "status": {
       "pending": "Pending",
