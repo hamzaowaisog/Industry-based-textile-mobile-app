@@ -26,6 +26,8 @@ public interface IOrderService
     Task<Response<List<OrderDto>>> GetFilteredAsync(int? clientId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
     /// <summary>Update order header and handle status transitions (Delivered → stock+ledger, Cancelled → reversal).</summary>
     Task<Response<OrderDto>> UpdateByIdAsync(int id, UpdateOrderDto model, int userId, bool isAdmin);
+    /// <summary>Replace all lines on a Pending or InProgress order. Syncs the linked Draft invoice. Blocked for Delivered/Cancelled orders.</summary>
+    Task<Response<OrderDto>> UpdateLinesAsync(int id, UpdateOrderLinesDto model, int userId, bool isAdmin);
     /// <summary>Delete an order and its lines. Only allowed if order has not been Delivered.</summary>
     Task<Response> DeleteByIdAsync(int id);
 }
@@ -40,6 +42,7 @@ public class OrderService : IOrderService
 
   // Seed IDs
     private const int StatusPending = 1;
+    private const int InvoiceStatusDraft = 1;
     private const int StatusDelivered = 3;
     private const int StatusCancelled = 4;
     private const int ClientTypeCustomer = 1;
@@ -243,6 +246,89 @@ public class OrderService : IOrderService
 
         var updated = await LoadOrderWithIncludes(id);
         return Response<OrderDto>.SuccessResponse(ToDto(updated!), "Order updated successfully.");
+    }
+
+    public async Task<Response<OrderDto>> UpdateLinesAsync(int id, UpdateOrderLinesDto model, int userId, bool isAdmin)
+    {
+        var order = await _dbContext.Orders
+            .Include(o => o.OrderLines)
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (order is null)
+            return Response<OrderDto>.ErrorResponse("Not found", "Order not found.");
+
+        if (!isAdmin && order.UserId != userId)
+            return Response<OrderDto>.ErrorResponse("Not found", "Order not found.");
+
+        if (order.StatusId == StatusDelivered || order.StatusId == StatusCancelled)
+            return Response<OrderDto>.ErrorResponse("Validation failed", "Order lines can only be edited when the order is Pending or InProgress.");
+
+        var requestedProductIds = model.Lines.Select(l => l.ProductId).Distinct().ToList();
+        var existingProducts = await _dbContext.Products
+            .Where(p => requestedProductIds.Contains(p.Id))
+            .Select(p => new { p.Id, p.Name })
+            .ToListAsync();
+
+        var missingProductId = requestedProductIds.FirstOrDefault(pid => !existingProducts.Select(p => p.Id).Contains(pid));
+        if (missingProductId != default)
+            return Response<OrderDto>.ErrorResponse("Not found", $"Product with ID {missingProductId} does not exist.");
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            _dbContext.OrderLines.RemoveRange(order.OrderLines);
+            order.OrderLines.Clear();
+
+            foreach (var line in model.Lines)
+            {
+                order.OrderLines.Add(new OrderLine
+                {
+                    ProductId = line.ProductId,
+                    Qty       = line.Qty,
+                    UnitPrice = line.UnitPrice
+                });
+            }
+            await _dbContext.SaveChangesAsync();
+
+            var invoice = await _dbContext.Invoices
+                .Include(i => i.InvoiceLines)
+                .FirstOrDefaultAsync(i => i.OrderId == id);
+
+            if (invoice is not null && invoice.InvoiceStatusId == InvoiceStatusDraft)
+            {
+                _dbContext.InvoiceLines.RemoveRange(invoice.InvoiceLines);
+
+                var productNameMap = existingProducts.ToDictionary(p => p.Id, p => p.Name);
+
+                foreach (var line in model.Lines)
+                {
+                    var productName = productNameMap.TryGetValue(line.ProductId, out var n)
+                        ? n ?? $"Product #{line.ProductId}"
+                        : $"Product #{line.ProductId}";
+
+                    invoice.InvoiceLines.Add(new InvoiceLine
+                    {
+                        ProductName = productName,
+                        Qty         = line.Qty,
+                        UnitPrice   = line.UnitPrice,
+                        LineTotal   = line.Qty * line.UnitPrice
+                    });
+                }
+
+                invoice.TotalAmount = model.Lines.Sum(l => l.Qty * l.UnitPrice);
+                await _dbContext.SaveChangesAsync();
+            }
+
+            await transaction.CommitAsync();
+
+            var reloaded = await LoadOrderWithIncludes(id);
+            return Response<OrderDto>.SuccessResponse(ToDto(reloaded!), "Order lines updated successfully.");
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return Response<OrderDto>.ErrorResponse("Internal server error", ex.Message);
+        }
     }
 
     public async Task<Response> DeleteByIdAsync(int id)

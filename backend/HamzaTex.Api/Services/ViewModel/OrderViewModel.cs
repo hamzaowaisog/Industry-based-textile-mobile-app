@@ -26,3 +26,8 @@ public class OrderUpdateViewModel
     /// <summary>Omit or null to leave the existing order date unchanged.</summary>
     public DateOnly? OrderDate { get; set; }
 }
+
+public class OrderLinesUpdateViewModel
+{
+    public List<OrderLineCreateViewModel> Lines { get; set; } = new();
+}

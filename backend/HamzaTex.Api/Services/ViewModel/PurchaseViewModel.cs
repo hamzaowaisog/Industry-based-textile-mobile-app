@@ -25,3 +25,8 @@ public class PurchaseUpdateViewModel
     public DateOnly? PurchaseDate { get; set; }
     public string? Notes { get; set; }
 }
+
+public class PurchaseLinesUpdateViewModel
+{
+    public List<PurchaseLineCreateViewModel> Lines { get; set; } = [];
+}

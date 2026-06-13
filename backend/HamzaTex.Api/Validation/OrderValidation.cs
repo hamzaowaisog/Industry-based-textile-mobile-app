@@ -42,3 +42,22 @@ public sealed class OrderUpdateViewModelValidation : AbstractValidator<OrderUpda
         });
     }
 }
+
+public sealed class OrderLinesUpdateViewModelValidation : AbstractValidator<OrderLinesUpdateViewModel>
+{
+    public OrderLinesUpdateViewModelValidation()
+    {
+        RuleFor(x => x.Lines)
+            .NotEmpty().WithMessage("At least one order line is required");
+
+        RuleForEach(x => x.Lines).ChildRules(line =>
+        {
+            line.RuleFor(l => l.ProductId)
+                .GreaterThan(0).WithMessage("ProductId is required");
+            line.RuleFor(l => l.Qty)
+                .GreaterThan(0).WithMessage("Qty must be greater than 0");
+            line.RuleFor(l => l.UnitPrice)
+                .GreaterThanOrEqualTo(0).WithMessage("UnitPrice must be 0 or greater");
+        });
+    }
+}

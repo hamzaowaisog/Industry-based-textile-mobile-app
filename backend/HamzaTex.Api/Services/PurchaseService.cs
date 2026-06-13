@@ -26,6 +26,8 @@ public interface IPurchaseService
     Task<Response<List<PurchaseDto>>> GetFilteredAsync(int? supplierId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
     /// <summary>Update purchase header and handle status transitions (Delivered → stock+ledger, Cancelled → reversal).</summary>
     Task<Response<PurchaseDto>> UpdateByIdAsync(int id, UpdatePurchaseDto model, int userId, bool isAdmin);
+    /// <summary>Replace all lines on a Pending or InProgress purchase. Syncs the linked Draft invoice. Blocked for Delivered/Cancelled purchases.</summary>
+    Task<Response<PurchaseDto>> UpdateLinesAsync(int id, UpdatePurchaseLinesDto model, int userId, bool isAdmin);
     /// <summary>Delete a purchase and its lines. Only allowed if purchase has not been Delivered.</summary>
     Task<Response> DeleteByIdAsync(int id);
 }
@@ -42,6 +44,7 @@ public class PurchaseService : IPurchaseService
     private const int StatusPending = 1;
     private const int StatusDelivered = 3;
     private const int StatusCancelled = 4;
+    private const int InvoiceStatusDraft = 1;
     private const int ClientTypeSupplier = 2;
     private const int TransCategoryPurchases = 2;
     private const int TransTypeDebit = 1;
@@ -223,6 +226,89 @@ public class PurchaseService : IPurchaseService
 
         var updated = await LoadPurchaseWithIncludes(id);
         return Response<PurchaseDto>.SuccessResponse(ToDto(updated!), "Purchase updated successfully.");
+    }
+
+    public async Task<Response<PurchaseDto>> UpdateLinesAsync(int id, UpdatePurchaseLinesDto model, int userId, bool isAdmin)
+    {
+        var purchase = await _dbContext.Purchases
+            .Include(p => p.PurchaseLines)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (purchase is null)
+            return Response<PurchaseDto>.ErrorResponse("Not found", "Purchase not found.");
+
+        if (!isAdmin && purchase.UserId != userId)
+            return Response<PurchaseDto>.ErrorResponse("Not found", "Purchase not found.");
+
+        if (purchase.StatusId == StatusDelivered || purchase.StatusId == StatusCancelled)
+            return Response<PurchaseDto>.ErrorResponse("Validation failed", "Purchase lines can only be edited when the purchase is Pending or InProgress.");
+
+        var requestedProductIds = model.Lines.Select(l => l.ProductId).Distinct().ToList();
+        var existingProducts = await _dbContext.Products
+            .Where(p => requestedProductIds.Contains(p.Id))
+            .Select(p => new { p.Id, p.Name })
+            .ToListAsync();
+
+        var missingProductId = requestedProductIds.FirstOrDefault(pid => !existingProducts.Select(p => p.Id).Contains(pid));
+        if (missingProductId != default)
+            return Response<PurchaseDto>.ErrorResponse("Not found", $"Product with ID {missingProductId} does not exist.");
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            _dbContext.PurchaseLines.RemoveRange(purchase.PurchaseLines);
+            purchase.PurchaseLines.Clear();
+
+            foreach (var line in model.Lines)
+            {
+                purchase.PurchaseLines.Add(new PurchaseLine
+                {
+                    ProductId = line.ProductId,
+                    Qty       = line.Qty,
+                    UnitCost  = line.UnitCost
+                });
+            }
+            await _dbContext.SaveChangesAsync();
+
+            var invoice = await _dbContext.Invoices
+                .Include(i => i.InvoiceLines)
+                .FirstOrDefaultAsync(i => i.PurchaseId == id);
+
+            if (invoice is not null && invoice.InvoiceStatusId == InvoiceStatusDraft)
+            {
+                _dbContext.InvoiceLines.RemoveRange(invoice.InvoiceLines);
+
+                var productNameMap = existingProducts.ToDictionary(p => p.Id, p => p.Name);
+
+                foreach (var line in model.Lines)
+                {
+                    var productName = productNameMap.TryGetValue(line.ProductId, out var n)
+                        ? n ?? $"Product #{line.ProductId}"
+                        : $"Product #{line.ProductId}";
+
+                    invoice.InvoiceLines.Add(new InvoiceLine
+                    {
+                        ProductName = productName,
+                        Qty         = line.Qty,
+                        UnitPrice   = line.UnitCost,
+                        LineTotal   = line.Qty * line.UnitCost
+                    });
+                }
+
+                invoice.TotalAmount = model.Lines.Sum(l => l.Qty * l.UnitCost);
+                await _dbContext.SaveChangesAsync();
+            }
+
+            await transaction.CommitAsync();
+
+            var reloaded = await LoadPurchaseWithIncludes(id);
+            return Response<PurchaseDto>.SuccessResponse(ToDto(reloaded!), "Purchase lines updated successfully.");
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return Response<PurchaseDto>.ErrorResponse("Internal server error", ex.Message);
+        }
     }
 
     public async Task<Response> DeleteByIdAsync(int id)

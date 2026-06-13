@@ -53,3 +53,8 @@ public class UpdateOrderDto
     public string? Notes { get; set; }
     public DateOnly? OrderDate { get; set; }
 }
+
+public class UpdateOrderLinesDto
+{
+    public List<CreateOrderLineDto> Lines { get; set; } = new();
+}
