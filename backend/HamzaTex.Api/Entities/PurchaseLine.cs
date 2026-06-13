@@ -19,10 +19,6 @@ public partial class PurchaseLine
 
     public decimal UnitCost { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
-
-    public int Version { get; set; } = 1;
-
     public virtual Product? Product { get; set; }
 
     public virtual Purchase Purchase { get; set; } = null!;

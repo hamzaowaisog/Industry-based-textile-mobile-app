@@ -1413,6 +1413,118 @@ WHERE c.client_type_id = 2;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260608192927_FixVClientBalanceIncludeOpeningBalance', '9.0.10');
 
+CREATE TABLE `notifications` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `user_id` int NOT NULL,
+    `type` longtext CHARACTER SET utf8mb4 NOT NULL,
+    `title` longtext CHARACTER SET utf8mb4 NOT NULL,
+    `body` longtext CHARACTER SET utf8mb4 NOT NULL,
+    `entity_id` int NULL,
+    `is_read` tinyint(1) NOT NULL,
+    `created_at` date NOT NULL,
+    CONSTRAINT `notifications_pkey` PRIMARY KEY (`id`),
+    CONSTRAINT `FK_notifications_users_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET=utf8mb4;
+
+CREATE INDEX `IX_notifications_is_read` ON `notifications` (`is_read`);
+
+CREATE INDEX `IX_notifications_user_id` ON `notifications` (`user_id`);
+
+CREATE INDEX `IX_notifications_user_is_read` ON `notifications` (`user_id`, `is_read`);
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260609213750_AddNotificationsTable', '9.0.10');
+
+ALTER TABLE `transactions` DROP COLUMN `LocalId`;
+
+ALTER TABLE `transactions` DROP COLUMN `UpdatedAt`;
+
+ALTER TABLE `transactions` DROP COLUMN `Version`;
+
+ALTER TABLE `stock_movements` DROP COLUMN `LocalId`;
+
+ALTER TABLE `stock_movements` DROP COLUMN `UpdatedAt`;
+
+ALTER TABLE `stock_movements` DROP COLUMN `Version`;
+
+ALTER TABLE `purchases` DROP COLUMN `LocalId`;
+
+ALTER TABLE `purchases` DROP COLUMN `UpdatedAt`;
+
+ALTER TABLE `purchases` DROP COLUMN `Version`;
+
+ALTER TABLE `purchase_lines` DROP COLUMN `UpdatedAt`;
+
+ALTER TABLE `purchase_lines` DROP COLUMN `Version`;
+
+ALTER TABLE `products` DROP COLUMN `LocalId`;
+
+ALTER TABLE `products` DROP COLUMN `UpdatedAt`;
+
+ALTER TABLE `products` DROP COLUMN `Version`;
+
+ALTER TABLE `payments` DROP COLUMN `LocalId`;
+
+ALTER TABLE `payments` DROP COLUMN `UpdatedAt`;
+
+ALTER TABLE `payments` DROP COLUMN `Version`;
+
+ALTER TABLE `payment_allocations` DROP COLUMN `LocalId`;
+
+ALTER TABLE `payment_allocations` DROP COLUMN `UpdatedAt`;
+
+ALTER TABLE `payment_allocations` DROP COLUMN `Version`;
+
+ALTER TABLE `orders` DROP COLUMN `LocalId`;
+
+ALTER TABLE `orders` DROP COLUMN `UpdatedAt`;
+
+ALTER TABLE `orders` DROP COLUMN `Version`;
+
+ALTER TABLE `order_lines` DROP COLUMN `UpdatedAt`;
+
+ALTER TABLE `order_lines` DROP COLUMN `Version`;
+
+ALTER TABLE `invoices` DROP COLUMN `LocalId`;
+
+ALTER TABLE `invoices` DROP COLUMN `UpdatedAt`;
+
+ALTER TABLE `invoices` DROP COLUMN `Version`;
+
+ALTER TABLE `invoice_lines` DROP COLUMN `UpdatedAt`;
+
+ALTER TABLE `invoice_lines` DROP COLUMN `Version`;
+
+ALTER TABLE `expenses` DROP COLUMN `LocalId`;
+
+ALTER TABLE `expenses` DROP COLUMN `UpdatedAt`;
+
+ALTER TABLE `expenses` DROP COLUMN `Version`;
+
+ALTER TABLE `clients` DROP COLUMN `LocalId`;
+
+ALTER TABLE `clients` DROP COLUMN `UpdatedAt`;
+
+ALTER TABLE `clients` DROP COLUMN `Version`;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260609225747_RemoveOfflineSyncColumns', '9.0.10');
+
+ALTER TABLE `notifications` MODIFY COLUMN `created_at` datetime(6) NOT NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260610083309_NotificationCreatedAtToDateTime', '9.0.10');
+
+UPDATE notifications SET created_at = DATE_ADD(created_at, INTERVAL 5 HOUR)
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260610091148_NotificationCreatedAtLocalTime', '9.0.10');
+
+UPDATE notifications SET created_at = DATE_SUB(created_at, INTERVAL 5 HOUR)
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260610093649_NotificationCreatedAtStoreUtc', '9.0.10');
+
 COMMIT;
 
 

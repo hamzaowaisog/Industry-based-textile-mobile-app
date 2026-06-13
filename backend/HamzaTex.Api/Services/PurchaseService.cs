@@ -36,7 +36,7 @@ public class PurchaseService : IPurchaseService
     private readonly IStockMovementsService _stockMovementsService;
     private readonly IPaymentService _paymentService;
     private readonly IInvoiceService _invoiceService;
-    private readonly IPushNotificationService _push;
+    private readonly INotificationService _notification;
 
     // Seed IDs
     private const int StatusPending = 1;
@@ -52,13 +52,13 @@ public class PurchaseService : IPurchaseService
     private const int MovementSourceManual = 3;
     private const int MovementTypeOut = 2;
 
-    public PurchaseService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService, IInvoiceService invoiceService, IPushNotificationService push)
+    public PurchaseService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService, IInvoiceService invoiceService, INotificationService notification)
     {
         _dbContext = dbContext;
         _stockMovementsService = stockMovementsService;
         _paymentService = paymentService;
         _invoiceService = invoiceService;
-        _push = push;
+        _notification = notification;
     }
 
     public async Task<Response<PurchaseDto>> CreateAsync(CreatePurchaseDto model, int userId)
@@ -123,7 +123,7 @@ public class PurchaseService : IPurchaseService
     public async Task<Response<List<PurchaseDto>>> GetAllAsync()
     {
         var purchases = await PurchaseQueryWithIncludes()
-            .OrderBy(p => p.PurchaseDate)
+            .OrderByDescending(p => p.PurchaseDate)
             .ToListAsync();
 
         return Response<List<PurchaseDto>>.SuccessResponse(purchases.Select(p => ToDto(p)).ToList(), "Purchases fetched successfully.");
@@ -133,7 +133,7 @@ public class PurchaseService : IPurchaseService
     {
         var purchases = await PurchaseQueryWithIncludes()
             .Where(p => p.UserId == userId)
-            .OrderBy(p => p.PurchaseDate)
+            .OrderByDescending(p => p.PurchaseDate)
             .ToListAsync();
 
         return Response<List<PurchaseDto>>.SuccessResponse(purchases.Select(p => ToDto(p)).ToList(), "Purchases fetched successfully.");
@@ -141,7 +141,7 @@ public class PurchaseService : IPurchaseService
 
     public async Task<Response<PagedList<PurchaseDto>>> GetAllPaginatedAsync(int page, int pageSize)
     {
-        var query = PurchaseQueryWithIncludes().OrderBy(p => p.PurchaseDate);
+        var query = PurchaseQueryWithIncludes().OrderByDescending(p => p.PurchaseDate);
         var totalCount = await query.CountAsync();
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         var pagedList = new PagedList<PurchaseDto>(items.Select(p => ToDto(p)).ToList(), page, pageSize, totalCount);
@@ -168,7 +168,7 @@ public class PurchaseService : IPurchaseService
         if (dateTo.HasValue)
             query = query.Where(p => p.PurchaseDate <= dateTo.Value);
 
-        var purchases = await query.OrderBy(p => p.PurchaseDate).ToListAsync();
+        var purchases = await query.OrderByDescending(p => p.PurchaseDate).ToListAsync();
         return Response<List<PurchaseDto>>.SuccessResponse(purchases.Select(p => ToDto(p)).ToList(), "Filtered purchases fetched successfully.");
     }
 
@@ -322,11 +322,14 @@ public class PurchaseService : IPurchaseService
             await _paymentService.ApplyUnallocatedCreditAsync(purchase.SupplierId ?? 0, null, purchase.Id);
 
             var reloaded = await LoadPurchaseWithIncludes(purchase.Id);
-            _ = _push.SendTypedAsync(userId, "purchase_delivered", new Dictionary<string, string>
+            try { await _notification.CreateAsync(new CreateNotificationDto
             {
-                ["purchaseId"] = purchase.Id.ToString(),
-                ["supplierName"] = purchase.Supplier?.Name ?? "Supplier"
-            });
+                UserId = userId,
+                Type = "purchase_delivered",
+                Title = "Purchase Delivered",
+                Body = $"Purchase #{purchase.Id} from {purchase.Supplier?.Name ?? "Supplier"} delivered",
+                EntityId = purchase.Id
+            }); } catch { }
             return Response<PurchaseDto>.SuccessResponse(ToDto(reloaded!), "Purchase delivered. Stock and ledger updated.");
         }
         catch (Exception ex)

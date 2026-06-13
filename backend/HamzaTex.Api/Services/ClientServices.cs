@@ -28,10 +28,12 @@ public interface IClientService
 public class ClientService : IClientService
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly INotificationService _notificationService;
 
-    public ClientService(ApplicationDbContext dbContext)
+    public ClientService(ApplicationDbContext dbContext, INotificationService notificationService)
     {
         _dbContext = dbContext;
+        _notificationService = notificationService;
     }
 
     public async Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId)
@@ -55,10 +57,21 @@ public class ClientService : IClientService
 
     public async Task<Response<ClientDto>> CreateAsync(CreateClientDto model)
     {
-        var user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == model.UserId);
         var entity = ToEntity(model);
         await _dbContext.Clients.AddAsync(entity);
         await _dbContext.SaveChangesAsync();
+
+        if (model.UserId.HasValue)
+        {
+            await _notificationService.CreateAsync(new CreateNotificationDto
+            {
+                UserId = model.UserId.Value,
+                Type = "client_added",
+                Title = "New Client Added",
+                Body = $"{entity.Name} has been added as a client",
+                EntityId = entity.Id,
+            });
+        }
 
         return Response<ClientDto>.SuccessResponse(ToDto(entity, null), "Client created.");
     }

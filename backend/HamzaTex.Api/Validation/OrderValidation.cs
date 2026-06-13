@@ -35,7 +35,10 @@ public sealed class OrderUpdateViewModelValidation : AbstractValidator<OrderUpda
         RuleFor(x => x.StatusId)
             .GreaterThan(0).WithMessage("StatusId is required");
 
-        RuleFor(x => x.PaymentTypeId)
-            .GreaterThan(0).WithMessage("PaymentTypeId is required");
+        When(x => x.PaymentTypeId.HasValue, () =>
+        {
+            RuleFor(x => x.PaymentTypeId)
+                .GreaterThan(0).WithMessage("PaymentTypeId must be greater than 0");
+        });
     }
 }

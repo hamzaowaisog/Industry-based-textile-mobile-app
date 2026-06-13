@@ -30,9 +30,6 @@ public class PushNotificationService : IPushNotificationService
 
     private static readonly Dictionary<string, (string Title, string Body)> _catalog = new()
     {
-        ["sync_complete"]      = ("Sync Complete",       "All {count} changes synced successfully"),
-        ["sync_partial"]       = ("Sync Issues",         "{rejected} of {total} items failed to sync"),
-        ["sync_failed"]        = ("Sync Failed",         "Sync failed — tap to retry"),
         ["order_created"]      = ("New Order",           "Order #{orderId} created for {clientName}"),
         ["order_delivered"]    = ("Order Delivered",     "Order #{orderId} marked as delivered"),
         ["order_cancelled"]    = ("Order Cancelled",     "Order #{orderId} has been cancelled"),
@@ -44,6 +41,7 @@ public class PushNotificationService : IPushNotificationService
         ["invoice_overdue"]    = ("Invoice Overdue",     "Invoice {invoiceNumber} is past due date"),
         ["low_stock"]          = ("Low Stock Alert",     "{productName} is below reorder level ({qty} remaining)"),
         ["expense_approved"]   = ("Expense Recorded",    "PKR {amount} expense recorded ({category})"),
+        ["client_added"]       = ("New Client Added",    "{clientName} has been added as a client"),
     };
 
     public PushNotificationService(
@@ -206,9 +204,10 @@ public class PushNotificationService : IPushNotificationService
             => vars.TryGetValue("invoiceId", out var iid) ? $"/invoices/{iid}" : "/invoices",
         "low_stock"
             => vars.TryGetValue("productId", out var prid) ? $"/products/{prid}" : "/products",
-        "sync_complete" or "sync_partial" or "sync_failed" => "/sync-status",
         "expense_approved"
             => vars.TryGetValue("expenseId", out var eid) ? $"/expenses/{eid}" : "/expenses",
+        "client_added"
+            => vars.TryGetValue("clientId", out var cid) ? $"/clients/{cid}" : "/clients",
         _ => "/"
     };
 

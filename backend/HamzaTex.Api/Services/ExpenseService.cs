@@ -158,7 +158,7 @@ public interface IExpenseService
 public class ExpenseService : IExpenseService
 {
     private readonly ApplicationDbContext _db;
-    private readonly IPushNotificationService _push;
+    private readonly INotificationService _notification;
 
     private const int TransTypeDebit = 1;
 
@@ -171,10 +171,10 @@ public class ExpenseService : IExpenseService
         { 2, 4 }
     };
 
-    public ExpenseService(ApplicationDbContext db, IPushNotificationService push)
+    public ExpenseService(ApplicationDbContext db, INotificationService notification)
     {
         _db = db;
-        _push = push;
+        _notification = notification;
     }
 
     public async Task<Response<ExpenseDto>> CreateAsync(CreateExpenseDto model, int userId)
@@ -243,11 +243,14 @@ public class ExpenseService : IExpenseService
 
             await txn.CommitAsync();
 
-            _ = _push.SendTypedAsync(userId, "expense_approved", new Dictionary<string, string>
+            try { await _notification.CreateAsync(new CreateNotificationDto
             {
-                ["amount"] = model.Amount.ToString("F2"),
-                ["category"] = expenseType.Name ?? "Expense"
-            });
+                UserId = userId,
+                Type = "expense_approved",
+                Title = "Expense Recorded",
+                Body = $"PKR {model.Amount:F2} expense recorded ({expenseType.Name ?? "Expense"})",
+                EntityId = expense.Id
+            }); } catch { }
 
             return await GetByIdAsync(expense.Id);
         }
@@ -383,7 +386,7 @@ public class ExpenseService : IExpenseService
             .Include(e => e.TransMode)
             .Include(e => e.User)
             .Include(e => e.TransCategory)
-            .OrderBy(e => e.ExpenseDate)
+            .OrderByDescending(e => e.ExpenseDate)
             .ThenByDescending(e => e.Id);
 
     private static ExpenseDto MapToDto(Expense e) => new()

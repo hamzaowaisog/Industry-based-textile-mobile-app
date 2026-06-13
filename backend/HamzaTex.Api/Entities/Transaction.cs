@@ -54,12 +54,6 @@ public partial class Transaction
 
     public DateOnly? CreatedAt { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
-
-    public int Version { get; set; } = 1;
-
-    public string? LocalId { get; set; }
-
     public virtual Client? Client { get; set; }
 
     public virtual Product? Product { get; set; }

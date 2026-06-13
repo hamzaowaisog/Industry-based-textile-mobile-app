@@ -36,9 +36,9 @@ public class OrderService : IOrderService
     private readonly IStockMovementsService _stockMovementsService;
     private readonly IPaymentService _paymentService;
     private readonly IInvoiceService _invoiceService;
-    private readonly IPushNotificationService _push;
+    private readonly INotificationService _notification;
 
-    // Seed IDs
+  // Seed IDs
     private const int StatusPending = 1;
     private const int StatusDelivered = 3;
     private const int StatusCancelled = 4;
@@ -52,13 +52,13 @@ public class OrderService : IOrderService
     private const int MovementSourceManual = 3;
     private const int MovementTypeIn = 1;
 
-    public OrderService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService, IInvoiceService invoiceService, IPushNotificationService push)
+    public OrderService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService, IInvoiceService invoiceService, INotificationService notification)
     {
         _dbContext = dbContext;
         _stockMovementsService = stockMovementsService;
         _paymentService = paymentService;
         _invoiceService = invoiceService;
-        _push = push;
+        _notification = notification;
     }
 
     public async Task<Response<OrderDto>> CreateAsync(CreateOrderDto model, int userId)
@@ -106,11 +106,14 @@ public class OrderService : IOrderService
 
         // Reload with navigation properties
         var saved = await LoadOrderWithIncludes(order.Id);
-        _ = _push.SendTypedAsync(userId, "order_created", new Dictionary<string, string>
+        try { await _notification.CreateAsync(new CreateNotificationDto
         {
-            ["orderId"]    = order.Id.ToString(),
-            ["clientName"] = client.Name ?? "Client"
-        });
+            UserId = userId,
+            Type = "order_created",
+            Title = "New Order",
+            Body = $"Order #{order.Id} created for {client.Name ?? "Client"}",
+            EntityId = order.Id
+        }); } catch { }
         return Response<OrderDto>.SuccessResponse(ToDto(saved!), "Order created successfully.");
     }
 
@@ -129,7 +132,7 @@ public class OrderService : IOrderService
     public async Task<Response<List<OrderDto>>> GetAllAsync()
     {
         var orders = await OrderQueryWithIncludes()
-            .OrderBy(o => o.OrderDate)
+            .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
 
         return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Orders fetched successfully.");
@@ -139,7 +142,7 @@ public class OrderService : IOrderService
     {
         var orders = await OrderQueryWithIncludes()
             .Where(o => o.UserId == userId)
-            .OrderBy(o => o.OrderDate)
+            .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
 
         return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Orders fetched successfully.");
@@ -147,7 +150,7 @@ public class OrderService : IOrderService
 
     public async Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize)
     {
-        var query = OrderQueryWithIncludes().OrderBy(o => o.OrderDate);
+        var query = OrderQueryWithIncludes().OrderByDescending(o => o.OrderDate);
         var totalCount = await query.CountAsync();
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         var pagedList = new PagedList<OrderDto>(items.Select(o => ToDto(o)).ToList(), page, pageSize, totalCount);
@@ -174,7 +177,7 @@ public class OrderService : IOrderService
         if (dateTo.HasValue)
             query = query.Where(o => o.OrderDate <= dateTo.Value);
 
-        var orders = await query.OrderBy(o => o.OrderDate).ToListAsync();
+        var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
         return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Filtered orders fetched successfully.");
     }
 
@@ -200,7 +203,7 @@ public class OrderService : IOrderService
         if (previousStatusId == StatusDelivered && newStatusId == StatusDelivered)
         {
             // Idempotent: already delivered, just update other fields
-            order.PaymentTypeId = model.PaymentTypeId;
+            if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
             order.Notes = model.Notes;
             if (model.OrderDate.HasValue)
                 order.OrderDate = model.OrderDate.Value;
@@ -232,7 +235,7 @@ public class OrderService : IOrderService
 
         // ── Normal update (Pending ↔ InProgressed, or field changes) ──
         order.StatusId = model.StatusId;
-        order.PaymentTypeId = model.PaymentTypeId;
+        if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
         order.Notes = model.Notes;
         if (model.OrderDate.HasValue)
             order.OrderDate = model.OrderDate.Value;
@@ -277,7 +280,7 @@ public class OrderService : IOrderService
         {
             // Update header
             order.StatusId = StatusDelivered;
-            order.PaymentTypeId = model.PaymentTypeId;
+            if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
             order.Notes = model.Notes;
             if (model.OrderDate.HasValue)
                 order.OrderDate = model.OrderDate.Value;
@@ -332,10 +335,14 @@ public class OrderService : IOrderService
             await _paymentService.ApplyUnallocatedCreditAsync(order.ClientId ?? 0, order.Id, null);
 
             var reloaded = await LoadOrderWithIncludes(order.Id);
-            _ = _push.SendTypedAsync(userId, "order_delivered", new Dictionary<string, string>
+            try { await _notification.CreateAsync(new CreateNotificationDto
             {
-                ["orderId"] = order.Id.ToString()
-            });
+                UserId = userId,
+                Type = "order_delivered",
+                Title = "Order Delivered",
+                Body = $"Order #{order.Id} marked as delivered",
+                EntityId = order.Id
+            }); } catch { }
             return Response<OrderDto>.SuccessResponse(ToDto(reloaded!), "Order delivered. Stock and ledger updated.");
         }
         catch (Exception ex)
@@ -406,10 +413,14 @@ public class OrderService : IOrderService
             await _invoiceService.CancelByOrderOrPurchaseAsync(order.Id, null);
 
             var reloaded = await LoadOrderWithIncludes(order.Id);
-            _ = _push.SendTypedAsync(userId, "order_cancelled", new Dictionary<string, string>
+            try { await _notification.CreateAsync(new CreateNotificationDto
             {
-                ["orderId"] = order.Id.ToString()
-            });
+                UserId = userId,
+                Type = "order_cancelled",
+                Title = "Order Cancelled",
+                Body = $"Order #{order.Id} has been cancelled",
+                EntityId = order.Id
+            }); } catch { }
             var message = previousStatusId == StatusDelivered
                 ? "Order cancelled. Stock and ledger reversed."
                 : "Order cancelled.";

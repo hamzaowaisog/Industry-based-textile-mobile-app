@@ -4,6 +4,7 @@ using HamzaTex.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HamzaTex.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260609213750_AddNotificationsTable")]
+    partial class AddNotificationsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -170,6 +173,9 @@ namespace HamzaTex.Api.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("varchar(255)")
@@ -190,9 +196,15 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("varchar(255)")
                         .HasColumnName("phone");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int?>("UserId")
                         .HasColumnType("int")
                         .HasColumnName("user_id");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("clients_pkey");
@@ -337,6 +349,9 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("int")
                         .HasColumnName("expense_type_id");
 
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Notes")
                         .HasColumnType("longtext")
                         .HasColumnName("notes");
@@ -353,9 +368,15 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("int")
                         .HasColumnName("transaction_id");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int?>("UserId")
                         .HasColumnType("int")
                         .HasColumnName("user_id");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("expenses_pkey");
@@ -440,6 +461,9 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("date")
                         .HasColumnName("issue_date");
 
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Notes")
                         .HasColumnType("longtext")
                         .HasColumnName("notes");
@@ -455,6 +479,12 @@ namespace HamzaTex.Api.Migrations
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(14,2)")
                         .HasColumnName("total_amount");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("invoices_pkey");
@@ -504,6 +534,12 @@ namespace HamzaTex.Api.Migrations
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(14,4)")
                         .HasColumnName("unit_price");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("invoice_lines_pkey");
@@ -601,7 +637,7 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnName("body");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("date")
                         .HasColumnName("created_at");
 
                     b.Property<int?>("EntityId")
@@ -657,6 +693,9 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("NOW()");
 
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Notes")
                         .HasColumnType("longtext")
                         .HasColumnName("notes");
@@ -673,9 +712,15 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("int")
                         .HasColumnName("status_id");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int?>("UserId")
                         .HasColumnType("int")
                         .HasColumnName("user_id");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("orders_pkey");
@@ -721,6 +766,12 @@ namespace HamzaTex.Api.Migrations
                         .HasPrecision(14, 4)
                         .HasColumnType("decimal(14,4)")
                         .HasColumnName("unit_price");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("order_lines_pkey");
@@ -822,6 +873,9 @@ namespace HamzaTex.Api.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_reversed");
 
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Notes")
                         .HasColumnType("longtext")
                         .HasColumnName("notes");
@@ -857,9 +911,15 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("int")
                         .HasColumnName("transaction_id");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int?>("UserId")
                         .HasColumnType("int")
                         .HasColumnName("user_id");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("payments_pkey");
@@ -910,6 +970,9 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("int")
                         .HasColumnName("invoice_id");
 
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<int?>("OrderId")
                         .HasColumnType("int")
                         .HasColumnName("order_id");
@@ -921,6 +984,12 @@ namespace HamzaTex.Api.Migrations
                     b.Property<int?>("PurchaseId")
                         .HasColumnType("int")
                         .HasColumnName("purchase_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("payment_allocations_pkey");
@@ -1037,6 +1106,9 @@ namespace HamzaTex.Api.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("varchar(255)")
@@ -1084,6 +1156,12 @@ namespace HamzaTex.Api.Migrations
                         .IsRequired()
                         .HasColumnType("longtext")
                         .HasColumnName("unit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("products_pkey");
@@ -1137,6 +1215,9 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("NOW()");
 
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Notes")
                         .HasColumnType("longtext")
                         .HasColumnName("notes");
@@ -1157,9 +1238,15 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("int")
                         .HasColumnName("supplier_id");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int?>("UserId")
                         .HasColumnType("int")
                         .HasColumnName("user_id");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("purchases_pkey");
@@ -1203,6 +1290,12 @@ namespace HamzaTex.Api.Migrations
                         .HasPrecision(14, 4)
                         .HasColumnType("decimal(14,4)")
                         .HasColumnName("unit_cost");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("purchase_lines_pkey");
@@ -1318,6 +1411,9 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("decimal(14,4)")
                         .HasColumnName("average_price_at_movement");
 
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<DateTime>("MovementDate")
                         .HasColumnType("date")
                         .HasColumnName("movement_date");
@@ -1350,6 +1446,12 @@ namespace HamzaTex.Api.Migrations
                         .HasPrecision(14, 4)
                         .HasColumnType("decimal(14,4)")
                         .HasColumnName("unit_price");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("stock_movements_pkey");
@@ -1470,6 +1572,9 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("int")
                         .HasColumnName("invoice_id");
 
+                    b.Property<string>("LocalId")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Notes")
                         .HasColumnType("longtext")
                         .HasColumnName("notes");
@@ -1502,9 +1607,15 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("int")
                         .HasColumnName("trans_type_id");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int?>("UserId")
                         .HasColumnType("int")
                         .HasColumnName("user_id");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
 
                     b.HasKey("Id")
                         .HasName("transactions_pkey");

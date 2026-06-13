@@ -35,12 +35,6 @@ public partial class Expense
 
     public DateOnly? CreatedAt { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
-
-    public string? LocalId { get; set; }
-
-    public int Version { get; set; } = 1;
-
     public virtual ExpenseType? ExpenseType { get; set; }
 
     public virtual TransMode? TransMode { get; set; }

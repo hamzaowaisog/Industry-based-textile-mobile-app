@@ -49,7 +49,7 @@ public class CreateOrderLineDto
 public class UpdateOrderDto
 {
     public int StatusId { get; set; }
-    public int PaymentTypeId { get; set; }
+    public int? PaymentTypeId { get; set; }
     public string? Notes { get; set; }
     public DateOnly? OrderDate { get; set; }
 }

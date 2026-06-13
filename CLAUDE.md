@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-HamzaTex is a brownfield full-stack textile/trading ERP (API + mobile) being evolved toward an enterprise-ready, offline-first system. Target users: staff in the field (mobile), accountants, managers, and admins.
+HamzaTex is a brownfield full-stack textile/trading ERP (API + mobile). Target users: staff in the field (mobile), accountants, managers, and admins.
 
-**Core goal:** Correct data, no data loss when offline, monthly reporting (P&L, client balances, movements) from a single source of truth.
+**Core goal:** Correct data, monthly reporting (P&L, client balances, movements) from a single source of truth. The app is fully online-only — the offline/SQLite sync architecture has been removed.
 
 - **Backend:** ASP.NET Core 9, MySQL 8, EF Core — `backend/HamzaTex.Api/`
 - **Frontend:** React Native + Expo (scaffold state) — `frontend/`
@@ -329,7 +329,7 @@ private int? GetUserId()
 
 | `DashboardController` | GET /summary (role-scoped stats + recent orders), GET /monthly-overview (last N months chart data) |
 
-**Not yet created:** SyncController, DeviceController
+**Not yet created:** DeviceController
 
 ---
 
@@ -341,16 +341,15 @@ See `frontend/CLAUDE.md` for full architecture rules. Design reference: `fronten
 - `App.tsx` — QueryClientProvider, Toast renderer, splash hide, auth hydration
 - Full auth flow: Splash → Welcome → Onboarding (×3) → Login → Biometric → ForgotPassword → OTP Verification → ResetPassword; also Register, Terms, Privacy screens
 - `MainNavigator` — side drawer (`@react-navigation/drawer`), width 296, all 13 domain stacks registered; `DashboardScreen` is a direct drawer screen (no stack)
-- `DrawerContent` / `DrawerComponent` — user name, role, online/offline indicator, sign-out (disabled when offline)
-- Dashboard screen — stat cards, bar chart, recent orders/purchases, SyncStatusBar, OfflineBanner, skeleton loader; backed by real API + SQLite
-- SQLite offline DB — `src/db/` with full schema, migrations, and query files for every domain (clients, orders, purchases, payments, invoices, expenses, stock, transactions, reports, lookups, sync meta)
-- Orval-generated API client — all 21 backend tag groups in `src/api/generated/`
-- Zustand stores: `authStore`, `lookupsStore`, `syncStore`
-- `core/auth.ts`, `core/sync.ts`
-- Full i18n (`src/locales/en.json`), theme (`colors`, `typography`, `spacing`), toast system, `AppBottomSheet`, `SyncBottomSheet`
+- `DrawerContent` / `DrawerComponent` — user name, role, sign-out
+- Dashboard screen — stat cards, bar chart, recent orders/purchases, skeleton loader; backed by live API
+- Orval-generated API client — all backend tag groups in `src/api/generated/`; `orval.config.js` uses `clean: true` so stale files are pruned on regen
+- Zustand stores: `authStore`, `metaStore`
+- `core/auth.ts`, `core/clients.ts` — all API calls use shared `parseApiResponse` / `parseApiError` helpers (`src/utils/helpers/apiResponse.ts`)
+- Clients feature — List, Detail (tabbed: orders/purchases/payments/invoices/transactions), Form (create + edit)
+- Full i18n (`src/locales/en.json`), theme (`colors`, `typography`, `spacing`), toast system, `AppBottomSheet`
 
 **Still needed (all domain stacks contain placeholder screens only):**
-- Clients (List, Detail tabbed, Form)
 - Products (List, Detail with chart, Form)
 - Orders (List, Detail, Create 3-step)
 - Purchases (List, Detail, Create)
@@ -362,7 +361,6 @@ See `frontend/CLAUDE.md` for full architecture rules. Design reference: `fronten
 - Reports (Hub, P&L, Client Balances, Credit/Debit, Summary, Client Detail) — Admin only
 - Users (List, Create) — Admin only
 - Settings screen
-- Sync Status screen
 - Notification Center screen
 - Change Password screen
 
@@ -385,7 +383,7 @@ See `todo/` for detailed task breakdowns:
 | `todo/07-reports.md` | ✅ Complete — profit-loss, client-balance, credit-debit, summary, client-detail (all with PDF) |
 | `todo/08-invoices.md` | ✅ Complete — full Invoices API with auto-generation, lifecycle, payment tracking, directional PDFs |
 | `todo/09-users-admin-create.md` | ✅ Complete — admin can create pre-confirmed user accounts via POST /api/Users |
-| `todo/10-sync.md` | ✅ Complete — push (create+update+conflict), full-pull, delta-pull, ping; all 13 lookups + 3 views included in pull response |
+| `todo/10-sync.md` | ~~Removed~~ — sync infrastructure (SyncController, SyncService, SyncDto) deleted; `LocalId`, `Version`, `UpdatedAt` columns dropped from all entities via migration `RemoveOfflineSyncColumns`; app is fully online-only |
 | `todo/11-push-notifications.md` | Device token registration + FCM push provider (not started) |
 | `todo/12-frontend.md` | Everything on mobile — design prompt at `docs/mobile-design-prompt.md` (not started) |
 | `todo/13-dashboard.md` | ✅ Complete — GET /summary (role-scoped stats + recent orders), GET /monthly-overview |

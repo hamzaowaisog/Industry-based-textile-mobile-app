@@ -97,9 +97,9 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
-builder.Services.AddScoped<ISyncService, SyncService>();
 builder.Services.AddSingleton<IPushNotificationService, PushNotificationService>();
 builder.Services.AddScoped<IDeviceService, DeviceService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.Configure<SmtpOptionsDto>(builder.Configuration.GetSection("Smtp"));
 builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSenderService>();
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
@@ -111,6 +111,7 @@ builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
     options.TokenLifespan = TimeSpan.FromMinutes(int.Parse(builder.Configuration["App:PasswordResetTokenExpirationMinutes"] ?? "10"));
 });
 JwtHelper.Configure(builder.Configuration);
+AppTime.Configure(builder.Configuration["App:TimeZoneId"]);
 
 var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
