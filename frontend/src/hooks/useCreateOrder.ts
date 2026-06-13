@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Alert } from 'react-native';
 
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useQuery } from '@tanstack/react-query';
 
-import { useClientStore } from '@stores/clientStore';
 import { useMetaStore } from '@stores/metaStore';
 import { useOrderStore } from '@stores/orderStore';
 
@@ -14,6 +14,7 @@ import { showError, showSuccess } from '@utils/toast';
 
 import { AppConstants } from '@constants/appConstants';
 
+import { fetchClientsAsync } from '../core/clients';
 import { fetchProductsAsync } from '../core/products';
 import type { OrderStackParamList } from '../types/navigation.types';
 import type { CreateOrderFormValues, OrderLineFormValues } from '../types/orders.types';
@@ -53,16 +54,12 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
   const [lineErrors, setLineErrors] = useState<{ qty?: string }[]>([]);
 
   // ── Clients ──────────────────────────────────────────────────────────────
-  const { clients, fetchClients } = useClientStore();
+  const { data: clients } = useQuery({ queryKey: ['clients'], queryFn: fetchClientsAsync });
   const [clientPickerVisible, setClientPickerVisible] = useState(false);
-
-  useEffect(() => {
-    void fetchClients();
-  }, []);
 
   const clientItems = useMemo(
     () =>
-      clients
+      (clients ?? [])
         .filter((c) => c.clientTypeId === AppConstants.CLIENT_TYPE.CUSTOMER)
         .map((c) => ({ id: c.id ?? 0, name: c.name ?? '' })),
     [clients],
@@ -147,29 +144,57 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
       setStep((s) => s - 1);
       return;
     }
+    const goBackOrClient = () => {
+      if (initialClientId) {
+        navigation
+          .getParent<NativeStackNavigationProp<any>>()
+          ?.navigate(AppConstants.SCREENS.MAIN.CLIENTS_STACK, {
+            screen: AppConstants.SCREENS.MAIN.CLIENT_DETAIL,
+            params: { clientId: initialClientId },
+          });
+        resetOrdersStack();
+      } else {
+        navigation.goBack();
+      }
+    };
     if (!hasUnsavedChanges) {
-      navigation.goBack();
+      goBackOrClient();
       return;
     }
     Alert.alert(i18n.t('orders.create.discardTitle'), i18n.t('orders.create.discardMessage'), [
       { text: i18n.t('orders.create.keepEditing'), style: 'cancel' },
-      {
-        text: i18n.t('orders.create.discard'),
-        style: 'destructive',
-        onPress: () => navigation.goBack(),
-      },
+      { text: i18n.t('orders.create.discard'), style: 'destructive', onPress: goBackOrClient },
     ]);
-  }, [step, hasUnsavedChanges, navigation]);
+  }, [step, hasUnsavedChanges, navigation, initialClientId, resetOrdersStack]);
+
+  const resetOrdersStack = useCallback(() => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: AppConstants.SCREENS.MAIN.ORDER_LIST }],
+      }),
+    );
+  }, [navigation]);
 
   const onSubmit = useCallback(async () => {
     const result = await createOrder(values);
     if (result.success) {
       showSuccess(i18n.t('orders.create.successTitle'), i18n.t('orders.create.successSubtitle'));
-      navigation.goBack();
+      if (initialClientId) {
+        navigation
+          .getParent<NativeStackNavigationProp<any>>()
+          ?.navigate(AppConstants.SCREENS.MAIN.CLIENTS_STACK, {
+            screen: AppConstants.SCREENS.MAIN.CLIENT_DETAIL,
+            params: { clientId: initialClientId },
+          });
+        resetOrdersStack();
+      } else {
+        navigation.goBack();
+      }
     } else {
       showError(i18n.t('orders.create.errorTitle'), result.error ?? i18n.t('common.errorGeneric'));
     }
-  }, [values, createOrder, navigation]);
+  }, [values, createOrder, navigation, initialClientId, resetOrdersStack]);
 
   // ── Field handlers ────────────────────────────────────────────────────────
   const onFieldChange = useCallback((field: keyof CreateOrderFormValues, value: any) => {

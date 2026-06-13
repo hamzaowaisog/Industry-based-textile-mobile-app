@@ -1,33 +1,21 @@
 import { create } from 'zustand';
 
 import type { ClientCreateViewModel, ClientUpdateViewModel } from '@api/models';
+import { queryClient } from '@api/queryClient';
 
 import {
   createClientAsync,
   deleteClientAsync,
   fetchClientDetailAsync,
-  fetchClientsAsync,
   updateClientAsync,
 } from '../core/clients';
 import type { ClientStore } from '../types/clients.types';
 
 export const useClientStore = create<ClientStore>((set) => ({
-  clients: [],
   currentClient: null,
-  loading: true,
   detailLoading: false,
   submitting: false,
   error: null,
-
-  fetchClients: async () => {
-    set({ loading: true, error: null });
-    try {
-      const clients = await fetchClientsAsync();
-      set({ clients, loading: false });
-    } catch {
-      set({ loading: false, error: 'Failed to load clients' });
-    }
-  },
 
   fetchClientDetail: async (serverId) => {
     set({ detailLoading: true, currentClient: null });
@@ -60,6 +48,7 @@ export const useClientStore = create<ClientStore>((set) => ({
     set({ submitting: true });
     const payload: ClientUpdateViewModel = {
       name: values.name.trim(),
+      clientTypeId: values.clientTypeId,
       phone: values.phone.trim() || null,
       address: values.address.trim() || null,
       creditLimit: values.creditLimit ? parseFloat(values.creditLimit) : null,
@@ -75,14 +64,11 @@ export const useClientStore = create<ClientStore>((set) => ({
   deleteClient: async (serverId) => {
     const result = await deleteClientAsync(serverId);
     if (result.success) {
-      fetchClientsAsync().then((clients) => set({ clients }));
+      void queryClient.invalidateQueries({ queryKey: ['clients'] });
     }
     return result;
   },
 
   clearCurrentClient: () => set({ currentClient: null }),
-
-  refreshClients: () => {
-    fetchClientsAsync().then((clients) => set({ clients }));
-  },
+  prepareDetailLoad: () => set({ detailLoading: true, currentClient: null }),
 }));

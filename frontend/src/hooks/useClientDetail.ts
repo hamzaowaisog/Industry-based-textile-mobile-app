@@ -9,26 +9,22 @@ import { useClientStore } from '@stores/clientStore';
 import { AppConstants } from '@constants/appConstants';
 
 import type { ClientTab } from '../types/clients.types';
-import type {
-  ClientStackParamList,
-  OrderStackParamList,
-  PaymentStackParamList,
-  PurchaseStackParamList,
-} from '../types/navigation.types';
+import type { ClientStackParamList } from '../types/navigation.types';
 
 export const useClientDetail = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ClientStackParamList>>();
   const route = useRoute<RouteProp<ClientStackParamList, 'ClientDetail'>>();
   const { clientId } = route.params;
 
-  const { currentClient, detailLoading, fetchClientDetail } = useClientStore();
+  const { currentClient, detailLoading, fetchClientDetail, prepareDetailLoad } = useClientStore();
   const [tab, setTab] = useState<ClientTab>(AppConstants.CLIENT_TABS.ORDERS);
   const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      fetchClientDetail(clientId);
-    }, [clientId]),
+      prepareDetailLoad();
+      void fetchClientDetail(clientId);
+    }, [clientId, prepareDetailLoad, fetchClientDetail]),
   );
 
   useEffect(() => {

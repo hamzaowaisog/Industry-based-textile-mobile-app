@@ -31,6 +31,7 @@ export type OrderStackParamList = {
   OrderList: undefined;
   OrderDetail: { orderId: number };
   CreateOrder: { clientId?: number; clientName?: string } | undefined;
+  EditOrder: { orderId: number };
 };
 
 export type ProductStackParamList = {
@@ -114,11 +115,12 @@ export type MainDrawerParamList = {
 
 // ── Auth nav/route prop helpers ────────────────────────────────────────────────
 
-export type AuthNavProp<T extends keyof AuthStackParamList> =
-  NativeStackNavigationProp<AuthStackParamList, T>;
+export type AuthNavProp<T extends keyof AuthStackParamList> = NativeStackNavigationProp<
+  AuthStackParamList,
+  T
+>;
 
-export type AuthRouteProp<T extends keyof AuthStackParamList> =
-  RouteProp<AuthStackParamList, T>;
+export type AuthRouteProp<T extends keyof AuthStackParamList> = RouteProp<AuthStackParamList, T>;
 
 // ── Per-screen nav prop aliases ────────────────────────────────────────────────
 
@@ -142,5 +144,15 @@ export type VerifySignupOtpRouteProp = AuthRouteProp<typeof S.VERIFY_SIGNUP_OTP>
 
 const SM = AppConstants.SCREENS.MAIN;
 
-export type CreateOrderScreenProps = NativeStackScreenProps<OrderStackParamList, typeof SM.CREATE_ORDER>;
-export type OrderDetailScreenProps = NativeStackScreenProps<OrderStackParamList, typeof SM.ORDER_DETAIL>;
+export type CreateOrderScreenProps = NativeStackScreenProps<
+  OrderStackParamList,
+  typeof SM.CREATE_ORDER
+>;
+export type OrderDetailScreenProps = NativeStackScreenProps<
+  OrderStackParamList,
+  typeof SM.ORDER_DETAIL
+>;
+export type EditOrderScreenProps = NativeStackScreenProps<
+  OrderStackParamList,
+  typeof SM.EDIT_ORDER
+>;

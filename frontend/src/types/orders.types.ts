@@ -53,15 +53,18 @@ export type CreateOrderFormValues = {
   lines: OrderLineFormValues[];
 };
 
+export type EditOrderFormValues = {
+  paymentTypeId: number;
+  notes: string;
+  lines: OrderLineFormValues[];
+};
+
 export type OrderStore = {
-  orders: OrderRow[];
   currentOrder: OrderDetail | null;
-  loading: boolean;
   detailLoading: boolean;
   submitting: boolean;
   error: string | null;
 
-  fetchOrders: () => Promise<void>;
   fetchOrderDetail: (orderId: number) => Promise<void>;
   createOrder: (values: CreateOrderFormValues) => Promise<{ success: boolean; error?: string }>;
   updateOrder: (
@@ -71,7 +74,7 @@ export type OrderStore = {
   ) => Promise<{ success: boolean; error?: string }>;
   deleteOrder: (id: number) => Promise<{ success: boolean; error?: string }>;
   clearCurrentOrder: () => void;
-  refreshOrders: () => void;
+  prepareDetailLoad: () => void;
 };
 
 export type OrderListComponentProps = {
@@ -104,9 +107,41 @@ export type OrderDetailComponentProps = {
   onMore: () => void;
   onClientPress: (clientId: number) => void;
   onMarkDelivered: () => void;
+  onMarkInProgress: () => void;
   onCancelOrder: () => void;
   onRecordPayment: (orderId: number) => void;
   onDelete: () => void;
+  onEditOrder: (orderId: number) => void;
+};
+
+export type EditOrderComponentProps = {
+  step: number;
+  submitting: boolean;
+  orderId: number;
+  clientName: string;
+  values: EditOrderFormValues;
+  errors: Partial<Record<keyof EditOrderFormValues, string>>;
+  touched: Partial<Record<keyof EditOrderFormValues, boolean>>;
+  lineErrors: { qty?: string }[];
+  paymentTypes: { id: number; name: string }[];
+  productItems: { id: number; name: string; subtitle?: string }[];
+  productPickerVisible: boolean;
+  onBack: () => void;
+  onNext: () => void;
+  onSubmit: () => void;
+  onFieldChange: (field: keyof EditOrderFormValues, value: any) => void;
+  onFieldBlur: (field: keyof EditOrderFormValues) => void;
+  onAddLine: () => void;
+  onRemoveLine: (index: number) => void;
+  onLineChange: (
+    index: number,
+    field: keyof OrderLineFormValues,
+    value: string,
+    productId?: number,
+  ) => void;
+  onSelectProduct: (index: number) => void;
+  onProductPicked: (id: number, name: string) => void;
+  onProductPickerClose: () => void;
 };
 
 export type LineItemFormCardProps = {

@@ -11,6 +11,7 @@ import { AppConstants } from '@constants/appConstants';
 import { ArrowLeftIcon, MoreIcon, UserIcon } from '@constants/svgAssets';
 
 import type { OrderDetailComponentProps } from '../../../types/orders.types';
+import { OrderDetailSkeleton } from './OrderDetailSkeleton';
 import { OrderFinancialSummary } from './OrderFinancialSummary';
 import { OrderLineItem } from './OrderLineItem';
 import { OrderStatusBanner } from './OrderStatusBanner';
@@ -25,30 +26,26 @@ export const OrderDetailComponent = ({
   onBack,
   onMore,
   onClientPress,
+  onMarkInProgress,
   onMarkDelivered,
   onCancelOrder,
   onRecordPayment,
+  onEditOrder,
 }: OrderDetailComponentProps) => {
   const { t } = useTranslation();
 
-  const canMarkDelivered =
-    canUpdate &&
+  const isPending = order?.statusId === AppConstants.ORDER_STATUS.PENDING;
+  const isActive =
     order?.statusId !== AppConstants.ORDER_STATUS.DELIVERED &&
     order?.statusId !== AppConstants.ORDER_STATUS.CANCELLED;
 
+  const canMarkInProgress = canUpdate && isPending;
+  const canMarkDelivered = canUpdate && isActive && !isPending;
+  const canEditLines = canUpdate && isActive;
+  const canCancel = canUpdate && isActive;
+
   if (loading) {
-    return (
-      <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backBtn} onPress={onBack}>
-            <ArrowLeftIcon size={20} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.loaderWrap}>
-          <ActivityIndicator color={colors.primary} />
-        </View>
-      </SafeAreaView>
-    );
+    return <OrderDetailSkeleton />;
   }
 
   if (!order) {
@@ -156,14 +153,56 @@ export const OrderDetailComponent = ({
       {/* Bottom bar */}
       {canUpdate && (
         <View style={styles.bottomBar}>
-          {canMarkDelivered && (
+          {(canMarkInProgress || canMarkDelivered || canEditLines) && (
+            <View style={styles.ghostBtnRow}>
+              {canMarkInProgress && (
+                <TouchableOpacity
+                  style={[styles.ghostBtn, submitting && styles.btnDisabled]}
+                  onPress={onMarkInProgress}
+                  disabled={submitting}
+                  activeOpacity={0.75}
+                >
+                  <Text style={styles.ghostBtnText} numberOfLines={1}>
+                    {t('orders.detail.markInProgress')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {canMarkDelivered && (
+                <TouchableOpacity
+                  style={[styles.ghostBtn, submitting && styles.btnDisabled]}
+                  onPress={onMarkDelivered}
+                  disabled={submitting}
+                  activeOpacity={0.75}
+                >
+                  <Text style={styles.ghostBtnText} numberOfLines={1}>
+                    {t('orders.detail.markDelivered')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {canEditLines && (
+                <TouchableOpacity
+                  style={[styles.ghostBtn, submitting && styles.btnDisabled]}
+                  onPress={() => onEditOrder(order.id)}
+                  disabled={submitting}
+                  activeOpacity={0.75}
+                >
+                  <Text style={styles.ghostBtnText} numberOfLines={1}>
+                    {t('orders.detail.editOrder')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+          {canCancel && (
             <TouchableOpacity
-              style={[styles.ghostBtn, submitting && styles.btnDisabled]}
-              onPress={onMarkDelivered}
+              style={[styles.cancelBtn, submitting && styles.btnDisabled]}
+              onPress={onCancelOrder}
               disabled={submitting}
               activeOpacity={0.75}
             >
-              <Text style={styles.ghostBtnText}>{t('orders.detail.markDelivered')}</Text>
+              <Text style={styles.cancelBtnText} numberOfLines={1}>
+                {t('orders.detail.cancelOrder')}
+              </Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity
@@ -175,7 +214,9 @@ export const OrderDetailComponent = ({
             {submitting ? (
               <ActivityIndicator color={colors.white} size="small" />
             ) : (
-              <Text style={styles.primaryBtnText}>{t('orders.detail.recordPayment')}</Text>
+              <Text style={styles.primaryBtnText} numberOfLines={1}>
+                {t('orders.detail.recordPayment')}
+              </Text>
             )}
           </TouchableOpacity>
         </View>

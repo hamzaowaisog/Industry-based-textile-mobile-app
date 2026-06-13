@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { Alert } from 'react-native';
 
 import { DrawerActions, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useQuery } from '@tanstack/react-query';
 
 import { useClientStore } from '@stores/clientStore';
 
@@ -12,30 +13,31 @@ import i18n from '@utils/i18n';
 
 import { AppConstants } from '@constants/appConstants';
 
+import { fetchClientsAsync } from '../core/clients';
 import type { ClientFilter, ClientRow } from '../types/clients.types';
 import type { ClientStackParamList } from '../types/navigation.types';
 
 export const useClientList = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ClientStackParamList>>();
-  const { clients, fetchClients, deleteClient, refreshClients } = useClientStore();
+  const { deleteClient, prepareDetailLoad } = useClientStore();
 
-  const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<ClientFilter>('all');
 
-  useEffect(() => {
-    void fetchClients().then(() => setIsLoading(false));
-  }, []);
+  const { data, isFetching, refetch } = useQuery({
+    queryKey: ['clients'],
+    queryFn: fetchClientsAsync,
+  });
 
   useFocusEffect(
     useCallback(() => {
-      refreshClients();
-    }, [refreshClients]),
+      void refetch();
+    }, [refetch]),
   );
 
   const rows: ClientRow[] = useMemo(() => {
-    const mapped = clients.map(mapApiClientToRow);
+    const mapped = (data ?? []).map(mapApiClientToRow);
 
     const byType = mapped.filter((c) => {
       if (filter === 'customers') return c.clientTypeId === AppConstants.CLIENT_TYPE.CUSTOMER;
@@ -48,13 +50,13 @@ export const useClientList = () => {
     return byType.filter(
       (c) => c.name.toLowerCase().includes(q) || (c.phone ?? '').toLowerCase().includes(q),
     );
-  }, [clients, filter, search]);
+  }, [data, filter, search]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchClients();
+    await refetch();
     setRefreshing(false);
-  }, [fetchClients]);
+  }, [refetch]);
 
   const onMenuPress = useCallback(() => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -62,9 +64,10 @@ export const useClientList = () => {
 
   const onRowPress = useCallback(
     (id: number) => {
+      prepareDetailLoad();
       navigation.navigate(AppConstants.SCREENS.MAIN.CLIENT_DETAIL, { clientId: id });
     },
-    [navigation],
+    [navigation, prepareDetailLoad],
   );
 
   const onFab = useCallback(() => {
@@ -98,7 +101,7 @@ export const useClientList = () => {
     rows,
     search,
     filter,
-    loading: isLoading,
+    loading: isFetching && !refreshing,
     refreshing,
     onRefresh,
     onSearchChange: setSearch,

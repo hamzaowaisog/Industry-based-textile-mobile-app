@@ -134,6 +134,7 @@ export const AppConstants = {
       ORDER_LIST: 'OrderList',
       ORDER_DETAIL: 'OrderDetail',
       CREATE_ORDER: 'CreateOrder',
+      EDIT_ORDER: 'EditOrder',
       // Product stack
       PRODUCT_LIST: 'ProductList',
       PRODUCT_DETAIL: 'ProductDetail',

@@ -22,19 +22,23 @@ import { colors } from '@theme/colors';
 
 import { ArrowLeftIcon, PlusIcon } from '@constants/svgAssets';
 
-import type { CreateOrderComponentProps } from '../../../types/orders.types';
-import { LineItemFormCard } from './LineItemFormCard';
+import type { EditOrderComponentProps } from '../../../types/orders.types';
+import { LineItemFormCard } from '../CreateOrderComponent/LineItemFormCard';
 import { styles } from './styles';
 
-const STEPS = ['orders.create.stepDetails', 'orders.create.stepLines', 'orders.create.stepReview'];
+const STEPS = ['orders.edit.stepDetails', 'orders.edit.stepLines', 'orders.edit.stepReview'];
 
-export const CreateOrderComponent = ({
+export const EditOrderComponent = ({
   step,
   submitting,
+  clientName,
   values,
   errors,
   touched,
   lineErrors,
+  paymentTypes,
+  productItems,
+  productPickerVisible,
   onBack,
   onNext,
   onSubmit,
@@ -43,54 +47,36 @@ export const CreateOrderComponent = ({
   onAddLine,
   onRemoveLine,
   onLineChange,
-  onSelectClient,
-  onClientPicked,
-  onClientPickerClose,
   onSelectProduct,
   onProductPicked,
   onProductPickerClose,
-  paymentTypes,
-  clientItems,
-  clientPickerVisible,
-  productItems,
-  productPickerVisible,
-}: CreateOrderComponentProps) => {
+}: EditOrderComponentProps) => {
   const { t } = useTranslation();
 
-  const runningTotal = values.lines.reduce((sum, l) => {
-    return sum + (parseFloat(l.qty) || 0) * (parseFloat(l.unitPrice) || 0);
-  }, 0);
+  const runningTotal = values.lines.reduce(
+    (sum, l) => sum + (parseFloat(l.qty) || 0) * (parseFloat(l.unitPrice) || 0),
+    0,
+  );
 
   const renderStep = () => {
     if (step === 0) {
       return (
         <View style={styles.stepContent}>
-          {/* Customer selector */}
+          {/* Customer — read-only in edit */}
           <View style={styles.fieldGroup}>
-            <View style={styles.labelRow}>
-              <Text style={styles.fieldLabel}>{t('orders.create.customer')}</Text>
-              <Text style={styles.requiredStar}> *</Text>
+            <Text style={styles.fieldLabel}>{t('orders.edit.customer')}</Text>
+            <View style={styles.customerCard}>
+              <Text style={styles.customerLabel}>{t('orders.edit.customer')}</Text>
+              <Text style={styles.customerName}>{clientName}</Text>
             </View>
-            <TouchableOpacity
-              style={[
-                styles.selectRow,
-                errors.clientId && touched.clientId && styles.selectRowError,
-              ]}
-              onPress={onSelectClient}
-              activeOpacity={0.7}
-            >
-              <Text style={values.clientName ? styles.selectValue : styles.selectPlaceholder}>
-                {values.clientName || t('orders.create.customerPlaceholder')}
-              </Text>
-            </TouchableOpacity>
-            {touched.clientId && errors.clientId ? (
-              <Text style={styles.fieldError}>{errors.clientId}</Text>
-            ) : null}
           </View>
 
           {/* Payment type */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t('orders.create.paymentType')}</Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.fieldLabel}>{t('orders.edit.paymentType')}</Text>
+              <Text style={styles.requiredStar}> *</Text>
+            </View>
             <View style={styles.paymentTypeRow}>
               {paymentTypes.map((pt) => {
                 const isActive = values.paymentTypeId === pt.id;
@@ -112,13 +98,13 @@ export const CreateOrderComponent = ({
 
           {/* Notes */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t('orders.create.notes')}</Text>
+            <Text style={styles.fieldLabel}>{t('orders.edit.notes')}</Text>
             <TextInput
-              style={[styles.textArea]}
+              style={styles.textArea}
               value={values.notes}
               onChangeText={(v) => onFieldChange('notes', v)}
               onBlur={() => onFieldBlur('notes')}
-              placeholder={t('orders.create.notesPlaceholder')}
+              placeholder={t('orders.edit.notesPlaceholder')}
               placeholderTextColor={colors.textTertiary}
               multiline
               numberOfLines={3}
@@ -133,7 +119,7 @@ export const CreateOrderComponent = ({
         <View style={styles.stepContent}>
           <TouchableOpacity style={styles.addLineBtn} onPress={onAddLine} activeOpacity={0.7}>
             <PlusIcon size={18} color={colors.primary} />
-            <Text style={styles.addLineTxt}>{t('orders.create.addProduct')}</Text>
+            <Text style={styles.addLineTxt}>{t('orders.edit.addProduct')}</Text>
           </TouchableOpacity>
 
           {values.lines.map((line, i) => (
@@ -150,7 +136,7 @@ export const CreateOrderComponent = ({
 
           {values.lines.length > 0 && (
             <View style={styles.runningTotalCard}>
-              <Text style={styles.runningTotalLabel}>{t('orders.create.runningTotal')}</Text>
+              <Text style={styles.runningTotalLabel}>{t('orders.edit.runningTotal')}</Text>
               <Text style={styles.runningTotalValue}>{formatPKR(runningTotal)}</Text>
             </View>
           )}
@@ -163,7 +149,7 @@ export const CreateOrderComponent = ({
       <View style={styles.stepContent}>
         <View style={styles.reviewClientCard}>
           <View style={styles.reviewClientLeft}>
-            <Text style={styles.reviewClientName}>{values.clientName || '—'}</Text>
+            <Text style={styles.reviewClientName}>{clientName || '—'}</Text>
             <Text style={styles.reviewClientSub}>
               {paymentTypes.find((p) => p.id === values.paymentTypeId)?.name ?? ''}
             </Text>
@@ -173,7 +159,7 @@ export const CreateOrderComponent = ({
         <View style={styles.reviewLinesCard}>
           <View style={styles.reviewLinesHeader}>
             <Text style={styles.reviewLinesCount}>
-              {t('orders.create.lineItems', { count: values.lines.length })}
+              {t('orders.edit.lineItems', { count: values.lines.length })}
             </Text>
           </View>
           {values.lines.map((l, i) => (
@@ -198,14 +184,14 @@ export const CreateOrderComponent = ({
             </View>
           ))}
           <View style={styles.reviewTotalRow}>
-            <Text style={styles.reviewTotalLabel}>{t('orders.create.totalLabel')}</Text>
+            <Text style={styles.reviewTotalLabel}>{t('orders.edit.totalLabel')}</Text>
             <Text style={styles.reviewTotalValue}>{formatPKR(runningTotal)}</Text>
           </View>
         </View>
 
         {values.notes ? (
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t('orders.create.notes')}</Text>
+            <Text style={styles.fieldLabel}>{t('orders.edit.notes')}</Text>
             <View style={styles.reviewNotesCard}>
               <Text style={styles.reviewNotesText}>{values.notes}</Text>
             </View>
@@ -223,8 +209,8 @@ export const CreateOrderComponent = ({
           <ArrowLeftIcon size={20} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{t('orders.create.title')}</Text>
-          <Text style={styles.headerSub}>{t('orders.create.subtitle')}</Text>
+          <Text style={styles.headerTitle}>{t('orders.edit.title')}</Text>
+          <Text style={styles.headerSub}>{t('orders.edit.subtitle')}</Text>
         </View>
         <View style={styles.headerSpacer} />
       </View>
@@ -278,30 +264,20 @@ export const CreateOrderComponent = ({
       </KeyboardAvoidingView>
 
       <AppSelectModal
-        visible={clientPickerVisible}
-        title={t('orders.create.customer')}
-        items={clientItems}
-        selectedId={values.clientId ?? undefined}
-        onSelect={onClientPicked}
-        onClose={onClientPickerClose}
-        searchPlaceholder={t('orders.create.customerPlaceholder')}
-      />
-
-      <AppSelectModal
         visible={productPickerVisible}
-        title={t('orders.create.addProduct')}
+        title={t('orders.edit.addProduct')}
         items={productItems}
         selectedId={productItems.find((p) => values.lines.some((l) => l.productId === p.id))?.id}
         onSelect={onProductPicked}
         onClose={onProductPickerClose}
-        searchPlaceholder={t('orders.create.addProduct')}
+        searchPlaceholder={t('orders.edit.addProduct')}
       />
 
       {/* Bottom bar */}
       <View style={styles.bottomBar}>
         {step > 0 && (
           <TouchableOpacity style={styles.ghostBtn} onPress={onBack} activeOpacity={0.75}>
-            <Text style={styles.ghostBtnText}>{t('orders.create.back')}</Text>
+            <Text style={styles.ghostBtnText}>{t('orders.edit.back')}</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
@@ -318,7 +294,7 @@ export const CreateOrderComponent = ({
             <ActivityIndicator color={colors.white} size="small" />
           ) : (
             <Text style={styles.primaryBtnText}>
-              {step === 2 ? t('orders.create.placeOrder') : t('orders.create.continue')}
+              {step === 2 ? t('orders.edit.saveChanges') : t('orders.edit.continue')}
             </Text>
           )}
         </TouchableOpacity>

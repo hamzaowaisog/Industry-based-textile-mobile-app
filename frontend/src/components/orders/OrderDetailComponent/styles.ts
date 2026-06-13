@@ -181,17 +181,21 @@ export const styles = StyleSheet.create({
 
   // Bottom bar
   bottomBar: {
-    flexDirection: 'row',
-    gap: 12,
+    flexDirection: 'column',
+    gap: 10,
     paddingHorizontal: 24,
     paddingTop: 12,
     backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.divider,
   },
+  ghostBtnRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
   ghostBtn: {
     flex: 1,
-    height: 52,
+    height: 48,
     borderRadius: 12,
     borderWidth: 1.5,
     borderColor: colors.border,
@@ -201,12 +205,11 @@ export const styles = StyleSheet.create({
   },
   ghostBtnText: {
     fontFamily: typography.fontFamily.bold,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: colors.text,
   },
   primaryBtn: {
-    flex: 1,
     height: 52,
     borderRadius: 12,
     backgroundColor: colors.primary,
@@ -223,6 +226,21 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: colors.white,
+  },
+  cancelBtn: {
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: colors.danger,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+  },
+  cancelBtnText: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.danger,
   },
   btnDisabled: {
     opacity: 0.6,

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import BootSplash from 'react-native-bootsplash';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -11,6 +11,8 @@ import { enableScreens } from 'react-native-screens';
 import Toast from 'react-native-toast-message';
 
 import { useNotificationMarkAsRead } from '@api/generated/notification/notification';
+import { queryClient } from '@api/queryClient';
+
 import { useAuthStore } from '@stores/authStore';
 import { useDeviceStore } from '@stores/deviceStore';
 import { useMetaStore } from '@stores/metaStore';
@@ -32,15 +34,6 @@ import { colors } from '@theme/colors';
 import { BellIcon } from '@constants/svgAssets';
 
 enableScreens();
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 1000 * 60 * 5,
-    },
-  },
-});
 
 const AppInner = () => {
   const { t } = useTranslation();

@@ -9,6 +9,7 @@ import { useAuthStore } from '@stores/authStore';
 import { useOrderStore } from '@stores/orderStore';
 
 import i18n from '@utils/i18n';
+import { showSuccess } from '@utils/toast';
 
 import { AppConstants } from '@constants/appConstants';
 
@@ -26,14 +27,16 @@ export const useOrderDetail = (orderId: number) => {
     updateOrder,
     deleteOrder,
     clearCurrentOrder,
+    prepareDetailLoad,
   } = useOrderStore();
 
   const canUpdate = roleId === AppConstants.ROLES.ADMIN || roleId === AppConstants.ROLES.STAFF;
   const canDelete = roleId === AppConstants.ROLES.ADMIN;
 
   const load = useCallback(() => {
+    prepareDetailLoad();
     void fetchOrderDetail(orderId);
-  }, [orderId, fetchOrderDetail]);
+  }, [orderId, fetchOrderDetail, prepareDetailLoad]);
 
   const onBack = useCallback(() => {
     clearCurrentOrder();
@@ -46,13 +49,10 @@ export const useOrderDetail = (orderId: number) => {
       i18n.t('orders.detail.moreOptions'),
       undefined,
       [
-        canUpdate &&
-        currentOrder.statusId !== AppConstants.ORDER_STATUS.CANCELLED &&
-        currentOrder.statusId !== AppConstants.ORDER_STATUS.DELIVERED
+        canUpdate && currentOrder.statusId === AppConstants.ORDER_STATUS.DELIVERED
           ? {
-              text: i18n.t('orders.detail.cancelOrder'),
-              style: 'destructive',
-              onPress: onCancelOrder,
+              text: i18n.t('orders.detail.recordPayment'),
+              onPress: () => onRecordPayment(currentOrder.id),
             }
           : null,
         canDelete
@@ -61,7 +61,7 @@ export const useOrderDetail = (orderId: number) => {
         { text: i18n.t('common.cancel'), style: 'cancel' },
       ].filter(Boolean) as any[],
     );
-  }, [currentOrder, canUpdate, canDelete]);
+  }, [currentOrder, canUpdate, canDelete, onCancelOrder, onRecordPayment, onDelete]);
 
   const onClientPress = useCallback(
     (clientId: number) => {
@@ -69,6 +69,31 @@ export const useOrderDetail = (orderId: number) => {
     },
     [navigation],
   );
+
+  const onMarkInProgress = useCallback(() => {
+    if (!currentOrder) return;
+    Alert.alert(
+      i18n.t('orders.detail.confirmInProgress'),
+      i18n.t('orders.detail.confirmInProgressMsg'),
+      [
+        { text: i18n.t('common.cancel'), style: 'cancel' },
+        {
+          text: i18n.t('orders.detail.markInProgress'),
+          onPress: async () => {
+            const result = await updateOrder(
+              currentOrder.id,
+              AppConstants.ORDER_STATUS.IN_PROGRESS,
+            );
+            if (result.success) {
+              void fetchOrderDetail(orderId);
+            } else {
+              Alert.alert(i18n.t('common.error'), result.error ?? i18n.t('common.errorGeneric'));
+            }
+          },
+        },
+      ],
+    );
+  }, [currentOrder, orderId, updateOrder, fetchOrderDetail]);
 
   const onMarkDelivered = useCallback(() => {
     if (!currentOrder) return;
@@ -107,6 +132,13 @@ export const useOrderDetail = (orderId: number) => {
     ]);
   }, [currentOrder, orderId, updateOrder, fetchOrderDetail]);
 
+  const onEditOrder = useCallback(
+    (id: number) => {
+      navigation.navigate(AppConstants.SCREENS.MAIN.EDIT_ORDER as any, { orderId: id });
+    },
+    [navigation],
+  );
+
   const onRecordPayment = useCallback(
     (id: number) => {
       navigation.navigate(AppConstants.SCREENS.MAIN.RECORD_PAYMENT as any, { orderId: id });
@@ -127,6 +159,7 @@ export const useOrderDetail = (orderId: number) => {
           onPress: async () => {
             const result = await deleteOrder(currentOrder.id);
             if (result.success) {
+              showSuccess(i18n.t('orders.deleteSuccess'), '');
               navigation.goBack();
             } else {
               Alert.alert(i18n.t('common.error'), result.error ?? i18n.t('common.errorGeneric'));
@@ -147,9 +180,11 @@ export const useOrderDetail = (orderId: number) => {
     onBack,
     onMore,
     onClientPress,
+    onMarkInProgress,
     onMarkDelivered,
     onCancelOrder,
     onRecordPayment,
+    onEditOrder,
     onDelete,
   };
 };

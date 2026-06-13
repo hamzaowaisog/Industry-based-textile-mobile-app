@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
 
-import { useRoute } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 
 import { OrderDetailComponent } from '@components/orders/OrderDetailComponent';
 
@@ -13,9 +13,11 @@ const OrderDetailScreen = () => {
   const { orderId } = route.params;
   const handlers = useOrderDetail(orderId);
 
-  useEffect(() => {
-    handlers.load();
-  }, [orderId]);
+  useFocusEffect(
+    useCallback(() => {
+      handlers.load();
+    }, [orderId]),
+  );
 
   return <OrderDetailComponent {...handlers} />;
 };

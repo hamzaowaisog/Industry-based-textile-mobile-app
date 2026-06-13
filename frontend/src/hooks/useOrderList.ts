@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { DrawerActions } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useQuery } from '@tanstack/react-query';
 
 import { useOrderStore } from '@stores/orderStore';
 
@@ -11,30 +12,31 @@ import { mapApiOrderToRow } from '@utils/helpers/orderMappers';
 
 import { AppConstants } from '@constants/appConstants';
 
+import { fetchOrdersAsync } from '../core/orders';
 import type { OrderStackParamList } from '../types/navigation.types';
 import type { OrderStatusTab } from '../types/orders.types';
 
 export const useOrderList = () => {
   const navigation = useNavigation<NativeStackNavigationProp<OrderStackParamList>>();
-  const { orders, fetchOrders, refreshOrders } = useOrderStore();
+  const { prepareDetailLoad } = useOrderStore();
 
-  const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<OrderStatusTab>('all');
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    void fetchOrders().then(() => setIsLoading(false));
-  }, []);
+  const { data, isFetching, refetch } = useQuery({
+    queryKey: ['orders'],
+    queryFn: fetchOrdersAsync,
+  });
 
   useFocusEffect(
     useCallback(() => {
-      refreshOrders();
-    }, [refreshOrders]),
+      void refetch();
+    }, [refetch]),
   );
 
   const filtered = useMemo(() => {
-    let result = orders;
+    let result = (data ?? []).map(mapApiOrderToRow);
     const statusId = STATUS_TAB_ID_MAP[activeTab];
     if (statusId !== null) result = result.filter((o) => o.statusId === statusId);
     if (search.trim()) {
@@ -42,13 +44,13 @@ export const useOrderList = () => {
       result = result.filter((o) => o.clientName.toLowerCase().includes(q));
     }
     return result;
-  }, [orders, activeTab, search]);
+  }, [data, activeTab, search]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchOrders();
+    await refetch();
     setRefreshing(false);
-  }, [fetchOrders]);
+  }, [refetch]);
 
   const onMenuPress = useCallback(() => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -56,9 +58,10 @@ export const useOrderList = () => {
 
   const onPress = useCallback(
     (id: number) => {
+      prepareDetailLoad();
       navigation.navigate(AppConstants.SCREENS.MAIN.ORDER_DETAIL, { orderId: id });
     },
-    [navigation],
+    [navigation, prepareDetailLoad],
   );
 
   const onNewOrder = useCallback(() => {
@@ -67,10 +70,10 @@ export const useOrderList = () => {
 
   return {
     orders: filtered,
-    totalCount: orders.length,
+    totalCount: (data ?? []).length,
     search,
     activeTab,
-    loading: isLoading,
+    loading: isFetching && !refreshing,
     refreshing,
     onTabChange: setActiveTab,
     onSearchChange: setSearch,

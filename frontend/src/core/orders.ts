@@ -5,8 +5,13 @@ import {
   orderGetMyOrders,
   orderGetOrderById,
   orderUpdateOrder,
+  orderUpdateOrderLines,
 } from '@api/generated/order/order';
-import type { OrderCreateViewModel, OrderUpdateViewModel } from '@api/models';
+import type {
+  OrderCreateViewModel,
+  OrderLinesUpdateViewModel,
+  OrderUpdateViewModel,
+} from '@api/models';
 
 import { useAuthStore } from '@stores/authStore';
 
@@ -16,7 +21,12 @@ import i18n from '@utils/i18n';
 
 import { AppConstants } from '@constants/appConstants';
 
-import type { CreateOrderFormValues, OrderDetail, OrderRow } from '../types/orders.types';
+import type {
+  CreateOrderFormValues,
+  EditOrderFormValues,
+  OrderDetail,
+  OrderRow,
+} from '../types/orders.types';
 
 export const fetchOrdersAsync = async (): Promise<OrderRow[]> => {
   try {
@@ -82,6 +92,44 @@ export const updateOrderAsync = async (
     return { success: true };
   } catch (err) {
     return { success: false, error: parseApiError(err, i18n.t('common.errorGeneric')) };
+  }
+};
+
+export const updateOrderHeaderAsync = async (
+  id: number,
+  statusId: number,
+  paymentTypeId: number,
+  notes: string,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const payload: OrderUpdateViewModel = { statusId, paymentTypeId, notes: notes.trim() || null };
+    const res = await orderUpdateOrder(id, payload);
+    const r = parseApiResponse(res, i18n.t('orders.edit.errorTitle'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('orders.edit.errorTitle')) };
+  }
+};
+
+export const updateOrderLinesAsync = async (
+  id: number,
+  values: EditOrderFormValues,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const payload: OrderLinesUpdateViewModel = {
+      lines: values.lines.map((l) => ({
+        productId: l.productId,
+        qty: parseFloat(l.qty),
+        unitPrice: parseFloat(l.unitPrice),
+      })),
+    };
+    const res = await orderUpdateOrderLines(id, payload);
+    const r = parseApiResponse(res, i18n.t('orders.edit.errorTitle'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('orders.edit.errorTitle')) };
   }
 };
 

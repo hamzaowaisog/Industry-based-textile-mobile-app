@@ -3,6 +3,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import CreateOrderScreen from '@screens/orders/CreateOrder';
+import EditOrderScreen from '@screens/orders/EditOrder';
 import OrderDetailScreen from '@screens/orders/OrderDetail';
 import OrderListScreen from '@screens/orders/OrderList';
 
@@ -18,5 +19,6 @@ export const OrdersStack = () => (
     <Stack.Screen name={S.ORDER_LIST} component={OrderListScreen} />
     <Stack.Screen name={S.ORDER_DETAIL} component={OrderDetailScreen} />
     <Stack.Screen name={S.CREATE_ORDER} component={CreateOrderScreen} />
+    <Stack.Screen name={S.EDIT_ORDER} component={EditOrderScreen} />
   </Stack.Navigator>
 );

@@ -93,19 +93,19 @@ export type ClientFormValues = {
 };
 
 export type ClientStore = {
-  clients: ApiClientItem[];
   currentClient: ClientDetail | null;
-  loading: boolean;
   detailLoading: boolean;
   submitting: boolean;
   error: string | null;
-  fetchClients: () => Promise<void>;
   fetchClientDetail: (serverId: number) => Promise<void>;
   createClient: (data: ClientFormValues) => Promise<{ success: boolean; error?: string }>;
-  updateClient: (serverId: number, data: ClientFormValues) => Promise<{ success: boolean; error?: string }>;
+  updateClient: (
+    serverId: number,
+    data: ClientFormValues,
+  ) => Promise<{ success: boolean; error?: string }>;
   deleteClient: (serverId: number) => Promise<{ success: boolean; error?: string }>;
   clearCurrentClient: () => void;
-  refreshClients: () => void;
+  prepareDetailLoad: () => void;
 };
 
 export type ClientListComponentProps = {
