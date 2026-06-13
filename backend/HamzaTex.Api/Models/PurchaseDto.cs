@@ -52,3 +52,8 @@ public class UpdatePurchaseDto
     public DateOnly? PurchaseDate { get; set; }
     public string? Notes { get; set; }
 }
+
+public class UpdatePurchaseLinesDto
+{
+    public List<CreatePurchaseLineDto> Lines { get; set; } = [];
+}

@@ -214,7 +214,7 @@ public class ReportService : IReportService
             .Include(o => o.OrderLines)
             .Include(o => o.Status)
             .Where(o => o.ClientId == clientId)
-            .OrderBy(o => o.OrderDate)
+            .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
 
         // Purchases where this client is the supplier
@@ -222,15 +222,22 @@ public class ReportService : IReportService
             .Include(p => p.PurchaseLines)
             .Include(p => p.Status)
             .Where(p => p.SupplierId == clientId)
-            .OrderBy(p => p.PurchaseDate)
+            .OrderByDescending(p => p.PurchaseDate)
             .ToListAsync();
 
         // Payments for this client
         var payments = await _db.Payments.AsNoTracking()
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
-            .Where(p => p.PartyClientId == clientId && !p.IsReversed && p.OriginalPaymentId == null)
-            .OrderBy(p => p.PaymentDate)
+            .Where(p => p.PartyClientId == clientId && p.OriginalPaymentId == null)
+            .OrderByDescending(p => p.PaymentDate)
+            .ToListAsync();
+
+        // Invoices for this client
+        var invoices = await _db.Invoices.AsNoTracking()
+            .Include(i => i.InvoiceStatus)
+            .Where(i => i.ClientId == clientId)
+            .OrderByDescending(i => i.IssueDate)
             .ToListAsync();
 
         // Recent transactions for this client
@@ -238,7 +245,7 @@ public class ReportService : IReportService
             .Include(t => t.TransCategory)
             .Include(t => t.TransType)
             .Where(t => t.ClientId == clientId)
-            .OrderBy(t => t.TransDate)
+            .OrderByDescending(t => t.TransDate)
             .Take(20)
             .ToListAsync();
 
@@ -250,8 +257,8 @@ public class ReportService : IReportService
         // Compute totals
         var totalOrderAmount = orders.Sum(o => o.OrderLines.Sum(l => l.Qty * l.UnitPrice));
         var totalPurchaseAmount = purchases.Sum(p => p.PurchaseLines.Sum(l => l.Qty * l.UnitCost));
-        var totalPaymentsIn = payments.Where(p => p.PaymentDirectionId == 1).Sum(p => p.Amount);
-        var totalPaymentsOut = payments.Where(p => p.PaymentDirectionId == 2).Sum(p => p.Amount);
+        var totalPaymentsIn = payments.Where(p => p.PaymentDirectionId == 1 && !p.IsReversed && p.OriginalPaymentId == null).Sum(p => p.Amount);
+        var totalPaymentsOut = payments.Where(p => p.PaymentDirectionId == 2 && !p.IsReversed && p.OriginalPaymentId == null).Sum(p => p.Amount);
 
         // Compute per-order paid/outstanding via allocations
         var orderIds = orders.Select(o => (int?)o.Id).ToList();
@@ -309,6 +316,12 @@ public class ReportService : IReportService
             ClientId = client.Id,
             ClientName = client.Name,
             ClientTypeName = client.ClientType?.Name ?? "Unknown",
+            ClientTypeId = client.ClientTypeId ?? 1,
+            Phone = client.Phone,
+            Address = client.Address,
+            CreditLimit = client.CreditLimit,
+            OpeningBalance = client.OpeningBalance,
+            Notes = client.Notes,
             TotalOrderCount = orders.Count,
             TotalOrderAmount = totalOrderAmount,
             TotalPurchaseCount = purchases.Count,
@@ -327,6 +340,16 @@ public class ReportService : IReportService
                 ModeName = p.TransMode?.Name ?? "Unknown",
                 Amount = p.Amount,
                 IsReversed = p.IsReversed,
+            }).ToList(),
+            Invoices = invoices.Select(i => new ClientInvoiceSummary
+            {
+                InvoiceId = i.Id,
+                InvoiceNumber = i.InvoiceNumber,
+                IssueDate = i.IssueDate,
+                DueDate = i.DueDate,
+                InvoiceStatusId = i.InvoiceStatusId,
+                StatusName = i.InvoiceStatus?.Name ?? "Unknown",
+                TotalAmount = i.TotalAmount,
             }).ToList(),
             RecentTransactions = transactions.Select(t => new ClientTransactionSummary
             {

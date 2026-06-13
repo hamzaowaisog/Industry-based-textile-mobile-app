@@ -1,3 +1,4 @@
+
 export type RecentOrder = {
   orderId: number;
   clientName: string;
@@ -41,7 +42,6 @@ export type MonthlyOverviewItem = {
 };
 
 import type { ComponentType, ReactNode } from 'react';
-import type { SyncPhase } from './store.types';
 
 export type RevenueTrend = { pct: number; up: boolean };
 
@@ -57,25 +57,6 @@ export type QuickActionConfig = {
   labelKey: string;
   color: string;
   Icon: ComponentType<{ size: number; color: string }>;
-};
-
-export type SyncPhaseConfig = {
-  key: string;
-  labelKey: string;
-  subKey: string;
-  subCount?: number;
-  active: boolean;
-  done: boolean;
-};
-
-export type SyncHeroState = {
-  heroBg: string;
-  heroIconColor: string;
-  progressColor: string;
-  titleKey: string;
-  titleCount?: number;
-  subKey: string;
-  subTime?: string;
 };
 
 export type FinancialCellProps = {
@@ -138,29 +119,15 @@ export type SkeletonBlockProps = {
   stretch?: boolean;
 };
 
-export type SyncStatusBarProps = {
-  isOnline: boolean;
-  isSyncing: boolean;
-  onSync: () => void;
-};
-
-export type SyncBottomSheetProps = {
-  isSyncing: boolean;
-  syncPhase: SyncPhase;
-  pendingCount: number;
-  pendingChanges: import('./db.types').PendingChange[];
-  lastSyncedAt: string | null;
-};
-
 export type DashboardComponentProps = {
-  isOnline: boolean;
   isLoading: boolean;
-  isSyncing: boolean;
   summary: DashboardSummary | null;
   monthlyOverview: MonthlyOverviewItem[];
   userName: string;
   onOpenDrawer: () => void;
-  onSync: () => void;
   onNewOrder: () => void;
   onViewAllOrders: () => void;
+  unreadCount: number;
+  onBell: () => void;
+  onSeeAll: () => void;
 };

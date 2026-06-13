@@ -1104,6 +1104,54 @@
         }
       }
     },
+    "/api/Debug/test-push": {
+      "post": {
+        "tags": ["Debug"],
+        "summary": "Validate a push notification payload against FCM using dry_run mode.\r\nNo message is delivered to any device. Returns the FCM message ID and the full data payload that would be sent.\r\nSupported types: order_created, order_delivered, order_cancelled, purchase_delivered,\r\npayment_received, payment_paid, payment_reversed, invoice_issued, invoice_overdue,\r\nlow_stock, expense_approved, sync_complete, sync_partial, sync_failed.",
+        "operationId": "debug_testPush",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestPushRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestPushRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestPushRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Device/register": {
       "post": {
         "tags": ["Device"],
@@ -2402,6 +2450,161 @@
         }
       }
     },
+    "/api/Notification": {
+      "get": {
+        "tags": ["Notification"],
+        "summary": "Get all notifications for the current user. Pass unreadOnly=true and/or limit to filter.",
+        "operationId": "notification_getAll",
+        "parameters": [
+          {
+            "name": "unreadOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationDtoListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Notification/unread-count": {
+      "get": {
+        "tags": ["Notification"],
+        "summary": "Get the count of unread notifications for the current user.",
+        "operationId": "notification_getUnreadCount",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnreadCountDtoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Notification/{id}/read": {
+      "patch": {
+        "tags": ["Notification"],
+        "summary": "Mark a single notification as read.",
+        "operationId": "notification_markAsRead",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Notification/read-all": {
+      "patch": {
+        "tags": ["Notification"],
+        "summary": "Mark all notifications as read for the current user.",
+        "operationId": "notification_markAllRead",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Notification/{id}": {
+      "delete": {
+        "tags": ["Notification"],
+        "summary": "Delete a single notification.",
+        "operationId": "notification_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Order": {
       "post": {
         "tags": ["Order"],
@@ -2697,6 +2900,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OrderDtoListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Order/{id}/lines": {
+      "put": {
+        "tags": ["Order"],
+        "summary": "Replace all lines on a Pending or InProgress order. Syncs the linked Draft invoice. Blocked for Delivered/Cancelled orders.",
+        "operationId": "order_updateOrderLines",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderLinesUpdateViewModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderLinesUpdateViewModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderLinesUpdateViewModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoResponse"
                 }
               }
             }
@@ -3817,6 +4089,75 @@
         }
       }
     },
+    "/api/Purchase/{id}/lines": {
+      "put": {
+        "tags": ["Purchase"],
+        "summary": "Replace all lines on a Pending or InProgress purchase. Syncs the linked Draft invoice. Blocked for Delivered/Cancelled purchases.",
+        "operationId": "purchase_updatePurchaseLines",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseLinesUpdateViewModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseLinesUpdateViewModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseLinesUpdateViewModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseDtoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseDtoResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseDtoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Purchase/pdf": {
       "get": {
         "tags": ["Purchase"],
@@ -4529,150 +4870,6 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Sync/push": {
-      "post": {
-        "tags": ["Sync"],
-        "summary": "Push a batch of offline-created records to the server. Each item is processed independently; partial failures are reported per-item.",
-        "operationId": "sync_push",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SyncPushDto"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SyncPushDto"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/SyncPushDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyncPushResultDtoResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyncPushResultDtoResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Sync/full-pull": {
-      "post": {
-        "tags": ["Sync"],
-        "summary": "Return the full dataset for the authenticated user. Admin receives all records; staff receives only their scoped records. Mobile drops local tables and rebuilds from this response.",
-        "operationId": "sync_fullPull",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyncFullPullResponseDtoResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyncFullPullResponseDtoResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Sync/delta-pull": {
-      "post": {
-        "tags": ["Sync"],
-        "summary": "Return records modified since the given timestamp, scoped to the user. Used for incremental sync after initial full-pull.",
-        "operationId": "sync_deltaPull",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SyncDeltaPullRequestDto"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SyncDeltaPullRequestDto"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/SyncDeltaPullRequestDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyncFullPullResponseDtoResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyncFullPullResponseDtoResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Sync/ping": {
-      "get": {
-        "tags": ["Sync"],
-        "summary": "Return server UTC time so mobile can detect clock skew.",
-        "operationId": "sync_ping",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DateTimeResponse"
                 }
               }
             }
@@ -5639,6 +5836,38 @@
             "nullable": true,
             "example": "string"
           },
+          "clientTypeId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "+92-300-1234567"
+          },
+          "address": {
+            "type": "string",
+            "nullable": true,
+            "example": "123 Mall Road, Lahore"
+          },
+          "creditLimit": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 150000
+          },
+          "openingBalance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 150000
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "example": "Optional notes here"
+          },
           "totalOrderCount": {
             "type": "integer",
             "format": "int32"
@@ -5689,6 +5918,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ClientPaymentSummary"
+            },
+            "nullable": true
+          },
+          "invoices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClientInvoiceSummary"
             },
             "nullable": true
           },
@@ -5750,6 +5986,48 @@
               "type": "string"
             },
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClientInvoiceSummary": {
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "invoiceNumber": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "issueDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "string"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "string"
+          },
+          "invoiceStatusId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "statusName": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -6110,6 +6388,13 @@
               "$ref": "#/components/schemas/RecentOrderDto"
             },
             "nullable": true
+          },
+          "recentPurchases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecentPurchaseDto"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -6127,32 +6412,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/DashboardSummaryDto"
-          },
-          "errors": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "DateTimeResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string",
-            "nullable": true,
-            "example": "Operation completed successfully"
-          },
-          "data": {
-            "type": "string",
-            "format": "date-time",
-            "example": "string"
           },
           "errors": {
             "type": "array",
@@ -7375,6 +7634,103 @@
         },
         "additionalProperties": false
       },
+      "NotificationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "type": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true,
+            "example": "Sample Title"
+          },
+          "body": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "entityId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "example": 1
+          },
+          "isRead": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NotificationDtoListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationDto"
+            },
+            "nullable": true
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ObjectResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "nullable": true
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OrderCreateViewModel": {
         "type": "object",
         "properties": {
@@ -7662,6 +8018,19 @@
         },
         "additionalProperties": false
       },
+      "OrderLinesUpdateViewModel": {
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderLineCreateViewModel"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OrderUpdateViewModel": {
         "type": "object",
         "properties": {
@@ -7672,7 +8041,9 @@
           },
           "paymentTypeId": {
             "type": "integer",
+            "description": "Omit or null to leave the existing payment type unchanged.",
             "format": "int32",
+            "nullable": true,
             "example": 1
           },
           "notes": {
@@ -8502,6 +8873,19 @@
         },
         "additionalProperties": false
       },
+      "PurchaseLinesUpdateViewModel": {
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseLineCreateViewModel"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "PurchaseUpdateViewModel": {
         "type": "object",
         "properties": {
@@ -8553,6 +8937,36 @@
             "example": "string"
           },
           "orderDate": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RecentPurchaseDto": {
+        "type": "object",
+        "properties": {
+          "purchaseId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "supplierName": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "statusName": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "purchaseDate": {
             "type": "string",
             "nullable": true,
             "example": "string"
@@ -9045,1437 +9459,22 @@
         },
         "additionalProperties": false
       },
-      "SyncClientBalanceDto": {
+      "TestPushRequest": {
         "type": "object",
         "properties": {
-          "clientId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "name": {
+          "notificationType": {
             "type": "string",
-            "nullable": true,
-            "example": "Ahmed Textiles"
-          },
-          "balance": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncClientDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
+            "description": "Notification type key from the catalog (e.g. \"order_delivered\").",
             "nullable": true,
             "example": "string"
           },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true,
-            "example": "Ahmed Textiles"
-          },
-          "clientTypeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "userId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "phone": {
-            "type": "string",
-            "nullable": true,
-            "example": "+92-300-1234567"
-          },
-          "address": {
-            "type": "string",
-            "nullable": true,
-            "example": "123 Mall Road, Lahore"
-          },
-          "creditLimit": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 150000
-          },
-          "openingBalance": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 150000
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "example": "Optional notes here"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncDeltaPullRequestDto": {
-        "type": "object",
-        "properties": {
-          "since": {
-            "type": "string",
-            "format": "date-time",
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncExpenseDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "expenseTypeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "amount": {
-            "type": "number",
-            "format": "double",
-            "example": 150000
-          },
-          "transModeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "transCategoryId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "expenseDate": {
-            "type": "string",
-            "format": "date",
-            "example": "string"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "example": "Optional notes here"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncFullPullResponseDto": {
-        "type": "object",
-        "properties": {
-          "clients": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncClientDto"
-            },
-            "nullable": true
-          },
-          "products": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncProductDto"
-            },
-            "nullable": true
-          },
-          "orders": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncOrderDto"
-            },
-            "nullable": true
-          },
-          "purchases": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncPurchaseDto"
-            },
-            "nullable": true
-          },
-          "payments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncPaymentDto"
-            },
-            "nullable": true
-          },
-          "paymentAllocations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncPaymentAllocationDto"
-            },
-            "nullable": true
-          },
-          "expenses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncExpenseDto"
-            },
-            "nullable": true
-          },
-          "stockMovements": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncStockMovementDto"
-            },
-            "nullable": true
-          },
-          "transactions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncTransactionDto"
-            },
-            "nullable": true
-          },
-          "invoices": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncInvoiceDto"
-            },
-            "nullable": true
-          },
-          "userRoles": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "clientTypes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "orderStatuses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "purchaseStatuses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "paymentTypes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "paymentDirections": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "transTypes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "transModes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "transCategories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "expenseTypes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "movementTypes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "movementSources": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "invoiceStatuses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "clientBalances": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncClientBalanceDto"
-            },
-            "nullable": true
-          },
-          "monthlyProfitLoss": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncMonthlyProfitLossDto"
-            },
-            "nullable": true
-          },
-          "monthlyCreditDebit": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncMonthlyCreditDebitDto"
-            },
-            "nullable": true
-          },
-          "serverTime": {
-            "type": "string",
-            "format": "date-time",
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncFullPullResponseDtoResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string",
-            "nullable": true,
-            "example": "Operation completed successfully"
-          },
-          "data": {
-            "$ref": "#/components/schemas/SyncFullPullResponseDto"
-          },
-          "errors": {
-            "type": "array",
-            "items": {
+          "templateVars": {
+            "type": "object",
+            "additionalProperties": {
               "type": "string"
             },
+            "description": "Template variable substitutions (e.g. orderId, clientName, amount).",
             "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncInvoiceDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "invoiceNumber": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "orderId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "purchaseId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "clientId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "createdByUserId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "invoiceStatusId": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "issueDate": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "dueDate": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "totalAmount": {
-            "type": "number",
-            "format": "double"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "example": "Optional notes here"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "invoiceLines": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncInvoiceLineDto"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncInvoiceLineDto": {
-        "type": "object",
-        "properties": {
-          "productName": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "qty": {
-            "type": "number",
-            "format": "double",
-            "example": 50
-          },
-          "unitPrice": {
-            "type": "number",
-            "format": "double",
-            "example": 150000
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncItemResultDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "status": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverVersion": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "serverData": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "errors": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncLookupDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "name": {
-            "type": "string",
-            "nullable": true,
-            "example": "Ahmed Textiles"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncMonthlyCreditDebitDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "month": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "totalCredit": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "totalDebit": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "balance": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncMonthlyProfitLossDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "month": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "totalSales": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "totalPurchases": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "totalExpenses": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "grossProfit": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "netProfit": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncOrderDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "clientId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "statusId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "paymentTypeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "orderDate": {
-            "type": "string",
-            "format": "date",
-            "example": "string"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "example": "Optional notes here"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "orderLines": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncOrderLineDto"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncOrderLineDto": {
-        "type": "object",
-        "properties": {
-          "productId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "qty": {
-            "type": "number",
-            "format": "double",
-            "example": 50
-          },
-          "unitPrice": {
-            "type": "number",
-            "format": "double",
-            "example": 150000
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncPaymentAllocationDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "paymentId": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "paymentLocalId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "orderId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "purchaseId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "invoiceId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "allocatedAmount": {
-            "type": "number",
-            "format": "double",
-            "example": 150000
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncPaymentDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "partyClientId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "paymentDirectionId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "transModeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "amount": {
-            "type": "number",
-            "format": "double",
-            "example": 150000
-          },
-          "paymentDate": {
-            "type": "string",
-            "format": "date",
-            "example": "string"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "example": "Optional notes here"
-          },
-          "isReversed": {
-            "type": "boolean"
-          },
-          "originalPaymentId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncProductDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "name": {
-            "type": "string",
-            "nullable": true,
-            "example": "Ahmed Textiles"
-          },
-          "sku": {
-            "type": "string",
-            "nullable": true,
-            "example": "FAB-001"
-          },
-          "unit": {
-            "type": "string",
-            "nullable": true,
-            "example": "Meters"
-          },
-          "defaultCost": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 150000
-          },
-          "defaultPrice": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 150000
-          },
-          "quantity": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 50
-          },
-          "averageCost": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "averagePrice": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "costChangeCount": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "priceChangeCount": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "totalQuantityPurchased": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "totalQuantitySold": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "reorderLevel": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 10
-          },
-          "isActive": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncPurchaseDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "supplierId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "statusId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "paymentTypeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "purchaseDate": {
-            "type": "string",
-            "format": "date",
-            "example": "string"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "example": "Optional notes here"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "purchaseLines": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncPurchaseLineDto"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncPurchaseLineDto": {
-        "type": "object",
-        "properties": {
-          "productId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "qty": {
-            "type": "number",
-            "format": "double",
-            "example": 50
-          },
-          "unitCost": {
-            "type": "number",
-            "format": "double",
-            "example": 150000
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncPushDto": {
-        "type": "object",
-        "properties": {
-          "clients": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncClientDto"
-            },
-            "nullable": true
-          },
-          "products": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncProductDto"
-            },
-            "nullable": true
-          },
-          "orders": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncOrderDto"
-            },
-            "nullable": true
-          },
-          "purchases": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncPurchaseDto"
-            },
-            "nullable": true
-          },
-          "payments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncPaymentDto"
-            },
-            "nullable": true
-          },
-          "paymentAllocations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncPaymentAllocationDto"
-            },
-            "nullable": true
-          },
-          "expenses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncExpenseDto"
-            },
-            "nullable": true
-          },
-          "stockMovements": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncStockMovementDto"
-            },
-            "nullable": true
-          },
-          "transactions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncTransactionDto"
-            },
-            "nullable": true
-          },
-          "invoices": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncInvoiceDto"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncPushResultDto": {
-        "type": "object",
-        "properties": {
-          "results": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncItemResultDto"
-            },
-            "nullable": true
-          },
-          "acceptedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "rejectedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "serverTime": {
-            "type": "string",
-            "format": "date-time",
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncPushResultDtoResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string",
-            "nullable": true,
-            "example": "Operation completed successfully"
-          },
-          "data": {
-            "$ref": "#/components/schemas/SyncPushResultDto"
-          },
-          "errors": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncStockMovementDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "productId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "movementTypeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "movementSourceId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "qty": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 50
-          },
-          "unitCost": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 150000
-          },
-          "unitPrice": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 150000
-          },
-          "averageCostAtMovement": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "averagePriceAtMovement": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "movementDate": {
-            "type": "string",
-            "format": "date",
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncTransactionDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "clientId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "userId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "orderId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "purchaseId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "invoiceId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "transTypeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "transModeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "transCategoryId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "amount": {
-            "type": "number",
-            "format": "double",
-            "example": 150000
-          },
-          "transDate": {
-            "type": "string",
-            "format": "date",
-            "example": "string"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "example": "Optional notes here"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
           }
         },
         "additionalProperties": false
@@ -10835,6 +9834,40 @@
           },
           "data": {
             "$ref": "#/components/schemas/UnallocatedCreditDto"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UnreadCountDto": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UnreadCountDtoResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UnreadCountDto"
           },
           "errors": {
             "type": "array",

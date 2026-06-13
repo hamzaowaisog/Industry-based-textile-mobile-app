@@ -185,18 +185,6 @@ export const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
 
-  // ── Connectivity dot (green = online, red = offline) ──
-  connectivityDot: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    borderWidth: 1.5,
-    borderColor: colors.surface,
-  },
-
   // ── Empty state (recent orders) ──
   emptyWrap: {
     alignItems: 'center',
@@ -245,5 +233,69 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.white,
+  },
+
+  // ── Bell badge ──
+  bellBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: colors.danger,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  bellBadgeText: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.textInverse,
+  },
+
+  // ── Notification preview rows ──
+  notifRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+  },
+  notifRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+  },
+  notifIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  notifContent: {
+    flex: 1,
+    minWidth: 0,
+  },
+  notifTitle: {
+    fontFamily: typography.fontFamily.semibold,
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  notifBody: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    marginTop: 1,
+  },
+  notifTime: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 11,
+    fontWeight: '500',
+    color: colors.textTertiary,
+    flexShrink: 0,
   },
 });

@@ -3,6 +3,7 @@ export const AppConstants = {
   APP: {
     NAME: 'HamzaTex',
     TAG: 'TEXTILE ERP',
+    CURRENCY: 'Rs',
   },
 
   // Secure store keys (auth tokens only — non-sensitive prefs use FILES)
@@ -14,6 +15,8 @@ export const AppConstants = {
     USER_NAME: 'userName',
     EMAIL: 'userEmail',
     BIOMETRIC_TOKEN: 'biometricToken',
+    PUSH_TOKEN: 'push_token',
+    NOTIFICATIONS_PROMPTED: 'notifications_prompted',
   },
 
   // File-system markers (cleared on reinstall, unlike Keychain)
@@ -27,34 +30,50 @@ export const AppConstants = {
     STAFF: 2,
   },
 
+  // Meta lookup keys — use with useMetaStore().getList() / getLookupName()
+  META: {
+    ORDER_STATUSES: 'orderStatuses',
+    PURCHASE_STATUSES: 'purchaseStatuses',
+    PAYMENT_TYPES: 'paymentTypes',
+    PAYMENT_DIRECTIONS: 'paymentDirections',
+    TRANS_TYPES: 'transTypes',
+    TRANS_MODES: 'transModes',
+    TRANS_CATEGORIES: 'transCategories',
+    EXPENSE_TYPES: 'expenseTypes',
+    MOVEMENT_TYPES: 'movementTypes',
+    MOVEMENT_SOURCES: 'movementSources',
+    CLIENT_TYPES: 'clientTypes',
+    USER_ROLES: 'userRoles',
+    INVOICE_STATUSES: 'invoiceStatuses',
+  } as const,
+
+  // Client type IDs (matches backend seeded ClientType table)
+  CLIENT_TYPE: {
+    CUSTOMER: 1,
+    SUPPLIER: 2,
+  },
+
+  // Order status IDs (matches backend seeded OrderStatus table)
+  ORDER_STATUS: {
+    PENDING: 1,
+    IN_PROGRESS: 2,
+    DELIVERED: 3,
+    CANCELLED: 4,
+  },
+
+  // Client detail tabs
+  CLIENT_TABS: {
+    ORDERS: 'orders',
+    PURCHASES: 'purchases',
+    PAYMENTS: 'payments',
+    INVOICES: 'invoices',
+    TRANSACTIONS: 'transactions',
+  },
+
   // Pagination
   PAGINATION: {
     DEFAULT_PAGE: 1,
     DEFAULT_PAGE_SIZE: 20,
-  },
-
-  // Sync
-  SYNC: {
-    MAX_RETRY_COUNT: 3,
-    STORE_KEY: 'hamzatex-sync-store',
-    SNAP_POINTS: ['62%'],
-    PROGRESS: {
-      INIT: 5,
-      PUSHING: 20,
-      CLEARING: 55,
-      PULLING: 80,
-      DONE: 100,
-    },
-    PHASES: {
-      PUSHING: 'pushing',
-      CLEARING: 'clearing',
-      PULLING: 'pulling',
-    } as const,
-  },
-
-  // Local DB
-  DB: {
-    NAME: 'hamzatex.db',
   },
 
   // Currency display
@@ -105,6 +124,8 @@ export const AppConstants = {
       REPORTS_STACK: 'ReportsStack',
       USERS_STACK: 'UsersStack',
       SETTINGS: 'Settings',
+      MORE: 'More',
+      NOTIFICATION_CENTER: 'NotificationCenter',
       // Client stack
       CLIENT_LIST: 'ClientList',
       CLIENT_DETAIL: 'ClientDetail',
@@ -113,6 +134,7 @@ export const AppConstants = {
       ORDER_LIST: 'OrderList',
       ORDER_DETAIL: 'OrderDetail',
       CREATE_ORDER: 'CreateOrder',
+      EDIT_ORDER: 'EditOrder',
       // Product stack
       PRODUCT_LIST: 'ProductList',
       PRODUCT_DETAIL: 'ProductDetail',
@@ -148,4 +170,18 @@ export const AppConstants = {
       CREATE_USER: 'CreateUser',
     },
   } as const,
+
+  NOTIFICATION_TYPES: {
+    ORDER_CREATED: 'order_created',
+    ORDER_DELIVERED: 'order_delivered',
+    ORDER_CANCELLED: 'order_cancelled',
+    PURCHASE_DELIVERED: 'purchase_delivered',
+    PAYMENT_RECEIVED: 'payment_received',
+    PAYMENT_PAID: 'payment_paid',
+    PAYMENT_REVERSED: 'payment_reversed',
+    INVOICE_ISSUED: 'invoice_issued',
+    INVOICE_OVERDUE: 'invoice_overdue',
+    LOW_STOCK: 'low_stock',
+    EXPENSE_APPROVED: 'expense_approved',
+  },
 } as const;

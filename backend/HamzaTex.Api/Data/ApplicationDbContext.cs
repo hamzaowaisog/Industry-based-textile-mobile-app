@@ -85,6 +85,7 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
     public virtual DbSet<DeviceToken> DeviceTokens { get; set; }
     public virtual DbSet<PasswordResetOtp> PasswordResetOtps { get; set; }
     public virtual DbSet<EmailVerificationOtp> EmailVerificationOtps { get; set; }
+    public virtual DbSet<Notification> Notifications { get; set; }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -263,6 +264,7 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.ClientId).HasColumnName("client_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.StatusId).HasColumnName("status_id");
             entity.Property(e => e.PaymentTypeId).HasColumnName("payment_type_id");
             entity.Property(e => e.CreatedAt)
@@ -487,6 +489,7 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.SupplierId).HasColumnName("supplier_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.PaymentTypeId).HasColumnName("payment_type_id");
             entity.Property(e => e.PurchaseDate)
                 .HasColumnType("date")
@@ -1055,6 +1058,26 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.UnitPrice).HasColumnName("unit_price").HasColumnType("decimal(14,4)");
             entity.Property(e => e.LineTotal).HasColumnName("line_total").HasColumnType("decimal(14,2)");
             entity.HasOne(e => e.Invoice).WithMany(i => i.InvoiceLines).HasForeignKey(e => e.InvoiceId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("notifications_pkey");
+            entity.ToTable("notifications");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Type).HasColumnName("type");
+            entity.Property(e => e.Title).HasColumnName("title");
+            entity.Property(e => e.Body).HasColumnName("body");
+            entity.Property(e => e.EntityId).HasColumnName("entity_id");
+            entity.Property(e => e.IsRead).HasColumnName("is_read");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("datetime(6)")
+                .HasConversion(
+                    v => v,
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);

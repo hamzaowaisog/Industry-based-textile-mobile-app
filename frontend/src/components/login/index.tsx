@@ -39,7 +39,6 @@ export const LoginComponent = ({
   showPassword,
   rememberMe,
   isBiometricEnabled,
-  isOnline,
   onTogglePassword,
   onToggleRemember,
   onForgotPassword,
@@ -90,15 +89,6 @@ export const LoginComponent = ({
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Offline banner */}
-          {!isOnline && (
-            <View style={styles.offlineBanner}>
-              <Text style={styles.offlineBannerText}>
-                {t('sync.offlineTitle')} — {t('login.requiresConnection')}
-              </Text>
-            </View>
-          )}
-
           {/* Username */}
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>
@@ -226,7 +216,11 @@ export const LoginComponent = ({
                 <View style={styles.dividerLine} />
               </View>
 
-              <TouchableOpacity style={styles.ghostButton} onPress={onBiometric} activeOpacity={0.8}>
+              <TouchableOpacity
+                style={styles.ghostButton}
+                onPress={onBiometric}
+                activeOpacity={0.8}
+              >
                 <FingerprintIcon size={20} color={colors.text} />
                 <Text style={styles.ghostButtonText}>{t('login.biometric')}</Text>
               </TouchableOpacity>

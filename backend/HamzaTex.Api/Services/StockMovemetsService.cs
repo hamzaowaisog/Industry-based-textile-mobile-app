@@ -39,13 +39,13 @@ public class StockMovementsService : IStockMovementsService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IProductService _productService;
-    private readonly IPushNotificationService _push;
+    private readonly INotificationService _notification;
 
-    public StockMovementsService(ApplicationDbContext dbContext, IProductService productService, IPushNotificationService push)
+    public StockMovementsService(ApplicationDbContext dbContext, IProductService productService, INotificationService notification)
     {
         _dbContext = dbContext;
         _productService = productService;
-        _push = push;
+        _notification = notification;
     }
 
     public async Task<Response<StockMovementsDto>> CreateAsync(CreateStockMovementsDto model, int userId)
@@ -189,11 +189,14 @@ public class StockMovementsService : IStockMovementsService
                 var newQty = productData.Quantity ?? 0;
                 if (newQty <= productData.ReorderLevel.Value)
                 {
-                    _ = _push.SendTypedAsync(userId, "low_stock", new Dictionary<string, string>
+                    try { await _notification.CreateAsync(new CreateNotificationDto
                     {
-                        ["productName"] = productData.Name ?? "Product",
-                        ["qty"] = newQty.ToString()
-                    });
+                        UserId = userId,
+                        Type = "low_stock",
+                        Title = "Low Stock Alert",
+                        Body = $"{productData.Name ?? "Product"} is below reorder level ({newQty} remaining)",
+                        EntityId = model.ProductId
+                    }); } catch { }
                 }
             }
 
@@ -241,7 +244,7 @@ public class StockMovementsService : IStockMovementsService
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
             .Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId))
-            .OrderBy(sm => sm.MovementDate)
+            .OrderByDescending(sm => sm.MovementDate)
             .ToListAsync();
 
         var dtos = movements.Select(ToDto).ToList();
@@ -255,7 +258,7 @@ public class StockMovementsService : IStockMovementsService
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
             .Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId))
-            .OrderBy(sm => sm.MovementDate)
+            .OrderByDescending(sm => sm.MovementDate)
             .Select(sm => ToDto(sm));
 
         var pagedList = await PagedList<StockMovementsDto>.CreateAsync(query, page, pageSize);
@@ -293,7 +296,7 @@ public class StockMovementsService : IStockMovementsService
             query = query.Where(sm => sm.MovementDate <= dateTo.Value);
 
         var movements = await query
-            .OrderBy(sm => sm.MovementDate)
+            .OrderByDescending(sm => sm.MovementDate)
             .ToListAsync();
 
         var dtos = movements.Select(ToDto).ToList();

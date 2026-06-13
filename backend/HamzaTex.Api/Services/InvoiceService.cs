@@ -40,17 +40,17 @@ public interface IInvoiceService
 public class InvoiceService : IInvoiceService
 {
     private readonly ApplicationDbContext _db;
-    private readonly IPushNotificationService _push;
+    private readonly INotificationService _notification;
 
     private const int StatusDraft     = 1;
     private const int StatusIssued    = 2;
     private const int StatusPaid      = 3;
     private const int StatusCancelled = 4;
 
-    public InvoiceService(ApplicationDbContext db, IPushNotificationService push)
+    public InvoiceService(ApplicationDbContext db, INotificationService notification)
     {
         _db = db;
-        _push = push;
+        _notification = notification;
     }
 
     // ── Number generation ────────────────────────────────────────────────────
@@ -273,7 +273,7 @@ public class InvoiceService : IInvoiceService
 
     public async Task<Response<PagedList<InvoiceDto>>> GetAllPaginatedAsync(int page, int pageSize)
     {
-        var query = InvoiceQueryWithIncludes().OrderBy(i => i.CreatedAt);
+        var query = InvoiceQueryWithIncludes().OrderByDescending(i => i.CreatedAt);
         var totalCount = await query.CountAsync();
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         var paged = new PagedList<InvoiceDto>(items.Select(i => ToDto(i)).ToList(), page, pageSize, totalCount);
@@ -288,7 +288,7 @@ public class InvoiceService : IInvoiceService
 
         var invoices = await InvoiceQueryWithIncludes()
             .Where(i => i.ClientId == clientId)
-            .OrderBy(i => i.CreatedAt)
+            .OrderByDescending(i => i.CreatedAt)
             .ToListAsync();
 
         var dtos           = invoices.Select(i => ToDto(i)).ToList();
@@ -322,7 +322,7 @@ public class InvoiceService : IInvoiceService
         if (dateFrom.HasValue)   query = query.Where(i => i.CreatedAt >= dateFrom.Value);
         if (dateTo.HasValue)     query = query.Where(i => i.CreatedAt <= dateTo.Value);
 
-        var result = await query.OrderBy(i => i.CreatedAt).ToListAsync();
+        var result = await query.OrderByDescending(i => i.CreatedAt).ToListAsync();
         return Response<List<InvoiceDto>>.SuccessResponse(result.Select(i => ToDto(i)).ToList(), "Filtered invoices fetched.");
     }
 
@@ -342,11 +342,14 @@ public class InvoiceService : IInvoiceService
                 invoice.IssueDate = DateOnly.FromDateTime(DateTime.UtcNow);
             if (model.InvoiceStatusId.Value == StatusIssued && !wasIssued && invoice.CreatedByUserId.HasValue)
             {
-                _ = _push.SendTypedAsync(invoice.CreatedByUserId.Value, "invoice_issued", new Dictionary<string, string>
+                try { await _notification.CreateAsync(new CreateNotificationDto
                 {
-                    ["invoiceNumber"] = invoice.InvoiceNumber,
-                    ["amount"] = invoice.TotalAmount.ToString("F2")
-                });
+                    UserId = invoice.CreatedByUserId.Value,
+                    Type = "invoice_issued",
+                    Title = "Invoice Issued",
+                    Body = $"Invoice {invoice.InvoiceNumber} issued for PKR {invoice.TotalAmount:F2}",
+                    EntityId = invoice.Id
+                }); } catch { }
             }
         }
         if (model.DueDate.HasValue)         invoice.DueDate         = model.DueDate.Value;

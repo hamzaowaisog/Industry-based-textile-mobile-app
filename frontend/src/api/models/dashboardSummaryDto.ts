@@ -9,6 +9,7 @@ import type { DashboardAlertsDto } from './dashboardAlertsDto';
 import type { DashboardFinancialsDto } from './dashboardFinancialsDto';
 import type { DashboardOperationsDto } from './dashboardOperationsDto';
 import type { RecentOrderDto } from './recentOrderDto';
+import type { RecentPurchaseDto } from './recentPurchaseDto';
 
 export interface DashboardSummaryDto {
   /** @nullable */
@@ -20,4 +21,6 @@ export interface DashboardSummaryDto {
   alerts?: DashboardAlertsDto;
   /** @nullable */
   recentOrders?: RecentOrderDto[] | null;
+  /** @nullable */
+  recentPurchases?: RecentPurchaseDto[] | null;
 }

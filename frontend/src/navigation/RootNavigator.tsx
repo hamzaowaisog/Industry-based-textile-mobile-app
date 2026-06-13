@@ -6,7 +6,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { useAuthStore } from '@stores/authStore';
 
 import { AuthNavigator } from './AuthNavigator';
-import { MainNavigator } from './MainNavigator';
+import { MainStackNavigator } from './MainStackNavigator';
+import { navigationRef } from './navigationRef';
 
 export const RootNavigator = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -22,8 +23,8 @@ export const RootNavigator = () => {
   if (!hydrated) return null;
 
   return (
-    <NavigationContainer>
-      {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
+    <NavigationContainer ref={navigationRef}>
+      {isAuthenticated ? <MainStackNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
 };

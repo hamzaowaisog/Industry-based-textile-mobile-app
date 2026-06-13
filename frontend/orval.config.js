@@ -4,6 +4,7 @@ module.exports = {
       target: './openapi-spec.json',
     },
     output: {
+      clean: true,
       mode: 'tags-split',
       target: 'src/api/generated',
       schemas: 'src/api/models',

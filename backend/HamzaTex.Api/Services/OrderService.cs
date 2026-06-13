@@ -26,6 +26,8 @@ public interface IOrderService
     Task<Response<List<OrderDto>>> GetFilteredAsync(int? clientId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
     /// <summary>Update order header and handle status transitions (Delivered → stock+ledger, Cancelled → reversal).</summary>
     Task<Response<OrderDto>> UpdateByIdAsync(int id, UpdateOrderDto model, int userId, bool isAdmin);
+    /// <summary>Replace all lines on a Pending or InProgress order. Syncs the linked Draft invoice. Blocked for Delivered/Cancelled orders.</summary>
+    Task<Response<OrderDto>> UpdateLinesAsync(int id, UpdateOrderLinesDto model, int userId, bool isAdmin);
     /// <summary>Delete an order and its lines. Only allowed if order has not been Delivered.</summary>
     Task<Response> DeleteByIdAsync(int id);
 }
@@ -36,10 +38,11 @@ public class OrderService : IOrderService
     private readonly IStockMovementsService _stockMovementsService;
     private readonly IPaymentService _paymentService;
     private readonly IInvoiceService _invoiceService;
-    private readonly IPushNotificationService _push;
+    private readonly INotificationService _notification;
 
-    // Seed IDs
+  // Seed IDs
     private const int StatusPending = 1;
+    private const int InvoiceStatusDraft = 1;
     private const int StatusDelivered = 3;
     private const int StatusCancelled = 4;
     private const int ClientTypeCustomer = 1;
@@ -52,13 +55,13 @@ public class OrderService : IOrderService
     private const int MovementSourceManual = 3;
     private const int MovementTypeIn = 1;
 
-    public OrderService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService, IInvoiceService invoiceService, IPushNotificationService push)
+    public OrderService(ApplicationDbContext dbContext, IStockMovementsService stockMovementsService, IPaymentService paymentService, IInvoiceService invoiceService, INotificationService notification)
     {
         _dbContext = dbContext;
         _stockMovementsService = stockMovementsService;
         _paymentService = paymentService;
         _invoiceService = invoiceService;
-        _push = push;
+        _notification = notification;
     }
 
     public async Task<Response<OrderDto>> CreateAsync(CreateOrderDto model, int userId)
@@ -81,6 +84,7 @@ public class OrderService : IOrderService
         var order = new Order
         {
             ClientId = model.ClientId,
+            UserId = userId,
             StatusId = StatusPending,
             PaymentTypeId = model.PaymentTypeId,
             OrderDate = model.OrderDate,
@@ -105,11 +109,14 @@ public class OrderService : IOrderService
 
         // Reload with navigation properties
         var saved = await LoadOrderWithIncludes(order.Id);
-        _ = _push.SendTypedAsync(userId, "order_created", new Dictionary<string, string>
+        try { await _notification.CreateAsync(new CreateNotificationDto
         {
-            ["orderId"]    = order.Id.ToString(),
-            ["clientName"] = client.Name ?? "Client"
-        });
+            UserId = userId,
+            Type = "order_created",
+            Title = "New Order",
+            Body = $"Order #{order.Id} created for {client.Name ?? "Client"}",
+            EntityId = order.Id
+        }); } catch { }
         return Response<OrderDto>.SuccessResponse(ToDto(saved!), "Order created successfully.");
     }
 
@@ -119,7 +126,7 @@ public class OrderService : IOrderService
         if (order is null)
             return Response<OrderDto>.ErrorResponse("Not found", "Order not found.");
 
-        if (!isAdmin && order.Client?.UserId != userId)
+        if (!isAdmin && order.UserId != userId)
             return Response<OrderDto>.ErrorResponse("Not found", "Order not found.");
 
         return Response<OrderDto>.SuccessResponse(ToDto(order), "Order fetched successfully.");
@@ -128,7 +135,7 @@ public class OrderService : IOrderService
     public async Task<Response<List<OrderDto>>> GetAllAsync()
     {
         var orders = await OrderQueryWithIncludes()
-            .OrderBy(o => o.OrderDate)
+            .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
 
         return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Orders fetched successfully.");
@@ -137,8 +144,8 @@ public class OrderService : IOrderService
     public async Task<Response<List<OrderDto>>> GetAllByUserIdAsync(int userId)
     {
         var orders = await OrderQueryWithIncludes()
-            .Where(o => o.Client != null && o.Client.UserId == userId)
-            .OrderBy(o => o.OrderDate)
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
 
         return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Orders fetched successfully.");
@@ -146,7 +153,7 @@ public class OrderService : IOrderService
 
     public async Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize)
     {
-        var query = OrderQueryWithIncludes().OrderBy(o => o.OrderDate);
+        var query = OrderQueryWithIncludes().OrderByDescending(o => o.OrderDate);
         var totalCount = await query.CountAsync();
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         var pagedList = new PagedList<OrderDto>(items.Select(o => ToDto(o)).ToList(), page, pageSize, totalCount);
@@ -159,7 +166,7 @@ public class OrderService : IOrderService
         var query = OrderQueryWithIncludes();
 
         if (!isAdmin)
-            query = query.Where(o => o.Client != null && o.Client.UserId == userId);
+            query = query.Where(o => o.UserId == userId);
 
         if (clientId.HasValue)
             query = query.Where(o => o.ClientId == clientId.Value);
@@ -173,7 +180,7 @@ public class OrderService : IOrderService
         if (dateTo.HasValue)
             query = query.Where(o => o.OrderDate <= dateTo.Value);
 
-        var orders = await query.OrderBy(o => o.OrderDate).ToListAsync();
+        var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
         return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Filtered orders fetched successfully.");
     }
 
@@ -189,7 +196,7 @@ public class OrderService : IOrderService
         if (order is null)
             return Response<OrderDto>.ErrorResponse("Not found", "Order not found.");
 
-        if (!isAdmin && order.Client?.UserId != userId)
+        if (!isAdmin && order.UserId != userId)
             return Response<OrderDto>.ErrorResponse("Not found", "Order not found.");
 
         var previousStatusId = order.StatusId ?? 0;
@@ -199,7 +206,7 @@ public class OrderService : IOrderService
         if (previousStatusId == StatusDelivered && newStatusId == StatusDelivered)
         {
             // Idempotent: already delivered, just update other fields
-            order.PaymentTypeId = model.PaymentTypeId;
+            if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
             order.Notes = model.Notes;
             if (model.OrderDate.HasValue)
                 order.OrderDate = model.OrderDate.Value;
@@ -231,7 +238,7 @@ public class OrderService : IOrderService
 
         // ── Normal update (Pending ↔ InProgressed, or field changes) ──
         order.StatusId = model.StatusId;
-        order.PaymentTypeId = model.PaymentTypeId;
+        if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
         order.Notes = model.Notes;
         if (model.OrderDate.HasValue)
             order.OrderDate = model.OrderDate.Value;
@@ -239,6 +246,89 @@ public class OrderService : IOrderService
 
         var updated = await LoadOrderWithIncludes(id);
         return Response<OrderDto>.SuccessResponse(ToDto(updated!), "Order updated successfully.");
+    }
+
+    public async Task<Response<OrderDto>> UpdateLinesAsync(int id, UpdateOrderLinesDto model, int userId, bool isAdmin)
+    {
+        var order = await _dbContext.Orders
+            .Include(o => o.OrderLines)
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (order is null)
+            return Response<OrderDto>.ErrorResponse("Not found", "Order not found.");
+
+        if (!isAdmin && order.UserId != userId)
+            return Response<OrderDto>.ErrorResponse("Not found", "Order not found.");
+
+        if (order.StatusId == StatusDelivered || order.StatusId == StatusCancelled)
+            return Response<OrderDto>.ErrorResponse("Validation failed", "Order lines can only be edited when the order is Pending or InProgress.");
+
+        var requestedProductIds = model.Lines.Select(l => l.ProductId).Distinct().ToList();
+        var existingProducts = await _dbContext.Products
+            .Where(p => requestedProductIds.Contains(p.Id))
+            .Select(p => new { p.Id, p.Name })
+            .ToListAsync();
+
+        var missingProductId = requestedProductIds.FirstOrDefault(pid => !existingProducts.Select(p => p.Id).Contains(pid));
+        if (missingProductId != default)
+            return Response<OrderDto>.ErrorResponse("Not found", $"Product with ID {missingProductId} does not exist.");
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            _dbContext.OrderLines.RemoveRange(order.OrderLines);
+            order.OrderLines.Clear();
+
+            foreach (var line in model.Lines)
+            {
+                order.OrderLines.Add(new OrderLine
+                {
+                    ProductId = line.ProductId,
+                    Qty       = line.Qty,
+                    UnitPrice = line.UnitPrice
+                });
+            }
+            await _dbContext.SaveChangesAsync();
+
+            var invoice = await _dbContext.Invoices
+                .Include(i => i.InvoiceLines)
+                .FirstOrDefaultAsync(i => i.OrderId == id);
+
+            if (invoice is not null && invoice.InvoiceStatusId == InvoiceStatusDraft)
+            {
+                _dbContext.InvoiceLines.RemoveRange(invoice.InvoiceLines);
+
+                var productNameMap = existingProducts.ToDictionary(p => p.Id, p => p.Name);
+
+                foreach (var line in model.Lines)
+                {
+                    var productName = productNameMap.TryGetValue(line.ProductId, out var n)
+                        ? n ?? $"Product #{line.ProductId}"
+                        : $"Product #{line.ProductId}";
+
+                    invoice.InvoiceLines.Add(new InvoiceLine
+                    {
+                        ProductName = productName,
+                        Qty         = line.Qty,
+                        UnitPrice   = line.UnitPrice,
+                        LineTotal   = line.Qty * line.UnitPrice
+                    });
+                }
+
+                invoice.TotalAmount = model.Lines.Sum(l => l.Qty * l.UnitPrice);
+                await _dbContext.SaveChangesAsync();
+            }
+
+            await transaction.CommitAsync();
+
+            var reloaded = await LoadOrderWithIncludes(id);
+            return Response<OrderDto>.SuccessResponse(ToDto(reloaded!), "Order lines updated successfully.");
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return Response<OrderDto>.ErrorResponse("Internal server error", ex.Message);
+        }
     }
 
     public async Task<Response> DeleteByIdAsync(int id)
@@ -276,7 +366,7 @@ public class OrderService : IOrderService
         {
             // Update header
             order.StatusId = StatusDelivered;
-            order.PaymentTypeId = model.PaymentTypeId;
+            if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
             order.Notes = model.Notes;
             if (model.OrderDate.HasValue)
                 order.OrderDate = model.OrderDate.Value;
@@ -331,10 +421,14 @@ public class OrderService : IOrderService
             await _paymentService.ApplyUnallocatedCreditAsync(order.ClientId ?? 0, order.Id, null);
 
             var reloaded = await LoadOrderWithIncludes(order.Id);
-            _ = _push.SendTypedAsync(userId, "order_delivered", new Dictionary<string, string>
+            try { await _notification.CreateAsync(new CreateNotificationDto
             {
-                ["orderId"] = order.Id.ToString()
-            });
+                UserId = userId,
+                Type = "order_delivered",
+                Title = "Order Delivered",
+                Body = $"Order #{order.Id} marked as delivered",
+                EntityId = order.Id
+            }); } catch { }
             return Response<OrderDto>.SuccessResponse(ToDto(reloaded!), "Order delivered. Stock and ledger updated.");
         }
         catch (Exception ex)
@@ -405,10 +499,14 @@ public class OrderService : IOrderService
             await _invoiceService.CancelByOrderOrPurchaseAsync(order.Id, null);
 
             var reloaded = await LoadOrderWithIncludes(order.Id);
-            _ = _push.SendTypedAsync(userId, "order_cancelled", new Dictionary<string, string>
+            try { await _notification.CreateAsync(new CreateNotificationDto
             {
-                ["orderId"] = order.Id.ToString()
-            });
+                UserId = userId,
+                Type = "order_cancelled",
+                Title = "Order Cancelled",
+                Body = $"Order #{order.Id} has been cancelled",
+                EntityId = order.Id
+            }); } catch { }
             var message = previousStatusId == StatusDelivered
                 ? "Order cancelled. Stock and ledger reversed."
                 : "Order cancelled.";

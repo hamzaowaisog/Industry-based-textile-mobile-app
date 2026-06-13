@@ -31,6 +31,7 @@ import type {
   OrderDtoResponse,
   OrderGetAllOrdersPaginatedParams,
   OrderGetFilteredOrdersParams,
+  OrderLinesUpdateViewModel,
   OrderUpdateViewModel,
   Response
 } from '../../models';
@@ -599,6 +600,70 @@ export function useOrderGetFilteredOrders<TData = Awaited<ReturnType<typeof orde
 
 
 /**
+ * @summary Replace all lines on a Pending or InProgress order. Syncs the linked Draft invoice. Blocked for Delivered/Cancelled orders.
+ */
+export const orderUpdateOrderLines = (
+    id: number,
+    orderLinesUpdateViewModel?: OrderLinesUpdateViewModel,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<OrderDtoResponse>(
+      {url: `/api/Order/${id}/lines`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: orderLinesUpdateViewModel, signal
+    },
+      );
+    }
+
+
+
+export const getOrderUpdateOrderLinesMutationOptions = <TError = OrderDtoResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof orderUpdateOrderLines>>, TError,{id: number;data?: OrderLinesUpdateViewModel}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof orderUpdateOrderLines>>, TError,{id: number;data?: OrderLinesUpdateViewModel}, TContext> => {
+
+const mutationKey = ['orderUpdateOrderLines'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof orderUpdateOrderLines>>, {id: number;data?: OrderLinesUpdateViewModel}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  orderUpdateOrderLines(id,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OrderUpdateOrderLinesMutationResult = NonNullable<Awaited<ReturnType<typeof orderUpdateOrderLines>>>
+    export type OrderUpdateOrderLinesMutationBody = OrderLinesUpdateViewModel | undefined
+    export type OrderUpdateOrderLinesMutationError = OrderDtoResponse
+
+    /**
+ * @summary Replace all lines on a Pending or InProgress order. Syncs the linked Draft invoice. Blocked for Delivered/Cancelled orders.
+ */
+export const useOrderUpdateOrderLines = <TError = OrderDtoResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof orderUpdateOrderLines>>, TError,{id: number;data?: OrderLinesUpdateViewModel}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof orderUpdateOrderLines>>,
+        TError,
+        {id: number;data?: OrderLinesUpdateViewModel},
+        TContext
+      > => {
+      return useMutation(getOrderUpdateOrderLinesMutationOptions(options), queryClient);
+    }
+    /**
  * @summary Download all orders for the authenticated user as a PDF report.
  */
 export const orderGetOrdersPdf = (

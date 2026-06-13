@@ -19,6 +19,8 @@ public partial class Purchase
 
     public int? SupplierId { get; set; }
 
+    public int? UserId { get; set; }
+
     public int? StatusId { get; set; }
 
     public int? PaymentTypeId { get; set; }
@@ -28,12 +30,6 @@ public partial class Purchase
     public string? Notes { get; set; }
 
     public DateOnly? CreatedAt { get; set; }
-
-    public DateTime? UpdatedAt { get; set; }
-
-    public string? LocalId { get; set; }
-
-    public int Version { get; set; } = 1;
 
     public virtual ICollection<PurchaseLine> PurchaseLines { get; set; } = new List<PurchaseLine>();
 

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+
 import { Alert } from 'react-native';
 
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -9,7 +10,6 @@ import { AppConstants } from '@constants/appConstants';
 
 import { biometricLoginAsync, biometricSetupAsync } from '../core/auth';
 import { useAuthStore } from '../stores/authStore';
-import { useSyncStore } from '../stores/syncStore';
 import { BiometricNavProp } from '../types/navigation.types';
 import { showError, showSuccess } from '../utils/toast';
 
@@ -76,14 +76,11 @@ export const useBiometric = (navigation: BiometricNavProp) => {
     }
   };
 
-  const isOnline = useSyncStore((s) => s.isOnline);
-
   return {
     userName,
     userEmail,
     initials: deriveInitials(userName),
     isPending,
-    isOnline,
     error,
     onAuthenticate: runAuthenticate,
     onSwitchAccount: () => {
@@ -103,22 +100,18 @@ export const offerBiometricSetup = async (t: (key: string) => string): Promise<v
   const isBiometricEnabled = useAuthStore.getState().isBiometricEnabled;
   if (!hasHardware || !isEnrolled || isBiometricEnabled) return;
 
-  Alert.alert(
-    t('biometric.setupTitle'),
-    t('biometric.setupMessage'),
-    [
-      { text: t('biometric.setupSkip'), style: 'cancel' },
-      {
-        text: t('biometric.setupEnable'),
-        onPress: async () => {
-          const result = await biometricSetupAsync();
-          if (result.success) {
-            showSuccess(t('biometric.setupSuccessTitle'), t('biometric.setupSuccessSubtitle'));
-          } else {
-            showError(t('biometric.setupFailedTitle'), result.error);
-          }
-        },
+  Alert.alert(t('biometric.setupTitle'), t('biometric.setupMessage'), [
+    { text: t('biometric.setupSkip'), style: 'cancel' },
+    {
+      text: t('biometric.setupEnable'),
+      onPress: async () => {
+        const result = await biometricSetupAsync();
+        if (result.success) {
+          showSuccess(t('biometric.setupSuccessTitle'), t('biometric.setupSuccessSubtitle'));
+        } else {
+          showError(t('biometric.setupFailedTitle'), result.error);
+        }
       },
-    ],
-  );
+    },
+  ]);
 };

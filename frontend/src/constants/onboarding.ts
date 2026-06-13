@@ -1,11 +1,6 @@
 import { colors } from '@theme/colors';
 
-export type OnboardingSlide = {
-  bg: string;
-  titleKey: string;
-  bodyKey: string;
-  pointKeys: [string, string, string];
-};
+import type { OnboardingSlide } from '../types/onboarding.types';
 
 export const ONBOARDING_SLIDES: OnboardingSlide[] = [
   {
