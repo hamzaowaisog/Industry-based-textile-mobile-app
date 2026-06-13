@@ -233,6 +233,65 @@ const steps = [{ Icon: MailIcon, bg: colors.primaryLight, label: t('forgotPasswo
 - Formatters: `src/utils/helpers/format<Domain>.ts` — exports `format<Thing>` functions
 - Static configs: `src/utils/helpers/<feature>Content.ts` — exports `SCREAMING_SNAKE_CASE` constants
 
+**Icon component references in content helpers:**
+Helper files are `.ts` (no JSX), so icon maps store `ComponentType` references — not factory functions that return JSX. The component receives the map and renders the icon itself.
+
+```ts
+// ✅ correct — orderContent.ts (stays .ts, no JSX)
+import type { ComponentType } from 'react';
+import { ClockIcon, TruckIcon } from '@constants/svgAssets';
+
+export const ORDER_STATUS_ICONS: Record<number, ComponentType<{ size?: number; color: string }>> = {
+  [AppConstants.ORDER_STATUS.PENDING]: ClockIcon,
+  [AppConstants.ORDER_STATUS.IN_PROGRESS]: TruckIcon,
+};
+
+// In the component — a local render helper bridges the gap
+const renderStatusIcon = (statusId: number, color: string, size: number): React.ReactNode => {
+  const Icon = ORDER_STATUS_ICONS[statusId];
+  return Icon ? <Icon size={size} color={color} /> : null;
+};
+
+// ❌ wrong — factory functions returning JSX inside a .ts helper or in the component file
+const STATUS_ICONS: Record<number, (fg: string, size?: number) => React.ReactNode> = {
+  [AppConstants.ORDER_STATUS.PENDING]: (fg, size = 14) => <ClockIcon size={size} color={fg} />,
+};
+```
+
+### 3b. Sub-components — Always Folders, Never Inline Render Functions
+
+Any piece of UI complex enough to be extracted must become a proper sub-component folder with its own `index.tsx` and `styles.ts`. **Never extract UI into a `render*` function inside the parent component** — that is just an inlined component without the folder structure.
+
+```
+components/<Feature>/
+  index.tsx          ← parent component
+  styles.ts          ← parent styles only
+  <SubComponent>/
+    index.tsx        ← sub-component, receives props
+    styles.ts        ← sub-component styles only
+```
+
+**Rule of thumb:** if you find yourself writing `const renderSomething = () => { ... return <View>...</View> }` inside a component, that function should be a sub-component folder instead.
+
+```tsx
+// ✅ correct — TabContent is a proper sub-component folder
+// components/clients/ClientDetailComponent/TabContent/index.tsx
+export const TabContent = ({ tab, client }: ClientTabContentProps) => { ... };
+
+// In parent:
+import { TabContent } from './TabContent';
+<TabContent tab={tab} client={client} />
+
+// ❌ wrong — render function living inside the parent component body
+const renderTabContent = () => {
+  // ...switch on tab, map rows...
+  return rows.length === 0 ? <EmptyState /> : rows;
+};
+// used as: {renderTabContent()}
+```
+
+**Styles follow the same boundary:** styles used only by a sub-component go in the sub-component's `styles.ts`, not the parent's. Never pass style objects as props to pull parent styles into a sub-component.
+
 ### 4. Props Pattern
 
 - Hooks return a flat object; screens spread it directly into the component: `<FooComponent {...handlers} />`.
