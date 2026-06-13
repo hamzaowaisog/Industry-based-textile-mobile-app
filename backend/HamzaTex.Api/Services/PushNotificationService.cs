@@ -17,6 +17,9 @@ public interface IPushNotificationService
 
     /// <summary>Send a templated notification by catalog type, replacing {var} placeholders in title/body.</summary>
     Task SendTypedAsync(int userId, string notificationType, Dictionary<string, string> templateVars);
+
+    /// <summary>Validate a notification payload against FCM without delivering. Returns the FCM message ID and the full data payload.</summary>
+    Task<(string MessageId, Dictionary<string, string> Payload)> SendDryRunAsync(string notificationType, Dictionary<string, string> templateVars);
 }
 
 public class PushNotificationService : IPushNotificationService
@@ -27,9 +30,6 @@ public class PushNotificationService : IPushNotificationService
 
     private static readonly Dictionary<string, (string Title, string Body)> _catalog = new()
     {
-        ["sync_complete"]      = ("Sync Complete",       "All {count} changes synced successfully"),
-        ["sync_partial"]       = ("Sync Issues",         "{rejected} of {total} items failed to sync"),
-        ["sync_failed"]        = ("Sync Failed",         "Sync failed — tap to retry"),
         ["order_created"]      = ("New Order",           "Order #{orderId} created for {clientName}"),
         ["order_delivered"]    = ("Order Delivered",     "Order #{orderId} marked as delivered"),
         ["order_cancelled"]    = ("Order Cancelled",     "Order #{orderId} has been cancelled"),
@@ -41,6 +41,7 @@ public class PushNotificationService : IPushNotificationService
         ["invoice_overdue"]    = ("Invoice Overdue",     "Invoice {invoiceNumber} is past due date"),
         ["low_stock"]          = ("Low Stock Alert",     "{productName} is below reorder level ({qty} remaining)"),
         ["expense_approved"]   = ("Expense Recorded",    "PKR {amount} expense recorded ({category})"),
+        ["client_added"]       = ("New Client Added",    "{clientName} has been added as a client"),
     };
 
     public PushNotificationService(
@@ -147,6 +148,43 @@ public class PushNotificationService : IPushNotificationService
         await SendToUserAsync(userId, title, body, data);
     }
 
+    public async Task<(string MessageId, Dictionary<string, string> Payload)> SendDryRunAsync(
+        string notificationType, Dictionary<string, string> templateVars)
+    {
+        if (!_isConfigured)
+            return ("NOT_CONFIGURED", new Dictionary<string, string>());
+
+        if (!_catalog.TryGetValue(notificationType, out var template))
+            return ("UNKNOWN_TYPE", new Dictionary<string, string>());
+
+        var title = ReplacePlaceholders(template.Title, templateVars);
+        var body  = ReplacePlaceholders(template.Body,  templateVars);
+
+        var payload = new Dictionary<string, string>(templateVars)
+        {
+            ["type"]      = notificationType,
+            ["title"]     = title,
+            ["body"]      = body,
+            ["screen"]    = BuildScreen(notificationType, templateVars),
+            ["timestamp"] = DateTime.UtcNow.ToString("O")
+        };
+
+        var message = new Message
+        {
+            Topic = "dry-run-validation",
+            Data  = payload,
+            Android = new AndroidConfig { Priority = Priority.High },
+            Apns = new ApnsConfig
+            {
+                Headers = new Dictionary<string, string> { ["apns-priority"] = "10" },
+                Aps = new Aps { ContentAvailable = true }
+            }
+        };
+
+        var messageId = await FirebaseMessaging.DefaultInstance.SendAsync(message, dryRun: true);
+        return (messageId, payload);
+    }
+
     private static string ReplacePlaceholders(string template, Dictionary<string, string> vars)
     {
         foreach (var (key, value) in vars)
@@ -166,9 +204,10 @@ public class PushNotificationService : IPushNotificationService
             => vars.TryGetValue("invoiceId", out var iid) ? $"/invoices/{iid}" : "/invoices",
         "low_stock"
             => vars.TryGetValue("productId", out var prid) ? $"/products/{prid}" : "/products",
-        "sync_complete" or "sync_partial" or "sync_failed" => "/sync-status",
         "expense_approved"
             => vars.TryGetValue("expenseId", out var eid) ? $"/expenses/{eid}" : "/expenses",
+        "client_added"
+            => vars.TryGetValue("clientId", out var cid) ? $"/clients/{cid}" : "/clients",
         _ => "/"
     };
 

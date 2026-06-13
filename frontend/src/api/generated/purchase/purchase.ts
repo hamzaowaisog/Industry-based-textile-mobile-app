@@ -31,6 +31,7 @@ import type {
   PurchaseDtoResponse,
   PurchaseGetAllPurchasesPaginatedParams,
   PurchaseGetFilteredPurchasesParams,
+  PurchaseLinesUpdateViewModel,
   PurchaseUpdateViewModel,
   Response
 } from '../../models';
@@ -599,6 +600,70 @@ export function usePurchaseGetFilteredPurchases<TData = Awaited<ReturnType<typeo
 
 
 /**
+ * @summary Replace all lines on a Pending or InProgress purchase. Syncs the linked Draft invoice. Blocked for Delivered/Cancelled purchases.
+ */
+export const purchaseUpdatePurchaseLines = (
+    id: number,
+    purchaseLinesUpdateViewModel?: PurchaseLinesUpdateViewModel,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<PurchaseDtoResponse>(
+      {url: `/api/Purchase/${id}/lines`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: purchaseLinesUpdateViewModel, signal
+    },
+      );
+    }
+
+
+
+export const getPurchaseUpdatePurchaseLinesMutationOptions = <TError = PurchaseDtoResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof purchaseUpdatePurchaseLines>>, TError,{id: number;data?: PurchaseLinesUpdateViewModel}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof purchaseUpdatePurchaseLines>>, TError,{id: number;data?: PurchaseLinesUpdateViewModel}, TContext> => {
+
+const mutationKey = ['purchaseUpdatePurchaseLines'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof purchaseUpdatePurchaseLines>>, {id: number;data?: PurchaseLinesUpdateViewModel}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  purchaseUpdatePurchaseLines(id,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PurchaseUpdatePurchaseLinesMutationResult = NonNullable<Awaited<ReturnType<typeof purchaseUpdatePurchaseLines>>>
+    export type PurchaseUpdatePurchaseLinesMutationBody = PurchaseLinesUpdateViewModel | undefined
+    export type PurchaseUpdatePurchaseLinesMutationError = PurchaseDtoResponse
+
+    /**
+ * @summary Replace all lines on a Pending or InProgress purchase. Syncs the linked Draft invoice. Blocked for Delivered/Cancelled purchases.
+ */
+export const usePurchaseUpdatePurchaseLines = <TError = PurchaseDtoResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof purchaseUpdatePurchaseLines>>, TError,{id: number;data?: PurchaseLinesUpdateViewModel}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof purchaseUpdatePurchaseLines>>,
+        TError,
+        {id: number;data?: PurchaseLinesUpdateViewModel},
+        TContext
+      > => {
+      return useMutation(getPurchaseUpdatePurchaseLinesMutationOptions(options), queryClient);
+    }
+    /**
  * @summary Download all purchases for the authenticated user as a PDF report.
  */
 export const purchaseGetPurchasesPdf = (

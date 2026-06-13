@@ -20,8 +20,14 @@ public class OrderLineCreateViewModel
 public class OrderUpdateViewModel
 {
     public int StatusId { get; set; }
-    public int PaymentTypeId { get; set; }
+    /// <summary>Omit or null to leave the existing payment type unchanged.</summary>
+    public int? PaymentTypeId { get; set; }
     public string? Notes { get; set; }
     /// <summary>Omit or null to leave the existing order date unchanged.</summary>
     public DateOnly? OrderDate { get; set; }
+}
+
+public class OrderLinesUpdateViewModel
+{
+    public List<OrderLineCreateViewModel> Lines { get; set; } = new();
 }

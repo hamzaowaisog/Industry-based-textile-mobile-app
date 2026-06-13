@@ -42,7 +42,7 @@ public class PaymentService : IPaymentService
 {
     private readonly ApplicationDbContext _db;
     private readonly IInvoiceService _invoiceService;
-    private readonly IPushNotificationService _push;
+    private readonly INotificationService _notification;
 
     // Seeded direction IDs
     private const int DirectionReceived = 1;
@@ -74,11 +74,11 @@ public class PaymentService : IPaymentService
     private const int ClientTypeCustomer = 1;
     private const int ClientTypeSupplier = 2;
 
-    public PaymentService(ApplicationDbContext db, IInvoiceService invoiceService, IPushNotificationService push)
+    public PaymentService(ApplicationDbContext db, IInvoiceService invoiceService, INotificationService notification)
     {
         _db = db;
         _invoiceService = invoiceService;
-        _push = push;
+        _notification = notification;
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -213,12 +213,19 @@ public class PaymentService : IPaymentService
             await txn.CommitAsync();
 
             // Push notification
-            var notificationType = model.PaymentDirectionId == DirectionReceived ? "payment_received" : "payment_paid";
-            _ = _push.SendTypedAsync(userId, notificationType, new Dictionary<string, string>
+            var notifType = model.PaymentDirectionId == DirectionReceived ? "payment_received" : "payment_paid";
+            var notifTitle = model.PaymentDirectionId == DirectionReceived ? "Payment Received" : "Payment Made";
+            var notifBody = model.PaymentDirectionId == DirectionReceived
+                ? $"{client.Name ?? "Client"} paid PKR {model.Amount:F2}"
+                : $"PKR {model.Amount:F2} paid to {client.Name ?? "Client"}";
+            try { await _notification.CreateAsync(new CreateNotificationDto
             {
-                ["clientName"] = client.Name ?? "Client",
-                ["amount"] = model.Amount.ToString("F2")
-            });
+                UserId = userId,
+                Type = notifType,
+                Title = notifTitle,
+                Body = notifBody,
+                EntityId = payment.Id
+            }); } catch { }
 
             return await GetByIdAsync(payment.Id);
         }
@@ -262,7 +269,7 @@ public class PaymentService : IPaymentService
         if (!includeReversed)
             query = query.Where(p => !p.IsReversed);
 
-        query = query.OrderBy(p => p.PaymentDate).ThenByDescending(p => p.Id);
+        query = query.OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.Id);
 
         var paged = await PagedList<PaymentDto>.CreateAsync(
             query.Select(p => MapToDto(p)), page, pageSize);
@@ -279,7 +286,7 @@ public class PaymentService : IPaymentService
             .Include(p => p.User)
             .Include(p => p.Allocations)
             .Where(p => p.PartyClientId == clientId)
-            .OrderBy(p => p.PaymentDate)
+            .OrderByDescending(p => p.PaymentDate)
             .ToListAsync();
 
         return Response<List<PaymentDto>>.SuccessResponse(
@@ -295,7 +302,7 @@ public class PaymentService : IPaymentService
             .Include(p => p.User)
             .Include(p => p.Allocations)
             .Where(p => p.UserId == userId)
-            .OrderBy(p => p.PaymentDate).ThenByDescending(p => p.Id);
+            .OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.Id);
 
         var paged = await PagedList<PaymentDto>.CreateAsync(
             query.Select(p => MapToDto(p)), page, pageSize);
@@ -322,7 +329,7 @@ public class PaymentService : IPaymentService
         if (dateTo.HasValue) query = query.Where(p => p.PaymentDate <= dateTo.Value);
         if (!includeReversed) query = query.Where(p => !p.IsReversed);
 
-        var list = await query.OrderBy(p => p.PaymentDate).ToListAsync();
+        var list = await query.OrderByDescending(p => p.PaymentDate).ToListAsync();
         return Response<List<PaymentDto>>.SuccessResponse(list.Select(MapToDto).ToList(), "Payments retrieved.");
     }
 
@@ -419,10 +426,14 @@ public class PaymentService : IPaymentService
 
             await txn.CommitAsync();
 
-            _ = _push.SendTypedAsync(adminUserId, "payment_reversed", new Dictionary<string, string>
+            try { await _notification.CreateAsync(new CreateNotificationDto
             {
-                ["amount"] = original.Amount.ToString("F2")
-            });
+                UserId = adminUserId,
+                Type = "payment_reversed",
+                Title = "Payment Reversed",
+                Body = $"Payment of PKR {original.Amount:F2} has been reversed",
+                EntityId = reversalPayment.Id
+            }); } catch { }
 
             return await GetByIdAsync(reversalPayment.Id);
         }

@@ -46,12 +46,6 @@ public partial class Product
 
     public DateOnly? CreatedAt { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
-
-    public int Version { get; set; } = 1;
-
-    public string? LocalId { get; set; }
-
     public virtual ICollection<OrderLine> OrderLines { get; set; } = new List<OrderLine>();
 
     public virtual ICollection<PurchaseLine> PurchaseLines { get; set; } = new List<PurchaseLine>();

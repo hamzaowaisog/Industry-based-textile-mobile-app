@@ -1,4 +1,9 @@
-import { OnboardingSlide } from '@constants/onboarding';
+export type OnboardingSlide = {
+  bg: string;
+  titleKey: string;
+  bodyKey: string;
+  pointKeys: [string, string, string];
+};
 
 export type OnboardingComponentProps = {
   slideIndex: number;

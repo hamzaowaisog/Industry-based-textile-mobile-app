@@ -19,10 +19,6 @@ public partial class OrderLine
 
     public decimal UnitPrice { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
-
-    public int Version { get; set; } = 1;
-
     public virtual Order Order { get; set; } = null!;
 
     public virtual Product? Product { get; set; }

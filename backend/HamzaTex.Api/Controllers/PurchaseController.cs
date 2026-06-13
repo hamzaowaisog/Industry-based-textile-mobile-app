@@ -135,6 +135,34 @@ public class PurchaseController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Replace all lines on a Pending or InProgress purchase. Syncs the linked Draft invoice. Blocked for Delivered/Cancelled purchases.</summary>
+    [HttpPut("{id}/lines")]
+    [Authorize(Policy = "AdminOrStaff")]
+    [ProducesResponseType(typeof(Response<PurchaseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response<PurchaseDto>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Response<PurchaseDto>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdatePurchaseLines(int id, [FromBody] PurchaseLinesUpdateViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return ToActionResult(ToValidationResponseFromModelState<PurchaseDto>());
+
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        var dto = new UpdatePurchaseLinesDto
+        {
+            Lines = model.Lines.Select(l => new CreatePurchaseLineDto
+            {
+                ProductId = l.ProductId,
+                Qty       = l.Qty,
+                UnitCost  = l.UnitCost
+            }).ToList()
+        };
+
+        var response = await _purchaseService.UpdateLinesAsync(id, dto, userId.Value, IsAdmin());
+        return ToActionResult(response);
+    }
+
     /// <summary>Delete a purchase and its lines. Admin only. Not allowed if purchase has been Delivered.</summary>
     [HttpDelete("{id}")]
     [Authorize(Policy = "AdminOnly")]

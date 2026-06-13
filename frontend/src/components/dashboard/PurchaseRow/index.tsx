@@ -5,7 +5,8 @@ import { formatCompactNumber as fmt } from '@utils/helpers/formatNumber';
 
 import { colors } from '@theme/colors';
 
-import { BoxIcon } from '@constants/svgAssets';
+import { AppConstants } from '@constants/appConstants';
+import { TruckIcon } from '@constants/svgAssets';
 
 import type { PurchaseRowProps } from '../../../types/dashboard.types';
 import { styles } from './styles';
@@ -16,7 +17,7 @@ export const PurchaseRow = ({ purchase, isLast }: PurchaseRowProps) => {
     <>
       <View style={styles.row}>
         <View style={styles.iconTile}>
-          <BoxIcon size={20} color={colors.warning} />
+          <TruckIcon size={20} color={colors.warning} />
         </View>
         <View style={styles.info}>
           <Text style={styles.supplier} numberOfLines={1}>
@@ -27,7 +28,9 @@ export const PurchaseRow = ({ purchase, isLast }: PurchaseRowProps) => {
           </Text>
         </View>
         <View style={styles.right}>
-          <Text style={styles.amount}>Rs {fmt(purchase.total)}</Text>
+          <Text style={styles.amount}>
+            {AppConstants.APP.CURRENCY} {fmt(purchase.total)}
+          </Text>
           <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
             <Text style={[styles.statusText, { color: s.fg }]}>{purchase.statusName}</Text>
           </View>

@@ -83,7 +83,6 @@ export const DrawerComponent = ({
   activeRoute,
   userName,
   roleId,
-  isOnline,
   onNavigate,
   onSettings,
   onSignOut,
@@ -183,20 +182,9 @@ export const DrawerComponent = ({
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={onSignOut}
-          activeOpacity={0.7}
-          disabled={!isOnline}
-          style={[styles.navItem, !isOnline && styles.navItemDisabled]}
-        >
-          <LogOutIcon
-            size={21}
-            color={isOnline ? colors.danger : colors.textTertiary}
-            strokeWidth={1.8}
-          />
-          <Text style={[styles.signOutLabel, !isOnline && styles.signOutLabelDisabled]}>
-            {t('drawer.footer.signOut')}
-          </Text>
+        <TouchableOpacity onPress={onSignOut} activeOpacity={0.7} style={styles.navItem}>
+          <LogOutIcon size={21} color={colors.danger} strokeWidth={1.8} />
+          <Text style={styles.signOutLabel}>{t('drawer.footer.signOut')}</Text>
         </TouchableOpacity>
       </View>
     </View>

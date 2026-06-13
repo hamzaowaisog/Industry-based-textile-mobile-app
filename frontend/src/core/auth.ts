@@ -1,4 +1,3 @@
-import NetInfo from '@react-native-community/netinfo';
 import * as SecureStore from 'expo-secure-store';
 
 import {
@@ -23,12 +22,10 @@ import {
   VerifySignupOtpViewModel,
 } from '../api/models';
 import { AppConstants } from '../constants/appConstants';
-import { clearAllTables } from '../db/queries/clearAll';
 import { useAuthStore } from '../stores/authStore';
-import { useSyncStore } from '../stores/syncStore';
 import { LoginOptions, LoginResponse } from '../types/login.types';
+import { parseApiError, parseApiResponse } from '../utils/helpers/apiResponse';
 import i18n from '../utils/i18n';
-import { fullPull } from './sync';
 
 export const loginAsync = async ({
   credentials,
@@ -83,13 +80,9 @@ export const loginAsync = async ({
     );
     useAuthStore.getState().setBiometricEnabled(!!storedBiometricToken);
 
-    await fullPull();
-
     return { success: true };
-  } catch (err: any) {
-    const data = err?.response?.data;
-    const msg = data?.message ?? i18n.t('auth.invalidCredentials');
-    return { success: false, error: msg };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('auth.invalidCredentials')) };
   }
 };
 
@@ -98,23 +91,11 @@ export const forgotPasswordAsync = async (
 ): Promise<{ success: boolean; nextResendAt?: string; error?: string }> => {
   try {
     const response = await authForgotPassword(payload);
-    const res = response as unknown as {
-      success: boolean;
-      data?: { nextResendAt?: string };
-      message?: string;
-      errors?: string[];
-    };
-    if (res && !res.success) {
-      return {
-        success: false,
-        error: res.errors?.[0] ?? res.message ?? i18n.t('auth.otpSendFailed'),
-      };
-    }
-    return { success: true, nextResendAt: res?.data?.nextResendAt };
-  } catch (err: any) {
-    const data = err?.response?.data;
-    const msg = data?.errors?.[0] ?? data?.message ?? i18n.t('auth.otpSendFailed');
-    return { success: false, error: msg };
+    const r = parseApiResponse<{ nextResendAt?: string }>(response, i18n.t('auth.otpSendFailed'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true, nextResendAt: r.data?.nextResendAt };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('auth.otpSendFailed')) };
   }
 };
 
@@ -123,45 +104,32 @@ export const verifyResetOtpAsync = async (
 ): Promise<{ success: boolean; resetToken?: string; error?: string }> => {
   try {
     const response = await authVerifyResetOtp(payload);
-    const res = response as unknown as {
-      success: boolean;
-      data?: { resetToken?: string };
-      message?: string;
-      errors?: string[];
-    };
-    if (res && !res.success) {
-      return { success: false, error: res.errors?.[0] ?? res.message ?? i18n.t('auth.invalidOtp') };
-    }
-    return { success: true, resetToken: res?.data?.resetToken };
-  } catch (err: any) {
-    const data = err?.response?.data;
-    const msg = data?.errors?.[0] ?? data?.message ?? i18n.t('auth.invalidOtp');
-    return { success: false, error: msg };
+    const r = parseApiResponse<{ resetToken?: string }>(response, i18n.t('auth.invalidOtp'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true, resetToken: r.data?.resetToken };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('auth.invalidOtp')) };
   }
 };
 
 export const biometricSetupAsync = async (): Promise<{ success: boolean; error?: string }> => {
   try {
     const response = await authBiometricSetup();
-    const res = response as unknown as {
-      success: boolean;
-      data?: { biometricToken?: string };
-      message?: string;
-    };
-    if (!res.success) {
-      return { success: false, error: res.message ?? i18n.t('biometric.setupFailed') };
-    }
-    if (res.data?.biometricToken) {
+    const r = parseApiResponse<{ biometricToken?: string }>(
+      response,
+      i18n.t('biometric.setupFailed'),
+    );
+    if (!r.success) return { success: false, error: r.error };
+    if (r.data?.biometricToken) {
       await SecureStore.setItemAsync(
         AppConstants.SECURE_STORE.BIOMETRIC_TOKEN,
-        res.data.biometricToken,
+        r.data.biometricToken,
       );
       useAuthStore.getState().setBiometricEnabled(true);
     }
     return { success: true };
-  } catch (err: any) {
-    const msg = err?.response?.data?.message ?? i18n.t('biometric.setupFailed');
-    return { success: false, error: msg };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('biometric.setupFailed')) };
   }
 };
 
@@ -172,26 +140,6 @@ export const biometricLoginAsync = async (): Promise<{ success: boolean; error?:
     );
     if (!biometricToken) {
       return { success: false, error: i18n.t('biometric.notSetup') };
-    }
-
-    const netState = await NetInfo.fetch();
-    const isOnline = !!(netState.isConnected && netState.isInternetReachable);
-
-    if (!isOnline) {
-      const [userId, roleId, userName] = await Promise.all([
-        SecureStore.getItemAsync(AppConstants.SECURE_STORE.USER_ID),
-        SecureStore.getItemAsync(AppConstants.SECURE_STORE.ROLE_ID),
-        SecureStore.getItemAsync(AppConstants.SECURE_STORE.USER_NAME),
-      ]);
-      if (!userId || !roleId || !userName) {
-        return { success: false, error: i18n.t('biometric.sessionExpired') };
-      }
-      useAuthStore.getState().setAuth({
-        userId: Number(userId),
-        roleId: Number(roleId),
-        userName,
-      });
-      return { success: true };
     }
 
     const response = await authBiometricLogin({ biometricToken });
@@ -225,12 +173,9 @@ export const biometricLoginAsync = async (): Promise<{ success: boolean; error?:
     ]);
     useAuthStore.getState().setAuth({ userId, roleId, userName });
 
-    await fullPull();
-
     return { success: true };
-  } catch (err: any) {
-    const msg = err?.response?.data?.message ?? i18n.t('biometric.loginFailed');
-    return { success: false, error: msg };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('biometric.loginFailed')) };
   }
 };
 
@@ -240,9 +185,8 @@ export const biometricDisableAsync = async (): Promise<{ success: boolean; error
     await SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.BIOMETRIC_TOKEN);
     useAuthStore.getState().setBiometricEnabled(false);
     return { success: true };
-  } catch (err: any) {
-    const msg = err?.response?.data?.message ?? i18n.t('biometric.disableFailed');
-    return { success: false, error: msg };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('biometric.disableFailed')) };
   }
 };
 
@@ -251,23 +195,11 @@ export const registerAsync = async (
 ): Promise<{ success: boolean; nextResendAt?: string; error?: string }> => {
   try {
     const response = await authRegister(payload);
-    const res = response as unknown as {
-      success: boolean;
-      data?: { nextResendAt?: string };
-      message?: string;
-      errors?: string[];
-    };
-    if (res && !res.success) {
-      return {
-        success: false,
-        error: res.errors?.[0] ?? res.message ?? i18n.t('auth.registerFailed'),
-      };
-    }
-    return { success: true, nextResendAt: res?.data?.nextResendAt };
-  } catch (err: any) {
-    const data = err?.response?.data;
-    const msg = data?.errors?.[0] ?? data?.message ?? i18n.t('auth.registerFailed');
-    return { success: false, error: msg };
+    const r = parseApiResponse<{ nextResendAt?: string }>(response, i18n.t('auth.registerFailed'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true, nextResendAt: r.data?.nextResendAt };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('auth.registerFailed')) };
   }
 };
 
@@ -276,15 +208,11 @@ export const verifySignupOtpAsync = async (
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     const response = await authVerifySignupOtp(payload);
-    const res = response as unknown as { success: boolean; message?: string; errors?: string[] };
-    if (res && !res.success) {
-      return { success: false, error: res.errors?.[0] ?? res.message ?? i18n.t('auth.invalidOtp') };
-    }
+    const r = parseApiResponse(response, i18n.t('auth.invalidOtp'));
+    if (!r.success) return { success: false, error: r.error };
     return { success: true };
-  } catch (err: any) {
-    const data = err?.response?.data;
-    const msg = data?.errors?.[0] ?? data?.message ?? i18n.t('auth.invalidOtp');
-    return { success: false, error: msg };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('auth.invalidOtp')) };
   }
 };
 
@@ -293,23 +221,11 @@ export const resendSignupOtpAsync = async (
 ): Promise<{ success: boolean; nextResendAt?: string; error?: string }> => {
   try {
     const response = await authResendSignupOtp({ email });
-    const res = response as unknown as {
-      success: boolean;
-      data?: { nextResendAt?: string };
-      message?: string;
-      errors?: string[];
-    };
-    if (res && !res.success) {
-      return {
-        success: false,
-        error: res.errors?.[0] ?? res.message ?? i18n.t('auth.otpSendFailed'),
-      };
-    }
-    return { success: true, nextResendAt: res?.data?.nextResendAt };
-  } catch (err: any) {
-    const data = err?.response?.data;
-    const msg = data?.errors?.[0] ?? data?.message ?? i18n.t('auth.otpSendFailed');
-    return { success: false, error: msg };
+    const r = parseApiResponse<{ nextResendAt?: string }>(response, i18n.t('auth.otpSendFailed'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true, nextResendAt: r.data?.nextResendAt };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('auth.otpSendFailed')) };
   }
 };
 
@@ -318,33 +234,26 @@ export const resetPasswordAsync = async (
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     const response = await authResetPassword(payload);
-    const res = response as unknown as { success: boolean; message?: string };
-    if (res && !res.success) {
-      return { success: false, error: res.message ?? i18n.t('auth.resetFailed') };
-    }
+    const r = parseApiResponse(response, i18n.t('auth.resetFailed'));
+    if (!r.success) return { success: false, error: r.error };
     return { success: true };
-  } catch (err: any) {
-    const msg = err?.response?.data?.message ?? i18n.t('auth.resetFailedRetry');
-    return { success: false, error: msg };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('auth.resetFailedRetry')) };
   }
 };
 
-export const logoutAsync = async (
-  opts: { force?: boolean } = {},
-): Promise<{ success: boolean; error?: string; hasPending?: boolean }> => {
-  const { pendingChanges } = useSyncStore.getState();
-
-  if (pendingChanges.length > 0 && !opts.force) {
-    return { success: false, hasPending: true };
-  }
-
+export const logoutAsync = async (): Promise<{ success: boolean; error?: string }> => {
   try {
     const refreshToken = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.REFRESH_TOKEN);
 
     if (refreshToken) {
-      const payload: LogoutRequest = { refreshToken };
+      const pushToken = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.PUSH_TOKEN);
+      const payload: LogoutRequest = { refreshToken, pushToken: pushToken ?? undefined };
       await authLogout(payload);
     }
+
+    const { useDeviceStore } = await import('../stores/deviceStore');
+    await useDeviceStore.getState().unregisterFromPush();
 
     await Promise.all([
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN),
@@ -353,9 +262,9 @@ export const logoutAsync = async (
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.ROLE_ID),
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.USER_NAME),
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.EMAIL),
+      // NOTIFICATIONS_PROMPTED intentionally NOT deleted — persists so modal doesn't re-show
     ]);
 
-    await clearAllTables();
     useAuthStore.getState().clearAuth();
 
     return { success: true };
@@ -365,7 +274,6 @@ export const logoutAsync = async (
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN),
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.REFRESH_TOKEN),
     ]);
-    await clearAllTables();
     useAuthStore.getState().clearAuth();
     return { success: true };
   }

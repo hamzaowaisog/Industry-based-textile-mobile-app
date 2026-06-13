@@ -51,7 +51,6 @@ export const BiometricComponent = ({
   userEmail,
   initials,
   isPending,
-  isOnline,
   error,
   onAuthenticate,
   onSwitchAccount,
@@ -120,14 +119,8 @@ export const BiometricComponent = ({
           </View>
         </View>
 
-        {/* Bottom: Online indicator + Ghost button */}
+        {/* Bottom: Ghost button */}
         <View style={[styles.bottomSection, { paddingBottom: insets.bottom + 24 }]}>
-          <View style={styles.onlineRow}>
-            <View style={[styles.onlineDot, isOnline ? styles.dotOnline : styles.dotOffline]} />
-            <Text style={[styles.onlineText, !isOnline && styles.onlineTextOffline]}>
-              {isOnline ? t('biometric.online') : t('biometric.offline')}
-            </Text>
-          </View>
           <TouchableOpacity style={styles.ghostButton} onPress={onUsePassword} activeOpacity={0.7}>
             <Text style={styles.ghostButtonText}>{t('biometric.usePassword')}</Text>
           </TouchableOpacity>

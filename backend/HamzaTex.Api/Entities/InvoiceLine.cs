@@ -21,9 +21,5 @@ public partial class InvoiceLine
 
     public decimal LineTotal { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
-
-    public int Version { get; set; } = 1;
-
     public virtual Invoice Invoice { get; set; } = null!;
 }

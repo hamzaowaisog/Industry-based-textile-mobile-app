@@ -1,5 +1,5 @@
 import { NavigatorScreenParams, RouteProp } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppConstants } from '@constants/appConstants';
 
@@ -30,7 +30,8 @@ export type ClientStackParamList = {
 export type OrderStackParamList = {
   OrderList: undefined;
   OrderDetail: { orderId: number };
-  CreateOrder: undefined;
+  CreateOrder: { clientId?: number; clientName?: string } | undefined;
+  EditOrder: { orderId: number };
 };
 
 export type ProductStackParamList = {
@@ -42,12 +43,12 @@ export type ProductStackParamList = {
 export type PurchaseStackParamList = {
   PurchaseList: undefined;
   PurchaseDetail: { purchaseId: number };
-  CreatePurchase: undefined;
+  CreatePurchase: { clientId?: number; clientName?: string } | undefined;
 };
 
 export type PaymentStackParamList = {
   PaymentList: undefined;
-  RecordPayment: { clientId?: number };
+  RecordPayment: { clientId?: number; clientName?: string };
 };
 
 export type InvoiceStackParamList = {
@@ -84,6 +85,16 @@ export type UserStackParamList = {
   CreateUser: undefined;
 };
 
+// ── Main stack (wraps drawer + modal screens) ──────────────────────────────────
+
+export type MainStackParamList = {
+  DrawerRoot: NavigatorScreenParams<MainDrawerParamList>;
+  More: undefined;
+  NotificationCenter: undefined;
+};
+
+export type MainStackNavProp = NativeStackNavigationProp<MainStackParamList>;
+
 // ── Drawer param list ──────────────────────────────────────────────────────────
 
 export type MainDrawerParamList = {
@@ -104,11 +115,12 @@ export type MainDrawerParamList = {
 
 // ── Auth nav/route prop helpers ────────────────────────────────────────────────
 
-export type AuthNavProp<T extends keyof AuthStackParamList> =
-  NativeStackNavigationProp<AuthStackParamList, T>;
+export type AuthNavProp<T extends keyof AuthStackParamList> = NativeStackNavigationProp<
+  AuthStackParamList,
+  T
+>;
 
-export type AuthRouteProp<T extends keyof AuthStackParamList> =
-  RouteProp<AuthStackParamList, T>;
+export type AuthRouteProp<T extends keyof AuthStackParamList> = RouteProp<AuthStackParamList, T>;
 
 // ── Per-screen nav prop aliases ────────────────────────────────────────────────
 
@@ -127,3 +139,20 @@ export type BiometricNavProp = AuthNavProp<typeof S.BIOMETRIC>;
 export type VerifyOtpRouteProp = AuthRouteProp<typeof S.VERIFY_OTP>;
 export type ResetPasswordRouteProp = AuthRouteProp<typeof S.RESET_PASSWORD>;
 export type VerifySignupOtpRouteProp = AuthRouteProp<typeof S.VERIFY_SIGNUP_OTP>;
+
+// ── Order screen props ──────────────────────────────────────────────────────────
+
+const SM = AppConstants.SCREENS.MAIN;
+
+export type CreateOrderScreenProps = NativeStackScreenProps<
+  OrderStackParamList,
+  typeof SM.CREATE_ORDER
+>;
+export type OrderDetailScreenProps = NativeStackScreenProps<
+  OrderStackParamList,
+  typeof SM.ORDER_DETAIL
+>;
+export type EditOrderScreenProps = NativeStackScreenProps<
+  OrderStackParamList,
+  typeof SM.EDIT_ORDER
+>;

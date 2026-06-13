@@ -1,10 +1,11 @@
 import {
-  BoxIcon,
+  AlertIcon,
   ClockIcon,
-  CoinsIcon,
   CreditCardIcon,
   FileTextIcon,
   ShoppingBagIcon,
+  TruckIcon,
+  WalletIcon,
 } from '@constants/svgAssets';
 import { AppConstants } from '@constants/appConstants';
 import { colors } from '@theme/colors';
@@ -34,7 +35,7 @@ export const getStatCardConfigs = (
   },
   {
     tint: colors.warning,
-    Icon: CoinsIcon,
+    Icon: WalletIcon,
     label: t('dashboard.statOutstanding'),
     value: `${AppConstants.CURRENCY.PREFIX}${fmt(summary.totalOutstanding)}`,
     sub: t('dashboard.fromClients'),
@@ -55,7 +56,7 @@ export const getStatCardConfigs = (
   },
   {
     tint: colors.danger,
-    Icon: BoxIcon,
+    Icon: AlertIcon,
     label: t('dashboard.statLowStock'),
     value: String(summary.lowStockCount),
     sub: t('dashboard.belowReorder'),
@@ -71,7 +72,7 @@ export const getStatCardConfigs = (
 
 export const QUICK_ACTION_CONFIGS: QuickActionConfig[] = [
   { labelKey: 'dashboard.newOrder',    color: colors.primary, Icon: ShoppingBagIcon },
-  { labelKey: 'dashboard.payment',     color: colors.success, Icon: CoinsIcon },
-  { labelKey: 'dashboard.newPurchase', color: colors.warning, Icon: BoxIcon },
+  { labelKey: 'dashboard.payment',     color: colors.success, Icon: CreditCardIcon },
+  { labelKey: 'dashboard.newPurchase', color: colors.warning, Icon: TruckIcon },
   { labelKey: 'dashboard.invoice',     color: colors.violet,  Icon: FileTextIcon },
 ];

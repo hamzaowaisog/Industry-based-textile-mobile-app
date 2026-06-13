@@ -41,6 +41,12 @@ public class ClientDetailViewModel
     public int ClientId { get; set; }
     public string ClientName { get; set; } = string.Empty;
     public string ClientTypeName { get; set; } = string.Empty;
+    public int ClientTypeId { get; set; }
+    public string? Phone { get; set; }
+    public string? Address { get; set; }
+    public decimal? CreditLimit { get; set; }
+    public decimal? OpeningBalance { get; set; }
+    public string? Notes { get; set; }
     public int TotalOrderCount { get; set; }
     public decimal TotalOrderAmount { get; set; }
     public int TotalPurchaseCount { get; set; }
@@ -52,6 +58,7 @@ public class ClientDetailViewModel
     public List<ClientOrderSummary> Orders { get; set; } = [];
     public List<ClientPurchaseSummary> Purchases { get; set; } = [];
     public List<ClientPaymentSummary> Payments { get; set; } = [];
+    public List<ClientInvoiceSummary> Invoices { get; set; } = [];
     public List<ClientTransactionSummary> RecentTransactions { get; set; } = [];
 }
 
@@ -85,6 +92,17 @@ public class ClientPaymentSummary
     public string ModeName { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public bool IsReversed { get; set; }
+}
+
+public class ClientInvoiceSummary
+{
+    public int InvoiceId { get; set; }
+    public string InvoiceNumber { get; set; } = string.Empty;
+    public DateOnly? IssueDate { get; set; }
+    public DateOnly? DueDate { get; set; }
+    public int InvoiceStatusId { get; set; }
+    public string StatusName { get; set; } = string.Empty;
+    public decimal TotalAmount { get; set; }
 }
 
 public class ClientTransactionSummary

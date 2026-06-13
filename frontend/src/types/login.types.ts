@@ -36,7 +36,6 @@ export type LoginComponentProps = {
   showPassword: boolean;
   rememberMe: boolean;
   isBiometricEnabled: boolean;
-  isOnline: boolean;
   onTogglePassword: () => void;
   onToggleRemember: () => void;
   onForgotPassword: () => void;

@@ -8,7 +8,6 @@ export type DrawerComponentProps = {
   activeRoute: string;
   userName: string | null;
   roleId: number | null;
-  isOnline: boolean;
   onNavigate: (routeId: string) => void;
   onSettings: () => void;
   onSignOut: () => Promise<void>;

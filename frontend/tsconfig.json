@@ -28,9 +28,6 @@
       "@theme/*": [
         "src/theme/*"
       ],
-      "@db/*": [
-        "src/db/*"
-      ],
       "@types/*": [
         "src/types/*"
       ],

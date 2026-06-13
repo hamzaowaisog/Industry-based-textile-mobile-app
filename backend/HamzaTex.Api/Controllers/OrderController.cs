@@ -135,6 +135,34 @@ public class OrderController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Replace all lines on a Pending or InProgress order. Syncs the linked Draft invoice. Blocked for Delivered/Cancelled orders.</summary>
+    [HttpPut("{id}/lines")]
+    [Authorize(Policy = "AdminOrStaff")]
+    [ProducesResponseType(typeof(Response<OrderDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response<OrderDto>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Response<OrderDto>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateOrderLines(int id, [FromBody] OrderLinesUpdateViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return ToActionResult(ToValidationResponseFromModelState<OrderDto>());
+
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        var dto = new UpdateOrderLinesDto
+        {
+            Lines = model.Lines.Select(l => new CreateOrderLineDto
+            {
+                ProductId = l.ProductId,
+                Qty       = l.Qty,
+                UnitPrice = l.UnitPrice
+            }).ToList()
+        };
+
+        var response = await _orderService.UpdateLinesAsync(id, dto, userId.Value, IsAdmin());
+        return ToActionResult(response);
+    }
+
     /// <summary>Delete an order and its lines. Admin only. Not allowed if order has been Delivered.</summary>
     [HttpDelete("{id}")]
     [Authorize(Policy = "AdminOnly")]

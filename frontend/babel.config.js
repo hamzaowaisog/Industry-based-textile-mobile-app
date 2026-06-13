@@ -16,7 +16,6 @@ module.exports = {
           '@hooks': './src/hooks',
           '@utils': './src/utils',
           '@theme': './src/theme',
-          '@db': './src/db',
           '@types': './src/types',
           '@constants': './src/constants',
           '@locales': './src/locales',
