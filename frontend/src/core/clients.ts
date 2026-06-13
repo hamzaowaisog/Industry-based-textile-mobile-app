@@ -1,279 +1,87 @@
-import NetInfo from '@react-native-community/netinfo';
-import { eq } from 'drizzle-orm';
-
 import {
+  clientCreateClient,
+  clientDeleteClientById,
   clientGetAllClients,
   clientGetAllClientsByUserId,
+  clientUpdateClientById,
 } from '@api/generated/client/client';
+import { reportGetClientDetailById } from '@api/generated/report/report';
 import type { ClientCreateViewModel, ClientUpdateViewModel } from '@api/models';
-
+import { AppConstants } from '@constants/appConstants';
 import { useAuthStore } from '@stores/authStore';
-import { useSyncStore } from '@stores/syncStore';
-
-import {
-  mapLocalClientToDetail,
-  mapLocalInvoicesToSummary,
-  mapLocalOrdersToSummary,
-  mapLocalPaymentsToSummary,
-  mapLocalPurchasesToSummary,
-  mapLocalTransactionsToSummary,
-} from '@utils/helpers/clientMappers';
-import { toISODate } from '@utils/helpers/dateConvert';
-import { generateUUID } from '@utils/helpers/uuid';
+import { parseApiError, parseApiResponse } from '@utils/helpers/apiResponse';
+import { mapApiClientDetail } from '@utils/helpers/clientMappers';
 import i18n from '@utils/i18n';
 
-import { db } from '@db/index';
-import { getAllClients, getClientByLocalId, getClientByServerId } from '@db/queries/clients';
-import { getInvoicesByClientServerId } from '@db/queries/invoices';
-import { getOrdersByClientServerId } from '@db/queries/orders';
-import { getPaymentsByPartyClientServerId } from '@db/queries/payments';
-import { getPurchasesBySupplierServerId } from '@db/queries/purchases';
-import { getTransactionsByClientId } from '@db/queries/transactions';
-import { clients } from '@db/schema';
+import type { ApiClientItem, ClientDetail } from '../types/clients.types';
 
-import { AppConstants } from '@constants/appConstants';
-
-import type { ClientDetail } from '../types/clients.types';
-import type { LocalClient } from '../types/db.types';
-
-
-export const fetchClientsFromDb = (): LocalClient[] => {
-  const { userId, roleId } = useAuthStore.getState();
-  const isAdmin = roleId === AppConstants.ROLES.ADMIN;
-  return isAdmin ? getAllClients() : getAllClients(userId);
-};
-
-export const refreshClientsFromApi = async (): Promise<void> => {
-  // Abort if a full sync is already running — let the sync own the DB writes
-  if (useSyncStore.getState().isSyncing) return;
-
-  const netState = await NetInfo.fetch();
-  if (!netState.isConnected) return;
-
-  const { roleId } = useAuthStore.getState();
-  const isAdmin = roleId === AppConstants.ROLES.ADMIN;
-
+export const fetchClientsAsync = async (): Promise<ApiClientItem[]> => {
   try {
+    const { roleId } = useAuthStore.getState();
+    const isAdmin = roleId === AppConstants.ROLES.ADMIN;
     const res = isAdmin ? await clientGetAllClients() : await clientGetAllClientsByUserId();
-    const r = res as unknown as { success?: boolean; data?: any[] };
-    if (!r?.success || !r.data) return;
-
-    // Build a set of serverIds with pending deletes so we don't re-insert them
-    const pendingDeleteIds = new Set(
-      useSyncStore.getState().pendingChanges
-        .filter((c) => c.entity === 'client' && c.operation === 'delete')
-        .map((c) => c.data.serverId as number),
-    );
-
-    for (const item of r.data) {
-      // Re-check after each await boundary — sync may have started mid-flight
-      if (useSyncStore.getState().isSyncing) break;
-
-      const serverId = item.id ?? item.clientId ?? 0;
-      const existing = getClientByServerId(serverId);
-      const outstanding = (item as any).outstandingBalance ?? item.openingBalance ?? null;
-
-      if (existing) {
-        // Never overwrite a record that has local pending changes
-        if (!existing.isSynced) continue;
-
-        db.update(clients)
-          .set({
-            userId: item.userId ?? existing.userId,
-            outstandingBalance: outstanding ?? existing.outstandingBalance,
-            name: item.name ?? existing.name,
-            phone: item.phone ?? existing.phone,
-            address: item.address ?? existing.address,
-            clientTypeId: item.clientTypeId ?? existing.clientTypeId,
-            creditLimit: item.creditLimit ?? existing.creditLimit,
-            openingBalance: item.openingBalance ?? existing.openingBalance,
-            notes: item.notes ?? existing.notes,
-            isActive: item.isActive ?? existing.isActive,
-            isSynced: true,
-            updatedAt: new Date().toISOString(),
-          })
-          .where(eq(clients.serverId, serverId))
-          .run();
-      } else {
-        // Skip records the user deleted offline — sync will remove them from the server
-        if (pendingDeleteIds.has(serverId)) continue;
-        if (useSyncStore.getState().isSyncing) break;
-
-        db.insert(clients)
-          .values({
-            localId: generateUUID(),
-            serverId,
-            userId: item.userId ?? null,
-            outstandingBalance: outstanding,
-            name: item.name ?? '',
-            phone: item.phone ?? null,
-            address: item.address ?? null,
-            clientTypeId: item.clientTypeId ?? 1,
-            creditLimit: item.creditLimit ?? null,
-            openingBalance: item.openingBalance ?? null,
-            notes: item.notes ?? null,
-            isActive: item.isActive ?? true,
-            isSynced: true,
-            createdAt: null,
-            version: item.version ?? 0,
-            updatedAt: null,
-          })
-          .run();
-      }
-    }
+    const r = parseApiResponse<any[]>(res, '');
+    if (!r.success || !r.data) return [];
+    return r.data.map((item: any) => ({
+      id: item.id ?? 0,
+      name: item.name ?? '',
+      phone: item.phone ?? null,
+      clientTypeId: item.clientTypeId ?? 1,
+      outstandingBalance: item.outstandingBalance ?? null,
+      openingBalance: item.openingBalance ?? null,
+    }));
   } catch {
-    // silent background refresh failure
+    return [];
   }
 };
 
-export const fetchClientDetailFromApi = async (serverId: number): Promise<ClientDetail | null> => {
-  const local = getClientByServerId(serverId);
-  if (!local) return null;
-
-  const base = mapLocalClientToDetail(local);
-
-  const localOrders = getOrdersByClientServerId(serverId);
-  const localPurchases = getPurchasesBySupplierServerId(serverId);
-  const localPayments = getPaymentsByPartyClientServerId(serverId);
-  const localTransactions = getTransactionsByClientId(serverId);
-  const localInvoices = getInvoicesByClientServerId(serverId);
-
-  const orders = mapLocalOrdersToSummary(localOrders);
-  const purchases = mapLocalPurchasesToSummary(localPurchases);
-  const payments = mapLocalPaymentsToSummary(localPayments);
-  const recentTransactions = mapLocalTransactionsToSummary(localTransactions);
-  const invoices = mapLocalInvoicesToSummary(localInvoices);
-
-  const totalOrderAmount = localOrders
-    .filter((o) => o.statusId !== 4)
-    .reduce((s, o) => s + (o.totalAmount ?? 0), 0);
-  const totalPurchaseAmount = localPurchases
-    .filter((p) => p.statusId !== 4)
-    .reduce((s, p) => s + (p.totalAmount ?? 0), 0);
-  const totalPaymentsIn = localPayments
-    .filter((p) => p.paymentDirectionId === 1 && !p.isReversed && !p.originalPaymentServerId)
-    .reduce((s, p) => s + p.amount, 0);
-  const totalPaymentsOut = localPayments
-    .filter((p) => p.paymentDirectionId === 2 && !p.isReversed && !p.originalPaymentServerId)
-    .reduce((s, p) => s + p.amount, 0);
-
-  return {
-    ...base,
-    totalOrderCount: localOrders.length,
-    totalOrderAmount,
-    totalPurchaseCount: localPurchases.length,
-    totalPurchaseAmount,
-    totalPaymentsIn,
-    totalPaymentsOut,
-    orders,
-    purchases,
-    payments,
-    invoices,
-    recentTransactions,
-  };
+export const fetchClientDetailAsync = async (clientId: number): Promise<ClientDetail | null> => {
+  try {
+    const res = await reportGetClientDetailById(clientId);
+    const r = parseApiResponse<any>(res, '');
+    if (!r.success || !r.data) return null;
+    return mapApiClientDetail(r.data);
+  } catch {
+    return null;
+  }
 };
 
-export const createClientApi = async (
+export const createClientAsync = async (
   values: ClientCreateViewModel,
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    const localId = generateUUID();
-    const { userId } = useAuthStore.getState();
-
-    db.insert(clients)
-      .values({
-        localId,
-        serverId: null,
-        userId: userId ?? null,
-        name: values.name ?? '',
-        phone: values.phone ?? null,
-        address: values.address ?? null,
-        clientTypeId: values.clientTypeId ?? 1,
-        creditLimit: values.creditLimit ?? null,
-        openingBalance: values.openingBalance ?? null,
-        outstandingBalance: null,
-        notes: values.notes ?? null,
-        isActive: true,
-        isSynced: false,
-        createdAt: toISODate(new Date().toISOString()) ?? null,
-        version: 0,
-        updatedAt: null,
-      })
-      .run();
-
-    useSyncStore.getState().addPendingChange({
-      localId,
-      entity: 'client',
-      operation: 'create',
-      data: values as Record<string, unknown>,
-      createdAt: new Date().toISOString(),
-      status: 'pending',
-      retryCount: 0,
-    });
-
+    const res = await clientCreateClient(values);
+    const r = parseApiResponse(res, i18n.t('common.errorGeneric'));
+    if (!r.success) return { success: false, error: r.error };
     return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err?.message ?? i18n.t('common.errorGeneric') };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('common.errorGeneric')) };
   }
 };
 
-export const updateClientApi = async (
-  serverId: number,
-  localId: string,
+export const updateClientAsync = async (
+  id: number,
   values: ClientUpdateViewModel,
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    db.update(clients)
-      .set({
-        name: values.name ?? undefined,
-        phone: values.phone ?? undefined,
-        address: values.address ?? undefined,
-        clientTypeId: values.clientTypeId ?? undefined,
-        creditLimit: values.creditLimit ?? undefined,
-        openingBalance: values.openingBalance ?? undefined,
-        notes: values.notes ?? undefined,
-        isActive: values.isActive ?? undefined,
-        isSynced: false,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(eq(clients.localId, localId))
-      .run();
-
-    const localRecord = getClientByLocalId(localId);
-    useSyncStore.getState().addPendingChange({
-      localId,
-      entity: 'client',
-      operation: 'update',
-      data: { serverId, version: localRecord?.version ?? 0, ...values } as Record<string, unknown>,
-      createdAt: new Date().toISOString(),
-      status: 'pending',
-      retryCount: 0,
-    });
-
+    const res = await clientUpdateClientById(id, values);
+    const r = parseApiResponse(res, i18n.t('common.errorGeneric'));
+    if (!r.success) return { success: false, error: r.error };
     return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err?.message ?? i18n.t('common.errorGeneric') };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('common.errorGeneric')) };
   }
 };
 
-export const deleteClientApi = async (
-  serverId: number | null,
-  localId: string,
+export const deleteClientAsync = async (
+  id: number,
 ): Promise<{ success: boolean; error?: string }> => {
-  db.delete(clients).where(eq(clients.localId, localId)).run();
-
-  // Only queue if the record exists on the server — local-only records can be dropped silently
-  if (serverId) {
-    useSyncStore.getState().addPendingChange({
-      localId,
-      entity: 'client',
-      operation: 'delete',
-      data: { serverId } as Record<string, unknown>,
-      createdAt: new Date().toISOString(),
-      status: 'pending',
-      retryCount: 0,
-    });
+  try {
+    const res = await clientDeleteClientById(id);
+    const r = parseApiResponse(res, i18n.t('common.errorGeneric'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('common.errorGeneric')) };
   }
-
-  return { success: true };
 };

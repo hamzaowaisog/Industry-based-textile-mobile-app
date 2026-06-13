@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
-import { getUnreadCount } from '@db/queries/notifications';
+import { notificationGetUnreadCount } from '@api/generated/notification/notification';
+
 import type { BannerPayload, NotificationStore } from '../types/notifications.types';
 
 export const useNotificationStore = create<NotificationStore>((set) => ({
@@ -8,14 +9,19 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
   banner: null,
 
   hydrate: async () => {
-    const count = await getUnreadCount();
-    set({ unreadCount: count });
+    try {
+      const res = await notificationGetUnreadCount();
+      const r = res as unknown as { success?: boolean; data?: { count?: number } };
+      const count = r?.data?.count ?? 0;
+      set({ unreadCount: count });
+    } catch {
+      // silent failure — badge will show 0
+    }
   },
 
   incrementUnread: () => set((s) => ({ unreadCount: s.unreadCount + 1 })),
 
-  decrementUnread: (n: number) =>
-    set((s) => ({ unreadCount: Math.max(0, s.unreadCount - n) })),
+  decrementUnread: (n: number) => set((s) => ({ unreadCount: Math.max(0, s.unreadCount - n) })),
 
   resetUnread: () => set({ unreadCount: 0 }),
 

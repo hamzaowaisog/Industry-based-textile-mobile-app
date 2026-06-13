@@ -12,9 +12,10 @@ import {
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppInputField } from '@components/common/AppInputField';
+
 import { colors } from '@theme/colors';
 
-import { AppInputField } from '@components/common/AppInputField';
 import { ArrowLeftIcon, PhoneIcon } from '@constants/svgAssets';
 
 import type { ClientFormComponentProps } from '../../../types/clients.types';
@@ -23,6 +24,7 @@ import { styles } from './styles';
 export const ClientFormComponent = ({
   isEdit,
   submitting,
+  clientTypes,
   values,
   errors,
   touched,
@@ -71,10 +73,7 @@ export const ClientFormComponent = ({
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>{t('clients.typeLabel')}</Text>
             <View style={[styles.segmented, isEdit && styles.segDisabled]}>
-              {[
-                { id: 1, label: t('clients.typeCustomer') },
-                { id: 2, label: t('clients.typeSupplier') },
-              ].map((opt) => {
+              {clientTypes.map((opt) => {
                 const active = values.clientTypeId === opt.id;
                 return (
                   <TouchableOpacity
@@ -84,9 +83,7 @@ export const ClientFormComponent = ({
                     activeOpacity={isEdit ? 1 : 0.7}
                     disabled={isEdit}
                   >
-                    <Text style={[styles.segText, active && styles.segTextActive]}>
-                      {opt.label}
-                    </Text>
+                    <Text style={[styles.segText, active && styles.segTextActive]}>{opt.name}</Text>
                   </TouchableOpacity>
                 );
               })}

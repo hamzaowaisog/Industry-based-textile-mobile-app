@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 
 export type NotificationItem = {
-  id: string;
+  id: number;
   type: string;
   title: string;
   body: string;
@@ -11,7 +11,7 @@ export type NotificationItem = {
 };
 
 export type BannerPayload = {
-  id: string;
+  id: number;
   type: string;
   title: string;
   body: string;
@@ -51,7 +51,7 @@ export type NotificationIconConfig = {
 export type NotificationRowProps = {
   item: NotificationItem;
   onPress: (item: NotificationItem) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
 };
 
 export type NotificationCenterComponentProps = {
@@ -61,7 +61,7 @@ export type NotificationCenterComponentProps = {
   onBack: () => void;
   onMarkAllRead: () => void;
   onRowPress: (item: NotificationItem) => void;
-  onRowDelete: (id: string) => void;
+  onRowDelete: (id: number) => void;
 };
 
 export type MoreItemConfig = {

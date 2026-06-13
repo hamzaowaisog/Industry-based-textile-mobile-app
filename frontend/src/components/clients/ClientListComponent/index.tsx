@@ -9,14 +9,22 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors } from '@theme/colors';
-import { MenuIcon, SearchIcon, PlusIcon, UsersIcon, TrashIcon } from '@constants/svgAssets';
-
-import type { ClientFilter, ClientListComponentProps, ClientRow } from '../../../types/clients.types';
 import { formatPKR, resolveClientBalanceColor } from '@utils/helpers/clientMappers';
+
+import { colors } from '@theme/colors';
+
+import { AppConstants } from '@constants/appConstants';
+import { MenuIcon, PlusIcon, SearchIcon, TrashIcon, UsersIcon } from '@constants/svgAssets';
+
+import type {
+  ClientFilter,
+  ClientListComponentProps,
+  ClientRow,
+} from '../../../types/clients.types';
 import { styles } from './styles';
 
 const FILTER_OPTIONS: { value: ClientFilter; labelKey: string }[] = [
@@ -31,11 +39,12 @@ const ClientRowCard = ({
   onDelete,
 }: {
   item: ClientRow;
-  onPress: (serverId: number | null, localId: string) => void;
-  onDelete: (serverId: number | null, localId: string, name: string) => void;
+  onPress: (id: number) => void;
+  onDelete: (id: number, name: string) => void;
 }) => {
   const { t } = useTranslation();
-  const avatarBg = item.clientTypeId === 1 ? colors.primary : colors.warning;
+  const avatarBg =
+    item.clientTypeId === AppConstants.CLIENT_TYPE.CUSTOMER ? colors.primary : colors.warning;
   const balanceColor = resolveClientBalanceColor(item.balanceDirection);
   const balanceLabel =
     item.balanceDirection === 'receivable'
@@ -48,7 +57,7 @@ const ClientRowCard = ({
     <View style={styles.rowCard}>
       <TouchableOpacity
         style={styles.rowContent}
-        onPress={() => onPress(item.serverId, item.localId)}
+        onPress={() => onPress(item.id)}
         activeOpacity={0.7}
       >
         <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
@@ -56,9 +65,13 @@ const ClientRowCard = ({
         </View>
 
         <View style={styles.rowInfo}>
-          <Text style={styles.rowName} numberOfLines={1}>{item.name}</Text>
+          <Text style={styles.rowName} numberOfLines={1}>
+            {item.name}
+          </Text>
           {item.phone ? (
-            <Text style={styles.rowSub} numberOfLines={1}>{item.phone}</Text>
+            <Text style={styles.rowSub} numberOfLines={1}>
+              {item.phone}
+            </Text>
           ) : null}
         </View>
 
@@ -80,7 +93,7 @@ const ClientRowCard = ({
 
       <TouchableOpacity
         style={styles.deleteBtn}
-        onPress={() => onDelete(item.serverId, item.localId, item.name)}
+        onPress={() => onDelete(item.id, item.name)}
         activeOpacity={0.7}
       >
         <TrashIcon size={18} color={colors.danger} />
@@ -108,7 +121,7 @@ const ClientListSkeleton = () => {
       Animated.sequence([
         Animated.timing(opacity, { toValue: 0.4, duration: 700, useNativeDriver: true }),
         Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
-      ])
+      ]),
     );
     anim.start();
     return () => anim.stop();
@@ -116,12 +129,20 @@ const ClientListSkeleton = () => {
 
   return (
     <Animated.View style={{ opacity, paddingHorizontal: 24, flex: 1 }}>
-      {[1, 2, 3, 4, 5].map((k) => <SkeletonRow key={k} />)}
+      {[1, 2, 3, 4, 5].map((k) => (
+        <SkeletonRow key={k} />
+      ))}
     </Animated.View>
   );
 };
 
-const EmptyState = ({ onAddFirstClient, t }: { onAddFirstClient: () => void; t: (k: string) => string }) => (
+const EmptyState = ({
+  onAddFirstClient,
+  t,
+}: {
+  onAddFirstClient: () => void;
+  t: (k: string) => string;
+}) => (
   <View style={styles.emptyWrap}>
     <View style={[styles.emptyIconBubble, { backgroundColor: `${colors.success}18` }]}>
       <UsersIcon size={58} color={colors.success} />
@@ -176,7 +197,9 @@ export const ClientListComponent = ({
         </View>
         <Text style={styles.headerTitle}>{t('clients.title')}</Text>
         <Text style={styles.headerSub}>
-          {clients.length > 0 ? t('clients.activeCount', { count: clients.length }) : t('clients.noActive')}
+          {clients.length > 0
+            ? t('clients.activeCount', { count: clients.length })
+            : t('clients.noActive')}
         </Text>
       </View>
 
@@ -220,10 +243,15 @@ export const ClientListComponent = ({
         <ClientListSkeleton />
       ) : clients.length === 0 && !search ? (
         <EmptyState onAddFirstClient={onAddFirstClient} t={t} />
+      ) : clients.length === 0 && search ? (
+        <View style={styles.noResultsWrap}>
+          <Text style={styles.noResultsTitle}>{t('common.noResults')}</Text>
+          <Text style={styles.noResultsSub}>{t('common.noResultsSub', { query: search })}</Text>
+        </View>
       ) : (
         <FlatList
           data={clients}
-          keyExtractor={(item) => item.localId}
+          keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
           ItemSeparatorComponent={() => <View style={styles.gap} />}

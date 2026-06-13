@@ -1,8 +1,11 @@
 import { colors } from '@theme/colors';
 
-import type { LocalDashboardSummary, LocalMonthlyOverviewItem } from '@db/queries/dashboard';
-
-import type { DashboardSummary, GiftedBarItem, MonthlyOverviewItem, RevenueTrend } from '../../types/dashboard.types';
+import type {
+  DashboardSummary,
+  GiftedBarItem,
+  MonthlyOverviewItem,
+  RevenueTrend,
+} from '../../types/dashboard.types';
 
 export const mapApiSummary = (d: any): DashboardSummary => ({
   asOf: d.asOf ?? '',
@@ -43,33 +46,6 @@ export const mapApiMonthly = (months: any[]): MonthlyOverviewItem[] =>
     netProfit: m.netProfit,
   }));
 
-export const mapLocalSummary = (s: LocalDashboardSummary): DashboardSummary => ({
-  asOf: s.asOf,
-  thisMonthRevenue: s.financials.thisMonthRevenue,
-  lastMonthRevenue: s.financials.lastMonthRevenue,
-  thisMonthPurchases: s.financials.thisMonthPurchases,
-  thisMonthExpenses: s.financials.thisMonthExpenses,
-  thisMonthNetProfit: s.financials.thisMonthNetProfit,
-  totalOutstanding: s.financials.totalOutstanding,
-  todayOrdersCount: s.operations.todayOrdersCount,
-  todayOrdersTotal: s.operations.todayOrdersTotal,
-  pendingOrdersCount: s.operations.pendingOrdersCount,
-  unallocatedPaymentsCount: s.operations.unallocatedPaymentsCount,
-  lowStockCount: s.alerts.lowStockCount,
-  overdueInvoicesCount: s.alerts.overdueInvoicesCount,
-  recentOrders: s.recentOrders,
-  recentPurchases: s.recentPurchases,
-});
-
-export const mapLocalMonthly = (items: LocalMonthlyOverviewItem[]): MonthlyOverviewItem[] =>
-  items.map((i) => ({
-    month: i.month,
-    totalSales: i.totalSales,
-    totalPurchases: i.totalPurchases,
-    totalExpenses: i.totalExpenses,
-    netProfit: i.netProfit,
-  }));
-
 export const computeRevenueTrend = (thisMonth: number, lastMonth: number): RevenueTrend | null => {
   if (lastMonth <= 0) return null;
   const raw = Math.round(((thisMonth - lastMonth) / lastMonth) * 100);
@@ -83,7 +59,12 @@ export const mapMonthlyToBarData = (items: MonthlyOverviewItem[]): GiftedBarItem
       frontColor: colors.primary,
       label: m.month,
       labelWidth: 44,
-      labelTextStyle: { fontSize: 11, fontWeight: '600' as const, color: colors.textSecondary, textAlign: 'center' as const },
+      labelTextStyle: {
+        fontSize: 11,
+        fontWeight: '600' as const,
+        color: colors.textSecondary,
+        textAlign: 'center' as const,
+      },
       barWidth: 10,
       spacing: 2,
     },

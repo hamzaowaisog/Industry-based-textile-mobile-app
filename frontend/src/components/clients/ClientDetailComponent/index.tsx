@@ -35,6 +35,7 @@ import {
   WalletIcon,
   WeavePattern,
 } from '@constants/svgAssets';
+import { AppConstants } from '@constants/appConstants';
 
 import type { ClientDetailComponentProps } from '../../../types/clients.types';
 import { InvoiceTabRow } from './InvoiceTabRow';
@@ -63,7 +64,7 @@ export const ClientDetailComponent = ({
 
   if (loading || !client) return <SkeletonDetail />;
 
-  const isSupplier = client.clientTypeId === 2;
+  const isSupplier = client.clientTypeId === AppConstants.CLIENT_TYPE.SUPPLIER;
   const initials = getInitials(client.clientName);
   const balanceDirection = resolveClientBalanceDirection(
     client.clientTypeId,
@@ -92,8 +93,8 @@ export const ClientDetailComponent = ({
         rows = (client.payments ?? []).map((p) => <PaymentTabRow key={p.paymentId} item={p} />);
         break;
       case 'invoices':
-        rows = (client.invoices ?? []).map((inv, i) => (
-          <InvoiceTabRow key={inv.invoiceId ?? i} item={inv} />
+        rows = (client.invoices ?? []).map((inv) => (
+          <InvoiceTabRow key={inv.invoiceId} item={inv} />
         ));
         break;
       case 'transactions':
@@ -156,11 +157,6 @@ export const ClientDetailComponent = ({
                 <View style={styles.headerBadge}>
                   <Text style={styles.headerBadgeText}>{t('clients.active')}</Text>
                 </View>
-                {!client.isSynced && (
-                  <View style={[styles.headerBadge, styles.headerBadgeUnsaved]}>
-                    <Text style={styles.headerBadgeText}>{t('clients.unsavedChanges')}</Text>
-                  </View>
-                )}
               </View>
             </View>
           </View>

@@ -1,13 +1,20 @@
 import { useCallback, useMemo } from 'react';
 
-import { useFormik } from 'formik';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { Alert } from 'react-native';
+
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useFormik } from 'formik';
 import { useTranslation } from 'react-i18next';
 
 import { useClientStore } from '@stores/clientStore';
+import { useMetaStore } from '@stores/metaStore';
+
+import { showError, showSuccess } from '@utils/toast';
 import { clientValidationSchema } from '@utils/validation/clientValidation';
-import { showSuccess, showError } from '@utils/toast';
+
+import { AppConstants } from '@constants/appConstants';
+
 import type { ClientFormValues } from '../types/clients.types';
 import type { ClientStackParamList } from '../types/navigation.types';
 
@@ -29,6 +36,10 @@ export const useClientForm = () => {
   const isEdit = !!clientId;
 
   const { currentClient, submitting, createClient, updateClient } = useClientStore();
+  const clientTypes = useMetaStore((s) => s.getList)(AppConstants.META.CLIENT_TYPES).map((ct) => ({
+    id: ct.id ?? 0,
+    name: ct.name ?? '',
+  }));
 
   const initialValues: ClientFormValues = useMemo(() => {
     if (isEdit && currentClient) {
@@ -38,7 +49,8 @@ export const useClientForm = () => {
         phone: currentClient.phone ?? '',
         address: currentClient.address ?? '',
         creditLimit: currentClient.creditLimit != null ? String(currentClient.creditLimit) : '',
-        openingBalance: currentClient.openingBalance != null ? String(currentClient.openingBalance) : '',
+        openingBalance:
+          currentClient.openingBalance != null ? String(currentClient.openingBalance) : '',
         notes: '',
       };
     }
@@ -51,7 +63,7 @@ export const useClientForm = () => {
         let result: { success: boolean; error?: string };
 
         if (isEdit && clientId) {
-          result = await updateClient(clientId, '', values);
+          result = await updateClient(clientId, values);
         } else {
           result = await createClient(values);
         }
@@ -70,8 +82,6 @@ export const useClientForm = () => {
     [isEdit, clientId, currentClient, createClient, updateClient, navigation, t],
   );
 
-  const onCancel = useCallback(() => navigation.goBack(), [navigation]);
-
   const formik = useFormik<ClientFormValues>({
     initialValues,
     enableReinitialize: true,
@@ -81,9 +91,21 @@ export const useClientForm = () => {
     onSubmit,
   });
 
+  const onCancel = useCallback(() => {
+    if (!formik.dirty) {
+      navigation.goBack();
+      return;
+    }
+    Alert.alert(t('clients.discardTitle'), t('clients.discardMessage'), [
+      { text: t('clients.keepEditing'), style: 'cancel' },
+      { text: t('clients.discard'), style: 'destructive', onPress: () => navigation.goBack() },
+    ]);
+  }, [navigation, formik.dirty, t]);
+
   return {
     isEdit,
     submitting,
+    clientTypes,
     onCancel,
     values: formik.values,
     errors: formik.errors as Record<string, string | undefined>,

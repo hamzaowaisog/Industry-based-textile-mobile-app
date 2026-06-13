@@ -8,7 +8,9 @@
   "paths": {
     "/api/App/health": {
       "get": {
-        "tags": ["App"],
+        "tags": [
+          "App"
+        ],
         "summary": "Health check — returns 200 OK when the API is running.",
         "operationId": "app_health",
         "responses": {
@@ -16,7 +18,7 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": { }
               }
             }
           }
@@ -25,7 +27,9 @@
     },
     "/api/App/info": {
       "get": {
-        "tags": ["App"],
+        "tags": [
+          "App"
+        ],
         "summary": "API info — returns links to docs and health endpoints.",
         "operationId": "app_info",
         "responses": {
@@ -33,7 +37,7 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": { }
               }
             }
           }
@@ -42,7 +46,9 @@
     },
     "/api/App/spec": {
       "get": {
-        "tags": ["App"],
+        "tags": [
+          "App"
+        ],
         "summary": "Downloads the OpenAPI JSON spec file. Use this in Orval: set target to the URL of this endpoint.",
         "operationId": "app_spec",
         "responses": {
@@ -54,7 +60,9 @@
     },
     "/api/Auth/register": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Register a new user account. Creates a Staff user and sends a 6-digit email verification OTP.",
         "operationId": "auth_register",
         "requestBody": {
@@ -95,7 +103,9 @@
     },
     "/api/Auth/login": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Login with username and password. Returns a JWT access token and a refresh token.",
         "operationId": "auth_login",
         "requestBody": {
@@ -136,7 +146,9 @@
     },
     "/api/Auth/logout": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Logout. If a refresh token is provided, revokes that token only. Otherwise revokes all tokens for the current user.",
         "operationId": "auth_logout",
         "requestBody": {
@@ -177,7 +189,9 @@
     },
     "/api/Auth/refresh": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Exchange a valid refresh token for a new JWT access token and rotated refresh token.",
         "operationId": "auth_refresh",
         "requestBody": {
@@ -218,7 +232,9 @@
     },
     "/api/Auth/change-password": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Change the current user's password. Requires the existing password for verification.",
         "operationId": "auth_changePassword",
         "requestBody": {
@@ -259,7 +275,9 @@
     },
     "/api/Auth/confirm-email": {
       "get": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Confirm a user's email address using the token sent in the confirmation email. Returns an HTML page.",
         "operationId": "auth_confirmEmail",
         "parameters": [
@@ -308,7 +326,9 @@
     },
     "/api/Auth/resend-email-confirmation": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Resend the email confirmation link to the given email address.",
         "operationId": "auth_resendEmailConfirmation",
         "requestBody": {
@@ -349,7 +369,9 @@
     },
     "/api/Auth/verify-signup-otp": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Verify the 6-digit email verification code sent during signup. Marks email as confirmed on success.",
         "operationId": "auth_verifySignupOtp",
         "requestBody": {
@@ -390,7 +412,9 @@
     },
     "/api/Auth/resend-signup-otp": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Resend the signup email verification OTP. Enforces a 30-second cooldown between requests.",
         "operationId": "auth_resendSignupOtp",
         "requestBody": {
@@ -431,7 +455,9 @@
     },
     "/api/Auth/forgot-password": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Send a 6-digit OTP to the given email address. Enforces a 30-second resend cooldown.",
         "operationId": "auth_forgotPassword",
         "requestBody": {
@@ -472,7 +498,9 @@
     },
     "/api/Auth/verify-reset-otp": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Verify the 6-digit OTP. Returns a short-lived reset token on success.",
         "operationId": "auth_verifyResetOtp",
         "requestBody": {
@@ -513,7 +541,9 @@
     },
     "/api/Auth/reset-password": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Reset the user's password using the reset token obtained from OTP verification.",
         "operationId": "auth_resetPassword",
         "requestBody": {
@@ -554,7 +584,9 @@
     },
     "/api/Auth/biometric/setup": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Enable biometric authentication for the current user. Returns a long-lived biometric token.",
         "operationId": "auth_biometricSetup",
         "responses": {
@@ -576,7 +608,9 @@
     },
     "/api/Auth/biometric/login": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Login using a biometric token. Validates the token and returns fresh access + refresh tokens.",
         "operationId": "auth_biometricLogin",
         "requestBody": {
@@ -617,7 +651,9 @@
     },
     "/api/Auth/biometric/disable": {
       "delete": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Disable biometric authentication for the current user. Revokes all biometric tokens.",
         "operationId": "auth_biometricDisable",
         "responses": {
@@ -639,7 +675,9 @@
     },
     "/api/Client/Filtered": {
       "get": {
-        "tags": ["Client"],
+        "tags": [
+          "Client"
+        ],
         "summary": "Get paginated clients for the authenticated user.",
         "operationId": "client_getAllClientsFiltered",
         "parameters": [
@@ -671,7 +709,9 @@
     },
     "/api/Client": {
       "post": {
-        "tags": ["Client"],
+        "tags": [
+          "Client"
+        ],
         "summary": "Create a new client (customer or supplier) for the authenticated user.",
         "operationId": "client_createClient",
         "requestBody": {
@@ -710,7 +750,9 @@
         }
       },
       "get": {
-        "tags": ["Client"],
+        "tags": [
+          "Client"
+        ],
         "summary": "Get all clients across all users. Admin only.",
         "operationId": "client_getAllClients",
         "responses": {
@@ -722,7 +764,9 @@
     },
     "/api/Client/me": {
       "get": {
-        "tags": ["Client"],
+        "tags": [
+          "Client"
+        ],
         "summary": "Get all clients belonging to the authenticated user.",
         "operationId": "client_getAllClientsByUserId",
         "responses": {
@@ -734,7 +778,9 @@
     },
     "/api/Client/{id}": {
       "get": {
-        "tags": ["Client"],
+        "tags": [
+          "Client"
+        ],
         "summary": "Get a single client by ID.",
         "operationId": "client_getClientById",
         "parameters": [
@@ -765,7 +811,9 @@
         }
       },
       "put": {
-        "tags": ["Client"],
+        "tags": [
+          "Client"
+        ],
         "summary": "Update a client by ID.",
         "operationId": "client_updateClientById",
         "parameters": [
@@ -825,7 +873,9 @@
         }
       },
       "delete": {
-        "tags": ["Client"],
+        "tags": [
+          "Client"
+        ],
         "summary": "Delete a client by ID. Admin only.",
         "operationId": "client_deleteClientById",
         "parameters": [
@@ -858,7 +908,9 @@
     },
     "/api/Client/pdf": {
       "get": {
-        "tags": ["Client"],
+        "tags": [
+          "Client"
+        ],
         "summary": "Download the authenticated user's client list as a PDF report.",
         "operationId": "client_getAllClientsPdf",
         "responses": {
@@ -870,7 +922,9 @@
     },
     "/api/ClientType": {
       "post": {
-        "tags": ["ClientType"],
+        "tags": [
+          "ClientType"
+        ],
         "summary": "Create a new client type.",
         "operationId": "clientType_createClientType",
         "requestBody": {
@@ -909,7 +963,9 @@
         }
       },
       "get": {
-        "tags": ["ClientType"],
+        "tags": [
+          "ClientType"
+        ],
         "summary": "Get all client types.",
         "operationId": "clientType_getAllClientTypes",
         "responses": {
@@ -921,7 +977,9 @@
     },
     "/api/ClientType/{id}": {
       "get": {
-        "tags": ["ClientType"],
+        "tags": [
+          "ClientType"
+        ],
         "summary": "Get a single client type by ID.",
         "operationId": "clientType_getClientTypeById",
         "parameters": [
@@ -952,7 +1010,9 @@
         }
       },
       "put": {
-        "tags": ["ClientType"],
+        "tags": [
+          "ClientType"
+        ],
         "summary": "Update a client type by ID.",
         "operationId": "clientType_updateClientTypeById",
         "parameters": [
@@ -1012,7 +1072,9 @@
         }
       },
       "delete": {
-        "tags": ["ClientType"],
+        "tags": [
+          "ClientType"
+        ],
         "summary": "Delete a client type by ID.",
         "operationId": "clientType_deleteClientTypeById",
         "parameters": [
@@ -1045,7 +1107,9 @@
     },
     "/api/ClientType/pdf": {
       "get": {
-        "tags": ["ClientType"],
+        "tags": [
+          "ClientType"
+        ],
         "summary": "Download all client types as a PDF report.",
         "operationId": "clientType_getAllClientTypesPdf",
         "responses": {
@@ -1057,7 +1121,9 @@
     },
     "/api/Dashboard/summary": {
       "get": {
-        "tags": ["Dashboard"],
+        "tags": [
+          "Dashboard"
+        ],
         "summary": "Role-scoped dashboard summary: financials, operations, alerts, recent orders.",
         "operationId": "dashboard_getSummary",
         "responses": {
@@ -1076,7 +1142,9 @@
     },
     "/api/Dashboard/monthly-overview": {
       "get": {
-        "tags": ["Dashboard"],
+        "tags": [
+          "Dashboard"
+        ],
         "summary": "Last N months of aggregated financials for charts. Query param: ?months=6 (1-12).",
         "operationId": "dashboard_getMonthlyOverview",
         "parameters": [
@@ -1106,7 +1174,9 @@
     },
     "/api/Debug/test-push": {
       "post": {
-        "tags": ["Debug"],
+        "tags": [
+          "Debug"
+        ],
         "summary": "Validate a push notification payload against FCM using dry_run mode.\r\nNo message is delivered to any device. Returns the FCM message ID and the full data payload that would be sent.\r\nSupported types: order_created, order_delivered, order_cancelled, purchase_delivered,\r\npayment_received, payment_paid, payment_reversed, invoice_issued, invoice_overdue,\r\nlow_stock, expense_approved, sync_complete, sync_partial, sync_failed.",
         "operationId": "debug_testPush",
         "requestBody": {
@@ -1154,7 +1224,9 @@
     },
     "/api/Device/register": {
       "post": {
-        "tags": ["Device"],
+        "tags": [
+          "Device"
+        ],
         "summary": "Register or refresh an FCM device token for push notifications.",
         "operationId": "device_register",
         "requestBody": {
@@ -1202,7 +1274,9 @@
     },
     "/api/Device/unregister": {
       "delete": {
-        "tags": ["Device"],
+        "tags": [
+          "Device"
+        ],
         "summary": "Unregister a specific FCM device token (e.g. on logout from this device).",
         "operationId": "device_unregister",
         "requestBody": {
@@ -1250,7 +1324,9 @@
     },
     "/api/Device/unregister-all": {
       "delete": {
-        "tags": ["Device"],
+        "tags": [
+          "Device"
+        ],
         "summary": "Unregister all FCM device tokens for the authenticated user (e.g. on logout-all).",
         "operationId": "device_unregisterAll",
         "responses": {
@@ -1269,7 +1345,9 @@
     },
     "/api/Expense": {
       "post": {
-        "tags": ["Expense"],
+        "tags": [
+          "Expense"
+        ],
         "summary": "Create an expense and atomically post a Debit transaction to the ledger.",
         "operationId": "expense_create",
         "requestBody": {
@@ -1315,7 +1393,9 @@
         }
       },
       "get": {
-        "tags": ["Expense"],
+        "tags": [
+          "Expense"
+        ],
         "summary": "Get all expenses paginated. Admin only.",
         "operationId": "expense_getAll",
         "parameters": [
@@ -1354,7 +1434,9 @@
     },
     "/api/Expense/me": {
       "get": {
-        "tags": ["Expense"],
+        "tags": [
+          "Expense"
+        ],
         "summary": "Get expenses recorded by the current authenticated user, paginated.",
         "operationId": "expense_getMine",
         "parameters": [
@@ -1393,7 +1475,9 @@
     },
     "/api/Expense/{id}": {
       "get": {
-        "tags": ["Expense"],
+        "tags": [
+          "Expense"
+        ],
         "summary": "Get an expense by ID.",
         "operationId": "expense_getById",
         "parameters": [
@@ -1431,7 +1515,9 @@
         }
       },
       "put": {
-        "tags": ["Expense"],
+        "tags": [
+          "Expense"
+        ],
         "summary": "Update amount, mode, date, and notes. TransCategoryId cannot be changed — delete and re-create to reclassify.",
         "operationId": "expense_update",
         "parameters": [
@@ -1498,7 +1584,9 @@
         }
       },
       "delete": {
-        "tags": ["Expense"],
+        "tags": [
+          "Expense"
+        ],
         "summary": "Hard delete an expense and its linked Transaction. Admin only.",
         "operationId": "expense_delete",
         "parameters": [
@@ -1538,7 +1626,9 @@
     },
     "/api/Expense/filtered": {
       "get": {
-        "tags": ["Expense"],
+        "tags": [
+          "Expense"
+        ],
         "summary": "Filter expenses by type, mode, and date range.",
         "operationId": "expense_getFiltered",
         "parameters": [
@@ -1591,7 +1681,9 @@
     },
     "/api/Expense/pdf": {
       "get": {
-        "tags": ["Expense"],
+        "tags": [
+          "Expense"
+        ],
         "summary": "Export expenses as PDF. Optionally filter by type, mode, and date range.",
         "operationId": "expense_getPdf",
         "parameters": [
@@ -1645,7 +1737,9 @@
     },
     "/api/ExpenseType": {
       "post": {
-        "tags": ["ExpenseType"],
+        "tags": [
+          "ExpenseType"
+        ],
         "summary": "Create a new expense type.",
         "operationId": "expenseType_create",
         "requestBody": {
@@ -1691,7 +1785,9 @@
         }
       },
       "get": {
-        "tags": ["ExpenseType"],
+        "tags": [
+          "ExpenseType"
+        ],
         "summary": "Get all expense types.",
         "operationId": "expenseType_getAll",
         "responses": {
@@ -1710,7 +1806,9 @@
     },
     "/api/ExpenseType/{id}": {
       "get": {
-        "tags": ["ExpenseType"],
+        "tags": [
+          "ExpenseType"
+        ],
         "summary": "Get an expense type by ID.",
         "operationId": "expenseType_getById",
         "parameters": [
@@ -1748,7 +1846,9 @@
         }
       },
       "put": {
-        "tags": ["ExpenseType"],
+        "tags": [
+          "ExpenseType"
+        ],
         "summary": "Update an expense type name.",
         "operationId": "expenseType_update",
         "parameters": [
@@ -1815,7 +1915,9 @@
         }
       },
       "delete": {
-        "tags": ["ExpenseType"],
+        "tags": [
+          "ExpenseType"
+        ],
         "summary": "Delete an expense type. Fails if the type is seeded (ID 1 or 2) or has existing expenses.",
         "operationId": "expenseType_delete",
         "parameters": [
@@ -1865,7 +1967,9 @@
     },
     "/api/ExpenseType/pdf": {
       "get": {
-        "tags": ["ExpenseType"],
+        "tags": [
+          "ExpenseType"
+        ],
         "summary": "Download all expense types as a PDF report.",
         "operationId": "expenseType_getPdf",
         "responses": {
@@ -1885,7 +1989,9 @@
     },
     "/api/Invoice": {
       "post": {
-        "tags": ["Invoice"],
+        "tags": [
+          "Invoice"
+        ],
         "summary": "Create a standalone invoice.",
         "operationId": "invoice_create",
         "requestBody": {
@@ -1931,7 +2037,9 @@
         }
       },
       "get": {
-        "tags": ["Invoice"],
+        "tags": [
+          "Invoice"
+        ],
         "summary": "Get all invoices paginated. Admin only.",
         "operationId": "invoice_getAll",
         "parameters": [
@@ -1970,7 +2078,9 @@
     },
     "/api/Invoice/{id}": {
       "get": {
-        "tags": ["Invoice"],
+        "tags": [
+          "Invoice"
+        ],
         "summary": "Get a single invoice with lines and linked transactions.",
         "operationId": "invoice_getById",
         "parameters": [
@@ -2008,7 +2118,9 @@
         }
       },
       "put": {
-        "tags": ["Invoice"],
+        "tags": [
+          "Invoice"
+        ],
         "summary": "Update invoice status, dueDate, notes, totalAmount, and/or lines.",
         "operationId": "invoice_update",
         "parameters": [
@@ -2075,7 +2187,9 @@
         }
       },
       "delete": {
-        "tags": ["Invoice"],
+        "tags": [
+          "Invoice"
+        ],
         "summary": "Delete a Draft invoice created within the last year. Admin only.",
         "operationId": "invoice_delete",
         "parameters": [
@@ -2125,7 +2239,9 @@
     },
     "/api/Invoice/by-client/{clientId}": {
       "get": {
-        "tags": ["Invoice"],
+        "tags": [
+          "Invoice"
+        ],
         "summary": "Get all invoices for a client with aggregate stats.",
         "operationId": "invoice_getByClient",
         "parameters": [
@@ -2165,7 +2281,9 @@
     },
     "/api/Invoice/filtered": {
       "get": {
-        "tags": ["Invoice"],
+        "tags": [
+          "Invoice"
+        ],
         "summary": "Filter invoices by statusId, clientId, dateFrom, dateTo.",
         "operationId": "invoice_getFiltered",
         "parameters": [
@@ -2218,7 +2336,9 @@
     },
     "/api/Invoice/pdf": {
       "get": {
-        "tags": ["Invoice"],
+        "tags": [
+          "Invoice"
+        ],
         "summary": "Export all invoices as a branded PDF with stat cards.",
         "operationId": "invoice_getAllPdf",
         "parameters": [
@@ -2258,7 +2378,9 @@
     },
     "/api/Invoice/{id}/pdf": {
       "get": {
-        "tags": ["Invoice"],
+        "tags": [
+          "Invoice"
+        ],
         "summary": "Export a single invoice as a formal branded PDF.",
         "operationId": "invoice_getByIdPdf",
         "parameters": [
@@ -2299,7 +2421,9 @@
     },
     "/api/Invoice/by-client/{clientId}/pdf": {
       "get": {
-        "tags": ["Invoice"],
+        "tags": [
+          "Invoice"
+        ],
         "summary": "Export all invoices for a client as a PDF with aggregate stat cards.",
         "operationId": "invoice_getByClientPdf",
         "parameters": [
@@ -2340,7 +2464,9 @@
     },
     "/api/Invoice/filtered/pdf": {
       "get": {
-        "tags": ["Invoice"],
+        "tags": [
+          "Invoice"
+        ],
         "summary": "Export filtered invoices as a PDF.",
         "operationId": "invoice_getFilteredPdf",
         "parameters": [
@@ -2394,7 +2520,9 @@
     },
     "/api/Meta/all": {
       "get": {
-        "tags": ["Meta"],
+        "tags": [
+          "Meta"
+        ],
         "summary": "Returns all lookup tables in a single response. Cache this on the frontend at app startup.",
         "operationId": "meta_getAll",
         "responses": {
@@ -2413,7 +2541,9 @@
     },
     "/api/Meta/{type}": {
       "get": {
-        "tags": ["Meta"],
+        "tags": [
+          "Meta"
+        ],
         "summary": "Get a single lookup table by type name.\r\nAccepts camelCase (orderStatuses) or kebab-case (order-statuses).\r\nReturns 400 with a list of valid type names if the type is unknown.",
         "operationId": "meta_getByType",
         "parameters": [
@@ -2450,9 +2580,176 @@
         }
       }
     },
+    "/api/Notification": {
+      "get": {
+        "tags": [
+          "Notification"
+        ],
+        "summary": "Get all notifications for the current user. Pass unreadOnly=true and/or limit to filter.",
+        "operationId": "notification_getAll",
+        "parameters": [
+          {
+            "name": "unreadOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationDtoListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Notification/unread-count": {
+      "get": {
+        "tags": [
+          "Notification"
+        ],
+        "summary": "Get the count of unread notifications for the current user.",
+        "operationId": "notification_getUnreadCount",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnreadCountDtoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Notification/{id}/read": {
+      "patch": {
+        "tags": [
+          "Notification"
+        ],
+        "summary": "Mark a single notification as read.",
+        "operationId": "notification_markAsRead",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Notification/read-all": {
+      "patch": {
+        "tags": [
+          "Notification"
+        ],
+        "summary": "Mark all notifications as read for the current user.",
+        "operationId": "notification_markAllRead",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Notification/{id}": {
+      "delete": {
+        "tags": [
+          "Notification"
+        ],
+        "summary": "Delete a single notification.",
+        "operationId": "notification_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Order": {
       "post": {
-        "tags": ["Order"],
+        "tags": [
+          "Order"
+        ],
         "summary": "Create a new order with lines. Client must be a Customer (ClientTypeId=1).",
         "operationId": "order_createOrder",
         "requestBody": {
@@ -2498,7 +2795,9 @@
         }
       },
       "get": {
-        "tags": ["Order"],
+        "tags": [
+          "Order"
+        ],
         "summary": "Get all orders, paginated. Admin only.",
         "operationId": "order_getAllOrdersPaginated",
         "parameters": [
@@ -2537,7 +2836,9 @@
     },
     "/api/Order/me": {
       "get": {
-        "tags": ["Order"],
+        "tags": [
+          "Order"
+        ],
         "summary": "Get all orders belonging to the authenticated user's clients.",
         "operationId": "order_getMyOrders",
         "responses": {
@@ -2556,7 +2857,9 @@
     },
     "/api/Order/{id}": {
       "get": {
-        "tags": ["Order"],
+        "tags": [
+          "Order"
+        ],
         "summary": "Get a single order by ID with lines.",
         "operationId": "order_getOrderById",
         "parameters": [
@@ -2594,7 +2897,9 @@
         }
       },
       "put": {
-        "tags": ["Order"],
+        "tags": [
+          "Order"
+        ],
         "summary": "Update an order header. Handles status transitions: Delivered triggers stock+ledger, Cancelled reverses them.",
         "operationId": "order_updateOrder",
         "parameters": [
@@ -2661,7 +2966,9 @@
         }
       },
       "delete": {
-        "tags": ["Order"],
+        "tags": [
+          "Order"
+        ],
         "summary": "Delete an order and its lines. Admin only. Not allowed if order has been Delivered.",
         "operationId": "order_deleteOrder",
         "parameters": [
@@ -2701,7 +3008,9 @@
     },
     "/api/Order/filtered": {
       "get": {
-        "tags": ["Order"],
+        "tags": [
+          "Order"
+        ],
         "summary": "Filter orders by clientId, statusId, and/or date range.",
         "operationId": "order_getFilteredOrders",
         "parameters": [
@@ -2754,7 +3063,9 @@
     },
     "/api/Order/pdf": {
       "get": {
-        "tags": ["Order"],
+        "tags": [
+          "Order"
+        ],
         "summary": "Download all orders for the authenticated user as a PDF report.",
         "operationId": "order_getOrdersPdf",
         "responses": {
@@ -2774,7 +3085,9 @@
     },
     "/api/Payment": {
       "post": {
-        "tags": ["Payment"],
+        "tags": [
+          "Payment"
+        ],
         "summary": "Create a payment. Allocates to orders/purchases (manual or auto-FIFO) and posts to the ledger.",
         "operationId": "payment_create",
         "requestBody": {
@@ -2820,7 +3133,9 @@
         }
       },
       "get": {
-        "tags": ["Payment"],
+        "tags": [
+          "Payment"
+        ],
         "summary": "Get all payments paginated. Admin only.",
         "operationId": "payment_getAll",
         "parameters": [
@@ -2867,7 +3182,9 @@
     },
     "/api/Payment/me": {
       "get": {
-        "tags": ["Payment"],
+        "tags": [
+          "Payment"
+        ],
         "summary": "Get payments recorded by the current authenticated user.",
         "operationId": "payment_getMine",
         "parameters": [
@@ -2906,7 +3223,9 @@
     },
     "/api/Payment/{id}": {
       "get": {
-        "tags": ["Payment"],
+        "tags": [
+          "Payment"
+        ],
         "summary": "Get a payment by ID with its allocations.",
         "operationId": "payment_getById",
         "parameters": [
@@ -2944,7 +3263,9 @@
         }
       },
       "put": {
-        "tags": ["Payment"],
+        "tags": [
+          "Payment"
+        ],
         "summary": "Update payment notes, date, and transaction mode. Amount and client cannot be changed.",
         "operationId": "payment_update",
         "parameters": [
@@ -3011,7 +3332,9 @@
         }
       },
       "delete": {
-        "tags": ["Payment"],
+        "tags": [
+          "Payment"
+        ],
         "summary": "Hard delete a payment, its allocations, and linked Transaction. Admin only.",
         "operationId": "payment_delete",
         "parameters": [
@@ -3051,7 +3374,9 @@
     },
     "/api/Payment/by-client/{clientId}": {
       "get": {
-        "tags": ["Payment"],
+        "tags": [
+          "Payment"
+        ],
         "summary": "Get all payments for a specific client.",
         "operationId": "payment_getByClient",
         "parameters": [
@@ -3081,7 +3406,9 @@
     },
     "/api/Payment/filtered": {
       "get": {
-        "tags": ["Payment"],
+        "tags": [
+          "Payment"
+        ],
         "summary": "Filter payments by clientId, directionId, modeId, date range, and reversed flag.",
         "operationId": "payment_getFiltered",
         "parameters": [
@@ -3150,7 +3477,9 @@
     },
     "/api/Payment/unallocated/{clientId}": {
       "get": {
-        "tags": ["Payment"],
+        "tags": [
+          "Payment"
+        ],
         "summary": "Get unallocated credit balance for a client.",
         "operationId": "payment_getUnallocated",
         "parameters": [
@@ -3190,7 +3519,9 @@
     },
     "/api/Payment/{id}/reverse": {
       "post": {
-        "tags": ["Payment"],
+        "tags": [
+          "Payment"
+        ],
         "summary": "Reverse a payment (e.g. wrong amount). Creates a reversing Transaction and marks original as reversed.",
         "operationId": "payment_reverse",
         "parameters": [
@@ -3247,7 +3578,9 @@
     },
     "/api/Payment/{id}/reverse-and-correct": {
       "post": {
-        "tags": ["Payment"],
+        "tags": [
+          "Payment"
+        ],
         "summary": "Reverse a payment and re-create it for the correct client. Atomic operation for wrong-client corrections.",
         "operationId": "payment_reverseAndCorrect",
         "parameters": [
@@ -3316,7 +3649,9 @@
     },
     "/api/Payment/pdf": {
       "get": {
-        "tags": ["Payment"],
+        "tags": [
+          "Payment"
+        ],
         "summary": "Export payments as PDF.",
         "operationId": "payment_getPdf",
         "parameters": [
@@ -3346,7 +3681,9 @@
     },
     "/api/Product": {
       "post": {
-        "tags": ["Product"],
+        "tags": [
+          "Product"
+        ],
         "summary": "Create a new product and link it to the authenticated user. Records an initial stock movement for the opening quantity.",
         "operationId": "product_createProduct",
         "requestBody": {
@@ -3385,7 +3722,9 @@
         }
       },
       "get": {
-        "tags": ["Product"],
+        "tags": [
+          "Product"
+        ],
         "summary": "Get all products for the authenticated user.",
         "operationId": "product_getAllProducts",
         "responses": {
@@ -3397,7 +3736,9 @@
     },
     "/api/Product/{id}": {
       "get": {
-        "tags": ["Product"],
+        "tags": [
+          "Product"
+        ],
         "summary": "Get a single product by ID scoped to the authenticated user.",
         "operationId": "product_getProductById",
         "parameters": [
@@ -3428,7 +3769,9 @@
         }
       },
       "put": {
-        "tags": ["Product"],
+        "tags": [
+          "Product"
+        ],
         "summary": "Update product details. Do not use this to adjust stock — create a Manual StockMovement instead.",
         "operationId": "product_updateProductById",
         "parameters": [
@@ -3488,7 +3831,9 @@
         }
       },
       "delete": {
-        "tags": ["Product"],
+        "tags": [
+          "Product"
+        ],
         "summary": "Delete a product by ID.",
         "operationId": "product_deleteProductById",
         "parameters": [
@@ -3521,7 +3866,9 @@
     },
     "/api/Product/filtered": {
       "get": {
-        "tags": ["Product"],
+        "tags": [
+          "Product"
+        ],
         "summary": "Get paginated products for the authenticated user.",
         "operationId": "product_getAllProductsPaginated",
         "parameters": [
@@ -3553,7 +3900,9 @@
     },
     "/api/Product/pdf": {
       "get": {
-        "tags": ["Product"],
+        "tags": [
+          "Product"
+        ],
         "summary": "Download the authenticated user's product list as a PDF report. Summary shows total inventory value (Qty × Price).",
         "operationId": "product_getAllProductsPdf",
         "responses": {
@@ -3565,7 +3914,9 @@
     },
     "/api/Purchase": {
       "post": {
-        "tags": ["Purchase"],
+        "tags": [
+          "Purchase"
+        ],
         "summary": "Create a new purchase with lines. Supplier must be a Client with ClientTypeId=2.",
         "operationId": "purchase_createPurchase",
         "requestBody": {
@@ -3611,7 +3962,9 @@
         }
       },
       "get": {
-        "tags": ["Purchase"],
+        "tags": [
+          "Purchase"
+        ],
         "summary": "Get all purchases, paginated. Admin only.",
         "operationId": "purchase_getAllPurchasesPaginated",
         "parameters": [
@@ -3650,7 +4003,9 @@
     },
     "/api/Purchase/me": {
       "get": {
-        "tags": ["Purchase"],
+        "tags": [
+          "Purchase"
+        ],
         "summary": "Get all purchases belonging to the authenticated user's supplier clients.",
         "operationId": "purchase_getMyPurchases",
         "responses": {
@@ -3669,7 +4024,9 @@
     },
     "/api/Purchase/{id}": {
       "get": {
-        "tags": ["Purchase"],
+        "tags": [
+          "Purchase"
+        ],
         "summary": "Get a single purchase by ID with lines.",
         "operationId": "purchase_getPurchaseById",
         "parameters": [
@@ -3707,7 +4064,9 @@
         }
       },
       "put": {
-        "tags": ["Purchase"],
+        "tags": [
+          "Purchase"
+        ],
         "summary": "Update a purchase header. Handles status transitions: Delivered triggers stock In + ledger, Cancelled reverses them.",
         "operationId": "purchase_updatePurchase",
         "parameters": [
@@ -3774,7 +4133,9 @@
         }
       },
       "delete": {
-        "tags": ["Purchase"],
+        "tags": [
+          "Purchase"
+        ],
         "summary": "Delete a purchase and its lines. Admin only. Not allowed if purchase has been Delivered.",
         "operationId": "purchase_deletePurchase",
         "parameters": [
@@ -3814,7 +4175,9 @@
     },
     "/api/Purchase/filtered": {
       "get": {
-        "tags": ["Purchase"],
+        "tags": [
+          "Purchase"
+        ],
         "summary": "Filter purchases by supplierId, statusId, and/or date range.",
         "operationId": "purchase_getFilteredPurchases",
         "parameters": [
@@ -3867,7 +4230,9 @@
     },
     "/api/Purchase/pdf": {
       "get": {
-        "tags": ["Purchase"],
+        "tags": [
+          "Purchase"
+        ],
         "summary": "Download all purchases for the authenticated user as a PDF report.",
         "operationId": "purchase_getPurchasesPdf",
         "responses": {
@@ -3887,7 +4252,9 @@
     },
     "/api/Report/profit-loss": {
       "get": {
-        "tags": ["Report"],
+        "tags": [
+          "Report"
+        ],
         "summary": "Monthly profit and loss report. Optionally filter by year and/or month.",
         "operationId": "report_getProfitLoss",
         "parameters": [
@@ -3924,7 +4291,9 @@
     },
     "/api/Report/profit-loss/pdf": {
       "get": {
-        "tags": ["Report"],
+        "tags": [
+          "Report"
+        ],
         "summary": "Export profit and loss report as PDF. Accepts same year/month filters.",
         "operationId": "report_getProfitLossPdf",
         "parameters": [
@@ -3962,7 +4331,9 @@
     },
     "/api/Report/client-balance": {
       "get": {
-        "tags": ["Report"],
+        "tags": [
+          "Report"
+        ],
         "summary": "All client balances.",
         "operationId": "report_getClientBalances",
         "responses": {
@@ -3981,7 +4352,9 @@
     },
     "/api/Report/client-balance/{clientId}": {
       "get": {
-        "tags": ["Report"],
+        "tags": [
+          "Report"
+        ],
         "summary": "Single client balance by ID. Staff can access their own clients.",
         "operationId": "report_getClientBalanceById",
         "parameters": [
@@ -4021,7 +4394,9 @@
     },
     "/api/Report/client-balance/pdf": {
       "get": {
-        "tags": ["Report"],
+        "tags": [
+          "Report"
+        ],
         "summary": "Export all client balances as PDF.",
         "operationId": "report_getClientBalancePdf",
         "responses": {
@@ -4041,7 +4416,9 @@
     },
     "/api/Report/credit-debit": {
       "get": {
-        "tags": ["Report"],
+        "tags": [
+          "Report"
+        ],
         "summary": "Monthly credit/debit report. Optionally filter by year and/or month.",
         "operationId": "report_getCreditDebit",
         "parameters": [
@@ -4078,7 +4455,9 @@
     },
     "/api/Report/credit-debit/pdf": {
       "get": {
-        "tags": ["Report"],
+        "tags": [
+          "Report"
+        ],
         "summary": "Export credit/debit report as PDF. Accepts same year/month filters.",
         "operationId": "report_getCreditDebitPdf",
         "parameters": [
@@ -4116,7 +4495,9 @@
     },
     "/api/Report/summary": {
       "get": {
-        "tags": ["Report"],
+        "tags": [
+          "Report"
+        ],
         "summary": "Aggregate totals: sales, purchases, expenses amounts and order/purchase/client counts.",
         "operationId": "report_getSummary",
         "responses": {
@@ -4135,7 +4516,9 @@
     },
     "/api/Report/summary/pdf": {
       "get": {
-        "tags": ["Report"],
+        "tags": [
+          "Report"
+        ],
         "summary": "Export summary totals as PDF.",
         "operationId": "report_getSummaryPdf",
         "responses": {
@@ -4155,7 +4538,9 @@
     },
     "/api/Report/client-detail": {
       "get": {
-        "tags": ["Report"],
+        "tags": [
+          "Report"
+        ],
         "summary": "Per-client breakdown with order/purchase totals, payments, recent transactions, and balance.",
         "operationId": "report_getClientDetails",
         "responses": {
@@ -4174,7 +4559,9 @@
     },
     "/api/Report/client-detail/{clientId}": {
       "get": {
-        "tags": ["Report"],
+        "tags": [
+          "Report"
+        ],
         "summary": "Full detail for a single client — orders, purchases, payments, recent transactions, and balance.",
         "operationId": "report_getClientDetailById",
         "parameters": [
@@ -4214,7 +4601,9 @@
     },
     "/api/Report/client-detail/{clientId}/pdf": {
       "get": {
-        "tags": ["Report"],
+        "tags": [
+          "Report"
+        ],
         "summary": "Export full single client detail as PDF with orders, purchases, payments, and transactions.",
         "operationId": "report_getClientDetailByIdPdf",
         "parameters": [
@@ -4255,7 +4644,9 @@
     },
     "/api/Report/client-detail/pdf": {
       "get": {
-        "tags": ["Report"],
+        "tags": [
+          "Report"
+        ],
         "summary": "Export per-client overview — all clients with order, purchase, and balance totals.",
         "operationId": "report_getClientDetailPdf",
         "responses": {
@@ -4275,7 +4666,9 @@
     },
     "/api/StockMovements": {
       "post": {
-        "tags": ["StockMovements"],
+        "tags": [
+          "StockMovements"
+        ],
         "summary": "Record a new stock movement. MovementType is auto-derived for Purchase (In) and Sale (Out); required only for Manual source.",
         "operationId": "stockMovements_createStockMovement",
         "requestBody": {
@@ -4321,7 +4714,9 @@
         }
       },
       "get": {
-        "tags": ["StockMovements"],
+        "tags": [
+          "StockMovements"
+        ],
         "summary": "Get all stock movements for the authenticated user's products, paginated.",
         "operationId": "stockMovements_getAllStockMovementsPaginated",
         "parameters": [
@@ -4360,7 +4755,9 @@
     },
     "/api/StockMovements/{id}": {
       "get": {
-        "tags": ["StockMovements"],
+        "tags": [
+          "StockMovements"
+        ],
         "summary": "Get a single stock movement by ID.",
         "operationId": "stockMovements_getStockMovementById",
         "parameters": [
@@ -4398,7 +4795,9 @@
         }
       },
       "put": {
-        "tags": ["StockMovements"],
+        "tags": [
+          "StockMovements"
+        ],
         "summary": "Update a stock movement record. Does not recalculate product averages — use a new Manual movement for stock corrections.",
         "operationId": "stockMovements_updateStockMovement",
         "parameters": [
@@ -4465,7 +4864,9 @@
         }
       },
       "delete": {
-        "tags": ["StockMovements"],
+        "tags": [
+          "StockMovements"
+        ],
         "summary": "Delete a stock movement record. Admin only.",
         "operationId": "stockMovements_deleteStockMovement",
         "parameters": [
@@ -4505,7 +4906,9 @@
     },
     "/api/StockMovements/filtered": {
       "get": {
-        "tags": ["StockMovements"],
+        "tags": [
+          "StockMovements"
+        ],
         "summary": "Filter stock movements by product, type, source, and/or date range.",
         "operationId": "stockMovements_getFilteredStockMovements",
         "parameters": [
@@ -4566,7 +4969,9 @@
     },
     "/api/StockMovements/pdf": {
       "get": {
-        "tags": ["StockMovements"],
+        "tags": [
+          "StockMovements"
+        ],
         "summary": "Download all stock movements as a PDF report.",
         "operationId": "stockMovements_getStockMovementsPdf",
         "responses": {
@@ -4584,153 +4989,11 @@
         }
       }
     },
-    "/api/Sync/push": {
-      "post": {
-        "tags": ["Sync"],
-        "summary": "Push a batch of offline-created records to the server. Each item is processed independently; partial failures are reported per-item.",
-        "operationId": "sync_push",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SyncPushDto"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SyncPushDto"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/SyncPushDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyncPushResultDtoResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyncPushResultDtoResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Sync/full-pull": {
-      "post": {
-        "tags": ["Sync"],
-        "summary": "Return the full dataset for the authenticated user. Admin receives all records; staff receives only their scoped records. Mobile drops local tables and rebuilds from this response.",
-        "operationId": "sync_fullPull",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyncFullPullResponseDtoResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyncFullPullResponseDtoResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Sync/delta-pull": {
-      "post": {
-        "tags": ["Sync"],
-        "summary": "Return records modified since the given timestamp, scoped to the user. Used for incremental sync after initial full-pull.",
-        "operationId": "sync_deltaPull",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SyncDeltaPullRequestDto"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SyncDeltaPullRequestDto"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/SyncDeltaPullRequestDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyncFullPullResponseDtoResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyncFullPullResponseDtoResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Sync/ping": {
-      "get": {
-        "tags": ["Sync"],
-        "summary": "Return server UTC time so mobile can detect clock skew.",
-        "operationId": "sync_ping",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DateTimeResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Transaction": {
       "post": {
-        "tags": ["Transaction"],
+        "tags": [
+          "Transaction"
+        ],
         "summary": "Create a manual ledger entry. Defaults TransTypeId=1 (Debit) and TransModeId=1 (Cash) if omitted.",
         "operationId": "transaction_create",
         "requestBody": {
@@ -4776,7 +5039,9 @@
         }
       },
       "get": {
-        "tags": ["Transaction"],
+        "tags": [
+          "Transaction"
+        ],
         "summary": "Get all transactions paginated. Admin only.",
         "operationId": "transaction_getAll",
         "parameters": [
@@ -4815,7 +5080,9 @@
     },
     "/api/Transaction/{id}": {
       "put": {
-        "tags": ["Transaction"],
+        "tags": [
+          "Transaction"
+        ],
         "summary": "Update a manually-created transaction. Returns an error if the transaction was auto-posted by an Order, Purchase, Expense, or Payment.",
         "operationId": "transaction_update",
         "parameters": [
@@ -4882,7 +5149,9 @@
         }
       },
       "delete": {
-        "tags": ["Transaction"],
+        "tags": [
+          "Transaction"
+        ],
         "summary": "Delete a manually-created transaction. Returns an error if the transaction was auto-posted.",
         "operationId": "transaction_delete",
         "parameters": [
@@ -4930,7 +5199,9 @@
         }
       },
       "get": {
-        "tags": ["Transaction"],
+        "tags": [
+          "Transaction"
+        ],
         "summary": "Get a transaction by ID. Staff can only access their own records.",
         "operationId": "transaction_getById",
         "parameters": [
@@ -4970,7 +5241,9 @@
     },
     "/api/Transaction/me": {
       "get": {
-        "tags": ["Transaction"],
+        "tags": [
+          "Transaction"
+        ],
         "summary": "Get transactions for the currently logged-in user.",
         "operationId": "transaction_getMe",
         "responses": {
@@ -4989,7 +5262,9 @@
     },
     "/api/Transaction/by-client/{clientId}": {
       "get": {
-        "tags": ["Transaction"],
+        "tags": [
+          "Transaction"
+        ],
         "summary": "Get all transactions for a specific client. Staff: only if they own the client.",
         "operationId": "transaction_getByClient",
         "parameters": [
@@ -5029,7 +5304,9 @@
     },
     "/api/Transaction/filtered": {
       "get": {
-        "tags": ["Transaction"],
+        "tags": [
+          "Transaction"
+        ],
         "summary": "Filter transactions by typeId, categoryId, modeId, clientId, dateFrom, dateTo. Admin only.",
         "operationId": "transaction_getFiltered",
         "parameters": [
@@ -5098,7 +5375,9 @@
     },
     "/api/Transaction/pdf": {
       "get": {
-        "tags": ["Transaction"],
+        "tags": [
+          "Transaction"
+        ],
         "summary": "Export all transactions as PDF. Admin only.",
         "operationId": "transaction_getPdf",
         "responses": {
@@ -5118,7 +5397,9 @@
     },
     "/api/UserRoles": {
       "post": {
-        "tags": ["UserRoles"],
+        "tags": [
+          "UserRoles"
+        ],
         "summary": "Create a new user role.",
         "operationId": "userRoles_createUserRole",
         "requestBody": {
@@ -5157,7 +5438,9 @@
         }
       },
       "get": {
-        "tags": ["UserRoles"],
+        "tags": [
+          "UserRoles"
+        ],
         "summary": "Get all user roles.",
         "operationId": "userRoles_getAllUserRoles",
         "responses": {
@@ -5169,7 +5452,9 @@
     },
     "/api/UserRoles/{id}": {
       "get": {
-        "tags": ["UserRoles"],
+        "tags": [
+          "UserRoles"
+        ],
         "summary": "Get a single user role by ID.",
         "operationId": "userRoles_getUserRoleById",
         "parameters": [
@@ -5200,7 +5485,9 @@
         }
       },
       "put": {
-        "tags": ["UserRoles"],
+        "tags": [
+          "UserRoles"
+        ],
         "summary": "Update a user role by ID.",
         "operationId": "userRoles_updateUserRole",
         "parameters": [
@@ -5260,7 +5547,9 @@
         }
       },
       "delete": {
-        "tags": ["UserRoles"],
+        "tags": [
+          "UserRoles"
+        ],
         "summary": "Delete a user role by ID.",
         "operationId": "userRoles_deleteUserRole",
         "parameters": [
@@ -5293,7 +5582,9 @@
     },
     "/api/UserRoles/pdf": {
       "get": {
-        "tags": ["UserRoles"],
+        "tags": [
+          "UserRoles"
+        ],
         "summary": "Download all user roles as a PDF report.",
         "operationId": "userRoles_getAllUserRolesPdf",
         "responses": {
@@ -5305,7 +5596,9 @@
     },
     "/api/Users": {
       "post": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Admin creates a new pre-confirmed user account. No email confirmation required.",
         "operationId": "users_adminCreateUser",
         "requestBody": {
@@ -5351,7 +5644,9 @@
         }
       },
       "get": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Get all users.",
         "operationId": "users_getAllUsers",
         "responses": {
@@ -5363,7 +5658,9 @@
     },
     "/api/Users/{id}": {
       "get": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Get a user by ID.",
         "operationId": "users_getUserById",
         "parameters": [
@@ -5394,7 +5691,9 @@
         }
       },
       "delete": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Delete a user by ID. Admin only.",
         "operationId": "users_deleteUserById",
         "parameters": [
@@ -5427,7 +5726,9 @@
     },
     "/api/Users/me": {
       "put": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Update the authenticated user's own profile (name, email, username, phone).",
         "operationId": "users_updateUserById",
         "requestBody": {
@@ -5478,7 +5779,9 @@
     },
     "/api/Users/pdf": {
       "get": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Download all users as a PDF report.",
         "operationId": "users_getAllUsersPdf",
         "responses": {
@@ -5687,6 +5990,38 @@
             "nullable": true,
             "example": "string"
           },
+          "clientTypeId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "+92-300-1234567"
+          },
+          "address": {
+            "type": "string",
+            "nullable": true,
+            "example": "123 Mall Road, Lahore"
+          },
+          "creditLimit": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 150000
+          },
+          "openingBalance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 150000
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "example": "Optional notes here"
+          },
           "totalOrderCount": {
             "type": "integer",
             "format": "int32"
@@ -5737,6 +6072,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ClientPaymentSummary"
+            },
+            "nullable": true
+          },
+          "invoices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClientInvoiceSummary"
             },
             "nullable": true
           },
@@ -5798,6 +6140,48 @@
               "type": "string"
             },
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClientInvoiceSummary": {
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "invoiceNumber": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "issueDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "string"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "string"
+          },
+          "invoiceStatusId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "statusName": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -6182,32 +6566,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/DashboardSummaryDto"
-          },
-          "errors": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "DateTimeResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string",
-            "nullable": true,
-            "example": "Operation completed successfully"
-          },
-          "data": {
-            "type": "string",
-            "format": "date-time",
-            "example": "string"
           },
           "errors": {
             "type": "array",
@@ -7430,6 +7788,79 @@
         },
         "additionalProperties": false
       },
+      "NotificationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "type": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true,
+            "example": "Sample Title"
+          },
+          "body": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "entityId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "example": 1
+          },
+          "isRead": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NotificationDtoListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationDto"
+            },
+            "nullable": true
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "ObjectResponse": {
         "type": "object",
         "properties": {
@@ -7751,7 +8182,9 @@
           },
           "paymentTypeId": {
             "type": "integer",
+            "description": "Omit or null to leave the existing payment type unchanged.",
             "format": "int32",
+            "nullable": true,
             "example": 1
           },
           "notes": {
@@ -8109,7 +8542,7 @@
             "example": "string"
           }
         },
-        "additionalProperties": {}
+        "additionalProperties": { }
       },
       "ProductCreateViewModel": {
         "type": "object",
@@ -9154,1507 +9587,6 @@
         },
         "additionalProperties": false
       },
-      "SyncClientBalanceDto": {
-        "type": "object",
-        "properties": {
-          "clientId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "name": {
-            "type": "string",
-            "nullable": true,
-            "example": "Ahmed Textiles"
-          },
-          "balance": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncClientDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true,
-            "example": "Ahmed Textiles"
-          },
-          "clientTypeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "userId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "phone": {
-            "type": "string",
-            "nullable": true,
-            "example": "+92-300-1234567"
-          },
-          "address": {
-            "type": "string",
-            "nullable": true,
-            "example": "123 Mall Road, Lahore"
-          },
-          "creditLimit": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 150000
-          },
-          "openingBalance": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 150000
-          },
-          "outstandingBalance": {
-            "type": "number",
-            "format": "double"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "example": "Optional notes here"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "operation": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncDeltaPullRequestDto": {
-        "type": "object",
-        "properties": {
-          "since": {
-            "type": "string",
-            "format": "date-time",
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncExpenseDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "expenseTypeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "amount": {
-            "type": "number",
-            "format": "double",
-            "example": 150000
-          },
-          "transModeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "transCategoryId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "expenseDate": {
-            "type": "string",
-            "format": "date",
-            "example": "string"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "example": "Optional notes here"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "operation": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncFullPullResponseDto": {
-        "type": "object",
-        "properties": {
-          "clients": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncClientDto"
-            },
-            "nullable": true
-          },
-          "products": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncProductDto"
-            },
-            "nullable": true
-          },
-          "orders": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncOrderDto"
-            },
-            "nullable": true
-          },
-          "purchases": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncPurchaseDto"
-            },
-            "nullable": true
-          },
-          "payments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncPaymentDto"
-            },
-            "nullable": true
-          },
-          "paymentAllocations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncPaymentAllocationDto"
-            },
-            "nullable": true
-          },
-          "expenses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncExpenseDto"
-            },
-            "nullable": true
-          },
-          "stockMovements": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncStockMovementDto"
-            },
-            "nullable": true
-          },
-          "transactions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncTransactionDto"
-            },
-            "nullable": true
-          },
-          "invoices": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncInvoiceDto"
-            },
-            "nullable": true
-          },
-          "userRoles": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "clientTypes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "orderStatuses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "purchaseStatuses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "paymentTypes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "paymentDirections": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "transTypes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "transModes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "transCategories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "expenseTypes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "movementTypes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "movementSources": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "invoiceStatuses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncLookupDto"
-            },
-            "nullable": true
-          },
-          "clientBalances": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncClientBalanceDto"
-            },
-            "nullable": true
-          },
-          "monthlyProfitLoss": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncMonthlyProfitLossDto"
-            },
-            "nullable": true
-          },
-          "monthlyCreditDebit": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncMonthlyCreditDebitDto"
-            },
-            "nullable": true
-          },
-          "serverTime": {
-            "type": "string",
-            "format": "date-time",
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncFullPullResponseDtoResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string",
-            "nullable": true,
-            "example": "Operation completed successfully"
-          },
-          "data": {
-            "$ref": "#/components/schemas/SyncFullPullResponseDto"
-          },
-          "errors": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncInvoiceDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "invoiceNumber": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "orderId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "purchaseId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "clientId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "createdByUserId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "invoiceStatusId": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "issueDate": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "dueDate": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "totalAmount": {
-            "type": "number",
-            "format": "double"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "example": "Optional notes here"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "invoiceLines": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncInvoiceLineDto"
-            },
-            "nullable": true
-          },
-          "operation": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncInvoiceLineDto": {
-        "type": "object",
-        "properties": {
-          "productName": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "qty": {
-            "type": "number",
-            "format": "double",
-            "example": 50
-          },
-          "unitPrice": {
-            "type": "number",
-            "format": "double",
-            "example": 150000
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncItemResultDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "status": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverVersion": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "serverData": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "errors": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncLookupDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "name": {
-            "type": "string",
-            "nullable": true,
-            "example": "Ahmed Textiles"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncMonthlyCreditDebitDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "month": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "totalCredit": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "totalDebit": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "balance": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncMonthlyProfitLossDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "month": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "totalSales": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "totalPurchases": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "totalExpenses": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "grossProfit": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "netProfit": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncOrderDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "userId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "clientId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "statusId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "paymentTypeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "orderDate": {
-            "type": "string",
-            "format": "date",
-            "example": "string"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "example": "Optional notes here"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "orderLines": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncOrderLineDto"
-            },
-            "nullable": true
-          },
-          "operation": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncOrderLineDto": {
-        "type": "object",
-        "properties": {
-          "productId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "qty": {
-            "type": "number",
-            "format": "double",
-            "example": 50
-          },
-          "unitPrice": {
-            "type": "number",
-            "format": "double",
-            "example": 150000
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncPaymentAllocationDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "paymentId": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "paymentLocalId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "orderId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "purchaseId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "invoiceId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "allocatedAmount": {
-            "type": "number",
-            "format": "double",
-            "example": 150000
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "operation": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncPaymentDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "partyClientId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "paymentDirectionId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "transModeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "amount": {
-            "type": "number",
-            "format": "double",
-            "example": 150000
-          },
-          "paymentDate": {
-            "type": "string",
-            "format": "date",
-            "example": "string"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "example": "Optional notes here"
-          },
-          "isReversed": {
-            "type": "boolean"
-          },
-          "originalPaymentId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "operation": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncProductDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "name": {
-            "type": "string",
-            "nullable": true,
-            "example": "Ahmed Textiles"
-          },
-          "sku": {
-            "type": "string",
-            "nullable": true,
-            "example": "FAB-001"
-          },
-          "unit": {
-            "type": "string",
-            "nullable": true,
-            "example": "Meters"
-          },
-          "defaultCost": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 150000
-          },
-          "defaultPrice": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 150000
-          },
-          "quantity": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 50
-          },
-          "averageCost": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "averagePrice": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "costChangeCount": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "priceChangeCount": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "totalQuantityPurchased": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "totalQuantitySold": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "reorderLevel": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 10
-          },
-          "isActive": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "operation": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncPurchaseDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "userId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "supplierId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "statusId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "paymentTypeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "purchaseDate": {
-            "type": "string",
-            "format": "date",
-            "example": "string"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "example": "Optional notes here"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "purchaseLines": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncPurchaseLineDto"
-            },
-            "nullable": true
-          },
-          "operation": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncPurchaseLineDto": {
-        "type": "object",
-        "properties": {
-          "productId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "qty": {
-            "type": "number",
-            "format": "double",
-            "example": 50
-          },
-          "unitCost": {
-            "type": "number",
-            "format": "double",
-            "example": 150000
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncPushDto": {
-        "type": "object",
-        "properties": {
-          "clients": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncClientDto"
-            },
-            "nullable": true
-          },
-          "products": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncProductDto"
-            },
-            "nullable": true
-          },
-          "orders": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncOrderDto"
-            },
-            "nullable": true
-          },
-          "purchases": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncPurchaseDto"
-            },
-            "nullable": true
-          },
-          "payments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncPaymentDto"
-            },
-            "nullable": true
-          },
-          "paymentAllocations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncPaymentAllocationDto"
-            },
-            "nullable": true
-          },
-          "expenses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncExpenseDto"
-            },
-            "nullable": true
-          },
-          "stockMovements": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncStockMovementDto"
-            },
-            "nullable": true
-          },
-          "transactions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncTransactionDto"
-            },
-            "nullable": true
-          },
-          "invoices": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncInvoiceDto"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncPushResultDto": {
-        "type": "object",
-        "properties": {
-          "results": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyncItemResultDto"
-            },
-            "nullable": true
-          },
-          "acceptedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "rejectedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "serverTime": {
-            "type": "string",
-            "format": "date-time",
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncPushResultDtoResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string",
-            "nullable": true,
-            "example": "Operation completed successfully"
-          },
-          "data": {
-            "$ref": "#/components/schemas/SyncPushResultDto"
-          },
-          "errors": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncStockMovementDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "productId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "movementTypeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "movementSourceId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "qty": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 50
-          },
-          "unitCost": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 150000
-          },
-          "unitPrice": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 150000
-          },
-          "averageCostAtMovement": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "averagePriceAtMovement": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "movementDate": {
-            "type": "string",
-            "format": "date",
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "operation": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SyncTransactionDto": {
-        "type": "object",
-        "properties": {
-          "localId": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          },
-          "serverId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "forceOverwrite": {
-            "type": "boolean"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "clientId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "userId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "orderId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "purchaseId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "invoiceId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "transTypeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "transModeId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "transCategoryId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "example": 1
-          },
-          "amount": {
-            "type": "number",
-            "format": "double",
-            "example": 150000
-          },
-          "transDate": {
-            "type": "string",
-            "format": "date",
-            "example": "string"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "example": "Optional notes here"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "string"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "string"
-          },
-          "operation": {
-            "type": "string",
-            "nullable": true,
-            "example": "string"
-          }
-        },
-        "additionalProperties": false
-      },
       "TestPushRequest": {
         "type": "object",
         "properties": {
@@ -11041,6 +9973,40 @@
         },
         "additionalProperties": false
       },
+      "UnreadCountDto": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UnreadCountDtoResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UnreadCountDto"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "UnregisterDeviceViewModel": {
         "type": "object",
         "properties": {
@@ -11264,7 +10230,7 @@
   },
   "security": [
     {
-      "Bearer": []
+      "Bearer": [ ]
     }
   ]
 }

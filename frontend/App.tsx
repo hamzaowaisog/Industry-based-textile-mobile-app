@@ -1,34 +1,35 @@
 import React, { useCallback, useEffect } from 'react';
 
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import NetInfo from '@react-native-community/netinfo';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import BootSplash from 'react-native-bootsplash';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
 import Toast from 'react-native-toast-message';
-import { useTranslation } from 'react-i18next';
 
+import { useNotificationMarkAsRead } from '@api/generated/notification/notification';
 import { useAuthStore } from '@stores/authStore';
 import { useDeviceStore } from '@stores/deviceStore';
+import { useMetaStore } from '@stores/metaStore';
 import { useNotificationStore } from '@stores/notificationStore';
-import { useSyncStore } from '@stores/syncStore';
 
 import { RootNavigator } from '@navigation/RootNavigator';
 
-import { toastConfig } from '@components/common/AppToast';
 import { AppBanner } from '@components/common/AppBanner';
 import { AppPermissionModal } from '@components/common/AppPermissionModal';
+import { toastConfig } from '@components/common/AppToast';
 
 import { useNotificationListeners } from '@hooks/useNotificationListeners';
 
-import { BellIcon } from '@constants/svgAssets';
-import { colors } from '@theme/colors';
-import { markAsRead } from '@db/queries/notifications';
 import { handleDeepLink } from '@utils/helpers/notificationDeepLink';
 import { getNotificationIcon } from '@utils/helpers/notificationMappers';
+
+import { colors } from '@theme/colors';
+
+import { BellIcon } from '@constants/svgAssets';
 
 enableScreens();
 
@@ -48,7 +49,12 @@ const AppInner = () => {
   const banner = useNotificationStore((s) => s.banner);
   const { hideBanner, decrementUnread, hydrate: hydrateNotifications } = useNotificationStore();
 
-  const { hasBeenPrompted, registerForPush, declineNotifications, hydratePromptedFlag } = useDeviceStore();
+  const { hasBeenPrompted, registerForPush, declineNotifications, hydratePromptedFlag } =
+    useDeviceStore();
+
+  const fetchMeta = useMetaStore((s) => s.fetchMeta);
+
+  const { mutate: markNotificationRead } = useNotificationMarkAsRead();
 
   useNotificationListeners();
 
@@ -56,16 +62,17 @@ const AppInner = () => {
     if (isAuthenticated) {
       void hydrateNotifications();
       void hydratePromptedFlag();
+      void fetchMeta();
     }
-  }, [isAuthenticated, hydrateNotifications, hydratePromptedFlag]);
+  }, [isAuthenticated, hydrateNotifications, hydratePromptedFlag, fetchMeta]);
 
-  const handleBannerPress = useCallback(async () => {
+  const handleBannerPress = useCallback(() => {
     if (!banner) return;
     hideBanner();
-    await markAsRead(banner.id);
+    if (banner.id > 0) markNotificationRead({ id: banner.id });
     decrementUnread(1);
     handleDeepLink(banner.type, banner.entityId);
-  }, [banner, hideBanner, decrementUnread]);
+  }, [banner, hideBanner, decrementUnread, markNotificationRead]);
 
   const bannerIcon = banner ? getNotificationIcon(banner.type) : null;
 
@@ -100,21 +107,10 @@ const AppInner = () => {
 
 export default function App() {
   const hydrate = useAuthStore((s) => s.hydrate);
-  const setIsOnline = useSyncStore((s) => s.setIsOnline);
-
-  useEffect(() => {
-    const unsubscribe = NetInfo.addEventListener((state) => {
-      const online = !!(state.isConnected && state.isInternetReachable);
-      setIsOnline(online);
-    });
-    return () => unsubscribe();
-  }, [setIsOnline]);
 
   useEffect(() => {
     void (async () => {
       await hydrate();
-      // TODO: Remove after one run — clears stuck pending changes with wrong localId from before the sync fix
-      // useSyncStore.getState().clearPendingChanges();
       await BootSplash.hide({ fade: true });
     })();
   }, [hydrate]);

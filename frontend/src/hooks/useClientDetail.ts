@@ -1,14 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { InteractionManager } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+
+import { useClientStore } from '@stores/clientStore';
 
 import { AppConstants } from '@constants/appConstants';
-import { useClientStore } from '@stores/clientStore';
+
 import type { ClientTab } from '../types/clients.types';
-import type { ClientStackParamList, PaymentStackParamList, OrderStackParamList, PurchaseStackParamList } from '../types/navigation.types';
+import type {
+  ClientStackParamList,
+  OrderStackParamList,
+  PaymentStackParamList,
+  PurchaseStackParamList,
+} from '../types/navigation.types';
 
 export const useClientDetail = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ClientStackParamList>>();
@@ -21,19 +27,14 @@ export const useClientDetail = () => {
 
   useFocusEffect(
     useCallback(() => {
-      const task = InteractionManager.runAfterInteractions(() => {
-        fetchClientDetail(clientId);
-      });
-      return () => {
-        task.cancel();
-      };
+      fetchClientDetail(clientId);
     }, [clientId]),
   );
 
   useEffect(() => {
     if (currentClient) {
       setTab(
-        currentClient.clientTypeId === 2
+        currentClient.clientTypeId === AppConstants.CLIENT_TYPE.SUPPLIER
           ? AppConstants.CLIENT_TABS.PURCHASES
           : AppConstants.CLIENT_TABS.ORDERS,
       );
@@ -54,45 +55,41 @@ export const useClientDetail = () => {
 
   const onPrimaryAction = useCallback(() => {
     if (!currentClient) return;
-    const isSupplier = currentClient.clientTypeId === 2;
+    const isSupplier = currentClient.clientTypeId === AppConstants.CLIENT_TYPE.SUPPLIER;
     if (isSupplier) {
-      navigation.getParent<NativeStackNavigationProp<any>>()?.navigate(
-        AppConstants.SCREENS.MAIN.PAYMENTS_STACK,
-        {
+      navigation
+        .getParent<NativeStackNavigationProp<any>>()
+        ?.navigate(AppConstants.SCREENS.MAIN.PAYMENTS_STACK, {
           screen: AppConstants.SCREENS.MAIN.RECORD_PAYMENT,
           params: { clientId, clientName: currentClient.clientName },
-        },
-      );
+        });
     } else {
-      navigation.getParent<NativeStackNavigationProp<any>>()?.navigate(
-        AppConstants.SCREENS.MAIN.PAYMENTS_STACK,
-        {
+      navigation
+        .getParent<NativeStackNavigationProp<any>>()
+        ?.navigate(AppConstants.SCREENS.MAIN.PAYMENTS_STACK, {
           screen: AppConstants.SCREENS.MAIN.RECORD_PAYMENT,
           params: { clientId, clientName: currentClient.clientName },
-        },
-      );
+        });
     }
   }, [navigation, clientId, currentClient]);
 
   const onSecondaryAction = useCallback(() => {
     if (!currentClient) return;
-    const isSupplier = currentClient.clientTypeId === 2;
+    const isSupplier = currentClient.clientTypeId === AppConstants.CLIENT_TYPE.SUPPLIER;
     if (isSupplier) {
-      navigation.getParent<NativeStackNavigationProp<any>>()?.navigate(
-        AppConstants.SCREENS.MAIN.PURCHASES_STACK,
-        {
+      navigation
+        .getParent<NativeStackNavigationProp<any>>()
+        ?.navigate(AppConstants.SCREENS.MAIN.PURCHASES_STACK, {
           screen: AppConstants.SCREENS.MAIN.CREATE_PURCHASE,
           params: { clientId, clientName: currentClient.clientName },
-        },
-      );
+        });
     } else {
-      navigation.getParent<NativeStackNavigationProp<any>>()?.navigate(
-        AppConstants.SCREENS.MAIN.ORDERS_STACK,
-        {
+      navigation
+        .getParent<NativeStackNavigationProp<any>>()
+        ?.navigate(AppConstants.SCREENS.MAIN.ORDERS_STACK, {
           screen: AppConstants.SCREENS.MAIN.CREATE_ORDER,
           params: { clientId, clientName: currentClient.clientName },
-        },
-      );
+        });
     }
   }, [navigation, clientId, currentClient]);
 

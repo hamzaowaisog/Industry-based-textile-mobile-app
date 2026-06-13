@@ -1,0 +1,99 @@
+import {
+  orderCreateOrder,
+  orderDeleteOrder,
+  orderGetAllOrdersPaginated,
+  orderGetMyOrders,
+  orderGetOrderById,
+  orderUpdateOrder,
+} from '@api/generated/order/order';
+import type { OrderCreateViewModel, OrderUpdateViewModel } from '@api/models';
+
+import { useAuthStore } from '@stores/authStore';
+
+import { parseApiError, parseApiResponse } from '@utils/helpers/apiResponse';
+import { mapApiOrderDetail, mapApiOrderToRow } from '@utils/helpers/orderMappers';
+import i18n from '@utils/i18n';
+
+import { AppConstants } from '@constants/appConstants';
+
+import type { CreateOrderFormValues, OrderDetail, OrderRow } from '../types/orders.types';
+
+export const fetchOrdersAsync = async (): Promise<OrderRow[]> => {
+  try {
+    const { roleId } = useAuthStore.getState();
+    const isAdmin = roleId === AppConstants.ROLES.ADMIN;
+    const res = isAdmin
+      ? await orderGetAllOrdersPaginated({ page: 1, pageSize: 100 })
+      : await orderGetMyOrders();
+    const r = parseApiResponse<any>(res, '');
+    if (!r.success || !r.data) return [];
+    const items = r.data?.items ?? r.data ?? [];
+    return (items as any[]).map(mapApiOrderToRow);
+  } catch {
+    return [];
+  }
+};
+
+export const fetchOrderDetailAsync = async (orderId: number): Promise<OrderDetail | null> => {
+  try {
+    const res = await orderGetOrderById(orderId);
+    const r = parseApiResponse<any>(res, '');
+    if (!r.success || !r.data) return null;
+    return mapApiOrderDetail(r.data);
+  } catch {
+    return null;
+  }
+};
+
+export const createOrderAsync = async (
+  values: CreateOrderFormValues,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const payload: OrderCreateViewModel = {
+      clientId: values.clientId ?? undefined,
+      paymentTypeId: values.paymentTypeId,
+      orderDate: values.orderDate || null,
+      notes: values.notes.trim() || null,
+      lines: values.lines.map((l) => ({
+        productId: l.productId,
+        qty: parseFloat(l.qty),
+        unitPrice: parseFloat(l.unitPrice),
+      })),
+    };
+    const res = await orderCreateOrder(payload);
+    const r = parseApiResponse(res, i18n.t('orders.create.errorTitle'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('orders.create.errorTitle')) };
+  }
+};
+
+export const updateOrderAsync = async (
+  id: number,
+  statusId: number,
+  notes?: string | null,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const payload: OrderUpdateViewModel = { statusId, notes: notes ?? null };
+    const res = await orderUpdateOrder(id, payload);
+    const r = parseApiResponse(res, i18n.t('common.errorGeneric'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('common.errorGeneric')) };
+  }
+};
+
+export const deleteOrderAsync = async (
+  id: number,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const res = await orderDeleteOrder(id);
+    const r = parseApiResponse(res, i18n.t('common.errorGeneric'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('common.errorGeneric')) };
+  }
+};

@@ -111,16 +111,15 @@ Always use aliases, never relative paths crossing folder boundaries.
 
 ### State Management
 
-Three Zustand stores:
+Two Zustand stores:
 - `authStore` — `userId`, `roleId`, `userName`, `isAuthenticated`. `hydrate()` reads SecureStore on app start; `setAuth()` / `clearAuth()` manage login/logout.
-- `lookupsStore` — holds the full lookup table snapshot from `GET /api/Meta/all`, populated once after login.
-- `syncStore` — tracks offline sync queue state.
+- `metaStore` — holds the full lookup table snapshot from `GET /api/Meta/all`, populated in `App.tsx` on every login/auth change via `fetchMeta()`. Use `AppConstants.META.*` keys to access lists: `getList(AppConstants.META.PAYMENT_TYPES)`, `getLookupName(AppConstants.META.ORDER_STATUSES, id)`.
 
 ### Navigation
 
 - `RootNavigator` — switches between `AuthNavigator` and `MainNavigator` based on `isAuthenticated`.
 - `AuthNavigator` — native stack: Splash → Welcome → Onboarding → Login → Biometric → ForgotPassword → VerifyOtp → ResetPassword (also Register, Terms, Privacy). Password reset is OTP-based: ForgotPassword calls `POST /api/auth/forgot-password` (returns `nextResendAt`); VerifyOtp calls `POST /api/auth/verify-reset-otp` with `{ email, code }` (returns `resetToken`); ResetPassword calls `POST /api/auth/reset-password` with `{ email, resetToken, newPassword, confirmPassword }`. The email is carried client-side through all three screens — the backend never returns it. VerifyOtp shows a 30-second resend cooldown timer using `nextResendAt`.
-- `MainNavigator` — **side drawer** (`@react-navigation/drawer`, width 296, `drawerType: 'front'`, swipe disabled). `DrawerContent` renders `DrawerComponent` which shows user name, role, online/offline state, and sign-out (disabled when offline). Drawer screens:
+- `MainNavigator` — **side drawer** (`@react-navigation/drawer`, width 296, `drawerType: 'front'`, swipe disabled). `DrawerContent` renders `DrawerComponent` which shows user name, role, and sign-out. Drawer screens:
   - `Dashboard` (direct screen — no stack)
   - `ClientsStack`, `OrdersStack`, `ProductsStack`, `PurchasesStack`, `PaymentsStack`, `InvoicesStack`, `ExpensesStack`, `StockStack`, `LedgerStack`
   - `ReportsStack`, `UsersStack` — Admin only (roleId === 1)
@@ -343,13 +342,13 @@ import { styles } from './styles';
 
 ### Done
 - **Auth flow** — Splash, Welcome, Onboarding ×3, Login, Biometric, ForgotPassword, OTP Verification, ResetPassword, Register, Terms, Privacy
-- **Dashboard** — stat cards (orders, outstanding, pending payments, low stock), bar chart (monthly overview), recent orders/purchases list, SyncStatusBar, OfflineBanner, skeleton loader; data from SQLite + live API
+- **Dashboard** — stat cards (orders, outstanding, pending payments, low stock), bar chart (monthly overview), recent orders/purchases list, skeleton loader; data from live API
 - **Navigation skeleton** — `RootNavigator`, `AuthNavigator`, `MainNavigator` (drawer), `DrawerContent`, all 13 domain stacks registered
-- **Offline DB** — `src/db/` with full schema (`schema.ts`), migrations (`migrate.ts`), and query files for every domain
-- **API layer** — full Orval-generated client (`src/api/generated/`), `axiosInstance.ts` with JWT bearer + 401 refresh
-- **Stores** — `authStore`, `lookupsStore`, `syncStore`
-- **Core** — `core/auth.ts`, `core/sync.ts`
-- **Common components** — `AppBottomSheet`, `AppToast`, `SyncBottomSheet`
+- **API layer** — full Orval-generated client (`src/api/generated/`), `axiosInstance.ts` with JWT bearer + 401 refresh; `orval.config.js` uses `clean: true`
+- **Stores** — `authStore`, `lookupsStore`
+- **Core** — `core/auth.ts`, `core/clients.ts`; shared `parseApiResponse` / `parseApiError` in `src/utils/helpers/apiResponse.ts` — use these in every new core file
+- **Clients feature** — List, Detail (tabbed: orders/purchases/payments/invoices/transactions), Form (create + edit)
+- **Common components** — `AppBottomSheet`, `AppToast`
 - **Theme** — `colors.ts`, `typography.ts`, `spacing.ts` aligned to v3 tokens
 - **i18n** — `src/locales/en.json` with all current keys
 
@@ -357,7 +356,6 @@ import { styles } from './styles';
 
 | Feature | Screens | Design ref |
 |---|---|---|
-| Clients | List, Detail (tabbed), Form | `screens-clients.jsx` |
 | Products | List, Detail (stat grid + line chart), Form | `screens-products.jsx` |
 | Orders | List, Detail, Create (3-step) | `screens-orders.jsx` |
 | Purchases | List, Detail, Create | `screens-purchases.jsx` |
@@ -368,8 +366,7 @@ import { styles } from './styles';
 | Transactions / Ledger | List | `screens-stock-trans.jsx` |
 | Reports | Hub + 5 report screens (Admin only) | `screens-reports-extra.jsx` |
 | Users | List, Create (Admin only) | `screens-admin.jsx` |
-| Settings | Profile, security, sync, notifications, sign-out | `screens-system.jsx` |
-| Sync Status | Full sync flow UI | `screens-system.jsx` |
+| Settings | Profile, security, notifications, sign-out | `screens-system.jsx` |
 | Change Password | Form + strength indicator | `screens-system.jsx` |
 | Notification Center | List, deep-link taps | `screens-extras.jsx` |
 

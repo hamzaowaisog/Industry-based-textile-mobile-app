@@ -6,23 +6,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { QUICK_ACTION_CONFIGS, getStatCardConfigs } from '@utils/helpers/dashboardContent';
 import { computeRevenueTrend } from '@utils/helpers/dashboardMappers';
 import { formatCompactNumber as fmt } from '@utils/helpers/formatNumber';
-import { formatRelativeTime } from '@utils/helpers/formatRelativeTime';
 import { getGreetingKey } from '@utils/helpers/greetingHelpers';
-import { getNotificationIcon } from '@utils/helpers/notificationMappers';
 
 import { colors } from '@theme/colors';
 
 import { AppConstants } from '@constants/appConstants';
-import {
-  BellIcon,
-  MenuIcon,
-  RefreshIcon,
-  ShoppingBagIcon,
-  TruckIcon,
-} from '@constants/svgAssets';
+import { BellIcon, MenuIcon, ShoppingBagIcon, TruckIcon } from '@constants/svgAssets';
 
 import type { DashboardComponentProps } from '../../types/dashboard.types';
-import type { NotificationItem } from '../../types/notifications.types';
 import { BarChart } from './BarChart';
 import { DashboardSkeleton } from './DashboardSkeleton';
 import { FinancialCell } from './FinancialCell';
@@ -32,21 +23,16 @@ import { StatCardItem } from './StatCardItem';
 import { styles } from './styles';
 
 export const DashboardComponent = ({
-  isOnline,
   isLoading,
-  isSyncing,
   summary,
   monthlyOverview,
   userName,
   onOpenDrawer,
-  onSync,
   onNewOrder,
   onViewAllOrders,
   unreadCount,
-  unreadNotifications,
   onBell,
   onSeeAll,
-  onNotificationPress,
 }: DashboardComponentProps) => {
   const { t } = useTranslation();
 
@@ -87,23 +73,11 @@ export const DashboardComponent = ({
 
           <View style={styles.headerActions}>
             <TouchableOpacity
-              style={[styles.iconBtn, !isOnline && styles.iconBtnDisabled]}
-              onPress={onSync}
-              disabled={isSyncing || !isOnline}
+              style={styles.iconBtn}
+              onPress={onBell}
               activeOpacity={0.7}
               hitSlop={10}
             >
-              <RefreshIcon size={20} color={isSyncing ? colors.primary : colors.text} />
-              {!isSyncing && (
-                <View
-                  style={[
-                    styles.connectivityDot,
-                    { backgroundColor: isOnline ? colors.success : colors.danger },
-                  ]}
-                />
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn} onPress={onBell} activeOpacity={0.7} hitSlop={10}>
               <BellIcon size={20} color={colors.text} />
               {unreadCount > 0 && (
                 <View style={styles.bellBadge}>
@@ -121,9 +95,6 @@ export const DashboardComponent = ({
         <View style={styles.errorWrap}>
           <Text style={styles.errorText}>{t('dashboard.loadError')}</Text>
           <Text style={styles.errorSub}>{t('dashboard.loadErrorSub')}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={onSync} activeOpacity={0.8} hitSlop={10}>
-            <Text style={styles.retryText}>{t('dashboard.tapToRetry')}</Text>
-          </TouchableOpacity>
         </View>
       )}
 
@@ -267,13 +238,11 @@ export const DashboardComponent = ({
                   <Text style={styles.emptyText}>{t('dashboard.noRecentOrders')}</Text>
                 </View>
               ) : (
-                summary.recentOrders.slice(0, 3).map((order, i, arr) => (
-                  <OrderRow
-                    key={order.orderId}
-                    order={order}
-                    isLast={i === arr.length - 1}
-                  />
-                ))
+                summary.recentOrders
+                  .slice(0, 3)
+                  .map((order, i, arr) => (
+                    <OrderRow key={order.orderId} order={order} isLast={i === arr.length - 1} />
+                  ))
               )}
             </View>
           </View>
@@ -292,55 +261,15 @@ export const DashboardComponent = ({
                   <Text style={styles.emptyText}>{t('dashboard.noRecentPurchases')}</Text>
                 </View>
               ) : (
-                summary.recentPurchases.slice(0, 3).map((purchase, i, arr) => (
-                  <PurchaseRow
-                    key={purchase.purchaseId}
-                    purchase={purchase}
-                    isLast={i === arr.length - 1}
-                  />
-                ))
-              )}
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionRow}>
-              <Text style={styles.sectionTitle}>{t('dashboard.recentNotifications')}</Text>
-              <TouchableOpacity onPress={onBell} activeOpacity={0.7} hitSlop={10}>
-                <Text style={styles.sectionAction}>{t('dashboard.viewAll')}</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.card}>
-              {unreadNotifications.length === 0 ? (
-                <View style={styles.emptyWrap}>
-                  <BellIcon size={28} color={colors.divider} />
-                  <Text style={styles.emptyText}>{t('notifications.emptyTitle')}</Text>
-                </View>
-              ) : (
-                unreadNotifications.slice(0, 3).map((item: NotificationItem, i: number, arr) => {
-                  const { Icon, color } = getNotificationIcon(item.type);
-                  return (
-                    <TouchableOpacity
-                      key={item.id}
-                      style={[
-                        styles.notifRow,
-                        i < arr.length - 1 && styles.notifRowBorder,
-                      ]}
-                      onPress={() => onNotificationPress(item)}
-                      activeOpacity={0.7}
-                      hitSlop={10}
-                    >
-                      <View style={[styles.notifIcon, { backgroundColor: `${color}18` }]}>
-                        <Icon size={16} color={color} />
-                      </View>
-                      <View style={styles.notifContent}>
-                        <Text style={styles.notifTitle} numberOfLines={1}>{item.title}</Text>
-                        <Text style={styles.notifBody} numberOfLines={1}>{item.body}</Text>
-                      </View>
-                      <Text style={styles.notifTime}>{formatRelativeTime(item.createdAt)}</Text>
-                    </TouchableOpacity>
-                  );
-                })
+                summary.recentPurchases
+                  .slice(0, 3)
+                  .map((purchase, i, arr) => (
+                    <PurchaseRow
+                      key={purchase.purchaseId}
+                      purchase={purchase}
+                      isLast={i === arr.length - 1}
+                    />
+                  ))
               )}
             </View>
           </View>

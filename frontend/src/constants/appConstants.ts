@@ -3,6 +3,7 @@ export const AppConstants = {
   APP: {
     NAME: 'HamzaTex',
     TAG: 'TEXTILE ERP',
+    CURRENCY: 'Rs',
   },
 
   // Secure store keys (auth tokens only — non-sensitive prefs use FILES)
@@ -29,6 +30,37 @@ export const AppConstants = {
     STAFF: 2,
   },
 
+  // Meta lookup keys — use with useMetaStore().getList() / getLookupName()
+  META: {
+    ORDER_STATUSES: 'orderStatuses',
+    PURCHASE_STATUSES: 'purchaseStatuses',
+    PAYMENT_TYPES: 'paymentTypes',
+    PAYMENT_DIRECTIONS: 'paymentDirections',
+    TRANS_TYPES: 'transTypes',
+    TRANS_MODES: 'transModes',
+    TRANS_CATEGORIES: 'transCategories',
+    EXPENSE_TYPES: 'expenseTypes',
+    MOVEMENT_TYPES: 'movementTypes',
+    MOVEMENT_SOURCES: 'movementSources',
+    CLIENT_TYPES: 'clientTypes',
+    USER_ROLES: 'userRoles',
+    INVOICE_STATUSES: 'invoiceStatuses',
+  } as const,
+
+  // Client type IDs (matches backend seeded ClientType table)
+  CLIENT_TYPE: {
+    CUSTOMER: 1,
+    SUPPLIER: 2,
+  },
+
+  // Order status IDs (matches backend seeded OrderStatus table)
+  ORDER_STATUS: {
+    PENDING: 1,
+    IN_PROGRESS: 2,
+    DELIVERED: 3,
+    CANCELLED: 4,
+  },
+
   // Client detail tabs
   CLIENT_TABS: {
     ORDERS: 'orders',
@@ -42,30 +74,6 @@ export const AppConstants = {
   PAGINATION: {
     DEFAULT_PAGE: 1,
     DEFAULT_PAGE_SIZE: 20,
-  },
-
-  // Sync
-  SYNC: {
-    MAX_RETRY_COUNT: 3,
-    STORE_KEY: 'hamzatex-sync-store',
-    SNAP_POINTS: ['62%'],
-    PROGRESS: {
-      INIT: 5,
-      PUSHING: 20,
-      CLEARING: 55,
-      PULLING: 80,
-      DONE: 100,
-    },
-    PHASES: {
-      PUSHING: 'pushing',
-      CLEARING: 'clearing',
-      PULLING: 'pulling',
-    } as const,
-  },
-
-  // Local DB
-  DB: {
-    NAME: 'hamzatex.db',
   },
 
   // Currency display
@@ -174,8 +182,5 @@ export const AppConstants = {
     INVOICE_OVERDUE: 'invoice_overdue',
     LOW_STOCK: 'low_stock',
     EXPENSE_APPROVED: 'expense_approved',
-    SYNC_COMPLETE: 'sync_complete',
-    SYNC_PARTIAL: 'sync_partial',
-    SYNC_FAILED: 'sync_failed',
   },
 } as const;

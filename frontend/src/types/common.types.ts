@@ -39,6 +39,22 @@ export type AppBannerProps = {
   autoDismissMs?: number;
 };
 
+export type SelectItem = {
+  id: number;
+  name: string;
+  subtitle?: string;
+};
+
+export type AppSelectModalProps = {
+  visible: boolean;
+  title: string;
+  items: SelectItem[];
+  selectedId?: number;
+  onSelect: (id: number, name: string) => void;
+  onClose: () => void;
+  searchPlaceholder?: string;
+};
+
 export type AppPermissionModalProps = {
   visible: boolean;
   Icon: ComponentType<IconProps>;

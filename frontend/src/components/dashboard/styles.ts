@@ -185,18 +185,6 @@ export const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
 
-  // ── Connectivity dot (green = online, red = offline) ──
-  connectivityDot: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    borderWidth: 1.5,
-    borderColor: colors.surface,
-  },
-
   // ── Empty state (recent orders) ──
   emptyWrap: {
     alignItems: 'center',

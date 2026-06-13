@@ -1,5 +1,5 @@
 import { NavigatorScreenParams, RouteProp } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppConstants } from '@constants/appConstants';
 
@@ -137,3 +137,10 @@ export type BiometricNavProp = AuthNavProp<typeof S.BIOMETRIC>;
 export type VerifyOtpRouteProp = AuthRouteProp<typeof S.VERIFY_OTP>;
 export type ResetPasswordRouteProp = AuthRouteProp<typeof S.RESET_PASSWORD>;
 export type VerifySignupOtpRouteProp = AuthRouteProp<typeof S.VERIFY_SIGNUP_OTP>;
+
+// ── Order screen props ──────────────────────────────────────────────────────────
+
+const SM = AppConstants.SCREENS.MAIN;
+
+export type CreateOrderScreenProps = NativeStackScreenProps<OrderStackParamList, typeof SM.CREATE_ORDER>;
+export type OrderDetailScreenProps = NativeStackScreenProps<OrderStackParamList, typeof SM.ORDER_DETAIL>;

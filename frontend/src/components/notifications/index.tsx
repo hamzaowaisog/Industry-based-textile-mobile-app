@@ -39,7 +39,7 @@ export const NotificationsComponent = ({
           <ArrowLeftIcon size={20} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.title}>{t('notifications.title')}</Text>
-        {unreadCount > 0 ? (
+        {items.length > 0 ? (
           <TouchableOpacity onPress={onMarkAllRead} activeOpacity={0.7}>
             <Text style={styles.markAll}>{t('notifications.markAllRead')}</Text>
           </TouchableOpacity>
@@ -69,7 +69,7 @@ export const NotificationsComponent = ({
       ) : (
         <FlatList
           data={items}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}

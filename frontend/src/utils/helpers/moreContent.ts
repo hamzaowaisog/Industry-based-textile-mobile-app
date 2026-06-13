@@ -2,7 +2,6 @@ import {
   BarChartIcon,
   BellIcon,
   BoxIcon,
-  CloudIcon,
   FileTextIcon,
   ReceiptIcon,
   RefreshIcon,
@@ -30,6 +29,5 @@ export const MORE_ITEMS: MoreItemConfig[] = [
   { key: 'transactions',  labelKey: 'more.transactions',  Icon: WalletIcon,     color: colors.warning,      destination: S.LEDGER_STACK },
   { key: 'reports',       labelKey: 'more.reports',       Icon: BarChartIcon,   color: colors.success,      destination: S.REPORTS_STACK, adminOnly: true, tag: 'Admin' },
   { key: 'users',         labelKey: 'more.users',         Icon: UsersIcon,      color: colors.violet,       destination: S.USERS_STACK,   adminOnly: true, tag: 'Admin' },
-  { key: 'sync',          labelKey: 'more.syncStatus',    Icon: CloudIcon,      color: colors.primary,      destination: S.SETTINGS },
   { key: 'settings',      labelKey: 'more.settings',      Icon: SettingsIcon,   color: colors.textSecondary, destination: S.SETTINGS },
 ];

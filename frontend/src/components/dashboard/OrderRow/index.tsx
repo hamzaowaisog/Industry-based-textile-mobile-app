@@ -5,6 +5,7 @@ import { formatCompactNumber as fmt } from '@utils/helpers/formatNumber';
 
 import { colors } from '@theme/colors';
 
+import { AppConstants } from '@constants/appConstants';
 import { ShoppingBagIcon } from '@constants/svgAssets';
 
 import type { OrderRowProps } from '../../../types/dashboard.types';
@@ -27,7 +28,9 @@ export const OrderRow = ({ order, isLast }: OrderRowProps) => {
           </Text>
         </View>
         <View style={styles.right}>
-          <Text style={styles.amount}>Rs {fmt(order.total)}</Text>
+          <Text style={styles.amount}>
+            {AppConstants.APP.CURRENCY} {fmt(order.total)}
+          </Text>
           <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
             <Text style={[styles.statusText, { color: s.fg }]}>{order.statusName}</Text>
           </View>

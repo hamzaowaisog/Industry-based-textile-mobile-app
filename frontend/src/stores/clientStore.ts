@@ -3,14 +3,12 @@ import { create } from 'zustand';
 import type { ClientCreateViewModel, ClientUpdateViewModel } from '@api/models';
 
 import {
-  createClientApi,
-  deleteClientApi,
-  fetchClientDetailFromApi,
-  fetchClientsFromDb,
-  refreshClientsFromApi,
-  updateClientApi,
+  createClientAsync,
+  deleteClientAsync,
+  fetchClientDetailAsync,
+  fetchClientsAsync,
+  updateClientAsync,
 } from '../core/clients';
-import { getClientByServerId } from '@db/queries/clients';
 import type { ClientStore } from '../types/clients.types';
 
 export const useClientStore = create<ClientStore>((set) => ({
@@ -24,18 +22,17 @@ export const useClientStore = create<ClientStore>((set) => ({
   fetchClients: async () => {
     set({ loading: true, error: null });
     try {
-      set({ clients: fetchClientsFromDb() });
-      await refreshClientsFromApi();
-      set({ clients: fetchClientsFromDb(), loading: false });
+      const clients = await fetchClientsAsync();
+      set({ clients, loading: false });
     } catch {
       set({ loading: false, error: 'Failed to load clients' });
     }
   },
 
   fetchClientDetail: async (serverId) => {
-    set({ detailLoading: true });
+    set({ detailLoading: true, currentClient: null });
     try {
-      const detail = await fetchClientDetailFromApi(serverId);
+      const detail = await fetchClientDetailAsync(serverId);
       set({ currentClient: detail, detailLoading: false });
     } catch {
       set({ detailLoading: false });
@@ -54,15 +51,13 @@ export const useClientStore = create<ClientStore>((set) => ({
       notes: values.notes.trim() || null,
       isActive: true,
     };
-    const result = await createClientApi(payload);
+    const result = await createClientAsync(payload);
     set({ submitting: false });
     return result;
   },
 
-  updateClient: async (serverId, localId, values) => {
+  updateClient: async (serverId, values) => {
     set({ submitting: true });
-    const local = getClientByServerId(serverId);
-    const resolvedLocalId = local?.localId ?? localId;
     const payload: ClientUpdateViewModel = {
       name: values.name.trim(),
       phone: values.phone.trim() || null,
@@ -72,22 +67,22 @@ export const useClientStore = create<ClientStore>((set) => ({
       notes: values.notes.trim() || null,
       isActive: true,
     };
-    const result = await updateClientApi(serverId, resolvedLocalId, payload);
+    const result = await updateClientAsync(serverId, payload);
     set({ submitting: false });
     return result;
   },
 
-  deleteClient: async (serverId, localId) => {
-    const result = await deleteClientApi(serverId, localId);
+  deleteClient: async (serverId) => {
+    const result = await deleteClientAsync(serverId);
     if (result.success) {
-      set({ clients: fetchClientsFromDb() });
+      fetchClientsAsync().then((clients) => set({ clients }));
     }
     return result;
   },
 
   clearCurrentClient: () => set({ currentClient: null }),
 
-  refreshFromDb: () => {
-    set({ clients: fetchClientsFromDb() });
+  refreshClients: () => {
+    fetchClientsAsync().then((clients) => set({ clients }));
   },
 }));

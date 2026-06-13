@@ -5,6 +5,7 @@
  * Textile ERP — staff mobile + admin backend. All endpoints require a JWT Bearer token except Auth.
  * OpenAPI spec version: v1
  */
+import type { ClientInvoiceSummary } from './clientInvoiceSummary';
 import type { ClientOrderSummary } from './clientOrderSummary';
 import type { ClientPaymentSummary } from './clientPaymentSummary';
 import type { ClientPurchaseSummary } from './clientPurchaseSummary';
@@ -16,6 +17,17 @@ export interface ClientDetailViewModel {
   clientName?: string | null;
   /** @nullable */
   clientTypeName?: string | null;
+  clientTypeId?: number;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  address?: string | null;
+  /** @nullable */
+  creditLimit?: number | null;
+  /** @nullable */
+  openingBalance?: number | null;
+  /** @nullable */
+  notes?: string | null;
   totalOrderCount?: number;
   totalOrderAmount?: number;
   totalPurchaseCount?: number;
@@ -30,6 +42,8 @@ export interface ClientDetailViewModel {
   purchases?: ClientPurchaseSummary[] | null;
   /** @nullable */
   payments?: ClientPaymentSummary[] | null;
+  /** @nullable */
+  invoices?: ClientInvoiceSummary[] | null;
   /** @nullable */
   recentTransactions?: ClientTransactionSummary[] | null;
 }

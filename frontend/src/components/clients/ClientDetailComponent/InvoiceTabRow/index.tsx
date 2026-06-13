@@ -2,8 +2,6 @@ import React from 'react';
 
 import { Text, View } from 'react-native';
 
-import { useTranslation } from 'react-i18next';
-
 import { formatPKR } from '@utils/helpers/clientMappers';
 
 import { colors } from '@theme/colors';
@@ -20,19 +18,11 @@ const INVOICE_STATUS_STYLES: Record<number, { bg: string; fg: string }> = {
   4: { bg: `${colors.textTertiary}20`, fg: colors.textTertiary },
 };
 
-const INVOICE_STATUS_LABELS: Record<number, string> = {
-  1: 'clients.invoiceStatusDraft',
-  2: 'clients.invoiceStatusIssued',
-  3: 'clients.invoiceStatusPaid',
-  4: 'clients.invoiceStatusCancelled',
-};
-
 export const InvoiceTabRow = ({ item }: { item: ClientInvoiceSummary }) => {
-  const { t } = useTranslation();
-  const s = INVOICE_STATUS_STYLES[item.statusId] ?? { bg: `${colors.textTertiary}20`, fg: colors.textTertiary };
-  const statusLabel = INVOICE_STATUS_LABELS[item.statusId]
-    ? t(INVOICE_STATUS_LABELS[item.statusId])
-    : 'Unknown';
+  const s = INVOICE_STATUS_STYLES[item.invoiceStatusId] ?? {
+    bg: `${colors.textTertiary}20`,
+    fg: colors.textTertiary,
+  };
 
   return (
     <View style={styles.tabRow}>
@@ -48,7 +38,7 @@ export const InvoiceTabRow = ({ item }: { item: ClientInvoiceSummary }) => {
       <View style={styles.tabRowRight}>
         <Text style={styles.tabRowAmount}>{formatPKR(item.totalAmount)}</Text>
         <View style={[styles.tabBadge, { backgroundColor: s.bg }]}>
-          <Text style={[styles.tabBadgeText, { color: s.fg }]}>{statusLabel}</Text>
+          <Text style={[styles.tabBadgeText, { color: s.fg }]}>{item.statusName}</Text>
         </View>
       </View>
     </View>

@@ -1,5 +1,6 @@
-import { AppConstants } from '@constants/appConstants';
 import { navigationRef } from '@navigation/navigationRef';
+
+import { AppConstants } from '@constants/appConstants';
 
 const S = AppConstants.SCREENS.MAIN;
 
@@ -22,7 +23,7 @@ export const handleDeepLink = (type: string, entityId?: number): void => {
     navigateToDrawer(S.EXPENSES_STACK);
   } else if (type === 'low_stock') {
     navigateToDrawer(S.PRODUCTS_STACK);
-  } else if (type.startsWith('sync_')) {
-    navigateToDrawer(S.SETTINGS);
+  } else if (type.startsWith('client_')) {
+    navigateToDrawer(S.CLIENTS_STACK);
   }
 };

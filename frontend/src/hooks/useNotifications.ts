@@ -1,22 +1,31 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+import {
+  notificationDelete,
+  notificationGetAll,
+  notificationMarkAllRead,
+  notificationMarkAsRead,
+} from '@api/generated/notification/notification';
 
 import { useNotificationStore } from '@stores/notificationStore';
 
 import { handleDeepLink } from '@utils/helpers/notificationDeepLink';
 
-import {
-  deleteNotification,
-  getUnreadNotifications,
-  markAllRead,
-  markAsRead,
-} from '@db/queries/notifications';
-
 import type { MainStackParamList } from '../types/navigation.types';
 import type { NotificationItem } from '../types/notifications.types';
+
+const toItem = (n: any): NotificationItem => ({
+  id: n.id ?? 0,
+  type: n.type ?? '',
+  title: n.title ?? '',
+  body: n.body ?? '',
+  entityId: n.entityId ?? undefined,
+  isRead: n.isRead ?? false,
+  createdAt: n.createdAt ?? '',
+});
 
 export const useNotifications = () => {
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
@@ -26,29 +35,31 @@ export const useNotifications = () => {
 
   const load = useCallback(async () => {
     setIsLoading(true);
-    const data = await getUnreadNotifications();
-    setItems(data);
+    try {
+      const res = await notificationGetAll({ unreadOnly: true });
+      const r = res as unknown as { success?: boolean; data?: any[] };
+      setItems((r?.data ?? []).map(toItem));
+    } catch {
+      setItems([]);
+    }
     setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() => {
-      void load();
-    });
-    return () => task.cancel();
+    void load();
   }, [load]);
 
   const onBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const onMarkAllRead = useCallback(async () => {
-    await markAllRead();
+    await notificationMarkAllRead();
     resetUnread();
     setItems([]);
   }, [resetUnread]);
 
   const onRowPress = useCallback(
     async (item: NotificationItem) => {
-      await markAsRead(item.id);
+      await notificationMarkAsRead(item.id);
       decrementUnread(1);
       setItems((prev) => prev.filter((n) => n.id !== item.id));
       handleDeepLink(item.type, item.entityId);
@@ -57,8 +68,8 @@ export const useNotifications = () => {
   );
 
   const onRowDelete = useCallback(
-    async (id: string) => {
-      await deleteNotification(id);
+    async (id: number) => {
+      await notificationDelete(id);
       decrementUnread(1);
       setItems((prev) => prev.filter((n) => n.id !== id));
     },

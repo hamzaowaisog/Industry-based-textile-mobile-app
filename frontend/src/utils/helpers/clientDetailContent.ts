@@ -1,4 +1,4 @@
-import type { TabConfig } from '@types/clients.types';
+import type { StatusStyle, TabConfig } from '@types/clients.types';
 
 import { AppConstants } from '@constants/appConstants';
 import { colors } from '@theme/colors';
@@ -18,8 +18,6 @@ export const SUPPLIER_TABS: TabConfig[] = [
   { id: T.INVOICES, labelKey: 'clients.tabInvoices' },
   { id: T.TRANSACTIONS, labelKey: 'clients.tabTransactions' },
 ];
-
-type StatusStyle = { bg: string; fg: string };
 
 const STATUS_COLORS: Record<string, StatusStyle> = {
   Pending: { bg: colors.warningLight, fg: colors.warning },

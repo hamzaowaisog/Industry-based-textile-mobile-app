@@ -260,6 +260,29 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
   },
 
+  // No results
+  noResultsWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 32,
+  },
+  noResultsTitle: {
+    fontFamily: typography.fontFamily.semibold,
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  noResultsSub: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+
   // Skeleton
   skeletonCard: {
     backgroundColor: colors.surface,

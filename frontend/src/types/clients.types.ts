@@ -5,7 +5,15 @@ import type {
   ClientPurchaseSummary,
   ClientTransactionSummary,
 } from '@api/models';
-import type { LocalClient } from './db.types';
+
+export type ApiClientItem = {
+  id: number;
+  name: string;
+  phone: string | null;
+  clientTypeId: number;
+  outstandingBalance: number | null;
+  openingBalance: number | null;
+};
 
 export type ClientBalanceDirection = 'receivable' | 'payable' | 'settled';
 
@@ -13,11 +21,11 @@ export type ClientFilter = 'all' | 'customers' | 'suppliers';
 export type ClientTab = 'orders' | 'purchases' | 'payments' | 'invoices' | 'transactions';
 
 export type ClientInvoiceSummary = {
-  invoiceId: number | null;
-  invoiceNumber: string | null;
+  invoiceId: number;
+  invoiceNumber: string;
   issueDate: string | null;
   dueDate: string | null;
-  statusId: number;
+  invoiceStatusId: number;
   statusName: string;
   totalAmount: number;
 };
@@ -40,8 +48,7 @@ export type InputFieldProps = {
 };
 
 export type ClientRow = {
-  localId: string;
-  serverId: number | null;
+  id: number;
   name: string;
   phone: string | null;
   clientTypeId: number;
@@ -68,7 +75,6 @@ export type ClientDetail = {
   creditLimit: number | null;
   openingBalance: number | null;
   notes: string | null;
-  isSynced: boolean;
   orders: ClientOrderSummary[];
   purchases: ClientPurchaseSummary[];
   payments: ClientPaymentSummary[];
@@ -87,7 +93,7 @@ export type ClientFormValues = {
 };
 
 export type ClientStore = {
-  clients: LocalClient[];
+  clients: ApiClientItem[];
   currentClient: ClientDetail | null;
   loading: boolean;
   detailLoading: boolean;
@@ -96,10 +102,10 @@ export type ClientStore = {
   fetchClients: () => Promise<void>;
   fetchClientDetail: (serverId: number) => Promise<void>;
   createClient: (data: ClientFormValues) => Promise<{ success: boolean; error?: string }>;
-  updateClient: (serverId: number, localId: string, data: ClientFormValues) => Promise<{ success: boolean; error?: string }>;
-  deleteClient: (serverId: number | null, localId: string) => Promise<{ success: boolean; error?: string }>;
+  updateClient: (serverId: number, data: ClientFormValues) => Promise<{ success: boolean; error?: string }>;
+  deleteClient: (serverId: number) => Promise<{ success: boolean; error?: string }>;
   clearCurrentClient: () => void;
-  refreshFromDb: () => void;
+  refreshClients: () => void;
 };
 
 export type ClientListComponentProps = {
@@ -110,8 +116,8 @@ export type ClientListComponentProps = {
   refreshing: boolean;
   onFilterChange: (f: ClientFilter) => void;
   onSearchChange: (s: string) => void;
-  onRowPress: (serverId: number | null, localId: string) => void;
-  onDelete: (serverId: number | null, localId: string, name: string) => void;
+  onRowPress: (id: number) => void;
+  onDelete: (id: number, name: string) => void;
   onRefresh: () => void;
   onFab: () => void;
   onMenuPress: () => void;
@@ -134,6 +140,7 @@ export type ClientDetailComponentProps = {
 export type ClientFormComponentProps = {
   isEdit: boolean;
   submitting: boolean;
+  clientTypes: { id: number; name: string }[];
   values: ClientFormValues;
   errors: Record<string, string | undefined>;
   touched: Record<string, boolean | undefined>;
@@ -142,5 +149,7 @@ export type ClientFormComponentProps = {
   handleSubmit: () => void;
   onCancel: () => void;
 };
+
+export type StatusStyle = { bg: string; fg: string };
 
 export type { ClientDetailViewModel };

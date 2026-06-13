@@ -8,7 +8,11 @@
 
 export interface OrderUpdateViewModel {
   statusId?: number;
-  paymentTypeId?: number;
+  /**
+     * Omit or null to leave the existing payment type unchanged.
+     * @nullable
+     */
+  paymentTypeId?: number | null;
   /** @nullable */
   notes?: string | null;
   /**
