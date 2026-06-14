@@ -270,6 +270,17 @@ public static class SeedData
         new InvoiceStatus { Id = 4, Name = "Cancelled", CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
     ];
 
+    private static readonly IReadOnlyList<Unit> UnitSeeds =
+    [
+        new Unit { Id = 1, Name = "m",    CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+        new Unit { Id = 2, Name = "kg",   CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+        new Unit { Id = 3, Name = "pcs",  CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+        new Unit { Id = 4, Name = "yard", CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+        new Unit { Id = 5, Name = "roll", CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+        new Unit { Id = 6, Name = "bale", CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+        new Unit { Id = 7, Name = "cone", CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+    ];
+
     public static async Task EnsureSeedDataAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
     {
         await SeedStatusesAsync(context, cancellationToken);
@@ -378,6 +389,14 @@ public static class SeedData
             context.InvoiceStatuses,
             status => status.Name!,
             InvoiceStatusSeeds,
+            StringComparer.OrdinalIgnoreCase,
+            cancellationToken);
+
+        await SeedLookupAsync(
+            context,
+            context.Units,
+            unit => unit.Name!,
+            UnitSeeds,
             StringComparer.OrdinalIgnoreCase,
             cancellationToken);
     }

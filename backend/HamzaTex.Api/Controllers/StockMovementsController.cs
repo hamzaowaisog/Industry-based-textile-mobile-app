@@ -94,6 +94,19 @@ public class StockMovementsController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Get all stock movements for a specific product ordered chronologically. Admin sees all; Staff scoped to their own products.</summary>
+    [HttpGet("by-product/{productId}")]
+    [ProducesResponseType(typeof(Response<List<StockMovementsDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByProductId(int productId)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        var isAdmin = IsAdmin();
+        var response = await _stockMovementsService.GetByProductIdAsync(productId, userId.Value, isAdmin);
+        return ToActionResult(response);
+    }
+
     /// <summary>Update a stock movement record. Does not recalculate product averages — use a new Manual movement for stock corrections.</summary>
     [HttpPut("{id}")]
     [Authorize(Policy = "AdminOrStaff")]
@@ -164,5 +177,11 @@ public class StockMovementsController : BaseController
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier);
         return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
+    }
+
+    private bool IsAdmin()
+    {
+        var roleIdClaim = User.FindFirst("RoleId");
+        return roleIdClaim is not null && int.TryParse(roleIdClaim.Value, out var roleId) && roleId == 1;
     }
 }

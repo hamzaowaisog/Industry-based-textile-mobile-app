@@ -1525,6 +1525,16 @@ UPDATE notifications SET created_at = DATE_SUB(created_at, INTERVAL 5 HOUR)
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260610093649_NotificationCreatedAtStoreUtc', '9.0.10');
 
+CREATE TABLE `units` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `name` longtext CHARACTER SET utf8mb4 NULL,
+    `created_at` date NULL,
+    CONSTRAINT `units_pkey` PRIMARY KEY (`id`)
+) CHARACTER SET=utf8mb4;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260614032924_AddUnitsLookup', '9.0.10');
+
 COMMIT;
 
 

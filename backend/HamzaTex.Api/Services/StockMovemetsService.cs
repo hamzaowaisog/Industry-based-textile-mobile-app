@@ -29,6 +29,8 @@ public interface IStockMovementsService
         DateOnly? dateFrom,
         DateOnly? dateTo,
         int userId);
+    /// <summary>Get all stock movements for a specific product, ordered by date ascending (for chart/history). Admin sees all; Staff scoped to their products.</summary>
+    Task<Response<List<StockMovementsDto>>> GetByProductIdAsync(int productId, int userId, bool isAdmin);
     /// <summary>Update a movement record and replay all movements for the product to keep stock qty and weighted averages consistent.</summary>
     Task<Response<StockMovementsDto>> UpdateByIdAsync(int id, UpdateStockMovementsDto model, int userId);
     /// <summary>Delete a stock movement by ID. Does not reverse product stats — create a compensating Manual movement if needed.</summary>
@@ -301,6 +303,26 @@ public class StockMovementsService : IStockMovementsService
 
         var dtos = movements.Select(ToDto).ToList();
         return Response<List<StockMovementsDto>>.SuccessResponse(dtos, "Filtered stock movements fetched successfully.");
+    }
+
+    public async Task<Response<List<StockMovementsDto>>> GetByProductIdAsync(int productId, int userId, bool isAdmin)
+    {
+        var query = _dbContext.StockMovements
+            .Include(sm => sm.Product)
+            .Include(sm => sm.MovementType)
+            .Include(sm => sm.MovementSource)
+            .Where(sm => sm.ProductId == productId)
+            .AsQueryable();
+
+        if (!isAdmin)
+            query = query.Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId));
+
+        var movements = await query
+            .OrderByDescending(sm => sm.MovementDate)
+            .ToListAsync();
+
+        var dtos = movements.Select(ToDto).ToList();
+        return Response<List<StockMovementsDto>>.SuccessResponse(dtos, "Product stock movements fetched successfully.");
     }
 
     public async Task<Response<StockMovementsDto>> UpdateByIdAsync(int id, UpdateStockMovementsDto model, int userId)
