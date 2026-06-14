@@ -152,11 +152,19 @@ public class ProductService : IProductService
         }
 
         product.Name = model.Name.Trim();
-        product.Sku = model.Sku.Trim();
+        if (!string.IsNullOrWhiteSpace(model.Sku))
+        {
+            product.Sku = model.Sku.Trim();
+        }
         product.Unit = model.Unit.Trim();
-        product.Quantity = model.Quantity;
+        if (model.Quantity.HasValue) product.Quantity = model.Quantity;
         product.ReorderLevel = model.ReorderLevel;
-        product.IsActive = model.IsActive;
+        if (model.IsActive.HasValue) product.IsActive = model.IsActive;
+
+        var previousDefaultCost = product.DefaultCost;
+        var previousDefaultPrice = product.DefaultPrice;
+        var defaultCostChanged = model.DefaultCost != previousDefaultCost;
+        var defaultPriceChanged = model.DefaultPrice != previousDefaultPrice;
 
         product.DefaultCost = model.DefaultCost;
         product.DefaultPrice = model.DefaultPrice;
@@ -167,6 +175,32 @@ public class ProductService : IProductService
         if (model.PriceChangeCount.HasValue) product.PriceChangeCount = model.PriceChangeCount.Value;
         if (model.TotalQuantitySold.HasValue) product.TotalQuantitySold = model.TotalQuantitySold.Value;
         if (model.TotalQuantityPurchased.HasValue) product.TotalQuantityPurchased = model.TotalQuantityPurchased.Value;
+
+        // Opening stock only: one movement, no sales yet — default cost/price edits should
+        // realign weighted averages and the initial movement snapshot (same as at creation).
+        var noSalesYet = (product.TotalQuantitySold ?? 0) == 0;
+        if (noSalesYet && (defaultCostChanged || defaultPriceChanged))
+        {
+            var movementCount = await _dbContext.StockMovements.CountAsync(sm => sm.ProductId == id);
+            if (movementCount == 1)
+            {
+                var openingMovement = await _dbContext.StockMovements
+                    .FirstAsync(sm => sm.ProductId == id);
+
+                if (defaultCostChanged)
+                {
+                    product.AverageCost = model.DefaultCost;
+                    openingMovement.UnitCost = model.DefaultCost;
+                    openingMovement.AverageCostAtMovement = model.DefaultCost;
+                }
+
+                if (defaultPriceChanged)
+                {
+                    product.AveragePrice = model.DefaultPrice;
+                    openingMovement.UnitPrice = model.DefaultPrice;
+                }
+            }
+        }
 
         await _dbContext.SaveChangesAsync();
         return Response<ProductDto>.SuccessResponse(ToDto(product), "Product updated successfully.");
@@ -237,7 +271,7 @@ public class ProductService : IProductService
         TotalQuantityPurchased = model.TotalQuantityPurchased,
         TotalQuantitySold = model.TotalQuantitySold,
         ReorderLevel = model.ReorderLevel,
-        IsActive = model.IsActive,
+        IsActive = model.IsActive ?? true,
         CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
     };
 
