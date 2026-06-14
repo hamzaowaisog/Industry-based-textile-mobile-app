@@ -1,7 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import { Alert } from 'react-native';
-
 import { DrawerActions, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
@@ -9,7 +7,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useClientStore } from '@stores/clientStore';
 
 import { mapApiClientToRow } from '@utils/helpers/clientMappers';
-import i18n from '@utils/i18n';
 
 import { AppConstants } from '@constants/appConstants';
 
@@ -19,7 +16,7 @@ import type { ClientStackParamList } from '../types/navigation.types';
 
 export const useClientList = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ClientStackParamList>>();
-  const { deleteClient, prepareDetailLoad } = useClientStore();
+  const { prepareDetailLoad } = useClientStore();
 
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
@@ -28,6 +25,7 @@ export const useClientList = () => {
   const { data, isFetching, refetch } = useQuery({
     queryKey: ['clients'],
     queryFn: fetchClientsAsync,
+    staleTime: 0,
   });
 
   useFocusEffect(
@@ -78,25 +76,6 @@ export const useClientList = () => {
     navigation.navigate(AppConstants.SCREENS.MAIN.CLIENT_FORM, {});
   }, [navigation]);
 
-  const onDelete = useCallback(
-    (id: number, name: string) => {
-      Alert.alert(i18n.t('clients.deleteTitle'), i18n.t('clients.deleteMessage', { name }), [
-        { text: i18n.t('common.cancel'), style: 'cancel' },
-        {
-          text: i18n.t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            const result = await deleteClient(id);
-            if (!result.success) {
-              Alert.alert(i18n.t('common.error'), result.error ?? i18n.t('common.errorGeneric'));
-            }
-          },
-        },
-      ]);
-    },
-    [deleteClient],
-  );
-
   return {
     rows,
     search,
@@ -110,6 +89,5 @@ export const useClientList = () => {
     onRowPress,
     onFab,
     onAddFirstClient,
-    onDelete,
   };
 };

@@ -4857,6 +4857,36 @@
         }
       }
     },
+    "/api/StockMovements/by-product/{productId}": {
+      "get": {
+        "tags": ["StockMovements"],
+        "summary": "Get all stock movements for a specific product ordered chronologically. Admin sees all; Staff scoped to their own products.",
+        "operationId": "stockMovements_getByProductId",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockMovementsDtoListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/StockMovements/pdf": {
       "get": {
         "tags": ["StockMovements"],
@@ -7536,6 +7566,13 @@
             "nullable": true
           },
           "invoiceStatuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LookupDto"
+            },
+            "nullable": true
+          },
+          "units": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/LookupDto"

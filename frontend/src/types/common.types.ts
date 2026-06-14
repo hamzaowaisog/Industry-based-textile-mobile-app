@@ -66,3 +66,28 @@ export type AppPermissionModalProps = {
   onPrimary: () => void;
   onSecondary: () => void;
 };
+
+export type FieldLabelProps = {
+  label: string;
+  required?: boolean;
+};
+
+export type InputFieldProps = {
+  label: string;
+  required?: boolean;
+  value: string;
+  onChangeText: (v: string) => void;
+  onBlur: () => void;
+  placeholder: string;
+  error?: string;
+  helper?: string;
+  leading?: import('react').ReactNode;
+  keyboardType?: 'default' | 'numeric' | 'phone-pad' | 'decimal-pad';
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  returnKeyType?: 'next' | 'done' | 'default';
+  submitBehavior?: 'submit' | 'blurAndSubmit' | 'newline';
+  multiline?: boolean;
+  numberOfLines?: number;
+  onSubmitEditing?: () => void;
+  editable?: boolean;
+};

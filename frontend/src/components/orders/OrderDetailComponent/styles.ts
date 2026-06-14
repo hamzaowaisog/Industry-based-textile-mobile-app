@@ -36,6 +36,24 @@ export const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  heroNavActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  heroDeleteBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: colors.bgAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.shadowBlack,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
 
   // Scroll
   scroll: {

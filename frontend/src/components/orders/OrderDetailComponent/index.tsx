@@ -16,7 +16,14 @@ import {
 import { colors } from '@theme/colors';
 
 import { AppConstants } from '@constants/appConstants';
-import { AlertIcon, ArrowLeftIcon, CheckIcon, MoreIcon, UserIcon } from '@constants/svgAssets';
+import {
+  AlertIcon,
+  ArrowLeftIcon,
+  CheckIcon,
+  EditIcon,
+  TrashIcon,
+  UserIcon,
+} from '@constants/svgAssets';
 
 import type { OrderDetailComponentProps } from '../../../types/orders.types';
 import { OrderDetailSkeleton } from './OrderDetailSkeleton';
@@ -33,14 +40,15 @@ export const OrderDetailComponent = ({
   loading,
   submitting,
   canUpdate,
+  canDelete,
   onBack,
-  onMore,
   onClientPress,
   onMarkInProgress,
   onMarkDelivered,
   onCancelOrder,
   onRecordPayment,
   onEditOrder,
+  onDelete,
 }: OrderDetailComponentProps) => {
   const { t } = useTranslation();
 
@@ -85,9 +93,30 @@ export const OrderDetailComponent = ({
           <TouchableOpacity style={styles.heroNavBtn} onPress={onBack} activeOpacity={0.75}>
             <ArrowLeftIcon size={20} color={config.fg} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.heroNavBtn} onPress={onMore} activeOpacity={0.75}>
-            <MoreIcon size={20} color={config.fg} />
-          </TouchableOpacity>
+          {(canEditLines || canDelete) && (
+            <View style={styles.heroNavActions}>
+              {canEditLines && (
+                <TouchableOpacity
+                  style={[styles.heroNavBtn, submitting && styles.btnDisabled]}
+                  onPress={() => onEditOrder(order.id)}
+                  activeOpacity={0.75}
+                  disabled={submitting}
+                >
+                  <EditIcon size={20} color={config.fg} />
+                </TouchableOpacity>
+              )}
+              {canDelete && (
+                <TouchableOpacity
+                  style={[styles.heroDeleteBtn, submitting && styles.btnDisabled]}
+                  onPress={onDelete}
+                  activeOpacity={0.75}
+                  disabled={submitting}
+                >
+                  <TrashIcon size={20} color={colors.danger} />
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
         </View>
       </SafeAreaView>
 
@@ -261,7 +290,7 @@ export const OrderDetailComponent = ({
       {canUpdate && !isCancelled && (
         <SafeAreaView style={{ backgroundColor: colors.surface }} edges={['bottom']}>
           <View style={styles.bottomBar}>
-            {(canMarkInProgress || canMarkDelivered || canEditLines) && (
+            {(canMarkInProgress || canMarkDelivered) && (
               <View style={styles.ghostBtnRow}>
                 {canMarkInProgress && (
                   <TouchableOpacity
@@ -284,18 +313,6 @@ export const OrderDetailComponent = ({
                   >
                     <Text style={styles.ghostBtnText} numberOfLines={1}>
                       {t('orders.detail.markDelivered')}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                {canEditLines && (
-                  <TouchableOpacity
-                    style={[styles.ghostBtn, submitting && styles.btnDisabled]}
-                    onPress={() => onEditOrder(order.id)}
-                    disabled={submitting}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={styles.ghostBtnText} numberOfLines={1}>
-                      {t('orders.detail.editOrder')}
                     </Text>
                   </TouchableOpacity>
                 )}

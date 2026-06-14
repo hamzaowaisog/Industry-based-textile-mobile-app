@@ -33,6 +33,7 @@ import {
   MapPinIcon,
   PhoneIcon,
   PlusIcon,
+  TrashIcon,
   WalletIcon,
   WeavePattern,
 } from '@constants/svgAssets';
@@ -51,8 +52,10 @@ export const ClientDetailComponent = ({
   onRefresh,
   onBack,
   onEdit,
+  onDelete,
   onPrimaryAction,
   onSecondaryAction,
+  submitting,
 }: ClientDetailComponentProps) => {
   const { t } = useTranslation();
   const { height: windowHeight } = useWindowDimensions();
@@ -104,8 +107,17 @@ export const ClientDetailComponent = ({
                   style={styles.headerActionBtn}
                   onPress={onEdit}
                   activeOpacity={0.7}
+                  disabled={submitting}
                 >
                   <EditIcon size={20} color={colors.surface} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.headerDeleteBtn, submitting && styles.headerActionBtnDisabled]}
+                  onPress={onDelete}
+                  activeOpacity={0.7}
+                  disabled={submitting}
+                >
+                  <TrashIcon size={20} color={colors.danger} />
                 </TouchableOpacity>
               </View>
             </View>

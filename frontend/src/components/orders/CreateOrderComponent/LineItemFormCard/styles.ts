@@ -66,36 +66,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
-  inputWrap: {
+  halfField: {
     flex: 1,
-    gap: 4,
-  },
-  inputLabel: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  input: {
-    height: 44,
-    backgroundColor: colors.background,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    paddingHorizontal: 12,
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  inputError: {
-    borderColor: colors.danger,
-  },
-  fieldError: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 11.5,
-    color: colors.danger,
-    marginTop: 3,
   },
   lineTotalRow: {
     flexDirection: 'row',

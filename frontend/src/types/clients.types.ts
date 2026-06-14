@@ -18,6 +18,17 @@ export type ApiClientItem = {
 export type ClientBalanceDirection = 'receivable' | 'payable' | 'settled';
 
 export type ClientFilter = 'all' | 'customers' | 'suppliers';
+
+export type ClientFilterOption = { value: ClientFilter; labelKey: string };
+
+export type ClientRowCardProps = {
+  item: ClientRow;
+  onPress: (id: number) => void;
+};
+
+export type ClientListEmptyStateProps = {
+  onAddFirstClient: () => void;
+};
 export type ClientTab = 'orders' | 'purchases' | 'payments' | 'invoices' | 'transactions';
 
 export type ClientInvoiceSummary = {
@@ -31,21 +42,6 @@ export type ClientInvoiceSummary = {
 };
 
 export type TabConfig = { id: ClientTab; labelKey: string };
-
-export type InputFieldProps = {
-  label: string;
-  value: string;
-  onChangeText: (v: string) => void;
-  onBlur: () => void;
-  placeholder: string;
-  error?: string;
-  helper?: string;
-  leading?: React.ReactNode;
-  keyboardType?: 'default' | 'numeric' | 'phone-pad';
-  returnKeyType?: 'next' | 'done';
-  onSubmitEditing?: () => void;
-  editable?: boolean;
-};
 
 export type ClientRow = {
   id: number;
@@ -117,7 +113,6 @@ export type ClientListComponentProps = {
   onFilterChange: (f: ClientFilter) => void;
   onSearchChange: (s: string) => void;
   onRowPress: (id: number) => void;
-  onDelete: (id: number, name: string) => void;
   onRefresh: () => void;
   onFab: () => void;
   onMenuPress: () => void;
@@ -133,8 +128,10 @@ export type ClientDetailComponentProps = {
   onRefresh: () => void;
   onBack: () => void;
   onEdit: () => void;
+  onDelete: () => void;
   onPrimaryAction: () => void;
   onSecondaryAction: () => void;
+  submitting?: boolean;
 };
 
 export type ClientFormComponentProps = {

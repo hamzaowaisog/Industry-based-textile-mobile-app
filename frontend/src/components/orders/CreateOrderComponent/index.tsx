@@ -6,7 +6,6 @@ import {
   Platform,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -14,7 +13,9 @@ import {
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppInputField } from '@components/common/AppInputField';
 import { AppSelectModal } from '@components/common/AppSelectModal';
+import { FieldLabel } from '@components/common/FieldLabel';
 
 import { formatPKR } from '@utils/helpers/clientMappers';
 
@@ -67,10 +68,7 @@ export const CreateOrderComponent = ({
         <View style={styles.stepContent}>
           {/* Customer selector */}
           <View style={styles.fieldGroup}>
-            <View style={styles.labelRow}>
-              <Text style={styles.fieldLabel}>{t('orders.create.customer')}</Text>
-              <Text style={styles.requiredStar}> *</Text>
-            </View>
+            <FieldLabel label={t('orders.create.customer')} required />
             <TouchableOpacity
               style={[
                 styles.selectRow,
@@ -90,7 +88,7 @@ export const CreateOrderComponent = ({
 
           {/* Payment type */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t('orders.create.paymentType')}</Text>
+            <FieldLabel label={t('orders.create.paymentType')} required />
             <View style={styles.paymentTypeRow}>
               {paymentTypes.map((pt) => {
                 const isActive = values.paymentTypeId === pt.id;
@@ -111,19 +109,15 @@ export const CreateOrderComponent = ({
           </View>
 
           {/* Notes */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t('orders.create.notes')}</Text>
-            <TextInput
-              style={[styles.textArea]}
-              value={values.notes}
-              onChangeText={(v) => onFieldChange('notes', v)}
-              onBlur={() => onFieldBlur('notes')}
-              placeholder={t('orders.create.notesPlaceholder')}
-              placeholderTextColor={colors.textTertiary}
-              multiline
-              numberOfLines={3}
-            />
-          </View>
+          <AppInputField
+            label={t('orders.create.notes')}
+            value={values.notes}
+            onChangeText={(v) => onFieldChange('notes', v)}
+            onBlur={() => onFieldBlur('notes')}
+            placeholder={t('orders.create.notesPlaceholder')}
+            multiline
+            numberOfLines={3}
+          />
         </View>
       );
     }
@@ -142,6 +136,12 @@ export const CreateOrderComponent = ({
               line={line}
               index={i}
               qtyError={lineErrors[i]?.qty}
+              labels={{
+                qty: t('orders.create.qty'),
+                unitPrice: t('orders.create.unitPrice'),
+                addProduct: t('orders.create.addProduct'),
+                lineTotal: t('orders.create.lineTotal'),
+              }}
               onRemove={onRemoveLine}
               onChange={onLineChange}
               onSelectProduct={onSelectProduct}
@@ -205,7 +205,7 @@ export const CreateOrderComponent = ({
 
         {values.notes ? (
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t('orders.create.notes')}</Text>
+            <FieldLabel label={t('orders.create.notes')} />
             <View style={styles.reviewNotesCard}>
               <Text style={styles.reviewNotesText}>{values.notes}</Text>
             </View>

@@ -97,6 +97,7 @@ export const ClientFormComponent = ({
             <Text style={styles.sectionLabel}>{t('clients.infoSection')}</Text>
             <AppInputField
               label={t('clients.fieldName')}
+              required
               value={values.name}
               onChangeText={(v) => setFieldValue('name', v)}
               onBlur={() => setFieldTouched('name', true)}

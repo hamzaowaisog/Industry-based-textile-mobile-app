@@ -45,6 +45,7 @@ export const AppConstants = {
     CLIENT_TYPES: 'clientTypes',
     USER_ROLES: 'userRoles',
     INVOICE_STATUSES: 'invoiceStatuses',
+    UNITS: 'units',
   } as const,
 
   // Client type IDs (matches backend seeded ClientType table)
@@ -92,6 +93,14 @@ export const AppConstants = {
   // OTP
   OTP: {
     LENGTH: 6,
+  },
+
+  // Skeleton loaders
+  SKELETON: {
+    PULSE_DURATION_MS: 700,
+    PULSE_MIN_OPACITY: 0.4,
+    DETAIL_PLACEHOLDER_COUNT: 6,
+    LIST_PLACEHOLDER_COUNT: 5,
   },
 
   // Screen names

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import {
   ActivityIndicator,
@@ -6,7 +6,6 @@ import {
   Platform,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -14,15 +13,18 @@ import {
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppInputField } from '@components/common/AppInputField';
 import { AppSelectModal } from '@components/common/AppSelectModal';
+import { FieldLabel } from '@components/common/FieldLabel';
 
 import { formatPKR } from '@utils/helpers/clientMappers';
 
 import { colors } from '@theme/colors';
 
+import type { EditOrderComponentProps } from '@types/orders.types';
+
 import { ArrowLeftIcon, PlusIcon } from '@constants/svgAssets';
 
-import type { EditOrderComponentProps } from '../../../types/orders.types';
 import { LineItemFormCard } from '../CreateOrderComponent/LineItemFormCard';
 import { styles } from './styles';
 
@@ -31,14 +33,13 @@ const STEPS = ['orders.edit.stepDetails', 'orders.edit.stepLines', 'orders.edit.
 export const EditOrderComponent = ({
   step,
   submitting,
+  loading,
   clientName,
   values,
-  errors,
-  touched,
-  lineErrors,
   paymentTypes,
   productItems,
   productPickerVisible,
+  lineErrors,
   onBack,
   onNext,
   onSubmit,
@@ -53,6 +54,16 @@ export const EditOrderComponent = ({
 }: EditOrderComponentProps) => {
   const { t } = useTranslation();
 
+  const lineLabels = useMemo(
+    () => ({
+      qty: t('orders.edit.qty'),
+      unitPrice: t('orders.edit.unitPrice'),
+      addProduct: t('orders.edit.addProduct'),
+      lineTotal: t('orders.edit.lineTotal'),
+    }),
+    [t],
+  );
+
   const runningTotal = values.lines.reduce(
     (sum, l) => sum + (parseFloat(l.qty) || 0) * (parseFloat(l.unitPrice) || 0),
     0,
@@ -62,21 +73,18 @@ export const EditOrderComponent = ({
     if (step === 0) {
       return (
         <View style={styles.stepContent}>
-          {/* Customer — read-only in edit */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t('orders.edit.customer')}</Text>
-            <View style={styles.customerCard}>
-              <Text style={styles.customerLabel}>{t('orders.edit.customer')}</Text>
-              <Text style={styles.customerName}>{clientName}</Text>
-            </View>
-          </View>
+          <AppInputField
+            label={t('orders.edit.customer')}
+            value={clientName || '—'}
+            onChangeText={() => {}}
+            onBlur={() => {}}
+            placeholder="—"
+            helper={t('orders.edit.customerLocked')}
+            editable={false}
+          />
 
-          {/* Payment type */}
           <View style={styles.fieldGroup}>
-            <View style={styles.labelRow}>
-              <Text style={styles.fieldLabel}>{t('orders.edit.paymentType')}</Text>
-              <Text style={styles.requiredStar}> *</Text>
-            </View>
+            <FieldLabel label={t('orders.edit.paymentType')} required />
             <View style={styles.paymentTypeRow}>
               {paymentTypes.map((pt) => {
                 const isActive = values.paymentTypeId === pt.id;
@@ -96,20 +104,15 @@ export const EditOrderComponent = ({
             </View>
           </View>
 
-          {/* Notes */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t('orders.edit.notes')}</Text>
-            <TextInput
-              style={styles.textArea}
-              value={values.notes}
-              onChangeText={(v) => onFieldChange('notes', v)}
-              onBlur={() => onFieldBlur('notes')}
-              placeholder={t('orders.edit.notesPlaceholder')}
-              placeholderTextColor={colors.textTertiary}
-              multiline
-              numberOfLines={3}
-            />
-          </View>
+          <AppInputField
+            label={t('orders.edit.notes')}
+            value={values.notes}
+            onChangeText={(v) => onFieldChange('notes', v)}
+            onBlur={() => onFieldBlur('notes')}
+            placeholder={t('orders.edit.notesPlaceholder')}
+            multiline
+            numberOfLines={3}
+          />
         </View>
       );
     }
@@ -128,6 +131,7 @@ export const EditOrderComponent = ({
               line={line}
               index={i}
               qtyError={lineErrors[i]?.qty}
+              labels={lineLabels}
               onRemove={onRemoveLine}
               onChange={onLineChange}
               onSelectProduct={onSelectProduct}
@@ -144,7 +148,6 @@ export const EditOrderComponent = ({
       );
     }
 
-    // Step 2 — Review
     return (
       <View style={styles.stepContent}>
         <View style={styles.reviewClientCard}>
@@ -191,7 +194,7 @@ export const EditOrderComponent = ({
 
         {values.notes ? (
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t('orders.edit.notes')}</Text>
+            <FieldLabel label={t('orders.edit.notes')} />
             <View style={styles.reviewNotesCard}>
               <Text style={styles.reviewNotesText}>{values.notes}</Text>
             </View>
@@ -201,9 +204,18 @@ export const EditOrderComponent = ({
     );
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={onBack}>
           <ArrowLeftIcon size={20} color={colors.text} />
@@ -215,7 +227,6 @@ export const EditOrderComponent = ({
         <View style={styles.headerSpacer} />
       </View>
 
-      {/* Step indicator */}
       <View style={styles.stepIndicator}>
         {STEPS.map((key, i) => {
           const isDone = i < step;
@@ -236,9 +247,7 @@ export const EditOrderComponent = ({
                     {i + 1}
                   </Text>
                 </View>
-                <Text style={[styles.stepLabel, isActive && styles.stepLabelActive]}>
-                  {t(key as any)}
-                </Text>
+                <Text style={[styles.stepLabel, isActive && styles.stepLabelActive]}>{t(key)}</Text>
               </View>
               {i < STEPS.length - 1 && (
                 <View style={[styles.stepLine, isDone && styles.stepLineDone]} />
@@ -249,7 +258,7 @@ export const EditOrderComponent = ({
       </View>
 
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
@@ -273,7 +282,6 @@ export const EditOrderComponent = ({
         searchPlaceholder={t('orders.edit.addProduct')}
       />
 
-      {/* Bottom bar */}
       <View style={styles.bottomBar}>
         {step > 0 && (
           <TouchableOpacity style={styles.ghostBtn} onPress={onBack} activeOpacity={0.75}>

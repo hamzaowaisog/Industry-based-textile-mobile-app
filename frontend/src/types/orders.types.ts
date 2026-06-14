@@ -104,7 +104,6 @@ export type OrderDetailComponentProps = {
   canUpdate: boolean;
   canDelete: boolean;
   onBack: () => void;
-  onMore: () => void;
   onClientPress: (clientId: number) => void;
   onMarkDelivered: () => void;
   onMarkInProgress: () => void;
@@ -117,6 +116,7 @@ export type OrderDetailComponentProps = {
 export type EditOrderComponentProps = {
   step: number;
   submitting: boolean;
+  loading: boolean;
   orderId: number;
   clientName: string;
   values: EditOrderFormValues;
@@ -144,10 +144,18 @@ export type EditOrderComponentProps = {
   onProductPickerClose: () => void;
 };
 
+export type LineItemFormCardLabels = {
+  qty: string;
+  unitPrice: string;
+  addProduct: string;
+  lineTotal: string;
+};
+
 export type LineItemFormCardProps = {
   line: OrderLineFormValues;
   index: number;
   qtyError?: string;
+  labels: LineItemFormCardLabels;
   onRemove: (index: number) => void;
   onChange: (
     index: number,

@@ -43,26 +43,6 @@ export const useOrderDetail = (orderId: number) => {
     navigation.goBack();
   }, [navigation, clearCurrentOrder]);
 
-  const onMore = useCallback(() => {
-    if (!currentOrder) return;
-    Alert.alert(
-      i18n.t('orders.detail.moreOptions'),
-      undefined,
-      [
-        canUpdate && currentOrder.statusId === AppConstants.ORDER_STATUS.DELIVERED
-          ? {
-              text: i18n.t('orders.detail.recordPayment'),
-              onPress: () => onRecordPayment(currentOrder.id),
-            }
-          : null,
-        canDelete
-          ? { text: i18n.t('common.delete'), style: 'destructive', onPress: onDelete }
-          : null,
-        { text: i18n.t('common.cancel'), style: 'cancel' },
-      ].filter(Boolean) as any[],
-    );
-  }, [currentOrder, canUpdate, canDelete, onCancelOrder, onRecordPayment, onDelete]);
-
   const onClientPress = useCallback(
     (clientId: number) => {
       navigation.navigate(AppConstants.SCREENS.MAIN.CLIENT_DETAIL as any, { clientId });
@@ -178,7 +158,6 @@ export const useOrderDetail = (orderId: number) => {
     canDelete,
     load,
     onBack,
-    onMore,
     onClientPress,
     onMarkInProgress,
     onMarkDelivered,

@@ -127,22 +127,6 @@ export const styles = StyleSheet.create({
   fieldGroup: {
     gap: 6,
   },
-  labelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  fieldLabel: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  requiredStar: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.danger,
-  },
   fieldError: {
     fontFamily: typography.fontFamily.medium,
     fontSize: 12,
@@ -201,20 +185,6 @@ export const styles = StyleSheet.create({
   },
   paymentTypeTxtActive: {
     color: colors.primary,
-  },
-  textArea: {
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
-    minHeight: 80,
-    textAlignVertical: 'top',
   },
 
   // Step 2

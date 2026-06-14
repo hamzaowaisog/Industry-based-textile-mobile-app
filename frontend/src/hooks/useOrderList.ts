@@ -27,6 +27,7 @@ export const useOrderList = () => {
   const { data, isFetching, refetch } = useQuery({
     queryKey: ['orders'],
     queryFn: fetchOrdersAsync,
+    staleTime: 0,
   });
 
   useFocusEffect(

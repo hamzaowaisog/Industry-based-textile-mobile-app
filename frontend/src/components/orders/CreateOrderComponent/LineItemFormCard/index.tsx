@@ -1,34 +1,34 @@
 import React from 'react';
 
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
-import { useTranslation } from 'react-i18next';
+import { AppInputField } from '@components/common/AppInputField';
 
 import { formatPKR } from '@utils/helpers/clientMappers';
 
 import { colors } from '@theme/colors';
 
+import type { LineItemFormCardProps } from '@types/orders.types';
+
 import { TrashIcon } from '@constants/svgAssets';
 
-import type { LineItemFormCardProps } from '../../../../types/orders.types';
 import { styles } from './styles';
 
 export const LineItemFormCard = ({
   line,
   index,
   qtyError,
+  labels,
   onRemove,
   onChange,
   onSelectProduct,
 }: LineItemFormCardProps) => {
-  const { t } = useTranslation();
   const qty = parseFloat(line.qty) || 0;
   const price = parseFloat(line.unitPrice) || 0;
   const lineTotal = qty * price;
 
   return (
     <View style={styles.card}>
-      {/* Product row */}
       <View style={styles.productRow}>
         <TouchableOpacity
           style={styles.productTile}
@@ -42,7 +42,7 @@ export const LineItemFormCard = ({
                 <Text style={styles.productSku}>{line.sku}</Text>
               </>
             ) : (
-              <Text style={styles.productPlaceholder}>{t('orders.create.addProduct')}</Text>
+              <Text style={styles.productPlaceholder}>{labels.addProduct}</Text>
             )}
           </View>
         </TouchableOpacity>
@@ -51,37 +51,35 @@ export const LineItemFormCard = ({
         </TouchableOpacity>
       </View>
 
-      {/* Qty + price */}
       <View style={styles.inputRow}>
-        <View style={styles.inputWrap}>
-          <Text style={styles.inputLabel}>{t('orders.create.qty')}</Text>
-          <TextInput
-            style={[styles.input, !!qtyError && styles.inputError]}
+        <View style={styles.halfField}>
+          <AppInputField
+            label={labels.qty}
+            required
             value={line.qty}
             onChangeText={(v) => onChange(index, 'qty', v, line.productId)}
-            keyboardType="numeric"
+            onBlur={() => {}}
             placeholder="0"
-            placeholderTextColor={colors.textTertiary}
+            error={qtyError}
+            keyboardType="numeric"
           />
-          {qtyError ? <Text style={styles.fieldError}>{qtyError}</Text> : null}
         </View>
-        <View style={styles.inputWrap}>
-          <Text style={styles.inputLabel}>{t('orders.create.unitPrice')}</Text>
-          <TextInput
-            style={styles.input}
+        <View style={styles.halfField}>
+          <AppInputField
+            label={labels.unitPrice}
+            required
             value={line.unitPrice}
             onChangeText={(v) => onChange(index, 'unitPrice', v)}
-            keyboardType="decimal-pad"
+            onBlur={() => {}}
             placeholder="0.00"
-            placeholderTextColor={colors.textTertiary}
+            keyboardType="decimal-pad"
           />
         </View>
       </View>
 
-      {/* Line total */}
       {lineTotal > 0 && (
         <View style={styles.lineTotalRow}>
-          <Text style={styles.lineTotalLabel}>{t('orders.create.lineTotal')}</Text>
+          <Text style={styles.lineTotalLabel}>{labels.lineTotal}</Text>
           <Text style={styles.lineTotalValue}>{formatPKR(lineTotal)}</Text>
         </View>
       )}

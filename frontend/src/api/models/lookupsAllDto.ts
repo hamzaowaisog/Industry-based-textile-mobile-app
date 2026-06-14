@@ -38,4 +38,6 @@ export interface LookupsAllDto {
   userRoles?: LookupDto[] | null;
   /** @nullable */
   invoiceStatuses?: LookupDto[] | null;
+  /** @nullable */
+  units?: LookupDto[] | null;
 }

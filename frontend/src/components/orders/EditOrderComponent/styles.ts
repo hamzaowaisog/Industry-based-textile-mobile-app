@@ -8,6 +8,12 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  flex: { flex: 1 },
+  loadingWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
   // Header
   header: {
@@ -127,22 +133,6 @@ export const styles = StyleSheet.create({
   fieldGroup: {
     gap: 6,
   },
-  labelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  fieldLabel: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  requiredStar: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.danger,
-  },
   fieldError: {
     fontFamily: typography.fontFamily.medium,
     fontSize: 12,
@@ -174,43 +164,6 @@ export const styles = StyleSheet.create({
   },
   paymentTypeTxtActive: {
     color: colors.primary,
-  },
-  textArea: {
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-
-  // Customer display (read-only in edit)
-  customerCard: {
-    backgroundColor: colors.bgAlt,
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    opacity: 0.75,
-  },
-  customerLabel: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: 4,
-  },
-  customerName: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textSecondary,
   },
 
   // Step 2 — lines
