@@ -27,9 +27,27 @@ public class ProductService : IProductService
 {
     private readonly ApplicationDbContext _dbContext;
 
+    // Mirrors OrderStatus seed IDs used by OrderService's reservation check — keep in sync.
+    private const int OrderStatusDelivered = 3;
+    private const int OrderStatusCancelled = 4;
+
     public ProductService(ApplicationDbContext dbContext)
     {
         _dbContext = dbContext;
+    }
+
+    /// <summary>Sums OrderLine.Qty per product across all non-Delivered, non-Cancelled orders, for the given product IDs.</summary>
+    private async Task<Dictionary<int, decimal>> GetCommittedQuantitiesAsync(IEnumerable<int> productIds)
+    {
+        var ids = productIds.Distinct().ToList();
+        if (ids.Count == 0) return new Dictionary<int, decimal>();
+
+        return await _dbContext.OrderLines
+            .Where(ol => ol.ProductId != null && ids.Contains(ol.ProductId.Value)
+                && ol.Order.StatusId != OrderStatusDelivered && ol.Order.StatusId != OrderStatusCancelled)
+            .GroupBy(ol => ol.ProductId!.Value)
+            .Select(g => new { ProductId = g.Key, Qty = g.Sum(ol => ol.Qty) })
+            .ToDictionaryAsync(x => x.ProductId, x => x.Qty);
     }
 
    public async Task<Response<ProductDto>> CreateWithUserIdAsync(CreateProductDto model, int userId)
@@ -95,7 +113,7 @@ public class ProductService : IProductService
             await _dbContext.SaveChangesAsync();
 
             await transaction.CommitAsync();
-            return Response<ProductDto>.SuccessResponse(ToDto(entity), "Product created successfully.");
+            return Response<ProductDto>.SuccessResponse(ToDto(entity, committed: 0), "Product created successfully.");
         }
         catch (Exception ex)
         {
@@ -117,7 +135,8 @@ public class ProductService : IProductService
             return Response<ProductDto>.ErrorResponse("Not found", "Product not found.");
         }
 
-        return Response<ProductDto>.SuccessResponse(ToDto(product), "Product fetched successfully.");
+        var committed = await GetCommittedQuantitiesAsync(new[] { product.Id });
+        return Response<ProductDto>.SuccessResponse(ToDto(product, committed.GetValueOrDefault(product.Id, 0)), "Product fetched successfully.");
 
 
    }
@@ -128,13 +147,14 @@ public class ProductService : IProductService
                        .Include(p => p.ProductUsers)
                        .Where(p => p.ProductUsers.Any(pu => pu.UserId == userId))
                        .ToListAsync();
-        
+
         if (products is null)
         {
             return Response<List<ProductDto>>.ErrorResponse("Not found", "No products found.");
         }
 
-        var productDtos = products.Select(product => ToDto(product)).ToList();
+        var committed = await GetCommittedQuantitiesAsync(products.Select(p => p.Id));
+        var productDtos = products.Select(product => ToDto(product, committed.GetValueOrDefault(product.Id, 0))).ToList();
         return Response<List<ProductDto>>.SuccessResponse(productDtos, "Products fetched successfully.");
    }
 
@@ -203,7 +223,8 @@ public class ProductService : IProductService
         }
 
         await _dbContext.SaveChangesAsync();
-        return Response<ProductDto>.SuccessResponse(ToDto(product), "Product updated successfully.");
+        var committed = await GetCommittedQuantitiesAsync(new[] { product.Id });
+        return Response<ProductDto>.SuccessResponse(ToDto(product, committed.GetValueOrDefault(product.Id, 0)), "Product updated successfully.");
    }
 
    public async Task<Response> DeleteByIdAsync(int id, int userId)
@@ -228,13 +249,18 @@ public class ProductService : IProductService
    {
         var query = _dbContext.Products
                     .Include(p => p.ProductUsers)
-                    .Where(p => p.ProductUsers.Any(pu => pu.UserId == userId))
-                    .Select(p => ToDto(p));
-        
-        var pagedList = await PagedList<ProductDto>.CreateAsync(query, page, pageSize);
+                    .Where(p => p.ProductUsers.Any(pu => pu.UserId == userId));
+
+        var totalCount = await query.CountAsync();
+        var products = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+        var committed = await GetCommittedQuantitiesAsync(products.Select(p => p.Id));
+        var items = products.Select(p => ToDto(p, committed.GetValueOrDefault(p.Id, 0))).ToList();
+
+        var pagedList = new PagedList<ProductDto>(items, page, pageSize, totalCount);
         return Response<PagedList<ProductDto>>.SuccessResponse(pagedList, "Products fetched successfully.");
    }
-    private static ProductDto ToDto(Product entity) =>
+    private static ProductDto ToDto(Product entity, decimal committed) =>
     new()
     {
         Id = entity.Id,
@@ -244,6 +270,7 @@ public class ProductService : IProductService
         DefaultCost = entity.DefaultCost,
         DefaultPrice = entity.DefaultPrice,
         Quantity = entity.Quantity,
+        AvailableQuantity = (entity.Quantity ?? 0) - committed,
         AverageCost = entity.AverageCost,
         AveragePrice = entity.AveragePrice,
         CostChangeCount = entity.CostChangeCount,

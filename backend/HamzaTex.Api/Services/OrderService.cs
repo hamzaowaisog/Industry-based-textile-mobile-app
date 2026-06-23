@@ -81,6 +81,11 @@ public class OrderService : IOrderService
         if (missingProductId != default)
             return Response<OrderDto>.ErrorResponse("Not found", $"Product with ID {missingProductId} does not exist.");
 
+        var stockError = await ValidateAvailableStockAsync(
+            model.Lines.Select(l => (l.ProductId, l.Qty)));
+        if (stockError is not null)
+            return Response<OrderDto>.ErrorResponse("Insufficient stock", stockError);
+
         var order = new Order
         {
             ClientId = model.ClientId,
@@ -272,6 +277,11 @@ public class OrderService : IOrderService
         var missingProductId = requestedProductIds.FirstOrDefault(pid => !existingProducts.Select(p => p.Id).Contains(pid));
         if (missingProductId != default)
             return Response<OrderDto>.ErrorResponse("Not found", $"Product with ID {missingProductId} does not exist.");
+
+        var stockError = await ValidateAvailableStockAsync(
+            model.Lines.Select(l => (l.ProductId, l.Qty)), excludeOrderId: id);
+        if (stockError is not null)
+            return Response<OrderDto>.ErrorResponse("Insufficient stock", stockError);
 
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
         try
@@ -520,6 +530,46 @@ public class OrderService : IOrderService
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Validates requested line quantities against available stock, where available =
+    /// Product.Quantity minus quantity already committed to other non-Delivered, non-Cancelled
+    /// orders for the same product. Catches overselling at order create/edit time instead of
+    /// letting two pending orders both pass and conflict later at the Delivered transition.
+    /// </summary>
+    private async Task<string?> ValidateAvailableStockAsync(IEnumerable<(int ProductId, decimal Qty)> lines, int? excludeOrderId = null)
+    {
+        var requested = lines
+            .GroupBy(l => l.ProductId)
+            .ToDictionary(g => g.Key, g => g.Sum(l => l.Qty));
+        var productIds = requested.Keys.ToList();
+
+        var products = await _dbContext.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToDictionaryAsync(p => p.Id, p => new { Quantity = p.Quantity ?? 0, p.Unit });
+
+        var reservedQuery = _dbContext.OrderLines
+            .Where(ol => ol.ProductId != null && productIds.Contains(ol.ProductId.Value)
+                && ol.Order.StatusId != StatusDelivered && ol.Order.StatusId != StatusCancelled);
+
+        if (excludeOrderId.HasValue)
+            reservedQuery = reservedQuery.Where(ol => ol.OrderId != excludeOrderId.Value);
+
+        var reserved = await reservedQuery
+            .GroupBy(ol => ol.ProductId!.Value)
+            .Select(g => new { ProductId = g.Key, Qty = g.Sum(ol => ol.Qty) })
+            .ToDictionaryAsync(x => x.ProductId, x => x.Qty);
+
+        foreach (var (productId, requestedQty) in requested)
+        {
+            var product = products[productId];
+            var alreadyCommitted = reserved.GetValueOrDefault(productId, 0);
+            var available = product.Quantity - alreadyCommitted;
+            if (requestedQty > available)
+                return $"Available: {available} {product.Unit}, Requested: {requestedQty} {product.Unit} (Product ID {productId}).";
+        }
+        return null;
+    }
 
     private static int MapPaymentTypeToTransMode(int paymentTypeId) =>
         paymentTypeId switch

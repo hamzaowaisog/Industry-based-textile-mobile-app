@@ -27,8 +27,8 @@ public class ProductController : BaseController
     /// <summary>Create a new product and link it to the authenticated user. Records an initial stock movement for the opening quantity.</summary>
     [HttpPost]
     [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Response<ProductDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response<ProductDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateProduct([FromBody] ProductCreateViewModel model)
     {
         if (!ModelState.IsValid)
@@ -68,8 +68,8 @@ public class ProductController : BaseController
     /// <summary>Get a single product by ID scoped to the authenticated user.</summary>
     [HttpGet("{id}")]
     [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Response<ProductDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response<ProductDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetProductById(int id)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -85,7 +85,7 @@ public class ProductController : BaseController
     /// <summary>Get all products for the authenticated user.</summary>
     [HttpGet]
     [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response<List<ProductDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllProducts()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -102,9 +102,9 @@ public class ProductController : BaseController
     /// <summary>Update product details. Do not use this to adjust stock — create a Manual StockMovement instead.</summary>
     [HttpPut("{id}")]
     [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Response<ProductDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response<ProductDto>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Response<ProductDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateProductById(int id, [FromBody] ProductUpdateViewModel model)
     {
         if (!ModelState.IsValid)
@@ -144,8 +144,8 @@ public class ProductController : BaseController
     /// <summary>Delete a product by ID.</summary>
     [HttpDelete("{id}")]
     [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteProductById(int id)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -161,7 +161,7 @@ public class ProductController : BaseController
     /// <summary>Get paginated products for the authenticated user.</summary>
     [HttpGet("filtered")]
     [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response<PagedList<ProductDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllProductsPaginated(int page = 1, int pageSize = 5)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
