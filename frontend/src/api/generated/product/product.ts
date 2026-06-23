@@ -25,10 +25,13 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  ProblemDetails,
   ProductCreateViewModel,
+  ProductDtoListResponse,
+  ProductDtoPagedListResponse,
+  ProductDtoResponse,
   ProductGetAllProductsPaginatedParams,
-  ProductUpdateViewModel
+  ProductUpdateViewModel,
+  Response
 } from '../../models';
 
 import { axiosInstance } from '../../../utils/axiosInstance';
@@ -45,7 +48,7 @@ export const productCreateProduct = (
 ) => {
 
 
-      return axiosInstance<void>(
+      return axiosInstance<ProductDtoResponse>(
       {url: `/api/Product`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: productCreateViewModel, signal
@@ -55,7 +58,7 @@ export const productCreateProduct = (
 
 
 
-export const getProductCreateProductMutationOptions = <TError = ProblemDetails,
+export const getProductCreateProductMutationOptions = <TError = ProductDtoResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof productCreateProduct>>, TError,{data?: ProductCreateViewModel}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof productCreateProduct>>, TError,{data?: ProductCreateViewModel}, TContext> => {
 
@@ -84,12 +87,12 @@ const {mutation: mutationOptions} = options ?
 
     export type ProductCreateProductMutationResult = NonNullable<Awaited<ReturnType<typeof productCreateProduct>>>
     export type ProductCreateProductMutationBody = ProductCreateViewModel | undefined
-    export type ProductCreateProductMutationError = ProblemDetails
+    export type ProductCreateProductMutationError = ProductDtoResponse
 
     /**
  * @summary Create a new product and link it to the authenticated user. Records an initial stock movement for the opening quantity.
  */
-export const useProductCreateProduct = <TError = ProblemDetails,
+export const useProductCreateProduct = <TError = ProductDtoResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof productCreateProduct>>, TError,{data?: ProductCreateViewModel}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof productCreateProduct>>,
@@ -108,7 +111,7 @@ export const productGetAllProducts = (
 ) => {
 
 
-      return axiosInstance<void>(
+      return axiosInstance<ProductDtoListResponse>(
       {url: `/api/Product`, method: 'GET', signal
     },
       );
@@ -200,7 +203,7 @@ export const productGetProductById = (
 ) => {
 
 
-      return axiosInstance<void>(
+      return axiosInstance<ProductDtoResponse>(
       {url: `/api/Product/${id}`, method: 'GET', signal
     },
       );
@@ -216,7 +219,7 @@ export const getProductGetProductByIdQueryKey = (id: number,) => {
     }
 
 
-export const getProductGetProductByIdQueryOptions = <TData = Awaited<ReturnType<typeof productGetProductById>>, TError = ProblemDetails>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof productGetProductById>>, TError, TData>>, }
+export const getProductGetProductByIdQueryOptions = <TData = Awaited<ReturnType<typeof productGetProductById>>, TError = ProductDtoResponse>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof productGetProductById>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -235,10 +238,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ProductGetProductByIdQueryResult = NonNullable<Awaited<ReturnType<typeof productGetProductById>>>
-export type ProductGetProductByIdQueryError = ProblemDetails
+export type ProductGetProductByIdQueryError = ProductDtoResponse
 
 
-export function useProductGetProductById<TData = Awaited<ReturnType<typeof productGetProductById>>, TError = ProblemDetails>(
+export function useProductGetProductById<TData = Awaited<ReturnType<typeof productGetProductById>>, TError = ProductDtoResponse>(
  id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof productGetProductById>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof productGetProductById>>,
@@ -248,7 +251,7 @@ export function useProductGetProductById<TData = Awaited<ReturnType<typeof produ
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProductGetProductById<TData = Awaited<ReturnType<typeof productGetProductById>>, TError = ProblemDetails>(
+export function useProductGetProductById<TData = Awaited<ReturnType<typeof productGetProductById>>, TError = ProductDtoResponse>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof productGetProductById>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof productGetProductById>>,
@@ -258,7 +261,7 @@ export function useProductGetProductById<TData = Awaited<ReturnType<typeof produ
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProductGetProductById<TData = Awaited<ReturnType<typeof productGetProductById>>, TError = ProblemDetails>(
+export function useProductGetProductById<TData = Awaited<ReturnType<typeof productGetProductById>>, TError = ProductDtoResponse>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof productGetProductById>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -266,7 +269,7 @@ export function useProductGetProductById<TData = Awaited<ReturnType<typeof produ
  * @summary Get a single product by ID scoped to the authenticated user.
  */
 
-export function useProductGetProductById<TData = Awaited<ReturnType<typeof productGetProductById>>, TError = ProblemDetails>(
+export function useProductGetProductById<TData = Awaited<ReturnType<typeof productGetProductById>>, TError = ProductDtoResponse>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof productGetProductById>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -293,7 +296,7 @@ export const productUpdateProductById = (
 ) => {
 
 
-      return axiosInstance<void>(
+      return axiosInstance<ProductDtoResponse>(
       {url: `/api/Product/${id}`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: productUpdateViewModel, signal
@@ -303,7 +306,7 @@ export const productUpdateProductById = (
 
 
 
-export const getProductUpdateProductByIdMutationOptions = <TError = ProblemDetails,
+export const getProductUpdateProductByIdMutationOptions = <TError = ProductDtoResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof productUpdateProductById>>, TError,{id: number;data?: ProductUpdateViewModel}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof productUpdateProductById>>, TError,{id: number;data?: ProductUpdateViewModel}, TContext> => {
 
@@ -332,12 +335,12 @@ const {mutation: mutationOptions} = options ?
 
     export type ProductUpdateProductByIdMutationResult = NonNullable<Awaited<ReturnType<typeof productUpdateProductById>>>
     export type ProductUpdateProductByIdMutationBody = ProductUpdateViewModel | undefined
-    export type ProductUpdateProductByIdMutationError = ProblemDetails
+    export type ProductUpdateProductByIdMutationError = ProductDtoResponse
 
     /**
  * @summary Update product details. Do not use this to adjust stock — create a Manual StockMovement instead.
  */
-export const useProductUpdateProductById = <TError = ProblemDetails,
+export const useProductUpdateProductById = <TError = ProductDtoResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof productUpdateProductById>>, TError,{id: number;data?: ProductUpdateViewModel}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof productUpdateProductById>>,
@@ -356,7 +359,7 @@ export const productDeleteProductById = (
 ) => {
 
 
-      return axiosInstance<void>(
+      return axiosInstance<Response>(
       {url: `/api/Product/${id}`, method: 'DELETE', signal
     },
       );
@@ -364,7 +367,7 @@ export const productDeleteProductById = (
 
 
 
-export const getProductDeleteProductByIdMutationOptions = <TError = ProblemDetails,
+export const getProductDeleteProductByIdMutationOptions = <TError = Response,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof productDeleteProductById>>, TError,{id: number}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof productDeleteProductById>>, TError,{id: number}, TContext> => {
 
@@ -393,12 +396,12 @@ const {mutation: mutationOptions} = options ?
 
     export type ProductDeleteProductByIdMutationResult = NonNullable<Awaited<ReturnType<typeof productDeleteProductById>>>
 
-    export type ProductDeleteProductByIdMutationError = ProblemDetails
+    export type ProductDeleteProductByIdMutationError = Response
 
     /**
  * @summary Delete a product by ID.
  */
-export const useProductDeleteProductById = <TError = ProblemDetails,
+export const useProductDeleteProductById = <TError = Response,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof productDeleteProductById>>, TError,{id: number}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof productDeleteProductById>>,
@@ -417,7 +420,7 @@ export const productGetAllProductsPaginated = (
 ) => {
 
 
-      return axiosInstance<void>(
+      return axiosInstance<ProductDtoPagedListResponse>(
       {url: `/api/Product/filtered`, method: 'GET',
         params, signal
     },

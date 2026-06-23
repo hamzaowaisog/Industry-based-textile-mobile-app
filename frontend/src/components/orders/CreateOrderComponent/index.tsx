@@ -38,6 +38,7 @@ export const CreateOrderComponent = ({
   errors,
   touched,
   lineErrors,
+  lineAvailability,
   onBack,
   onNext,
   onSubmit,
@@ -138,6 +139,7 @@ export const CreateOrderComponent = ({
               line={line}
               index={i}
               qtyError={lineErrors[i]?.qty}
+              availableLabel={lineAvailability[i]}
               labels={{
                 qty: t('orders.create.qty'),
                 unitPrice: t('orders.create.unitPrice'),

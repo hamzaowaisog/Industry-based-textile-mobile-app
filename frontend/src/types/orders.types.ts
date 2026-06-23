@@ -123,6 +123,7 @@ export type EditOrderComponentProps = {
   errors: Partial<Record<keyof EditOrderFormValues, string>>;
   touched: Partial<Record<keyof EditOrderFormValues, boolean>>;
   lineErrors: { qty?: string }[];
+  lineAvailability: (string | undefined)[];
   paymentTypes: { id: number; name: string }[];
   productItems: { id: number; name: string; subtitle?: string }[];
   productPickerVisible: boolean;
@@ -155,6 +156,7 @@ export type LineItemFormCardProps = {
   line: OrderLineFormValues;
   index: number;
   qtyError?: string;
+  availableLabel?: string;
   labels: LineItemFormCardLabels;
   onRemove: (index: number) => void;
   onChange: (
@@ -190,6 +192,7 @@ export type CreateOrderComponentProps = {
   errors: Partial<Record<keyof CreateOrderFormValues, string>>;
   touched: Partial<Record<keyof CreateOrderFormValues, boolean>>;
   lineErrors: { qty?: string }[];
+  lineAvailability: (string | undefined)[];
   onBack: () => void;
   onNext: () => void;
   onSubmit: () => void;

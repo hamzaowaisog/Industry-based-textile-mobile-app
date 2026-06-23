@@ -32,6 +32,12 @@ export const PRODUCT_STAT_CONFIG: Record<ProductStatKey, ProductStatConfig> = {
     iconBg: colors.primaryLight,
     labelKey: 'products.detail.currentStock',
   },
+  availableQuantity: {
+    Icon: BoxIcon,
+    iconColor: colors.success,
+    iconBg: colors.successLight,
+    labelKey: 'products.detail.availableQty',
+  },
   defaultCost: {
     Icon: CoinsIcon,
     iconColor: colors.warning,

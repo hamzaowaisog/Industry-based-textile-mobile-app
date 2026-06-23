@@ -65,7 +65,7 @@ export const OrderDetailComponent = ({
   const canMarkInProgress = canUpdate && isPending;
   const canMarkDelivered = canUpdate && isActive && !isPending;
   const canEditLines = canUpdate && isActive;
-  const canCancel = canUpdate && isActive;
+  const canCancel = canUpdate && !isCancelled;
 
   if (loading) {
     return <OrderDetailSkeleton />;

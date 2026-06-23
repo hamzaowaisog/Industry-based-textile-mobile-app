@@ -63,6 +63,13 @@ export const styles = StyleSheet.create({
     color: colors.textTertiary,
     letterSpacing: 0.2,
   },
+  availableLine: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 10.5,
+    fontWeight: '500',
+    color: colors.success,
+    letterSpacing: 0.2,
+  },
   badge: {
     borderRadius: 999,
     paddingHorizontal: 8,

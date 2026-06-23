@@ -131,7 +131,7 @@ export const ProductDetailComponent = ({
             const cfg = PRODUCT_STAT_CONFIG[key];
             const raw = product[key as keyof typeof product] as number;
             const formatted =
-              key === 'stock' || key === 'reorderLevel'
+              key === 'stock' || key === 'reorderLevel' || key === 'availableQuantity'
                 ? String(raw)
                 : `${AppConstants.CURRENCY.PREFIX}${Number(raw).toLocaleString()}`;
             return (

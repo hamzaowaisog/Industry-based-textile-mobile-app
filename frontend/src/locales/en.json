@@ -322,12 +322,14 @@
     },
     "stockBadgeLow": "Low",
     "stockBadgeOut": "Out",
+    "availableLine": "Available: {{count}}",
     "empty": {
       "title": "No products yet",
       "subtitle": "Add your first product to start tracking inventory"
     },
     "detail": {
       "currentStock": "Current stock",
+      "availableQty": "Available qty",
       "defaultCost": "Default cost",
       "defaultPrice": "Default price",
       "avgCost": "Avg cost",
@@ -689,6 +691,7 @@
       "incompleteLines": "Each line needs a product, quantity and price",
       "qtyExceedsStock": "Only {{available}} units available",
       "qtyErrorExists": "Fix quantity errors before continuing",
+      "availableQty": "Available: {{count}} units",
       "selectCustomerError": "Please select a customer",
       "discardTitle": "Discard order?",
       "discardMessage": "Any unsaved changes will be lost.",
@@ -723,6 +726,7 @@
       "incompleteLines": "Each line needs a product, quantity and price",
       "qtyExceedsStock": "Only {{available}} units available",
       "qtyErrorExists": "Fix quantity errors before continuing",
+      "availableQty": "Available: {{count}} units",
       "discardTitle": "Discard changes?",
       "discardMessage": "Any unsaved changes will be lost.",
       "discard": "Discard",

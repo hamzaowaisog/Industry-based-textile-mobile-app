@@ -55,6 +55,11 @@ export const ProductCard = ({ product, onPress }: ProductCardProps) => {
           {!product.isOut &&
             `${product.unit} · ${AppConstants.CURRENCY.PREFIX}${product.avgPrice.toLocaleString()}`}
         </Text>
+        {!product.isOut && (
+          <Text style={styles.availableLine}>
+            {t('products.availableLine', { count: product.availableQuantity })}
+          </Text>
+        )}
       </View>
     </TouchableOpacity>
   );

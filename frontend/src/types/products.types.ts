@@ -6,6 +6,7 @@ export type ProductPickerItem = {
   sku: string;
   defaultPrice: number;
   quantity: number;
+  availableQuantity: number;
 };
 
 export type ProductStockTab = 'all' | 'low' | 'out';
@@ -14,6 +15,7 @@ export type ProductStockTabConfig = { id: ProductStockTab; labelKey: string };
 
 export type ProductStatKey =
   | 'stock'
+  | 'availableQuantity'
   | 'defaultCost'
   | 'defaultPrice'
   | 'averageCost'
@@ -35,6 +37,7 @@ export type ProductRow = {
   sku: string;
   unit: string;
   stock: number;
+  availableQuantity: number;
   reorderLevel: number;
   avgPrice: number;
   isLow: boolean;
@@ -47,6 +50,7 @@ export type ProductDetailData = {
   sku: string;
   unit: string;
   stock: number;
+  availableQuantity: number;
   averageCost: number;
   averagePrice: number;
   defaultCost: number;

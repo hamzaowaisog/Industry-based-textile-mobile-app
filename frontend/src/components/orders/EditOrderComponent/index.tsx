@@ -42,6 +42,7 @@ export const EditOrderComponent = ({
   productItems,
   productPickerVisible,
   lineErrors,
+  lineAvailability,
   onBack,
   onNext,
   onSubmit,
@@ -133,6 +134,7 @@ export const EditOrderComponent = ({
               line={line}
               index={i}
               qtyError={lineErrors[i]?.qty}
+              availableLabel={lineAvailability[i]}
               labels={lineLabels}
               onRemove={onRemoveLine}
               onChange={onLineChange}

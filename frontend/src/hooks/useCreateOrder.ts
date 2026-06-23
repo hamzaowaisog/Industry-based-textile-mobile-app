@@ -52,6 +52,7 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
   const [errors, setErrors] = useState<Partial<Record<keyof CreateOrderFormValues, string>>>({});
   const [touched, setTouched] = useState<Partial<Record<keyof CreateOrderFormValues, boolean>>>({});
   const [lineErrors, setLineErrors] = useState<{ qty?: string }[]>([]);
+  const [lineAvailability, setLineAvailability] = useState<(string | undefined)[]>([]);
 
   // ── Clients ──────────────────────────────────────────────────────────────
   const { data: clients } = useQuery({ queryKey: ['clients'], queryFn: fetchClientsAsync });
@@ -213,6 +214,7 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
   const onRemoveLine = useCallback((index: number) => {
     setValues((v) => ({ ...v, lines: v.lines.filter((_, i) => i !== index) }));
     setLineErrors((prev) => prev.filter((_, i) => i !== index));
+    setLineAvailability((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const onLineChange = useCallback(
@@ -226,7 +228,7 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
       if (field === 'qty') {
         const entered = parseFloat(value) || 0;
         const prod = products.find((p) => p.id === productId);
-        const available = prod?.quantity ?? Infinity;
+        const available = prod?.availableQuantity ?? Infinity;
         const error =
           entered > 0 && prod && entered > available
             ? i18n.t('orders.create.qtyExceedsStock', { available })
@@ -234,6 +236,13 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
         setLineErrors((prev) => {
           const next = [...prev];
           next[index] = { ...next[index], qty: error };
+          return next;
+        });
+        setLineAvailability((prev) => {
+          const next = [...prev];
+          next[index] = prod
+            ? i18n.t('orders.create.availableQty', { count: prod.availableQuantity - entered })
+            : undefined;
           return next;
         });
       }
@@ -277,6 +286,13 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
         if (next[idx]) next[idx] = { ...next[idx], qty: undefined };
         return next;
       });
+      setLineAvailability((prev) => {
+        const next = [...prev];
+        next[idx] = product
+          ? i18n.t('orders.create.availableQty', { count: product.availableQuantity })
+          : undefined;
+        return next;
+      });
       setProductPickerVisible(false);
     },
     [products],
@@ -288,6 +304,7 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
     errors,
     touched,
     lineErrors,
+    lineAvailability,
     submitting,
     runningTotal,
     paymentTypes,

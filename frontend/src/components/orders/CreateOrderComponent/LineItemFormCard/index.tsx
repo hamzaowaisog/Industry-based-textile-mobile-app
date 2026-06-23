@@ -17,6 +17,7 @@ export const LineItemFormCard = ({
   line,
   index,
   qtyError,
+  availableLabel,
   labels,
   onRemove,
   onChange,
@@ -63,6 +64,9 @@ export const LineItemFormCard = ({
               error={qtyError}
               keyboardType="numeric"
             />
+            {availableLabel && !qtyError ? (
+              <Text style={styles.availableLabel}>{availableLabel}</Text>
+            ) : null}
           </View>
           <View style={styles.halfField}>
             <AppInputField

@@ -61,6 +61,13 @@ export const styles = StyleSheet.create({
   halfField: {
     flex: 1,
   },
+  availableLabel: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 11.5,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
   lineTotalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

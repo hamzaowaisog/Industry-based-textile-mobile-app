@@ -42,6 +42,7 @@ export const useEditOrder = (orderId: number) => {
   const [errors, setErrors] = useState<Partial<Record<keyof EditOrderFormValues, string>>>({});
   const [touched, setTouched] = useState<Partial<Record<keyof EditOrderFormValues, boolean>>>({});
   const [lineErrors, setLineErrors] = useState<{ qty?: string }[]>([]);
+  const [lineAvailability, setLineAvailability] = useState<(string | undefined)[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   // Pre-fill when order loads
@@ -76,6 +77,27 @@ export const useEditOrder = (orderId: number) => {
       .then(setProducts)
       .catch(() => {});
   }, []);
+
+  const getOriginalCommittedQty = useCallback((index: number, productId: number): number => {
+    const original = initialValues.current?.lines[index];
+    if (!original || original.productId !== productId) return 0;
+    return parseFloat(original.qty) || 0;
+  }, []);
+
+  useEffect(() => {
+    if (!currentOrder || currentOrder.id !== orderId || products.length === 0) return;
+    setLineAvailability(
+      values.lines.map((line, index) => {
+        const prod = products.find((p) => p.id === line.productId);
+        if (!prod) return undefined;
+        const entered = parseFloat(line.qty) || 0;
+        const originalQty = getOriginalCommittedQty(index, line.productId);
+        return i18n.t('orders.edit.availableQty', {
+          count: prod.availableQuantity + originalQty - entered,
+        });
+      }),
+    );
+  }, [currentOrder?.id, orderId, products, values.lines.length, getOriginalCommittedQty]);
 
   const productItems = useMemo(() => {
     const usedIds = new Set(
@@ -203,6 +225,7 @@ export const useEditOrder = (orderId: number) => {
   const onRemoveLine = useCallback((index: number) => {
     setValues((v) => ({ ...v, lines: v.lines.filter((_, i) => i !== index) }));
     setLineErrors((prev) => prev.filter((_, i) => i !== index));
+    setLineAvailability((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const onLineChange = useCallback(
@@ -215,7 +238,8 @@ export const useEditOrder = (orderId: number) => {
       if (field === 'qty') {
         const entered = parseFloat(value) || 0;
         const prod = products.find((p) => p.id === productId);
-        const available = prod?.quantity ?? Infinity;
+        const originalQty = productId ? getOriginalCommittedQty(index, productId) : 0;
+        const available = prod ? prod.availableQuantity + originalQty : Infinity;
         const error =
           entered > 0 && prod && entered > available
             ? i18n.t('orders.edit.qtyExceedsStock', { available })
@@ -225,9 +249,16 @@ export const useEditOrder = (orderId: number) => {
           next[index] = { ...next[index], qty: error };
           return next;
         });
+        setLineAvailability((prev) => {
+          const next = [...prev];
+          next[index] = prod
+            ? i18n.t('orders.edit.availableQty', { count: available - entered })
+            : undefined;
+          return next;
+        });
       }
     },
-    [products],
+    [products, getOriginalCommittedQty],
   );
 
   const onSelectProduct = useCallback((index: number) => {
@@ -256,9 +287,17 @@ export const useEditOrder = (orderId: number) => {
         if (next[idx]) next[idx] = { ...next[idx], qty: undefined };
         return next;
       });
+      setLineAvailability((prev) => {
+        const next = [...prev];
+        const originalQty = product ? getOriginalCommittedQty(idx, product.id) : 0;
+        next[idx] = product
+          ? i18n.t('orders.edit.availableQty', { count: product.availableQuantity + originalQty })
+          : undefined;
+        return next;
+      });
       setProductPickerVisible(false);
     },
-    [products],
+    [products, getOriginalCommittedQty],
   );
 
   return {
@@ -267,6 +306,7 @@ export const useEditOrder = (orderId: number) => {
     errors,
     touched,
     lineErrors,
+    lineAvailability,
     submitting,
     loading: detailLoading,
     clientName: currentOrder?.clientName ?? '',

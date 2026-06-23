@@ -33,6 +33,7 @@ export const fetchProductsAsync = async (): Promise<ProductPickerItem[]> => {
       sku: p.sku ?? '',
       defaultPrice: p.defaultPrice ?? p.averagePrice ?? 0,
       quantity: p.quantity ?? 0,
+      availableQuantity: p.availableQuantity ?? p.quantity ?? 0,
     }));
   } catch {
     return [];
