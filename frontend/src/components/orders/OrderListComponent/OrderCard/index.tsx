@@ -1,10 +1,14 @@
 import React from 'react';
 
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatPKR } from '@utils/helpers/clientMappers';
+import { AppAmount } from '@components/common/AppAmount';
+import { AppBadge } from '@components/common/AppBadge';
+import { AppCard } from '@components/common/AppCard';
+
+import { formatPKR } from '@utils/helpers/formatCurrency';
 import { getOrderStatusConfig } from '@utils/helpers/orderContent';
 
 import { colors } from '@theme/colors';
@@ -21,7 +25,7 @@ export const OrderCard = ({ order, onPress }: OrderCardProps) => {
   const isCancelled = order.statusId === AppConstants.ORDER_STATUS.CANCELLED;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={() => onPress(order.id)} activeOpacity={0.7}>
+    <AppCard onPress={() => onPress(order.id)}>
       <View style={styles.row}>
         <View style={styles.left}>
           <Text style={styles.orderId}>{`ORD-${order.id}`}</Text>
@@ -29,10 +33,8 @@ export const OrderCard = ({ order, onPress }: OrderCardProps) => {
           <Text style={styles.date}>{order.orderDate}</Text>
         </View>
         <View style={styles.right}>
-          <Text style={styles.amount}>{formatPKR(order.total)}</Text>
-          <View style={[styles.badge, { backgroundColor: statusConfig.bg }]}>
-            <Text style={[styles.badgeText, { color: statusConfig.fg }]}>{order.statusName}</Text>
-          </View>
+          <AppAmount value={order.total} size={17} />
+          <AppBadge label={order.statusName} bg={statusConfig.bg} fg={statusConfig.fg} />
         </View>
       </View>
 
@@ -57,6 +59,6 @@ export const OrderCard = ({ order, onPress }: OrderCardProps) => {
           </View>
         </View>
       )}
-    </TouchableOpacity>
+    </AppCard>
   );
 };

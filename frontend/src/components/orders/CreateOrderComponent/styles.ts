@@ -54,61 +54,9 @@ export const styles = StyleSheet.create({
 
   // Step indicator
   stepIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: 24,
     paddingBottom: 20,
     paddingTop: 4,
-  },
-  stepItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  stepDot: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.bgAlt,
-    borderWidth: 2,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepDotActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  stepDotDone: {
-    backgroundColor: colors.success,
-    borderColor: colors.success,
-  },
-  stepDotText: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.textTertiary,
-  },
-  stepDotTextActive: {
-    color: colors.white,
-  },
-  stepLabel: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textTertiary,
-  },
-  stepLabelActive: {
-    color: colors.primary,
-  },
-  stepLine: {
-    flex: 1,
-    height: 2,
-    backgroundColor: colors.border,
-    marginBottom: 14,
-    marginHorizontal: 4,
-  },
-  stepLineDone: {
-    backgroundColor: colors.success,
   },
 
   // Scroll
@@ -343,54 +291,11 @@ export const styles = StyleSheet.create({
   },
 
   // Bottom bar
-  bottomBar: {
+  bottomBarRow: {
     flexDirection: 'row',
     gap: 12,
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
   },
-  ghostBtn: {
+  flexBtn: {
     flex: 1,
-    height: 52,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ghostBtnText: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  primaryBtn: {
-    flex: 1,
-    height: 52,
-    borderRadius: 12,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  successBtn: {
-    backgroundColor: colors.success,
-    shadowColor: colors.success,
-  },
-  primaryBtnText: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.white,
-  },
-  btnDisabled: {
-    opacity: 0.6,
   },
 });

@@ -41,6 +41,9 @@ public interface IReportService
 
 public class ReportService : IReportService
 {
+    private const int StatusDelivered = 3;
+    private const int StatusCancelled = 4;
+
     private readonly ApplicationDbContext _db;
 
     public ReportService(ApplicationDbContext db)
@@ -254,9 +257,13 @@ public class ReportService : IReportService
             .FirstOrDefaultAsync(b => b.ClientId == client.Id);
         var balance = balanceEntity?.Balance ?? 0;
 
-        // Compute totals
-        var totalOrderAmount = orders.Sum(o => o.OrderLines.Sum(l => l.Qty * l.UnitPrice));
-        var totalPurchaseAmount = purchases.Sum(p => p.PurchaseLines.Sum(l => l.Qty * l.UnitCost));
+        // Compute totals — only Delivered orders/purchases have posted to the ledger (v_client_balance
+        // only counts Delivered sales/purchases), so this stat must match that to stay reconcilable
+        // against the outstanding balance: OpeningBalance + TotalOrderAmount - TotalPaymentsIn == Balance
+        var deliveredOrders = orders.Where(o => o.StatusId == StatusDelivered).ToList();
+        var deliveredPurchases = purchases.Where(p => p.StatusId == StatusDelivered).ToList();
+        var totalOrderAmount = deliveredOrders.Sum(o => o.OrderLines.Sum(l => l.Qty * l.UnitPrice));
+        var totalPurchaseAmount = deliveredPurchases.Sum(p => p.PurchaseLines.Sum(l => l.Qty * l.UnitCost));
         var totalPaymentsIn = payments.Where(p => p.PaymentDirectionId == 1 && !p.IsReversed && p.OriginalPaymentId == null).Sum(p => p.Amount);
         var totalPaymentsOut = payments.Where(p => p.PaymentDirectionId == 2 && !p.IsReversed && p.OriginalPaymentId == null).Sum(p => p.Amount);
 
@@ -322,9 +329,9 @@ public class ReportService : IReportService
             CreditLimit = client.CreditLimit,
             OpeningBalance = client.OpeningBalance,
             Notes = client.Notes,
-            TotalOrderCount = orders.Count,
+            TotalOrderCount = deliveredOrders.Count,
             TotalOrderAmount = totalOrderAmount,
-            TotalPurchaseCount = purchases.Count,
+            TotalPurchaseCount = deliveredPurchases.Count,
             TotalPurchaseAmount = totalPurchaseAmount,
             TotalPaymentsIn = totalPaymentsIn,
             TotalPaymentsOut = totalPaymentsOut,
@@ -358,6 +365,7 @@ public class ReportService : IReportService
                 CategoryName = t.TransCategory?.Name ?? "Unknown",
                 TypeName = t.TransType?.Name ?? "Unknown",
                 Amount = t.Amount,
+                IsReversal = t.Notes?.StartsWith("REVERSAL of Payment", StringComparison.OrdinalIgnoreCase) ?? false,
             }).ToList(),
         };
     }

@@ -1,15 +1,16 @@
 import React from 'react';
 
-import { Text, View } from 'react-native';
-
-import { formatPKR } from '@utils/helpers/clientMappers';
+import { AppAmount } from '@components/common/AppAmount';
+import { AppBadge } from '@components/common/AppBadge';
+import { AppCard } from '@components/common/AppCard';
+import { AppIconTile } from '@components/common/AppIconTile';
+import { AppRow } from '@components/common/AppRow';
 
 import { colors } from '@theme/colors';
 
 import { FileTextIcon } from '@constants/svgAssets';
 
 import type { ClientInvoiceSummary } from '../../../../types/clients.types';
-import { styles } from './styles';
 
 const INVOICE_STATUS_STYLES: Record<number, { bg: string; fg: string }> = {
   1: { bg: `${colors.warning}20`, fg: colors.warning },
@@ -25,22 +26,18 @@ export const InvoiceTabRow = ({ item }: { item: ClientInvoiceSummary }) => {
   };
 
   return (
-    <View style={styles.tabRow}>
-      <View style={[styles.tabRowIcon, { backgroundColor: `${colors.warning}18` }]}>
-        <FileTextIcon size={18} color={colors.warning} />
-      </View>
-      <View style={styles.tabRowInfo}>
-        <Text style={styles.tabRowPrimary}>
-          {item.invoiceNumber ?? `#${item.invoiceId ?? '—'}`}
-        </Text>
-        <Text style={styles.tabRowSub}>{item.issueDate ?? '—'}</Text>
-      </View>
-      <View style={styles.tabRowRight}>
-        <Text style={styles.tabRowAmount}>{formatPKR(item.totalAmount)}</Text>
-        <View style={[styles.tabBadge, { backgroundColor: s.bg }]}>
-          <Text style={[styles.tabBadgeText, { color: s.fg }]}>{item.statusName}</Text>
-        </View>
-      </View>
-    </View>
+    <AppCard padding={14}>
+      <AppRow
+        leading={<AppIconTile Icon={FileTextIcon} color={colors.warning} size={36} />}
+        primary={item.invoiceNumber ?? `#${item.invoiceId ?? '—'}`}
+        secondary={item.issueDate ?? '—'}
+        right={
+          <>
+            <AppAmount value={item.totalAmount} size={14} />
+            <AppBadge label={item.statusName} bg={s.bg} fg={s.fg} size="sm" />
+          </>
+        }
+      />
+    </AppCard>
   );
 };

@@ -1,11 +1,14 @@
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+
+import { AppAmount } from '@components/common/AppAmount';
+import { AppBadge } from '@components/common/AppBadge';
+import { AppIconTile } from '@components/common/AppIconTile';
+import { AppRow } from '@components/common/AppRow';
 
 import { getStatusStyle } from '@utils/helpers/dashboardContent';
-import { formatCompactNumber as fmt } from '@utils/helpers/formatNumber';
 
 import { colors } from '@theme/colors';
 
-import { AppConstants } from '@constants/appConstants';
 import { TruckIcon } from '@constants/svgAssets';
 
 import type { PurchaseRowProps } from '../../../types/dashboard.types';
@@ -16,25 +19,17 @@ export const PurchaseRow = ({ purchase, isLast }: PurchaseRowProps) => {
   return (
     <>
       <View style={styles.row}>
-        <View style={styles.iconTile}>
-          <TruckIcon size={20} color={colors.warning} />
-        </View>
-        <View style={styles.info}>
-          <Text style={styles.supplier} numberOfLines={1}>
-            {purchase.supplierName}
-          </Text>
-          <Text style={styles.meta}>
-            #{purchase.purchaseId} · {purchase.purchaseDate}
-          </Text>
-        </View>
-        <View style={styles.right}>
-          <Text style={styles.amount}>
-            {AppConstants.APP.CURRENCY} {fmt(purchase.total)}
-          </Text>
-          <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
-            <Text style={[styles.statusText, { color: s.fg }]}>{purchase.statusName}</Text>
-          </View>
-        </View>
+        <AppRow
+          leading={<AppIconTile Icon={TruckIcon} color={colors.warning} size={40} />}
+          primary={purchase.supplierName}
+          secondary={`#${purchase.purchaseId} · ${purchase.purchaseDate}`}
+          right={
+            <>
+              <AppAmount value={purchase.total} size={14} />
+              <AppBadge label={purchase.statusName} bg={s.bg} fg={s.fg} size="sm" />
+            </>
+          }
+        />
       </View>
       {!isLast && <View style={styles.divider} />}
     </>

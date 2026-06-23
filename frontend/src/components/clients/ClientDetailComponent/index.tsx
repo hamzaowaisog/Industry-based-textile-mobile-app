@@ -15,11 +15,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CUSTOMER_TABS, SUPPLIER_TABS } from '@utils/helpers/clientDetailContent';
 import {
-  formatPKR,
-  getInitials,
   resolveClientBalanceColor,
   resolveClientBalanceDirection,
 } from '@utils/helpers/clientMappers';
+import { formatPKR } from '@utils/helpers/formatCurrency';
+import { getInitials } from '@utils/helpers/textHelpers';
 
 import { colors } from '@theme/colors';
 
@@ -172,6 +172,12 @@ export const ClientDetailComponent = ({
               </View>
 
               <View style={styles.statRow}>
+                {!!client.openingBalance && (
+                  <View style={styles.statChip}>
+                    <Text style={styles.statChipLabel}>{t('clients.openingBalance')}</Text>
+                    <Text style={styles.statChipValue}>{formatPKR(client.openingBalance)}</Text>
+                  </View>
+                )}
                 {!isSupplier && (
                   <View style={styles.statChip}>
                     <Text style={styles.statChipLabel}>{t('clients.statsOrders')}</Text>

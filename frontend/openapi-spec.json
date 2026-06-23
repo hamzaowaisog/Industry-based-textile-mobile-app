@@ -6201,6 +6201,9 @@
             "type": "number",
             "format": "double",
             "example": 150000
+          },
+          "isReversal": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false

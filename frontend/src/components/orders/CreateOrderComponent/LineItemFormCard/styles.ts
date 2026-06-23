@@ -4,15 +4,7 @@ import { colors } from '@theme/colors';
 import { typography } from '@theme/typography';
 
 export const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 14,
-    shadowColor: colors.shadowBlack,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+  cardInner: {
     gap: 12,
   },
   productRow: {
@@ -82,12 +74,5 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: colors.textSecondary,
-  },
-  lineTotalValue: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-    letterSpacing: -0.2,
   },
 });

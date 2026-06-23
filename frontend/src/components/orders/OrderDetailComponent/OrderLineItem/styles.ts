@@ -16,21 +16,6 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.divider,
   },
-  indexCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 9,
-    backgroundColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  indexText: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.primary,
-  },
   info: {
     flex: 1,
     minWidth: 0,
@@ -47,13 +32,5 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
     color: colors.textSecondary,
     marginTop: 2,
-  },
-  total: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.text,
-    letterSpacing: -0.2,
-    flexShrink: 0,
   },
 });

@@ -8,7 +8,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useOrderStore } from '@stores/orderStore';
 
 import { STATUS_TAB_ID_MAP } from '@utils/helpers/orderContent';
-import { mapApiOrderToRow } from '@utils/helpers/orderMappers';
 
 import { AppConstants } from '@constants/appConstants';
 
@@ -37,7 +36,7 @@ export const useOrderList = () => {
   );
 
   const filtered = useMemo(() => {
-    let result = (data ?? []).map(mapApiOrderToRow);
+    let result = data ?? [];
     const statusId = STATUS_TAB_ID_MAP[activeTab];
     if (statusId !== null) result = result.filter((o) => o.statusId === statusId);
     if (search.trim()) {

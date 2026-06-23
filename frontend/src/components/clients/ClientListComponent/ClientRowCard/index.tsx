@@ -1,10 +1,14 @@
 import React from 'react';
 
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
-import { formatPKR, resolveClientBalanceColor } from '@utils/helpers/clientMappers';
+import { AppAmount } from '@components/common/AppAmount';
+import { AppAvatar } from '@components/common/AppAvatar';
+import { AppCard } from '@components/common/AppCard';
+
+import { resolveClientBalanceColor } from '@utils/helpers/clientMappers';
 
 import { colors } from '@theme/colors';
 
@@ -13,9 +17,15 @@ import { AppConstants } from '@constants/appConstants';
 import type { ClientRowCardProps } from '../../../../types/clients.types';
 import { styles } from './styles';
 
+const BALANCE_TONE = {
+  receivable: 'credit',
+  payable: 'debit',
+  settled: 'neutral',
+} as const;
+
 export const ClientRowCard = ({ item, onPress }: ClientRowCardProps) => {
   const { t } = useTranslation();
-  const avatarBg =
+  const avatarColor =
     item.clientTypeId === AppConstants.CLIENT_TYPE.CUSTOMER ? colors.primary : colors.warning;
   const balanceColor = resolveClientBalanceColor(item.balanceDirection);
   const balanceLabel =
@@ -26,36 +36,34 @@ export const ClientRowCard = ({ item, onPress }: ClientRowCardProps) => {
         : null;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={() => onPress(item.id)} activeOpacity={0.7}>
-      <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
-        <Text style={styles.avatarText}>{item.initials}</Text>
-      </View>
+    <AppCard onPress={() => onPress(item.id)} padding={14}>
+      <View style={styles.row}>
+        <AppAvatar label={item.initials} color={avatarColor} size={44} />
 
-      <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>
-          {item.name}
-        </Text>
-        {item.phone ? (
-          <Text style={styles.sub} numberOfLines={1}>
-            {item.phone}
+        <View style={styles.info}>
+          <Text style={styles.name} numberOfLines={1}>
+            {item.name}
           </Text>
-        ) : null}
-      </View>
-
-      <View style={styles.right}>
-        {item.balanceDirection !== 'settled' ? (
-          <>
-            <Text style={[styles.balanceAmount, { color: balanceColor }]}>
-              {formatPKR(item.balance)}
+          {item.phone ? (
+            <Text style={styles.sub} numberOfLines={1}>
+              {item.phone}
             </Text>
-            {balanceLabel ? (
-              <Text style={[styles.balanceLabel, { color: balanceColor }]}>{balanceLabel}</Text>
-            ) : null}
-          </>
-        ) : (
-          <Text style={styles.settledText}>{t('clients.settled')}</Text>
-        )}
+          ) : null}
+        </View>
+
+        <View style={styles.right}>
+          {item.balanceDirection !== 'settled' ? (
+            <>
+              <AppAmount value={item.balance} tone={BALANCE_TONE[item.balanceDirection]} />
+              {balanceLabel ? (
+                <Text style={[styles.balanceLabel, { color: balanceColor }]}>{balanceLabel}</Text>
+              ) : null}
+            </>
+          ) : (
+            <Text style={styles.settledText}>{t('clients.settled')}</Text>
+          )}
+        </View>
       </View>
-    </TouchableOpacity>
+    </AppCard>
   );
 };

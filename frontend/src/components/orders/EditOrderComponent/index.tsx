@@ -13,18 +13,20 @@ import {
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppBottomBar } from '@components/common/AppBottomBar';
+import { AppButton } from '@components/common/AppButton';
 import { AppInputField } from '@components/common/AppInputField';
 import { AppSelectModal } from '@components/common/AppSelectModal';
+import { AppStepIndicator } from '@components/common/AppStepIndicator';
 import { FieldLabel } from '@components/common/FieldLabel';
 
-import { formatPKR } from '@utils/helpers/clientMappers';
+import { formatPKR } from '@utils/helpers/formatCurrency';
 
 import { colors } from '@theme/colors';
 
-import type { EditOrderComponentProps } from '@types/orders.types';
-
 import { ArrowLeftIcon, PlusIcon } from '@constants/svgAssets';
 
+import type { EditOrderComponentProps } from '../../../types/orders.types';
 import { LineItemFormCard } from '../CreateOrderComponent/LineItemFormCard';
 import { styles } from './styles';
 
@@ -215,7 +217,7 @@ export const EditOrderComponent = ({
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={onBack}>
           <ArrowLeftIcon size={20} color={colors.text} />
@@ -228,33 +230,7 @@ export const EditOrderComponent = ({
       </View>
 
       <View style={styles.stepIndicator}>
-        {STEPS.map((key, i) => {
-          const isDone = i < step;
-          const isActive = i === step;
-          return (
-            <React.Fragment key={key}>
-              <View style={styles.stepItem}>
-                <View
-                  style={[
-                    styles.stepDot,
-                    isActive && styles.stepDotActive,
-                    isDone && styles.stepDotDone,
-                  ]}
-                >
-                  <Text
-                    style={[styles.stepDotText, (isActive || isDone) && styles.stepDotTextActive]}
-                  >
-                    {i + 1}
-                  </Text>
-                </View>
-                <Text style={[styles.stepLabel, isActive && styles.stepLabelActive]}>{t(key)}</Text>
-              </View>
-              {i < STEPS.length - 1 && (
-                <View style={[styles.stepLine, isDone && styles.stepLineDone]} />
-              )}
-            </React.Fragment>
-          );
-        })}
+        <AppStepIndicator steps={STEPS.map((key) => t(key))} current={step} />
       </View>
 
       <KeyboardAvoidingView
@@ -282,31 +258,32 @@ export const EditOrderComponent = ({
         searchPlaceholder={t('orders.edit.addProduct')}
       />
 
-      <View style={styles.bottomBar}>
-        {step > 0 && (
-          <TouchableOpacity style={styles.ghostBtn} onPress={onBack} activeOpacity={0.75}>
-            <Text style={styles.ghostBtnText}>{t('orders.edit.back')}</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity
-          style={[
-            styles.primaryBtn,
-            step === 2 && styles.successBtn,
-            submitting && styles.btnDisabled,
-          ]}
-          onPress={step === 2 ? onSubmit : onNext}
-          disabled={submitting}
-          activeOpacity={0.85}
-        >
-          {submitting ? (
-            <ActivityIndicator color={colors.white} size="small" />
-          ) : (
-            <Text style={styles.primaryBtnText}>
-              {step === 2 ? t('orders.edit.saveChanges') : t('orders.edit.continue')}
-            </Text>
+      <AppBottomBar>
+        <View style={styles.bottomBarRow}>
+          {step > 0 && (
+            <View style={styles.flexBtn}>
+              <AppButton
+                label={t('orders.edit.back')}
+                onPress={onBack}
+                variant="ghost"
+                size="lg"
+                fullWidth
+              />
+            </View>
           )}
-        </TouchableOpacity>
-      </View>
+          <View style={styles.flexBtn}>
+            <AppButton
+              label={step === 2 ? t('orders.edit.saveChanges') : t('orders.edit.continue')}
+              onPress={step === 2 ? onSubmit : onNext}
+              variant={step === 2 ? 'success' : 'primary'}
+              size="lg"
+              fullWidth
+              loading={submitting}
+              disabled={submitting}
+            />
+          </View>
+        </View>
+      </AppBottomBar>
     </SafeAreaView>
   );
 };

@@ -112,4 +112,5 @@ public class ClientTransactionSummary
     public string CategoryName { get; set; } = string.Empty;
     public string TypeName { get; set; } = string.Empty;
     public decimal Amount { get; set; }
+    public bool IsReversal { get; set; }
 }

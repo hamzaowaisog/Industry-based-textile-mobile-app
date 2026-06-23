@@ -1,11 +1,20 @@
+import React from 'react';
+
 import { Text, View } from 'react-native';
 
 import { colors } from '@theme/colors';
 
-import type { StatCardProps } from '../../../types/dashboard.types';
+import type { AppStatCardProps } from '../../../types/common.types';
 import { styles } from './styles';
 
-export const StatCardItem = ({ tint, icon, label, value, sub, trend }: StatCardProps) => {
+export const AppStatCard = ({
+  tint = colors.primary,
+  Icon,
+  label,
+  value,
+  sub,
+  trend,
+}: AppStatCardProps) => {
   const trendPositive = (trend ?? 0) >= 0;
   const trendColor = trendPositive ? colors.success : colors.danger;
   const trendBg = trendPositive ? colors.successLight : colors.dangerLight;
@@ -14,16 +23,20 @@ export const StatCardItem = ({ tint, icon, label, value, sub, trend }: StatCardP
     <View style={styles.card}>
       <View style={[styles.tintBar, { backgroundColor: tint }]} />
       <View style={styles.body}>
-        <View style={[styles.iconTile, { backgroundColor: `${tint}22` }]}>{icon}</View>
+        <View style={[styles.iconTile, { backgroundColor: `${tint}22` }]}>
+          <Icon size={18} color={tint} />
+        </View>
         <Text style={styles.value} numberOfLines={1}>
           {value}
         </Text>
         <Text style={styles.label} numberOfLines={1}>
           {label}
         </Text>
-        <Text style={styles.sub} numberOfLines={1}>
-          {sub}
-        </Text>
+        {!!sub && (
+          <Text style={styles.sub} numberOfLines={1}>
+            {sub}
+          </Text>
+        )}
         {trend !== undefined && (
           <View style={styles.trendRow}>
             <View style={[styles.trendBadge, { backgroundColor: trendBg }]}>

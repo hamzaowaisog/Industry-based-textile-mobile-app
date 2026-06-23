@@ -4,19 +4,16 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as SecureStore from 'expo-secure-store';
 
-import { AppConstants } from '@constants/appConstants';
 import { useAuthStore } from '@stores/authStore';
 import { useNotificationStore } from '@stores/notificationStore';
+
 import { MORE_ITEMS } from '@utils/helpers/moreContent';
+import { getInitials } from '@utils/helpers/textHelpers';
+
+import { AppConstants } from '@constants/appConstants';
+
 import type { MainStackParamList } from '../types/navigation.types';
 import type { MoreItemConfig, MoreProfileData } from '../types/notifications.types';
-
-const getInitials = (name: string): string => {
-  const parts = name.trim().split(' ').filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-};
 
 export const useMore = () => {
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();

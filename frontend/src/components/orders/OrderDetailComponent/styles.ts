@@ -170,61 +170,6 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 24,
     marginBottom: 24,
   },
-  progressTrack: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: colors.shadowBlack,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  progressNodesRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  progressNode: {
-    alignItems: 'center',
-    width: 72,
-    gap: 8,
-  },
-  progressCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: colors.divider,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  progressCircleDone: {
-    backgroundColor: colors.success,
-    borderColor: colors.success,
-  },
-  progressLine: {
-    flex: 1,
-    height: 2,
-    backgroundColor: colors.divider,
-    marginTop: 13,
-    alignSelf: 'flex-start',
-  },
-  progressLineFilled: {
-    backgroundColor: colors.success,
-  },
-  progressLabel: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 11,
-    fontWeight: '500',
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  progressLabelDone: {
-    color: colors.success,
-    fontFamily: typography.fontFamily.semibold,
-    fontWeight: '600',
-  },
 
   // Cancelled banner
   cancelledBanner: {
@@ -270,37 +215,10 @@ export const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  clientRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
+  clientRowWrap: {
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.divider,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  clientInfo: {
-    flex: 1,
-  },
-  clientName: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  clientSub: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 12,
-    fontWeight: '500',
-    color: colors.textSecondary,
-    marginTop: 2,
   },
   dateGrid: {
     flexDirection: 'row',
@@ -387,15 +305,6 @@ export const styles = StyleSheet.create({
   },
 
   // Bottom bar
-  bottomBar: {
-    flexDirection: 'column',
-    gap: 10,
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-  },
   ghostBtnRow: {
     flexDirection: 'row',
     gap: 10,

@@ -5,7 +5,13 @@ import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'rea
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { formatPKR } from '@utils/helpers/clientMappers';
+import { AppBottomBar } from '@components/common/AppBottomBar';
+import { AppCard } from '@components/common/AppCard';
+import { AppIconTile } from '@components/common/AppIconTile';
+import { AppRow } from '@components/common/AppRow';
+import { AppStepIndicator } from '@components/common/AppStepIndicator';
+
+import { formatPKR } from '@utils/helpers/formatCurrency';
 import {
   ORDER_PROGRESS_STEPS,
   ORDER_STATUS_ICONS,
@@ -174,71 +180,25 @@ export const OrderDetailComponent = ({
               <Text style={styles.cancelledText}>{t('orders.detail.cancelledMsg')}</Text>
             </View>
           ) : (
-            <View style={styles.progressTrack}>
-              <View style={styles.progressNodesRow}>
-                {ORDER_PROGRESS_STEPS.map((step, i) => {
-                  const isDone = i < currentStep;
-                  const isCurrentStep = i === currentStep;
-                  return (
-                    <React.Fragment key={step.id}>
-                      <View style={styles.progressNode}>
-                        <View
-                          style={[
-                            styles.progressCircle,
-                            isDone && styles.progressCircleDone,
-                            isCurrentStep && {
-                              backgroundColor: config.fg,
-                              borderColor: config.fg,
-                            },
-                          ]}
-                        >
-                          {isDone ? (
-                            <CheckIcon size={12} color={colors.white} />
-                          ) : (
-                            renderStatusIcon(
-                              step.id,
-                              isCurrentStep ? colors.white : colors.textSecondary,
-                              12,
-                            )
-                          )}
-                        </View>
-                        <Text
-                          style={[
-                            styles.progressLabel,
-                            isDone && styles.progressLabelDone,
-                            isCurrentStep && { color: config.fg, fontWeight: '700' as const },
-                          ]}
-                        >
-                          {t(step.labelKey as any)}
-                        </Text>
-                      </View>
-                      {i < ORDER_PROGRESS_STEPS.length - 1 && (
-                        <View style={[styles.progressLine, isDone && styles.progressLineFilled]} />
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </View>
-            </View>
+            <AppStepIndicator
+              steps={ORDER_PROGRESS_STEPS.map((step) => t(step.labelKey as any))}
+              current={currentStep}
+            />
           )}
         </View>
 
         {/* Client + dates card */}
         <View style={styles.section}>
-          <View style={styles.card}>
-            <TouchableOpacity
-              style={styles.clientRow}
-              onPress={() => onClientPress(order.clientId)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.avatar}>
-                <UserIcon size={18} color={colors.primary} />
-              </View>
-              <View style={styles.clientInfo}>
-                <Text style={styles.clientName}>{order.clientName}</Text>
-                <Text style={styles.clientSub}>{order.paymentTypeName}</Text>
-              </View>
-            </TouchableOpacity>
+          <AppCard padding={0}>
+            <View style={styles.clientRowWrap}>
+              <AppRow
+                leading={<AppIconTile Icon={UserIcon} color={colors.primary} size={40} />}
+                primary={order.clientName}
+                secondary={order.paymentTypeName}
+                onPress={() => onClientPress(order.clientId)}
+                chevron={false}
+              />
+            </View>
             <View style={styles.dateGrid}>
               <View style={styles.dateCell}>
                 <Text style={styles.dateCellLabel}>{t('orders.detail.orderDate')}</Text>
@@ -249,7 +209,7 @@ export const OrderDetailComponent = ({
                 <Text style={styles.dateCellValue}>{order.paymentTypeName}</Text>
               </View>
             </View>
-          </View>
+          </AppCard>
         </View>
 
         {/* Line items */}
@@ -286,10 +246,10 @@ export const OrderDetailComponent = ({
         )}
       </ScrollView>
 
-      {/* Bottom bar — hidden for cancelled orders; bottom edge matches bar background */}
+      {/* Bottom bar — hidden for cancelled orders */}
       {canUpdate && !isCancelled && (
-        <SafeAreaView style={{ backgroundColor: colors.surface }} edges={['bottom']}>
-          <View style={styles.bottomBar}>
+        <AppBottomBar>
+          <>
             {(canMarkInProgress || canMarkDelivered) && (
               <View style={styles.ghostBtnRow}>
                 {canMarkInProgress && (
@@ -348,8 +308,8 @@ export const OrderDetailComponent = ({
                 </Text>
               )}
             </TouchableOpacity>
-          </View>
-        </SafeAreaView>
+          </>
+        </AppBottomBar>
       )}
     </View>
   );
