@@ -24,12 +24,6 @@ public class TransactionController : BaseController
         _pdfService = pdfService;
     }
 
-    private int? GetUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
-    }
-
     private bool IsAdmin()
     {
         var roleId = User.FindFirst("RoleId")?.Value;
@@ -45,8 +39,8 @@ public class TransactionController : BaseController
     [ProducesResponseType(typeof(Response), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] TransactionCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<TransactionDto>());
+        if (ValidateModel<TransactionDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -73,8 +67,8 @@ public class TransactionController : BaseController
     [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] TransactionUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<TransactionDto>());
+        if (ValidateModel<TransactionDto>() is { } invalid)
+            return invalid;
 
         var dto = new UpdateTransactionDto
         {

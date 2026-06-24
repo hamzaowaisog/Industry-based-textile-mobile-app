@@ -328,10 +328,4 @@ public class InvoiceController : BaseController
 
     private static string Curr(decimal v) =>
         v.ToString("C", new CultureInfo("en-PK"));
-
-    private int? GetUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
-    }
 }

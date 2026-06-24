@@ -145,9 +145,8 @@ public class PurchaseService : IPurchaseService
     public async Task<Response<PagedList<PurchaseDto>>> GetAllPaginatedAsync(int page, int pageSize)
     {
         var query = PurchaseQueryWithIncludes().OrderByDescending(p => p.PurchaseDate);
-        var totalCount = await query.CountAsync();
-        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-        var pagedList = new PagedList<PurchaseDto>(items.Select(p => ToDto(p)).ToList(), page, pageSize, totalCount);
+        var paged = await PagedList<Purchase>.CreateAsync(query, page, pageSize);
+        var pagedList = new PagedList<PurchaseDto>(paged.Items.Select(p => ToDto(p)).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
         return Response<PagedList<PurchaseDto>>.SuccessResponse(pagedList, "Purchases fetched successfully.");
     }
 

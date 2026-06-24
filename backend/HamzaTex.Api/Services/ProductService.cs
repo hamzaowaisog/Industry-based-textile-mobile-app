@@ -251,13 +251,12 @@ public class ProductService : IProductService
                     .Include(p => p.ProductUsers)
                     .Where(p => p.ProductUsers.Any(pu => pu.UserId == userId));
 
-        var totalCount = await query.CountAsync();
-        var products = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        var paged = await PagedList<Product>.CreateAsync(query, page, pageSize);
 
-        var committed = await GetCommittedQuantitiesAsync(products.Select(p => p.Id));
-        var items = products.Select(p => ToDto(p, committed.GetValueOrDefault(p.Id, 0))).ToList();
+        var committed = await GetCommittedQuantitiesAsync(paged.Items.Select(p => p.Id));
+        var items = paged.Items.Select(p => ToDto(p, committed.GetValueOrDefault(p.Id, 0))).ToList();
 
-        var pagedList = new PagedList<ProductDto>(items, page, pageSize, totalCount);
+        var pagedList = new PagedList<ProductDto>(items, paged.Page, paged.PageSize, paged.TotalCount);
         return Response<PagedList<ProductDto>>.SuccessResponse(pagedList, "Products fetched successfully.");
    }
     private static ProductDto ToDto(Product entity, decimal committed) =>

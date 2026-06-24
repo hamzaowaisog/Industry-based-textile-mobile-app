@@ -164,11 +164,10 @@ public class TransactionService : ITransactionService
             .OrderByDescending(t => t.TransDate)
             .ThenByDescending(t => t.Id);
 
-        var totalCount = await query.CountAsync();
-        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-        var paged = new PagedList<TransactionDto>(items.Select(ToDto).ToList(), page, pageSize, totalCount);
+        var paged = await PagedList<Transaction>.CreateAsync(query, page, pageSize);
+        var pagedList = new PagedList<TransactionDto>(paged.Items.Select(ToDto).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
 
-        return Response<PagedList<TransactionDto>>.SuccessResponse(paged, "Transactions fetched.");
+        return Response<PagedList<TransactionDto>>.SuccessResponse(pagedList, "Transactions fetched.");
     }
 
     public async Task<Response<List<TransactionDto>>> GetAllByUserIdAsync(int userId)

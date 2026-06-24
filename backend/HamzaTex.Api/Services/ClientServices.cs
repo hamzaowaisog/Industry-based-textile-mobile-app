@@ -38,20 +38,16 @@ public class ClientService : IClientService
 
     public async Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId)
     {
-        var clients = await _dbContext.Clients
+        var query = _dbContext.Clients
             .AsNoTracking()
             .Where(c => c.UserId == userId)
-            .OrderBy(c => c.Name)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+            .OrderBy(c => c.Name);
 
-        var total = await _dbContext.Clients.CountAsync(c => c.UserId == userId);
-        var ids = clients.Select(c => c.Id).ToList();
-        var balances = await GetBalancesAsync(ids);
+        var paged = await PagedList<Client>.CreateAsync(query, page, pageSize);
 
-        var dtos = clients.Select(c => ToDto(c, balances.GetValueOrDefault(c.Id))).ToList();
-        var pagedList = new PagedList<ClientDto>(dtos, page, pageSize, total);
+        var balances = await GetBalancesAsync(paged.Items.Select(c => c.Id).ToList());
+        var dtos = paged.Items.Select(c => ToDto(c, balances.GetValueOrDefault(c.Id))).ToList();
+        var pagedList = new PagedList<ClientDto>(dtos, paged.Page, paged.PageSize, paged.TotalCount);
         return Response<PagedList<ClientDto>>.SuccessResponse(pagedList, "Clients fetched successfully.");
     }
 

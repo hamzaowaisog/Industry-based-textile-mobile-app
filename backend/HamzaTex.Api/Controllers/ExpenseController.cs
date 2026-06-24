@@ -24,12 +24,6 @@ public class ExpenseController : BaseController
         _pdfService = pdfService;
     }
 
-    private int? GetUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
-    }
-
     /// <summary>Create an expense and atomically post a Debit transaction to the ledger.</summary>
     [HttpPost]
     [Authorize(Policy = "AdminOrStaff")]
@@ -37,8 +31,8 @@ public class ExpenseController : BaseController
     [ProducesResponseType(typeof(Response<ExpenseDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] ExpenseCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<ExpenseDto>());
+        if (ValidateModel<ExpenseDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -108,8 +102,8 @@ public class ExpenseController : BaseController
     [ProducesResponseType(typeof(Response<ExpenseDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] ExpenseUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<ExpenseDto>());
+        if (ValidateModel<ExpenseDto>() is { } invalid)
+            return invalid;
 
         var dto = new UpdateExpenseDto
         {

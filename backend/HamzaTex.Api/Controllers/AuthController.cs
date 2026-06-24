@@ -139,11 +139,8 @@ public class AuthController : BaseController
             return ValidationProblem(ModelState);
         }
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var dto = new ChangePasswordDto
         {
@@ -227,7 +224,8 @@ public class AuthController : BaseController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordViewModel model)
     {
-        if (!ModelState.IsValid) return BadRequest(ToValidationResponseFromModelState<SendOtpResponseDto>());
+        if (ValidateModel<SendOtpResponseDto>() is { } invalid)
+            return invalid;
         var response = await _passwordResetService.SendOtpAsync(model.Email);
         return ToActionResult(response);
     }
@@ -239,7 +237,8 @@ public class AuthController : BaseController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> VerifyResetOtp([FromBody] VerifyOtpViewModel model)
     {
-        if (!ModelState.IsValid) return BadRequest(ToValidationResponseFromModelState<VerifyOtpResponseDto>());
+        if (ValidateModel<VerifyOtpResponseDto>() is { } invalid)
+            return invalid;
         var dto = new VerifyOtpDto { Email = model.Email, Code = model.Code };
         var response = await _passwordResetService.VerifyOtpAsync(dto);
         return ToActionResult(response);
@@ -252,7 +251,8 @@ public class AuthController : BaseController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordWithTokenViewModel model)
     {
-        if (!ModelState.IsValid) return BadRequest(ToValidationResponseFromModelState<object>());
+        if (ValidateModel<object>() is { } invalid)
+            return invalid;
         var dto = new ResetPasswordWithTokenDto
         {
             Email = model.Email,
@@ -271,9 +271,8 @@ public class AuthController : BaseController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> BiometricSetup()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-            return Unauthorized("User identifier is missing or invalid in the token.");
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         return ToActionResult(await _loginService.SetupBiometricAsync(userId));
     }
@@ -297,9 +296,8 @@ public class AuthController : BaseController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> BiometricDisable()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-            return Unauthorized("User identifier is missing or invalid in the token.");
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         return ToActionResult(await _loginService.DisableBiometricAsync(userId));
     }

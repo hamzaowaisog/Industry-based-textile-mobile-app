@@ -31,8 +31,8 @@ public class OrderController : BaseController
     [ProducesResponseType(typeof(Response<OrderDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateOrder([FromBody] OrderCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<OrderDto>());
+        if (ValidateModel<OrderDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -117,8 +117,8 @@ public class OrderController : BaseController
     [ProducesResponseType(typeof(Response<OrderDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateOrder(int id, [FromBody] OrderUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<OrderDto>());
+        if (ValidateModel<OrderDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -143,8 +143,8 @@ public class OrderController : BaseController
     [ProducesResponseType(typeof(Response<OrderDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateOrderLines(int id, [FromBody] OrderLinesUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<OrderDto>());
+        if (ValidateModel<OrderDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -199,12 +199,6 @@ public class OrderController : BaseController
             new PdfOptions { ShowRowNumbers = true, SummaryProperty = "Total", SummaryLabel = "Grand Total (PKR)" });
 
         return File(pdfBytes, "application/pdf", "orders.pdf");
-    }
-
-    private int? GetUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
     }
 
     private bool IsAdmin()

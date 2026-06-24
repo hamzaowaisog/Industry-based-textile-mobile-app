@@ -159,9 +159,8 @@ public class OrderService : IOrderService
     public async Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize)
     {
         var query = OrderQueryWithIncludes().OrderByDescending(o => o.OrderDate);
-        var totalCount = await query.CountAsync();
-        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-        var pagedList = new PagedList<OrderDto>(items.Select(o => ToDto(o)).ToList(), page, pageSize, totalCount);
+        var paged = await PagedList<Order>.CreateAsync(query, page, pageSize);
+        var pagedList = new PagedList<OrderDto>(paged.Items.Select(o => ToDto(o)).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
         return Response<PagedList<OrderDto>>.SuccessResponse(pagedList, "Orders fetched successfully.");
     }
 

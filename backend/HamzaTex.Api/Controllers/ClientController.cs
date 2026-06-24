@@ -30,11 +30,8 @@ public class ClientController : BaseController
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllClientsFiltered(int page = 1, int pageSize = 5)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var response = await _clientService.GetAllPaginatedAsync(page, pageSize, userId);
         return ToActionResult(response);
@@ -47,17 +44,11 @@ public class ClientController : BaseController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateClient([FromBody] ClientCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-        {
-            var validationResponse = ToValidationResponseFromModelState<ClientDto>();
-            return ToActionResult(validationResponse);
-        }
+        if (ValidateModel<ClientDto>() is { } invalid)
+            return invalid;
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var dto = new CreateClientDto
         {
@@ -92,11 +83,8 @@ public class ClientController : BaseController
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllClientsByUserId()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var response = await _clientService.GetAllByUserIdAsync(userId);
         return ToActionResult(response);
@@ -121,17 +109,11 @@ public class ClientController : BaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateClientById(int id, [FromBody] ClientUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-        {
-            var validationResponse = ToValidationResponseFromModelState<ClientDto>();
-            return ToActionResult(validationResponse);
-        }
+        if (ValidateModel<ClientDto>() is { } invalid)
+            return invalid;
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var dto = new UpdateClientByIdDto
         {
@@ -168,9 +150,8 @@ public class ClientController : BaseController
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllClientsPdf()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-            return Unauthorized("User identifier is missing or invalid in the token.");
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var response = await _clientService.GetAllByUserIdAsync(userId);
         if (!response.Success)

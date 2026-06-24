@@ -31,17 +31,11 @@ public class ProductController : BaseController
     [ProducesResponseType(typeof(Response<ProductDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateProduct([FromBody] ProductCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-        {
-            var validationResponse = ToValidationResponseFromModelState<ProductDto>();
-            return ToActionResult(validationResponse);
-        }
+        if (ValidateModel<ProductDto>() is { } invalid)
+            return invalid;
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var dto = new CreateProductDto
         {
@@ -72,11 +66,8 @@ public class ProductController : BaseController
     [ProducesResponseType(typeof(Response<ProductDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetProductById(int id)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var response = await _productService.GetByIdAsync(id, userId);
         return ToActionResult(response);
@@ -88,11 +79,8 @@ public class ProductController : BaseController
     [ProducesResponseType(typeof(Response<List<ProductDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllProducts()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var response = await _productService.GetAllAsync(userId);
         return ToActionResult(response);
@@ -112,11 +100,8 @@ public class ProductController : BaseController
             return ValidationProblem(ModelState);
         }
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var dto = new UpdateProductByIdDto
         {
@@ -148,11 +133,8 @@ public class ProductController : BaseController
     [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteProductById(int id)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var response = await _productService.DeleteByIdAsync(id, userId);
         return ToActionResult(response);
@@ -164,11 +146,8 @@ public class ProductController : BaseController
     [ProducesResponseType(typeof(Response<PagedList<ProductDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllProductsPaginated(int page = 1, int pageSize = 5)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var response = await _productService.GetAllPaginatedAsync(page, pageSize, userId);
         return ToActionResult(response);
@@ -180,11 +159,8 @@ public class ProductController : BaseController
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllProductsPdf()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
         var response = await _productService.GetAllAsync(userId);
         if (!response.Success)
         {

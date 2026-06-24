@@ -31,8 +31,8 @@ public class PurchaseController : BaseController
     [ProducesResponseType(typeof(Response<PurchaseDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreatePurchase([FromBody] PurchaseCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<PurchaseDto>());
+        if (ValidateModel<PurchaseDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -117,8 +117,8 @@ public class PurchaseController : BaseController
     [ProducesResponseType(typeof(Response<PurchaseDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdatePurchase(int id, [FromBody] PurchaseUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<PurchaseDto>());
+        if (ValidateModel<PurchaseDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -143,8 +143,8 @@ public class PurchaseController : BaseController
     [ProducesResponseType(typeof(Response<PurchaseDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdatePurchaseLines(int id, [FromBody] PurchaseLinesUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<PurchaseDto>());
+        if (ValidateModel<PurchaseDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -199,12 +199,6 @@ public class PurchaseController : BaseController
             new PdfOptions { ShowRowNumbers = true, SummaryProperty = "Total", SummaryLabel = "Grand Total (PKR)" });
 
         return File(pdfBytes, "application/pdf", "purchases.pdf");
-    }
-
-    private int? GetUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
     }
 
     private bool IsAdmin()

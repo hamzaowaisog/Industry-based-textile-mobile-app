@@ -30,8 +30,8 @@ public class StockMovementsController : BaseController
     [ProducesResponseType(typeof(Response<StockMovementsDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateStockMovement([FromBody] StockMovementsCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<StockMovementsDto>());
+        if (ValidateModel<StockMovementsDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -115,8 +115,8 @@ public class StockMovementsController : BaseController
     [ProducesResponseType(typeof(Response<StockMovementsDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateStockMovement(int id, [FromBody] StockMovementsUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<StockMovementsDto>());
+        if (ValidateModel<StockMovementsDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -171,12 +171,6 @@ public class StockMovementsController : BaseController
             new PdfOptions { ShowRowNumbers = true });
 
         return File(pdfBytes, "application/pdf", "stock-movements.pdf");
-    }
-
-    private int? GetUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
     }
 
     private bool IsAdmin()

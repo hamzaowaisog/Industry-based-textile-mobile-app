@@ -24,12 +24,6 @@ public class PaymentController : BaseController
         _pdfService = pdfService;
     }
 
-    private int? GetUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
-    }
-
     /// <summary>Create a payment. Allocates to orders/purchases (manual or auto-FIFO) and posts to the ledger.</summary>
     [HttpPost]
     [Authorize(Policy = "AdminOrStaff")]
@@ -37,8 +31,8 @@ public class PaymentController : BaseController
     [ProducesResponseType(typeof(Response<PaymentDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] PaymentCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<PaymentDto>());
+        if (ValidateModel<PaymentDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -135,8 +129,8 @@ public class PaymentController : BaseController
     [ProducesResponseType(typeof(Response<PaymentDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] PaymentUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<PaymentDto>());
+        if (ValidateModel<PaymentDto>() is { } invalid)
+            return invalid;
 
         var dto = new UpdatePaymentDto
         {
@@ -169,8 +163,8 @@ public class PaymentController : BaseController
     [ProducesResponseType(typeof(Response<PaymentDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ReverseAndCorrect([FromRoute] int id, [FromBody] ReverseAndCorrectViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<PaymentDto>());
+        if (ValidateModel<PaymentDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
