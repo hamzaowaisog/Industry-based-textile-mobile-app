@@ -24,17 +24,23 @@ public class ClientController : BaseController
         _pdfService = pdfService;
     }
 
-    /// <summary>Get paginated clients for the authenticated user.</summary>
+    /// <summary>Get paginated clients. Staff see their own; Admin sees all clients across all users.</summary>
     [HttpGet("Filtered")]
     [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response<PagedList<ClientDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllClientsFiltered(int page = 1, int pageSize = 5)
     {
         if (GetUserIdOrUnauthorized(out var userId) is { } authError)
             return authError;
 
-        var response = await _clientService.GetAllPaginatedAsync(page, pageSize, userId);
+        var response = await _clientService.GetAllPaginatedAsync(page, pageSize, userId, IsAdmin());
         return ToActionResult(response);
+    }
+
+    private bool IsAdmin()
+    {
+        var roleIdClaim = User.FindFirst("RoleId");
+        return roleIdClaim is not null && int.TryParse(roleIdClaim.Value, out var roleId) && roleId == 1;
     }
 
     /// <summary>Create a new client (customer or supplier) for the authenticated user.</summary>

@@ -21,8 +21,8 @@ public interface IClientService
     Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model);
     /// <summary>Delete a client by ID.</summary>
     Task<Response> DeleteByIdAsync(int id);
-    /// <summary>Get paginated clients for a specific user.</summary>
-    Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId);
+    /// <summary>Get paginated clients. Scoped to the user unless isAdmin, in which case all clients are returned.</summary>
+    Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
 }
 
 public class ClientService : IClientService
@@ -36,12 +36,13 @@ public class ClientService : IClientService
         _notificationService = notificationService;
     }
 
-    public async Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId)
+    public async Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
-        var query = _dbContext.Clients
-            .AsNoTracking()
-            .Where(c => c.UserId == userId)
-            .OrderBy(c => c.Name);
+        var query = _dbContext.Clients.AsNoTracking().AsQueryable();
+        if (!isAdmin)
+            query = query.Where(c => c.UserId == userId);
+
+        query = query.OrderBy(c => c.Name);
 
         var paged = await PagedList<Client>.CreateAsync(query, page, pageSize);
 
