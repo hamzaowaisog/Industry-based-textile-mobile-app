@@ -105,7 +105,7 @@ export const usePurchaseCreatePurchase = <TError = PurchaseDtoResponse,
       return useMutation(getPurchaseCreatePurchaseMutationOptions(options), queryClient);
     }
     /**
- * @summary Get all purchases, paginated. Admin only.
+ * @summary Get all purchases, paginated. Staff see only their own; Admin sees all.
  */
 export const purchaseGetAllPurchasesPaginated = (
     params?: PurchaseGetAllPurchasesPaginatedParams,
@@ -177,7 +177,7 @@ export function usePurchaseGetAllPurchasesPaginated<TData = Awaited<ReturnType<t
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get all purchases, paginated. Admin only.
+ * @summary Get all purchases, paginated. Staff see only their own; Admin sees all.
  */
 
 export function usePurchaseGetAllPurchasesPaginated<TData = Awaited<ReturnType<typeof purchaseGetAllPurchasesPaginated>>, TError = unknown>(
@@ -186,98 +186,6 @@ export function usePurchaseGetAllPurchasesPaginated<TData = Awaited<ReturnType<t
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getPurchaseGetAllPurchasesPaginatedQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-/**
- * @summary Get all purchases belonging to the authenticated user's supplier clients.
- */
-export const purchaseGetMyPurchases = (
-
- signal?: AbortSignal
-) => {
-
-
-      return axiosInstance<PurchaseDtoListResponse>(
-      {url: `/api/Purchase/me`, method: 'GET', signal
-    },
-      );
-    }
-
-
-
-
-export const getPurchaseGetMyPurchasesQueryKey = () => {
-    return [
-    `/api/Purchase/me`
-    ] as const;
-    }
-
-
-export const getPurchaseGetMyPurchasesQueryOptions = <TData = Awaited<ReturnType<typeof purchaseGetMyPurchases>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof purchaseGetMyPurchases>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getPurchaseGetMyPurchasesQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof purchaseGetMyPurchases>>> = ({ signal }) => purchaseGetMyPurchases(signal);
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof purchaseGetMyPurchases>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type PurchaseGetMyPurchasesQueryResult = NonNullable<Awaited<ReturnType<typeof purchaseGetMyPurchases>>>
-export type PurchaseGetMyPurchasesQueryError = unknown
-
-
-export function usePurchaseGetMyPurchases<TData = Awaited<ReturnType<typeof purchaseGetMyPurchases>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof purchaseGetMyPurchases>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof purchaseGetMyPurchases>>,
-          TError,
-          Awaited<ReturnType<typeof purchaseGetMyPurchases>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function usePurchaseGetMyPurchases<TData = Awaited<ReturnType<typeof purchaseGetMyPurchases>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof purchaseGetMyPurchases>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof purchaseGetMyPurchases>>,
-          TError,
-          Awaited<ReturnType<typeof purchaseGetMyPurchases>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function usePurchaseGetMyPurchases<TData = Awaited<ReturnType<typeof purchaseGetMyPurchases>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof purchaseGetMyPurchases>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get all purchases belonging to the authenticated user's supplier clients.
- */
-
-export function usePurchaseGetMyPurchases<TData = Awaited<ReturnType<typeof purchaseGetMyPurchases>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof purchaseGetMyPurchases>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getPurchaseGetMyPurchasesQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -664,7 +572,7 @@ export const usePurchaseUpdatePurchaseLines = <TError = PurchaseDtoResponse,
       return useMutation(getPurchaseUpdatePurchaseLinesMutationOptions(options), queryClient);
     }
     /**
- * @summary Download all purchases for the authenticated user as a PDF report.
+ * @summary Download a purchases PDF report. Admin sees all purchases; non-admins see only their own.
  */
 export const purchaseGetPurchasesPdf = (
 
@@ -736,7 +644,7 @@ export function usePurchaseGetPurchasesPdf<TData = Awaited<ReturnType<typeof pur
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Download all purchases for the authenticated user as a PDF report.
+ * @summary Download a purchases PDF report. Admin sees all purchases; non-admins see only their own.
  */
 
 export function usePurchaseGetPurchasesPdf<TData = Awaited<ReturnType<typeof purchaseGetPurchasesPdf>>, TError = unknown>(

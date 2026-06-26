@@ -104,7 +104,7 @@ export const useStockMovementsCreateStockMovement = <TError = StockMovementsDtoR
       return useMutation(getStockMovementsCreateStockMovementMutationOptions(options), queryClient);
     }
     /**
- * @summary Get all stock movements for the authenticated user's products, paginated.
+ * @summary Get all stock movements, paginated. Non-admins see only movements for their own products; Admin sees all.
  */
 export const stockMovementsGetAllStockMovementsPaginated = (
     params?: StockMovementsGetAllStockMovementsPaginatedParams,
@@ -176,7 +176,7 @@ export function useStockMovementsGetAllStockMovementsPaginated<TData = Awaited<R
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get all stock movements for the authenticated user's products, paginated.
+ * @summary Get all stock movements, paginated. Non-admins see only movements for their own products; Admin sees all.
  */
 
 export function useStockMovementsGetAllStockMovementsPaginated<TData = Awaited<ReturnType<typeof stockMovementsGetAllStockMovementsPaginated>>, TError = unknown>(

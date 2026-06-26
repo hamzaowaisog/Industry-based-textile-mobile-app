@@ -105,7 +105,7 @@ export const useOrderCreateOrder = <TError = OrderDtoResponse,
       return useMutation(getOrderCreateOrderMutationOptions(options), queryClient);
     }
     /**
- * @summary Get all orders, paginated. Admin only.
+ * @summary Get all orders, paginated. Staff see only their own; Admin sees all.
  */
 export const orderGetAllOrdersPaginated = (
     params?: OrderGetAllOrdersPaginatedParams,
@@ -177,7 +177,7 @@ export function useOrderGetAllOrdersPaginated<TData = Awaited<ReturnType<typeof 
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get all orders, paginated. Admin only.
+ * @summary Get all orders, paginated. Staff see only their own; Admin sees all.
  */
 
 export function useOrderGetAllOrdersPaginated<TData = Awaited<ReturnType<typeof orderGetAllOrdersPaginated>>, TError = unknown>(
@@ -186,98 +186,6 @@ export function useOrderGetAllOrdersPaginated<TData = Awaited<ReturnType<typeof 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getOrderGetAllOrdersPaginatedQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-/**
- * @summary Get all orders belonging to the authenticated user's clients.
- */
-export const orderGetMyOrders = (
-
- signal?: AbortSignal
-) => {
-
-
-      return axiosInstance<OrderDtoListResponse>(
-      {url: `/api/Order/me`, method: 'GET', signal
-    },
-      );
-    }
-
-
-
-
-export const getOrderGetMyOrdersQueryKey = () => {
-    return [
-    `/api/Order/me`
-    ] as const;
-    }
-
-
-export const getOrderGetMyOrdersQueryOptions = <TData = Awaited<ReturnType<typeof orderGetMyOrders>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderGetMyOrders>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getOrderGetMyOrdersQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof orderGetMyOrders>>> = ({ signal }) => orderGetMyOrders(signal);
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof orderGetMyOrders>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type OrderGetMyOrdersQueryResult = NonNullable<Awaited<ReturnType<typeof orderGetMyOrders>>>
-export type OrderGetMyOrdersQueryError = unknown
-
-
-export function useOrderGetMyOrders<TData = Awaited<ReturnType<typeof orderGetMyOrders>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderGetMyOrders>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof orderGetMyOrders>>,
-          TError,
-          Awaited<ReturnType<typeof orderGetMyOrders>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrderGetMyOrders<TData = Awaited<ReturnType<typeof orderGetMyOrders>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderGetMyOrders>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof orderGetMyOrders>>,
-          TError,
-          Awaited<ReturnType<typeof orderGetMyOrders>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrderGetMyOrders<TData = Awaited<ReturnType<typeof orderGetMyOrders>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderGetMyOrders>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get all orders belonging to the authenticated user's clients.
- */
-
-export function useOrderGetMyOrders<TData = Awaited<ReturnType<typeof orderGetMyOrders>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderGetMyOrders>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getOrderGetMyOrdersQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -664,7 +572,7 @@ export const useOrderUpdateOrderLines = <TError = OrderDtoResponse,
       return useMutation(getOrderUpdateOrderLinesMutationOptions(options), queryClient);
     }
     /**
- * @summary Download all orders for the authenticated user as a PDF report.
+ * @summary Download an orders PDF report. Admin sees all orders; non-admins see only their own.
  */
 export const orderGetOrdersPdf = (
 
@@ -736,7 +644,7 @@ export function useOrderGetOrdersPdf<TData = Awaited<ReturnType<typeof orderGetO
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Download all orders for the authenticated user as a PDF report.
+ * @summary Download an orders PDF report. Admin sees all orders; non-admins see only their own.
  */
 
 export function useOrderGetOrdersPdf<TData = Awaited<ReturnType<typeof orderGetOrdersPdf>>, TError = unknown>(
