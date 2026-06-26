@@ -60,7 +60,7 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
 
   const clientItems = useMemo(
     () =>
-      (clients ?? [])
+      (Array.isArray(clients) ? clients : [])
         .filter((c) => c.clientTypeId === AppConstants.CLIENT_TYPE.CUSTOMER)
         .map((c) => ({ id: c.id ?? 0, name: c.name ?? '' })),
     [clients],
@@ -134,6 +134,15 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
   const hasUnsavedChanges =
     values.clientId !== null || values.notes.trim() !== '' || values.lines.length > 0;
 
+  const resetOrdersStack = useCallback(() => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: AppConstants.SCREENS.MAIN.ORDER_LIST }],
+      }),
+    );
+  }, [navigation]);
+
   const onNext = useCallback(() => {
     if (step === 0 && !validateStep1()) return;
     if (step === 1 && !validateStep2()) return;
@@ -167,15 +176,6 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
       { text: i18n.t('orders.create.discard'), style: 'destructive', onPress: goBackOrClient },
     ]);
   }, [step, hasUnsavedChanges, navigation, initialClientId, resetOrdersStack]);
-
-  const resetOrdersStack = useCallback(() => {
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: AppConstants.SCREENS.MAIN.ORDER_LIST }],
-      }),
-    );
-  }, [navigation]);
 
   const onSubmit = useCallback(async () => {
     const result = await createOrder(values);

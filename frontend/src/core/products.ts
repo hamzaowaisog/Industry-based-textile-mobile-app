@@ -28,7 +28,9 @@ export const fetchProductsAsync = async (): Promise<ProductPickerItem[]> => {
     const res = await productGetAllProducts();
     const r = parseApiResponse<any[]>(res as unknown, '');
     if (!r.success || !r.data) return [];
-    return r.data.map((p: any) => ({
+    const rawData = r.data as any;
+    const items: any[] = Array.isArray(rawData) ? rawData : (rawData?.items ?? []);
+    return items.map((p: any) => ({
       id: p.id ?? 0,
       name: p.name ?? '',
       sku: p.sku ?? '',
@@ -76,7 +78,9 @@ export const fetchProductMovementsAsync = async (
     const res = await stockMovementsGetByProductId(productId);
     const r = parseApiResponse<any[]>(res as unknown, '');
     if (!r.success || !r.data) return [];
-    return r.data.map(mapApiMovementToRow);
+    const rawData = r.data as any;
+    const items: any[] = Array.isArray(rawData) ? rawData : (rawData?.items ?? []);
+    return items.map(mapApiMovementToRow);
   } catch {
     return [];
   }

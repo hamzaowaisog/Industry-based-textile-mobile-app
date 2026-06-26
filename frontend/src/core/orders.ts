@@ -2,7 +2,6 @@ import {
   orderCreateOrder,
   orderDeleteOrder,
   orderGetAllOrdersPaginated,
-  orderGetMyOrders,
   orderGetOrderById,
   orderUpdateOrder,
   orderUpdateOrderLines,
@@ -14,13 +13,9 @@ import type {
   OrderUpdateViewModel,
 } from '@api/models';
 
-import { useAuthStore } from '@stores/authStore';
-
 import { parseApiError, parseApiResponse } from '@utils/helpers/apiResponse';
 import { mapApiOrderDetail, mapApiOrderToRow } from '@utils/helpers/orderMappers';
 import i18n from '@utils/i18n';
-
-import { AppConstants } from '@constants/appConstants';
 
 import type {
   CreateOrderFormValues,
@@ -28,22 +23,6 @@ import type {
   OrderDetail,
   OrderRow,
 } from '../types/orders.types';
-
-export const fetchOrdersAsync = async (): Promise<OrderRow[]> => {
-  try {
-    const { roleId } = useAuthStore.getState();
-    const isAdmin = roleId === AppConstants.ROLES.ADMIN;
-    const res = isAdmin
-      ? await orderGetAllOrdersPaginated({ page: 1, pageSize: 100 })
-      : await orderGetMyOrders();
-    const r = parseApiResponse<any>(res, '');
-    if (!r.success || !r.data) return [];
-    const items = r.data?.items ?? r.data ?? [];
-    return (items as any[]).map(mapApiOrderToRow);
-  } catch {
-    return [];
-  }
-};
 
 export const fetchOrdersPageAsync = async (
   page: number,
