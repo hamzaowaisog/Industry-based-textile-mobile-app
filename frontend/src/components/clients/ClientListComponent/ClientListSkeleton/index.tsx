@@ -1,23 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 
-import { Animated, View } from 'react-native';
+import { Animated } from 'react-native';
 
 import { AppConstants } from '@constants/appConstants';
 
+import { SkeletonRow } from '../SkeletonRow';
 import { styles } from './styles';
 
 const { PULSE_DURATION_MS, PULSE_MIN_OPACITY, LIST_PLACEHOLDER_COUNT } = AppConstants.SKELETON;
-
-const SkeletonRow = () => (
-  <View style={styles.row}>
-    <View style={styles.avatar} />
-    <View style={styles.body}>
-      <View style={[styles.line, styles.lineWide]} />
-      <View style={[styles.line, styles.lineNarrow]} />
-    </View>
-    <View style={styles.right} />
-  </View>
-);
 
 export const ClientListSkeleton = () => {
   const opacity = useRef(new Animated.Value(1)).current;

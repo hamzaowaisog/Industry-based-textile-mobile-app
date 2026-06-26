@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 
 import { FlatList, RefreshControl, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -15,6 +15,7 @@ import type { ProductListComponentProps, ProductRow } from '../../../types/produ
 import { EmptyState } from './EmptyState';
 import { ProductCard } from './ProductCard';
 import { ProductListSkeleton } from './ProductListSkeleton';
+import { SkeletonRow } from './SkeletonRow';
 import { styles } from './styles';
 
 export const ProductListComponent = ({
@@ -22,20 +23,30 @@ export const ProductListComponent = ({
   totalCount,
   loading,
   refreshing,
+  isFetchingNextPage,
   activeTab,
   search,
   tabCounts,
   onTabChange,
   onPress,
   onRefresh,
+  onEndReached,
   onSearchChange,
   onNewProduct,
   onMenuPress,
 }: ProductListComponentProps & { tabCounts: { all: number; low: number; out: number } }) => {
   const { t } = useTranslation();
 
-  const renderItem = ({ item }: { item: ProductRow }) => (
-    <ProductCard product={item} onPress={onPress} />
+  const renderItem = useCallback(
+    ({ item }: { item: ProductRow }) => <ProductCard product={item} onPress={onPress} />,
+    [onPress],
+  );
+
+  const renderSeparator = useCallback(() => <View style={styles.gap} />, []);
+
+  const renderFooter = useCallback(
+    () => (isFetchingNextPage ? <SkeletonRow /> : null),
+    [isFetchingNextPage],
   );
 
   return (
@@ -106,7 +117,10 @@ export const ProductListComponent = ({
           keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
-          ItemSeparatorComponent={() => <View style={styles.gap} />}
+          ItemSeparatorComponent={renderSeparator}
+          ListFooterComponent={renderFooter}
+          onEndReached={onEndReached}
+          onEndReachedThreshold={0.5}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           refreshControl={

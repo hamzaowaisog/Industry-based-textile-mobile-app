@@ -1,9 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import { DrawerActions } from '@react-navigation/native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { DrawerActions, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useQuery } from '@tanstack/react-query';
+import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
 
 import { useOrderStore } from '@stores/orderStore';
 
@@ -11,9 +10,9 @@ import { STATUS_TAB_ID_MAP } from '@utils/helpers/orderContent';
 
 import { AppConstants } from '@constants/appConstants';
 
-import { fetchOrdersAsync } from '../core/orders';
+import { fetchOrdersPageAsync } from '../core/orders';
 import type { OrderStackParamList } from '../types/navigation.types';
-import type { OrderStatusTab } from '../types/orders.types';
+import type { OrderRow, OrderStatusTab } from '../types/orders.types';
 
 export const useOrderList = () => {
   const navigation = useNavigation<NativeStackNavigationProp<OrderStackParamList>>();
@@ -23,11 +22,15 @@ export const useOrderList = () => {
   const [activeTab, setActiveTab] = useState<OrderStatusTab>('all');
   const [search, setSearch] = useState('');
 
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: ['orders'],
-    queryFn: fetchOrdersAsync,
-    staleTime: 0,
-  });
+  const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
+    useInfiniteQuery<{ items: OrderRow[]; hasNextPage: boolean }, Error, InfiniteData<{ items: OrderRow[]; hasNextPage: boolean }>, string[], number>({
+      queryKey: ['orders'],
+      queryFn: ({ pageParam }) =>
+        fetchOrdersPageAsync(pageParam, AppConstants.PAGINATION.DEFAULT_PAGE_SIZE),
+      initialPageParam: AppConstants.PAGINATION.DEFAULT_PAGE as number,
+      getNextPageParam: (lastPage, pages) => (lastPage.hasNextPage ? pages.length + 1 : undefined),
+      staleTime: 0,
+    });
 
   useFocusEffect(
     useCallback(() => {
@@ -35,8 +38,10 @@ export const useOrderList = () => {
     }, [refetch]),
   );
 
+  const allOrders = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+
   const filtered = useMemo(() => {
-    let result = data ?? [];
+    let result = allOrders;
     const statusId = STATUS_TAB_ID_MAP[activeTab];
     if (statusId !== null) result = result.filter((o) => o.statusId === statusId);
     if (search.trim()) {
@@ -44,13 +49,17 @@ export const useOrderList = () => {
       result = result.filter((o) => o.clientName.toLowerCase().includes(q));
     }
     return result;
-  }, [data, activeTab, search]);
+  }, [allOrders, activeTab, search]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await refetch();
     setRefreshing(false);
   }, [refetch]);
+
+  const onEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const onMenuPress = useCallback(() => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -70,14 +79,16 @@ export const useOrderList = () => {
 
   return {
     orders: filtered,
-    totalCount: (data ?? []).length,
+    totalCount: allOrders.length,
     search,
     activeTab,
-    loading: isFetching && !refreshing,
+    loading: isFetching && !refreshing && !isFetchingNextPage,
     refreshing,
+    isFetchingNextPage,
     onTabChange: setActiveTab,
     onSearchChange: setSearch,
     onRefresh,
+    onEndReached,
     onMenuPress,
     onPress,
     onNewOrder,

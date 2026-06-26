@@ -26,6 +26,7 @@ import type {
 
 import type {
   ClientCreateViewModel,
+  ClientDtoPagedListResponse,
   ClientGetAllClientsFilteredParams,
   ClientUpdateViewModel,
   ProblemDetails
@@ -37,7 +38,7 @@ import { axiosInstance } from '../../../utils/axiosInstance';
 
 
 /**
- * @summary Get paginated clients for the authenticated user.
+ * @summary Get paginated clients. Staff see their own; Admin sees all clients across all users.
  */
 export const clientGetAllClientsFiltered = (
     params?: ClientGetAllClientsFilteredParams,
@@ -45,7 +46,7 @@ export const clientGetAllClientsFiltered = (
 ) => {
 
 
-      return axiosInstance<void>(
+      return axiosInstance<ClientDtoPagedListResponse>(
       {url: `/api/Client/Filtered`, method: 'GET',
         params, signal
     },
@@ -109,7 +110,7 @@ export function useClientGetAllClientsFiltered<TData = Awaited<ReturnType<typeof
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get paginated clients for the authenticated user.
+ * @summary Get paginated clients. Staff see their own; Admin sees all clients across all users.
  */
 
 export function useClientGetAllClientsFiltered<TData = Awaited<ReturnType<typeof clientGetAllClientsFiltered>>, TError = unknown>(

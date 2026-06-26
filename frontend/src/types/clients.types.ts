@@ -110,10 +110,12 @@ export type ClientListComponentProps = {
   search: string;
   loading: boolean;
   refreshing: boolean;
+  isFetchingNextPage: boolean;
   onFilterChange: (f: ClientFilter) => void;
   onSearchChange: (s: string) => void;
   onRowPress: (id: number) => void;
   onRefresh: () => void;
+  onEndReached: () => void;
   onFab: () => void;
   onMenuPress: () => void;
   onAddFirstClient: () => void;

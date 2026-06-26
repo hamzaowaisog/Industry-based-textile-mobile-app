@@ -23,7 +23,7 @@ const BALANCE_TONE = {
   settled: 'neutral',
 } as const;
 
-export const ClientRowCard = ({ item, onPress }: ClientRowCardProps) => {
+export const ClientRowCard = React.memo(({ item, onPress }: ClientRowCardProps) => {
   const { t } = useTranslation();
   const avatarColor =
     item.clientTypeId === AppConstants.CLIENT_TYPE.CUSTOMER ? colors.primary : colors.warning;
@@ -66,4 +66,4 @@ export const ClientRowCard = ({ item, onPress }: ClientRowCardProps) => {
       </View>
     </AppCard>
   );
-};
+});

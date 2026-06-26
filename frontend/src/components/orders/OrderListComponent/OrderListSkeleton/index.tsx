@@ -9,7 +9,7 @@ import { styles } from './styles';
 
 const { PULSE_DURATION_MS, PULSE_MIN_OPACITY, LIST_PLACEHOLDER_COUNT } = AppConstants.SKELETON;
 
-export const ProductListSkeleton = () => {
+export const OrderListSkeleton = () => {
   const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {

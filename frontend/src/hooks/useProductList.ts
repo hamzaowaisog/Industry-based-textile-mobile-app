@@ -2,13 +2,13 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { DrawerActions, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useQuery } from '@tanstack/react-query';
+import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
 
 import { AppConstants } from '@constants/appConstants';
 
-import { fetchAllProductsAsync } from '../core/products';
+import { fetchProductsPageAsync } from '../core/products';
 import type { ProductStackParamList } from '../types/navigation.types';
-import type { ProductStockTab } from '../types/products.types';
+import type { ProductRow, ProductStockTab } from '../types/products.types';
 
 export const useProductList = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ProductStackParamList>>();
@@ -17,11 +17,15 @@ export const useProductList = () => {
   const [activeTab, setActiveTab] = useState<ProductStockTab>('all');
   const [search, setSearch] = useState('');
 
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: ['products'],
-    queryFn: fetchAllProductsAsync,
-    staleTime: 0,
-  });
+  const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
+    useInfiniteQuery<{ items: ProductRow[]; hasNextPage: boolean }, Error, InfiniteData<{ items: ProductRow[]; hasNextPage: boolean }>, string[], number>({
+      queryKey: ['products'],
+      queryFn: ({ pageParam }) =>
+        fetchProductsPageAsync(pageParam, AppConstants.PAGINATION.DEFAULT_PAGE_SIZE),
+      initialPageParam: AppConstants.PAGINATION.DEFAULT_PAGE as number,
+      getNextPageParam: (lastPage, pages) => (lastPage.hasNextPage ? pages.length + 1 : undefined),
+      staleTime: 0,
+    });
 
   useFocusEffect(
     useCallback(() => {
@@ -29,7 +33,7 @@ export const useProductList = () => {
     }, [refetch]),
   );
 
-  const allProducts = data ?? [];
+  const allProducts = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
 
   const filtered = useMemo(() => {
     let result = allProducts;
@@ -59,6 +63,10 @@ export const useProductList = () => {
     setRefreshing(false);
   }, [refetch]);
 
+  const onEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
   const onMenuPress = useCallback(() => {
     navigation.dispatch(DrawerActions.openDrawer());
   }, [navigation]);
@@ -80,11 +88,13 @@ export const useProductList = () => {
     tabCounts,
     search,
     activeTab,
-    loading: isFetching && !refreshing,
+    loading: isFetching && !refreshing && !isFetchingNextPage,
     refreshing,
+    isFetchingNextPage,
     onTabChange: setActiveTab,
     onSearchChange: setSearch,
     onRefresh,
+    onEndReached,
     onMenuPress,
     onPress,
     onNewProduct,

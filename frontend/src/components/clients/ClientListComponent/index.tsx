@@ -1,3 +1,5 @@
+import { useCallback } from 'react';
+
 import { FlatList, RefreshControl, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
@@ -13,6 +15,7 @@ import type { ClientListComponentProps, ClientRow } from '../../../types/clients
 import { ClientListSkeleton } from './ClientListSkeleton';
 import { ClientRowCard } from './ClientRowCard';
 import { EmptyState } from './EmptyState';
+import { SkeletonRow } from './SkeletonRow';
 import { styles } from './styles';
 
 export const ClientListComponent = ({
@@ -21,18 +24,28 @@ export const ClientListComponent = ({
   search,
   loading,
   refreshing,
+  isFetchingNextPage,
   onFilterChange,
   onSearchChange,
   onRowPress,
   onRefresh,
+  onEndReached,
   onFab,
   onMenuPress,
   onAddFirstClient,
 }: ClientListComponentProps) => {
   const { t } = useTranslation();
 
-  const renderItem = ({ item }: { item: ClientRow }) => (
-    <ClientRowCard item={item} onPress={onRowPress} />
+  const renderItem = useCallback(
+    ({ item }: { item: ClientRow }) => <ClientRowCard item={item} onPress={onRowPress} />,
+    [onRowPress],
+  );
+
+  const renderSeparator = useCallback(() => <View style={styles.gap} />, []);
+
+  const renderFooter = useCallback(
+    () => (isFetchingNextPage ? <SkeletonRow /> : null),
+    [isFetchingNextPage],
   );
 
   return (
@@ -98,7 +111,10 @@ export const ClientListComponent = ({
           keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
-          ItemSeparatorComponent={() => <View style={styles.gap} />}
+          ItemSeparatorComponent={renderSeparator}
+          ListFooterComponent={renderFooter}
+          onEndReached={onEndReached}
+          onEndReachedThreshold={0.5}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           refreshControl={

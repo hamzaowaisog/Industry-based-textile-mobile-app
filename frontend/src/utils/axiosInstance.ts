@@ -16,19 +16,31 @@ client.interceptors.request.use(async (config) => {
   return config;
 });
 
+let refreshPromise: Promise<string> | null = null;
+
+const refreshAccessToken = async (): Promise<string> => {
+  const refreshToken = await SecureStore.getItemAsync('refreshToken');
+  if (!refreshToken) throw new Error('No refresh token available');
+
+  const { data } = await axios.post(`${API_URL}/api/Auth/refresh`, { refreshToken });
+  await SecureStore.setItemAsync('accessToken', data.data.token);
+  await SecureStore.setItemAsync('refreshToken', data.data.refreshToken);
+  client.defaults.headers.common.Authorization = `Bearer ${data.data.token}`;
+  return data.data.token;
+};
+
 client.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original: AxiosRequestConfig & { _retry?: boolean } = error.config;
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true;
-      const refreshToken = await SecureStore.getItemAsync('refreshToken');
-      if (!refreshToken) return Promise.reject(error);
       try {
-        const { data } = await axios.post(`${API_URL}/api/Auth/refresh`, { refreshToken });
-        await SecureStore.setItemAsync('accessToken', data.data.token);
-        await SecureStore.setItemAsync('refreshToken', data.data.refreshToken);
-        client.defaults.headers.common.Authorization = `Bearer ${data.data.token}`;
+        refreshPromise ??= refreshAccessToken().finally(() => {
+          refreshPromise = null;
+        });
+        const token = await refreshPromise;
+        original.headers = { ...original.headers, Authorization: `Bearer ${token}` };
         return client(original as AxiosRequestConfig);
       } catch {
         await SecureStore.deleteItemAsync('accessToken');

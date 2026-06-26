@@ -83,11 +83,13 @@ export type ProductListComponentProps = {
   totalCount: number;
   loading: boolean;
   refreshing: boolean;
+  isFetchingNextPage: boolean;
   activeTab: ProductStockTab;
   search: string;
   onTabChange: (tab: ProductStockTab) => void;
   onSearchChange: (s: string) => void;
   onRefresh: () => void;
+  onEndReached: () => void;
   onPress: (id: number) => void;
   onNewProduct: () => void;
   onMenuPress: () => void;

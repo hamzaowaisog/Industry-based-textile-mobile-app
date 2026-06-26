@@ -2,15 +2,13 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { DrawerActions, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useQuery } from '@tanstack/react-query';
+import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
 
 import { useClientStore } from '@stores/clientStore';
 
-import { mapApiClientToRow } from '@utils/helpers/clientMappers';
-
 import { AppConstants } from '@constants/appConstants';
 
-import { fetchClientsAsync } from '../core/clients';
+import { fetchClientsPageAsync } from '../core/clients';
 import type { ClientFilter, ClientRow } from '../types/clients.types';
 import type { ClientStackParamList } from '../types/navigation.types';
 
@@ -22,11 +20,15 @@ export const useClientList = () => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<ClientFilter>('all');
 
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: ['clients'],
-    queryFn: fetchClientsAsync,
-    staleTime: 0,
-  });
+  const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
+    useInfiniteQuery<{ items: ClientRow[]; hasNextPage: boolean }, Error, InfiniteData<{ items: ClientRow[]; hasNextPage: boolean }>, string[], number>({
+      queryKey: ['clients'],
+      queryFn: ({ pageParam }) =>
+        fetchClientsPageAsync(pageParam, AppConstants.PAGINATION.DEFAULT_PAGE_SIZE),
+      initialPageParam: AppConstants.PAGINATION.DEFAULT_PAGE as number,
+      getNextPageParam: (lastPage, pages) => (lastPage.hasNextPage ? pages.length + 1 : undefined),
+      staleTime: 0,
+    });
 
   useFocusEffect(
     useCallback(() => {
@@ -34,10 +36,10 @@ export const useClientList = () => {
     }, [refetch]),
   );
 
-  const rows: ClientRow[] = useMemo(() => {
-    const mapped = (data ?? []).map(mapApiClientToRow);
+  const allClients = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
 
-    const byType = mapped.filter((c) => {
+  const rows: ClientRow[] = useMemo(() => {
+    const byType = allClients.filter((c) => {
       if (filter === 'customers') return c.clientTypeId === AppConstants.CLIENT_TYPE.CUSTOMER;
       if (filter === 'suppliers') return c.clientTypeId === AppConstants.CLIENT_TYPE.SUPPLIER;
       return true;
@@ -48,13 +50,17 @@ export const useClientList = () => {
     return byType.filter(
       (c) => c.name.toLowerCase().includes(q) || (c.phone ?? '').toLowerCase().includes(q),
     );
-  }, [data, filter, search]);
+  }, [allClients, filter, search]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await refetch();
     setRefreshing(false);
   }, [refetch]);
+
+  const onEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const onMenuPress = useCallback(() => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -80,9 +86,11 @@ export const useClientList = () => {
     rows,
     search,
     filter,
-    loading: isFetching && !refreshing,
+    loading: isFetching && !refreshing && !isFetchingNextPage,
     refreshing,
+    isFetchingNextPage,
     onRefresh,
+    onEndReached,
     onSearchChange: setSearch,
     onFilterChange: setFilter,
     onMenuPress,

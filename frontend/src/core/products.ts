@@ -2,6 +2,7 @@ import {
   productCreateProduct,
   productDeleteProductById,
   productGetAllProducts,
+  productGetAllProductsPaginated,
   productGetProductById,
   productUpdateProductById,
 } from '@api/generated/product/product';
@@ -40,14 +41,20 @@ export const fetchProductsAsync = async (): Promise<ProductPickerItem[]> => {
   }
 };
 
-export const fetchAllProductsAsync = async (): Promise<ProductRow[]> => {
+export const fetchProductsPageAsync = async (
+  page: number,
+  pageSize: number,
+): Promise<{ items: ProductRow[]; hasNextPage: boolean }> => {
   try {
-    const res = await productGetAllProducts();
-    const r = parseApiResponse<any[]>(res as unknown, '');
-    if (!r.success || !r.data) return [];
-    return r.data.map(mapApiProductToRow);
+    const res = await productGetAllProductsPaginated({ page, pageSize });
+    const r = parseApiResponse<any>(res as unknown, '');
+    if (!r.success || !r.data) return { items: [], hasNextPage: false };
+    return {
+      items: (r.data.items ?? []).map(mapApiProductToRow),
+      hasNextPage: !!r.data.hasNextPage,
+    };
   } catch {
-    return [];
+    return { items: [], hasNextPage: false };
   }
 };
 

@@ -9,6 +9,7 @@ import {
 } from '@api/generated/order/order';
 import type {
   OrderCreateViewModel,
+  OrderDtoPagedList,
   OrderLinesUpdateViewModel,
   OrderUpdateViewModel,
 } from '@api/models';
@@ -41,6 +42,23 @@ export const fetchOrdersAsync = async (): Promise<OrderRow[]> => {
     return (items as any[]).map(mapApiOrderToRow);
   } catch {
     return [];
+  }
+};
+
+export const fetchOrdersPageAsync = async (
+  page: number,
+  pageSize: number,
+): Promise<{ items: OrderRow[]; hasNextPage: boolean }> => {
+  try {
+     const res = await orderGetAllOrdersPaginated({ page, pageSize });
+    const r = parseApiResponse<OrderDtoPagedList>(res, '');
+    if (!r.success || !r.data) return { items: [], hasNextPage: false };
+    return {
+      items: (r.data.items ?? []).map(mapApiOrderToRow),
+      hasNextPage: !!r.data.hasNextPage,
+    };
+  } catch {
+    return { items: [], hasNextPage: false };
   }
 };
 

@@ -18,7 +18,7 @@ import { AppConstants } from '@constants/appConstants';
 import type { OrderCardProps } from '../../../../types/orders.types';
 import { styles } from './styles';
 
-export const OrderCard = ({ order, onPress }: OrderCardProps) => {
+export const OrderCard = React.memo(({ order, onPress }: OrderCardProps) => {
   const { t } = useTranslation();
   const statusConfig = getOrderStatusConfig(order.statusId);
   const paidRatio = order.total > 0 ? Math.min(order.amountPaid / order.total, 1) : 0;
@@ -61,4 +61,4 @@ export const OrderCard = ({ order, onPress }: OrderCardProps) => {
       )}
     </AppCard>
   );
-};
+});

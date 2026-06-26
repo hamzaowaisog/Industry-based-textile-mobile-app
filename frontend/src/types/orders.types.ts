@@ -82,11 +82,13 @@ export type OrderListComponentProps = {
   totalCount: number;
   loading: boolean;
   refreshing: boolean;
+  isFetchingNextPage: boolean;
   activeTab: OrderStatusTab;
   search: string;
   onTabChange: (tab: OrderStatusTab) => void;
   onPress: (id: number) => void;
   onRefresh: () => void;
+  onEndReached: () => void;
   onSearchChange: (text: string) => void;
   onNewOrder: () => void;
   onMenuPress: () => void;

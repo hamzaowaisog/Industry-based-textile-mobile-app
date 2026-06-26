@@ -12,7 +12,7 @@ import { BoxIcon } from '@constants/svgAssets';
 import type { ProductCardProps } from '../../../../types/products.types';
 import { styles } from './styles';
 
-export const ProductCard = ({ product, onPress }: ProductCardProps) => {
+export const ProductCard = React.memo(({ product, onPress }: ProductCardProps) => {
   const { t } = useTranslation();
 
   const iconColor = product.isOut ? colors.danger : product.isLow ? colors.warning : colors.primary;
@@ -63,4 +63,4 @@ export const ProductCard = ({ product, onPress }: ProductCardProps) => {
       </View>
     </TouchableOpacity>
   );
-};
+});
