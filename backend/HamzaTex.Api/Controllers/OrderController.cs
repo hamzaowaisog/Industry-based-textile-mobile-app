@@ -55,26 +55,16 @@ public class OrderController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Get all orders, paginated. Admin only.</summary>
+    /// <summary>Get all orders, paginated. Staff see only their own; Admin sees all.</summary>
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<PagedList<OrderDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllOrdersPaginated([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
-    {
-        var response = await _orderService.GetAllPaginatedAsync(page, pageSize);
-        return ToActionResult(response);
-    }
-
-    /// <summary>Get all orders belonging to the authenticated user's clients.</summary>
-    [HttpGet("me")]
-    [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(typeof(Response<List<OrderDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMyOrders()
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
 
-        var response = await _orderService.GetAllByUserIdAsync(userId.Value);
+        var response = await _orderService.GetAllPaginatedAsync(page, pageSize, userId.Value, IsAdmin());
         return ToActionResult(response);
     }
 
@@ -174,7 +164,7 @@ public class OrderController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Download all orders for the authenticated user as a PDF report.</summary>
+    /// <summary>Download an orders PDF report. Admin sees all orders; non-admins see only their own.</summary>
     [HttpGet("pdf")]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
@@ -183,9 +173,7 @@ public class OrderController : BaseController
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
 
-        var response = IsAdmin()
-            ? await _orderService.GetAllAsync()
-            : await _orderService.GetAllByUserIdAsync(userId.Value);
+        var response = await _orderService.GetAllAsync(userId.Value, IsAdmin());
 
         if (!response.Success)
             return BadRequest(response.Message);
@@ -199,11 +187,5 @@ public class OrderController : BaseController
             new PdfOptions { ShowRowNumbers = true, SummaryProperty = "Total", SummaryLabel = "Grand Total (PKR)" });
 
         return File(pdfBytes, "application/pdf", "orders.pdf");
-    }
-
-    private bool IsAdmin()
-    {
-        var roleIdClaim = User.FindFirst("RoleId");
-        return roleIdClaim is not null && int.TryParse(roleIdClaim.Value, out var roleId) && roleId == 1;
     }
 }

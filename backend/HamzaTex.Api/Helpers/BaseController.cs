@@ -32,6 +32,16 @@ public class BaseController : ControllerBase
     }
 
     /// <summary>
+    /// True when the authenticated user's <c>RoleId</c> claim equals 1 (Admin).
+    /// Single source of truth for role checks — every controller inherits this.
+    /// </summary>
+    protected bool IsAdmin()
+    {
+        var roleIdClaim = User.FindFirst("RoleId");
+        return roleIdClaim is not null && int.TryParse(roleIdClaim.Value, out var roleId) && roleId == 1;
+    }
+
+    /// <summary>
     /// Returns null when the model state is valid, otherwise the validation-problem response.
     /// Usage: <c>if (ValidateModel&lt;ClientDto&gt;() is { } invalid) return invalid;</c>
     /// </summary>

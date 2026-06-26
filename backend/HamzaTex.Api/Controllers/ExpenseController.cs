@@ -50,27 +50,18 @@ public class ExpenseController : BaseController
         return ToActionResult(await _expenseService.CreateAsync(dto, userId.Value));
     }
 
-    /// <summary>Get all expenses paginated. Admin only.</summary>
+    /// <summary>Get all expenses paginated. Staff see only their own; Admin sees all.</summary>
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<PagedList<ExpenseDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
-        return ToActionResult(await _expenseService.GetAllPaginatedAsync(page, pageSize));
-    }
-
-    /// <summary>Get expenses recorded by the current authenticated user, paginated.</summary>
-    [HttpGet("me")]
-    [ProducesResponseType(typeof(Response<PagedList<ExpenseDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMine(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
-    {
         var userId = GetUserId();
-        if (userId is null) return Unauthorized();
-        return ToActionResult(await _expenseService.GetAllByUserIdAsync(userId.Value, page, pageSize));
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        return ToActionResult(await _expenseService.GetAllPaginatedAsync(page, pageSize, userId.Value, IsAdmin()));
     }
 
     /// <summary>Get an expense by ID.</summary>
@@ -82,7 +73,7 @@ public class ExpenseController : BaseController
         return ToActionResult(await _expenseService.GetByIdAsync(id));
     }
 
-    /// <summary>Filter expenses by type, mode, and date range.</summary>
+    /// <summary>Filter expenses by type, mode, and date range. Admin sees all matches; non-admins see only their own.</summary>
     [HttpGet("filtered")]
     [ProducesResponseType(typeof(Response<List<ExpenseDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFiltered(
@@ -91,7 +82,10 @@ public class ExpenseController : BaseController
         [FromQuery] DateOnly? dateFrom,
         [FromQuery] DateOnly? dateTo)
     {
-        return ToActionResult(await _expenseService.GetFilteredAsync(expenseTypeId, modeId, dateFrom, dateTo));
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        return ToActionResult(await _expenseService.GetFilteredAsync(expenseTypeId, modeId, dateFrom, dateTo, userId.Value, IsAdmin()));
     }
 
     /// <summary>Update amount, mode, date, and notes. TransCategoryId cannot be changed — delete and re-create to reclassify.</summary>
@@ -126,7 +120,7 @@ public class ExpenseController : BaseController
         return ToActionResult(await _expenseService.DeleteByIdAsync(id));
     }
 
-    /// <summary>Export expenses as PDF. Optionally filter by type, mode, and date range.</summary>
+    /// <summary>Export expenses as PDF. Admin sees all; non-admins see only their own. Optionally filter by type, mode, and date range.</summary>
     [HttpGet("pdf")]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
@@ -136,7 +130,10 @@ public class ExpenseController : BaseController
         [FromQuery] DateOnly? dateFrom,
         [FromQuery] DateOnly? dateTo)
     {
-        var result = await _expenseService.GetFilteredAsync(expenseTypeId, modeId, dateFrom, dateTo);
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        var result = await _expenseService.GetFilteredAsync(expenseTypeId, modeId, dateFrom, dateTo, userId.Value, IsAdmin());
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 

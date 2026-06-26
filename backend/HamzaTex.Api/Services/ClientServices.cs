@@ -13,10 +13,8 @@ public interface IClientService
     Task<Response<ClientDto>> CreateAsync(CreateClientDto model);
     /// <summary>Get a client by ID.</summary>
     Task<Response<ClientDto>> GetByIdAsync(int id);
-    /// <summary>Get all clients across all users. Admin use only.</summary>
-    Task<Response<List<ClientDto>>> GetAllAsync();
-    /// <summary>Get all clients belonging to a specific user.</summary>
-    Task<Response<List<ClientDto>>> GetAllByUserIdAsync(int userId);
+    /// <summary>Get all clients. Admin sees all; non-admins see only their own. Used for PDF export + admin list.</summary>
+    Task<Response<List<ClientDto>>> GetAllAsync(int userId, bool isAdmin);
     /// <summary>Update a client by ID.</summary>
     Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model);
     /// <summary>Delete a client by ID.</summary>
@@ -90,33 +88,13 @@ public class ClientService : IClientService
         return Response<ClientDto>.SuccessResponse(ToDto(client, balance), "Client fetched successfully.");
     }
 
-    public async Task<Response<List<ClientDto>>> GetAllAsync()
+    public async Task<Response<List<ClientDto>>> GetAllAsync(int userId, bool isAdmin)
     {
-        var clients = await _dbContext.Clients
-            .AsNoTracking()
-            .Include(client => client.User)
-            .Where(client => client.User != null)
-            .ToListAsync();
+        var query = _dbContext.Clients.AsNoTracking().AsQueryable();
+        if (!isAdmin)
+            query = query.Where(c => c.UserId == userId);
 
-        if (clients is null)
-            return Response<List<ClientDto>>.ErrorResponse("Not found", "No clients found.");
-
-        var ids = clients.Select(c => c.Id).ToList();
-        var balances = await GetBalancesAsync(ids);
-
-        var dtos = clients.Select(c => ToDto(c, balances.GetValueOrDefault(c.Id))).ToList();
-        return Response<List<ClientDto>>.SuccessResponse(dtos, "Clients fetched successfully.");
-    }
-
-    public async Task<Response<List<ClientDto>>> GetAllByUserIdAsync(int userId)
-    {
-        var clients = await _dbContext.Clients
-            .AsNoTracking()
-            .Where(c => c.UserId == userId)
-            .ToListAsync();
-
-        if (clients is null)
-            return Response<List<ClientDto>>.ErrorResponse("Not found", "No clients found.");
+        var clients = await query.OrderBy(c => c.Name).ToListAsync();
 
         var ids = clients.Select(c => c.Id).ToList();
         var balances = await GetBalancesAsync(ids);

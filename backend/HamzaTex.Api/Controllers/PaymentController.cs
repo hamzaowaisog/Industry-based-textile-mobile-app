@@ -56,28 +56,19 @@ public class PaymentController : BaseController
         return ToActionResult(await _paymentService.CreateAsync(dto, userId.Value));
     }
 
-    /// <summary>Get all payments paginated. Admin only.</summary>
+    /// <summary>Get all payments paginated. Staff see only their own; Admin sees all.</summary>
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<PagedList<PaymentDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromQuery] bool includeReversed = false)
     {
-        return ToActionResult(await _paymentService.GetAllPaginatedAsync(page, pageSize, includeReversed));
-    }
-
-    /// <summary>Get payments recorded by the current authenticated user.</summary>
-    [HttpGet("me")]
-    [ProducesResponseType(typeof(Response<PagedList<PaymentDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMine(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
-    {
         var userId = GetUserId();
-        if (userId is null) return Unauthorized();
-        return ToActionResult(await _paymentService.GetAllByUserIdAsync(userId.Value, page, pageSize));
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        return ToActionResult(await _paymentService.GetAllPaginatedAsync(page, pageSize, includeReversed, userId.Value, IsAdmin()));
     }
 
     /// <summary>Get a payment by ID with its allocations.</summary>
@@ -108,8 +99,11 @@ public class PaymentController : BaseController
         [FromQuery] DateOnly? dateTo,
         [FromQuery] bool includeReversed = false)
     {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
         return ToActionResult(await _paymentService.GetFilteredAsync(
-            clientId, directionId, modeId, dateFrom, dateTo, includeReversed));
+            clientId, directionId, modeId, dateFrom, dateTo, includeReversed, userId.Value, IsAdmin()));
     }
 
     /// <summary>Get unallocated credit balance for a client.</summary>
@@ -188,13 +182,16 @@ public class PaymentController : BaseController
         return ToActionResult(await _paymentService.DeleteByIdAsync(id));
     }
 
-    /// <summary>Export payments as PDF.</summary>
+    /// <summary>Export payments as PDF. Admin sees all; non-admins see only their own.</summary>
     [HttpGet("pdf")]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPdf([FromQuery] bool includeReversed = false)
     {
-        var result = await _paymentService.GetFilteredAsync(null, null, null, null, null, includeReversed);
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        var result = await _paymentService.GetFilteredAsync(null, null, null, null, null, includeReversed, userId.Value, IsAdmin());
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 

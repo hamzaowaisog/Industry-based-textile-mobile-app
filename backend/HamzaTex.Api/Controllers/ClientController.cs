@@ -37,12 +37,6 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
-    private bool IsAdmin()
-    {
-        var roleIdClaim = User.FindFirst("RoleId");
-        return roleIdClaim is not null && int.TryParse(roleIdClaim.Value, out var roleId) && roleId == 1;
-    }
-
     /// <summary>Create a new client (customer or supplier) for the authenticated user.</summary>
     [HttpPost]
     [Authorize(Policy = "Authenticated")]
@@ -73,26 +67,16 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Get all clients across all users. Admin only.</summary>
+    /// <summary>Get all clients (unpaginated). Admin sees all; non-admins see only their own. Prefer the paginated <c>GET /Filtered</c> for list UIs; this powers exports and pickers.</summary>
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllClients()
-    {
-        var response = await _clientService.GetAllAsync();
-        return ToActionResult(response);
-    }
-
-    /// <summary>Get all clients belonging to the authenticated user.</summary>
-    [HttpGet("me")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllClientsByUserId()
+    public async Task<IActionResult> GetAllClients()
     {
         if (GetUserIdOrUnauthorized(out var userId) is { } authError)
             return authError;
 
-        var response = await _clientService.GetAllByUserIdAsync(userId);
+        var response = await _clientService.GetAllAsync(userId, IsAdmin());
         return ToActionResult(response);
     }
 
@@ -150,7 +134,7 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Download the authenticated user's client list as a PDF report.</summary>
+    /// <summary>Download a client list as a PDF report. Admin sees all clients; non-admins see only their own.</summary>
     [HttpGet("pdf")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -159,7 +143,7 @@ public class ClientController : BaseController
         if (GetUserIdOrUnauthorized(out var userId) is { } authError)
             return authError;
 
-        var response = await _clientService.GetAllByUserIdAsync(userId);
+        var response = await _clientService.GetAllAsync(userId, IsAdmin());
         if (!response.Success)
             return BadRequest(response.Message);
 

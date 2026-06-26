@@ -55,26 +55,16 @@ public class PurchaseController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Get all purchases, paginated. Admin only.</summary>
+    /// <summary>Get all purchases, paginated. Staff see only their own; Admin sees all.</summary>
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<PagedList<PurchaseDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllPurchasesPaginated([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
-    {
-        var response = await _purchaseService.GetAllPaginatedAsync(page, pageSize);
-        return ToActionResult(response);
-    }
-
-    /// <summary>Get all purchases belonging to the authenticated user's supplier clients.</summary>
-    [HttpGet("me")]
-    [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(typeof(Response<List<PurchaseDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMyPurchases()
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
 
-        var response = await _purchaseService.GetAllByUserIdAsync(userId.Value);
+        var response = await _purchaseService.GetAllPaginatedAsync(page, pageSize, userId.Value, IsAdmin());
         return ToActionResult(response);
     }
 
@@ -174,7 +164,7 @@ public class PurchaseController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Download all purchases for the authenticated user as a PDF report.</summary>
+    /// <summary>Download a purchases PDF report. Admin sees all purchases; non-admins see only their own.</summary>
     [HttpGet("pdf")]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
@@ -183,9 +173,7 @@ public class PurchaseController : BaseController
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
 
-        var response = IsAdmin()
-            ? await _purchaseService.GetAllAsync()
-            : await _purchaseService.GetAllByUserIdAsync(userId.Value);
+        var response = await _purchaseService.GetAllAsync(userId.Value, IsAdmin());
 
         if (!response.Success)
             return BadRequest(response.Message);
@@ -199,11 +187,5 @@ public class PurchaseController : BaseController
             new PdfOptions { ShowRowNumbers = true, SummaryProperty = "Total", SummaryLabel = "Grand Total (PKR)" });
 
         return File(pdfBytes, "application/pdf", "purchases.pdf");
-    }
-
-    private bool IsAdmin()
-    {
-        var roleIdClaim = User.FindFirst("RoleId");
-        return roleIdClaim is not null && int.TryParse(roleIdClaim.Value, out var roleId) && roleId == 1;
     }
 }

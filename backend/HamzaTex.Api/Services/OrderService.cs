@@ -16,12 +16,10 @@ public interface IOrderService
     Task<Response<OrderDto>> CreateAsync(CreateOrderDto model, int userId);
     /// <summary>Get an order by ID with lines. Scoped to the user's clients (staff) or all (admin).</summary>
     Task<Response<OrderDto>> GetByIdAsync(int id, int userId, bool isAdmin);
-    /// <summary>Get all orders. Admin only.</summary>
-    Task<Response<List<OrderDto>>> GetAllAsync();
-    /// <summary>Get all orders for the authenticated user's clients.</summary>
-    Task<Response<List<OrderDto>>> GetAllByUserIdAsync(int userId);
-    /// <summary>Get paginated orders. Admin sees all.</summary>
-    Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize);
+    /// <summary>Get all orders (unpaginated). Admin sees all; non-admins see only their own. Used for PDF export.</summary>
+    Task<Response<List<OrderDto>>> GetAllAsync(int userId, bool isAdmin);
+    /// <summary>Get paginated orders. Admin sees all; non-admins see only their own orders.</summary>
+    Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
     /// <summary>Filter orders by clientId, statusId, and/or date range.</summary>
     Task<Response<List<OrderDto>>> GetFilteredAsync(int? clientId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
     /// <summary>Update order header and handle status transitions (Delivered → stock+ledger, Cancelled → reversal).</summary>
@@ -137,28 +135,24 @@ public class OrderService : IOrderService
         return Response<OrderDto>.SuccessResponse(ToDto(order), "Order fetched successfully.");
     }
 
-    public async Task<Response<List<OrderDto>>> GetAllAsync()
+    public async Task<Response<List<OrderDto>>> GetAllAsync(int userId, bool isAdmin)
     {
-        var orders = await OrderQueryWithIncludes()
-            .OrderByDescending(o => o.OrderDate)
-            .ToListAsync();
+        var query = OrderQueryWithIncludes().AsQueryable();
+        if (!isAdmin)
+            query = query.Where(o => o.UserId == userId);
+
+        var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
 
         return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Orders fetched successfully.");
     }
 
-    public async Task<Response<List<OrderDto>>> GetAllByUserIdAsync(int userId)
+    public async Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
-        var orders = await OrderQueryWithIncludes()
-            .Where(o => o.UserId == userId)
-            .OrderByDescending(o => o.OrderDate)
-            .ToListAsync();
+        var query = OrderQueryWithIncludes().AsQueryable();
+        if (!isAdmin)
+            query = query.Where(o => o.UserId == userId);
 
-        return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Orders fetched successfully.");
-    }
-
-    public async Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize)
-    {
-        var query = OrderQueryWithIncludes().OrderByDescending(o => o.OrderDate);
+        query = query.OrderByDescending(o => o.OrderDate);
         var paged = await PagedList<Order>.CreateAsync(query, page, pageSize);
         var pagedList = new PagedList<OrderDto>(paged.Items.Select(o => ToDto(o)).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
         return Response<PagedList<OrderDto>>.SuccessResponse(pagedList, "Orders fetched successfully.");

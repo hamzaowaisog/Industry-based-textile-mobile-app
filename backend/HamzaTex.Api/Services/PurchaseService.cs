@@ -16,12 +16,10 @@ public interface IPurchaseService
     Task<Response<PurchaseDto>> CreateAsync(CreatePurchaseDto model, int userId);
     /// <summary>Get a purchase by ID with lines.</summary>
     Task<Response<PurchaseDto>> GetByIdAsync(int id, int userId, bool isAdmin);
-    /// <summary>Get all purchases. Admin only.</summary>
-    Task<Response<List<PurchaseDto>>> GetAllAsync();
-    /// <summary>Get all purchases for the authenticated user's supplier clients.</summary>
-    Task<Response<List<PurchaseDto>>> GetAllByUserIdAsync(int userId);
-    /// <summary>Get paginated purchases. Admin sees all.</summary>
-    Task<Response<PagedList<PurchaseDto>>> GetAllPaginatedAsync(int page, int pageSize);
+    /// <summary>Get all purchases (unpaginated). Admin sees all; non-admins see only their own. Used for PDF export.</summary>
+    Task<Response<List<PurchaseDto>>> GetAllAsync(int userId, bool isAdmin);
+    /// <summary>Get paginated purchases. Admin sees all; non-admins see only their own purchases.</summary>
+    Task<Response<PagedList<PurchaseDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
     /// <summary>Filter purchases by supplierId, statusId, and/or date range.</summary>
     Task<Response<List<PurchaseDto>>> GetFilteredAsync(int? supplierId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
     /// <summary>Update purchase header and handle status transitions (Delivered → stock+ledger, Cancelled → reversal).</summary>
@@ -123,28 +121,24 @@ public class PurchaseService : IPurchaseService
         return Response<PurchaseDto>.SuccessResponse(ToDto(purchase), "Purchase fetched successfully.");
     }
 
-    public async Task<Response<List<PurchaseDto>>> GetAllAsync()
+    public async Task<Response<List<PurchaseDto>>> GetAllAsync(int userId, bool isAdmin)
     {
-        var purchases = await PurchaseQueryWithIncludes()
-            .OrderByDescending(p => p.PurchaseDate)
-            .ToListAsync();
+        var query = PurchaseQueryWithIncludes().AsQueryable();
+        if (!isAdmin)
+            query = query.Where(p => p.UserId == userId);
+
+        var purchases = await query.OrderByDescending(p => p.PurchaseDate).ToListAsync();
 
         return Response<List<PurchaseDto>>.SuccessResponse(purchases.Select(p => ToDto(p)).ToList(), "Purchases fetched successfully.");
     }
 
-    public async Task<Response<List<PurchaseDto>>> GetAllByUserIdAsync(int userId)
+    public async Task<Response<PagedList<PurchaseDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
-        var purchases = await PurchaseQueryWithIncludes()
-            .Where(p => p.UserId == userId)
-            .OrderByDescending(p => p.PurchaseDate)
-            .ToListAsync();
+        var query = PurchaseQueryWithIncludes().AsQueryable();
+        if (!isAdmin)
+            query = query.Where(p => p.UserId == userId);
 
-        return Response<List<PurchaseDto>>.SuccessResponse(purchases.Select(p => ToDto(p)).ToList(), "Purchases fetched successfully.");
-    }
-
-    public async Task<Response<PagedList<PurchaseDto>>> GetAllPaginatedAsync(int page, int pageSize)
-    {
-        var query = PurchaseQueryWithIncludes().OrderByDescending(p => p.PurchaseDate);
+        query = query.OrderByDescending(p => p.PurchaseDate);
         var paged = await PagedList<Purchase>.CreateAsync(query, page, pageSize);
         var pagedList = new PagedList<PurchaseDto>(paged.Items.Select(p => ToDto(p)).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
         return Response<PagedList<PurchaseDto>>.SuccessResponse(pagedList, "Purchases fetched successfully.");

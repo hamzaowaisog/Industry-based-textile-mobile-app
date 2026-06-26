@@ -24,11 +24,6 @@ public class TransactionController : BaseController
         _pdfService = pdfService;
     }
 
-    private bool IsAdmin()
-    {
-        var roleId = User.FindFirst("RoleId")?.Value;
-        return roleId == "1";
-    }
 
     // ── Write ─────────────────────────────────────────────────────────────────
 
@@ -97,26 +92,19 @@ public class TransactionController : BaseController
 
     // ── Read ──────────────────────────────────────────────────────────────────
 
-    /// <summary>Get all transactions paginated. Admin only.</summary>
+    /// <summary>Get all transactions paginated. Staff see only their own; Admin sees all.</summary>
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<PagedList<TransactionDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        return ToActionResult(await _transactionService.GetAllPaginatedAsync(page, pageSize));
-    }
-
-    /// <summary>Get transactions for the currently logged-in user.</summary>
-    [HttpGet("me")]
-    [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(typeof(Response<List<TransactionDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMe()
-    {
         var userId = GetUserId();
-        if (userId is null) return Unauthorized();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
 
-        return ToActionResult(await _transactionService.GetAllByUserIdAsync(userId.Value));
+        return ToActionResult(await _transactionService.GetAllPaginatedAsync(page, pageSize, userId.Value, IsAdmin()));
     }
+
+
 
     /// <summary>Get a transaction by ID. Staff can only access their own records.</summary>
     [HttpGet("{id:int}")]
@@ -144,9 +132,9 @@ public class TransactionController : BaseController
         return ToActionResult(await _transactionService.GetAllByClientIdAsync(clientId, userId.Value, IsAdmin()));
     }
 
-    /// <summary>Filter transactions by typeId, categoryId, modeId, clientId, dateFrom, dateTo. Admin only.</summary>
+    /// <summary>Filter transactions by typeId, categoryId, modeId, clientId, dateFrom, dateTo. Admin sees all matches; non-admins see only their own.</summary>
     [HttpGet("filtered")]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<List<TransactionDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFiltered(
         [FromQuery] int? typeId,
@@ -156,17 +144,23 @@ public class TransactionController : BaseController
         [FromQuery] DateOnly? dateFrom,
         [FromQuery] DateOnly? dateTo)
     {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
         return ToActionResult(await _transactionService.GetFilteredAsync(
-            typeId, categoryId, modeId, clientId, dateFrom, dateTo));
+            typeId, categoryId, modeId, clientId, dateFrom, dateTo, userId.Value, IsAdmin()));
     }
 
-    /// <summary>Export all transactions as PDF. Admin only.</summary>
+    /// <summary>Export transactions as PDF. Admin sees all; non-admins see only their own.</summary>
     [HttpGet("pdf")]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPdf()
     {
-        var result = await _transactionService.GetAllAsync();
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        var result = await _transactionService.GetAllAsync(userId.Value, IsAdmin());
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 

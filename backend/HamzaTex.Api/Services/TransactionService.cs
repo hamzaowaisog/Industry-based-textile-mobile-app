@@ -19,20 +19,17 @@ public interface ITransactionService
     /// <summary>Get a transaction by ID. Staff can only access their own records.</summary>
     Task<Response<TransactionDto>> GetByIdAsync(int id, int userId, bool isAdmin);
 
-    /// <summary>Get all transactions paginated. Admin only.</summary>
-    Task<Response<PagedList<TransactionDto>>> GetAllPaginatedAsync(int page, int pageSize);
-
-    /// <summary>Get transactions for the current user (for /me endpoint).</summary>
-    Task<Response<List<TransactionDto>>> GetAllByUserIdAsync(int userId);
+    /// <summary>Get all transactions paginated. Admin sees all; non-admins see only their own transactions.</summary>
+    Task<Response<PagedList<TransactionDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
 
     /// <summary>Get all transactions for a client. Staff: ownership check applied.</summary>
     Task<Response<List<TransactionDto>>> GetAllByClientIdAsync(int clientId, int userId, bool isAdmin);
 
-    /// <summary>Filter transactions by any combination of typeId, categoryId, modeId, clientId, dateFrom, dateTo.</summary>
-    Task<Response<List<TransactionDto>>> GetFilteredAsync(int? typeId, int? categoryId, int? modeId, int? clientId, DateOnly? dateFrom, DateOnly? dateTo);
+    /// <summary>Filter transactions by any combination of typeId, categoryId, modeId, clientId, dateFrom, dateTo. Admin sees all matches; non-admins see only their own.</summary>
+    Task<Response<List<TransactionDto>>> GetFilteredAsync(int? typeId, int? categoryId, int? modeId, int? clientId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
 
-    /// <summary>Get all transactions (non-paginated) for PDF export.</summary>
-    Task<Response<List<TransactionDto>>> GetAllAsync();
+    /// <summary>Get all transactions (non-paginated). Admin sees all; non-admins see only their own. Used for PDF export.</summary>
+    Task<Response<List<TransactionDto>>> GetAllAsync(int userId, bool isAdmin);
 
     /// <summary>Update a manual transaction. Returns an error if the transaction was auto-posted.</summary>
     Task<Response<TransactionDto>> UpdateByIdAsync(int id, UpdateTransactionDto model);
@@ -158,11 +155,13 @@ public class TransactionService : ITransactionService
         return Response<TransactionDto>.SuccessResponse(ToDto(entity), "Transaction fetched.");
     }
 
-    public async Task<Response<PagedList<TransactionDto>>> GetAllPaginatedAsync(int page, int pageSize)
+    public async Task<Response<PagedList<TransactionDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
-        var query = WithIncludes(_db.Transactions.AsNoTracking())
-            .OrderByDescending(t => t.TransDate)
-            .ThenByDescending(t => t.Id);
+        var query = WithIncludes(_db.Transactions.AsNoTracking()).AsQueryable();
+        if (!isAdmin)
+            query = query.Where(t => t.UserId == userId);
+
+        query = query.OrderByDescending(t => t.TransDate).ThenByDescending(t => t.Id);
 
         var paged = await PagedList<Transaction>.CreateAsync(query, page, pageSize);
         var pagedList = new PagedList<TransactionDto>(paged.Items.Select(ToDto).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
@@ -170,10 +169,13 @@ public class TransactionService : ITransactionService
         return Response<PagedList<TransactionDto>>.SuccessResponse(pagedList, "Transactions fetched.");
     }
 
-    public async Task<Response<List<TransactionDto>>> GetAllByUserIdAsync(int userId)
+    public async Task<Response<List<TransactionDto>>> GetAllAsync(int userId, bool isAdmin)
     {
-        var list = await WithIncludes(_db.Transactions.AsNoTracking())
-            .Where(t => t.UserId == userId)
+        var query = WithIncludes(_db.Transactions.AsNoTracking()).AsQueryable();
+        if (!isAdmin)
+            query = query.Where(t => t.UserId == userId);
+
+        var list = await query
             .OrderByDescending(t => t.TransDate)
             .ThenByDescending(t => t.Id)
             .ToListAsync();
@@ -205,9 +207,11 @@ public class TransactionService : ITransactionService
 
     public async Task<Response<List<TransactionDto>>> GetFilteredAsync(
         int? typeId, int? categoryId, int? modeId, int? clientId,
-        DateOnly? dateFrom, DateOnly? dateTo)
+        DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin)
     {
-        var query = WithIncludes(_db.Transactions.AsNoTracking());
+        var query = WithIncludes(_db.Transactions.AsNoTracking()).AsQueryable();
+        if (!isAdmin)
+            query = query.Where(t => t.UserId == userId);
 
         if (typeId.HasValue)     query = query.Where(t => t.TransTypeId     == typeId);
         if (categoryId.HasValue) query = query.Where(t => t.TransCategoryId == categoryId);
@@ -217,17 +221,6 @@ public class TransactionService : ITransactionService
         if (dateTo.HasValue)     query = query.Where(t => t.TransDate       <= dateTo);
 
         var list = await query
-            .OrderByDescending(t => t.TransDate)
-            .ThenByDescending(t => t.Id)
-            .ToListAsync();
-
-        return Response<List<TransactionDto>>.SuccessResponse(
-            list.Select(ToDto).ToList(), "Transactions fetched.");
-    }
-
-    public async Task<Response<List<TransactionDto>>> GetAllAsync()
-    {
-        var list = await WithIncludes(_db.Transactions.AsNoTracking())
             .OrderByDescending(t => t.TransDate)
             .ThenByDescending(t => t.Id)
             .ToListAsync();

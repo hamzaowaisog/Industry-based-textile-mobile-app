@@ -51,7 +51,7 @@ public class StockMovementsController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Get all stock movements for the authenticated user's products, paginated.</summary>
+    /// <summary>Get all stock movements, paginated. Non-admins see only movements for their own products; Admin sees all.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(Response<PagedList<StockMovementsDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllStockMovementsPaginated([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
@@ -59,7 +59,7 @@ public class StockMovementsController : BaseController
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
 
-        var response = await _stockMovementsService.GetAllPaginatedAsync(page, pageSize, userId.Value);
+        var response = await _stockMovementsService.GetAllPaginatedAsync(page, pageSize, userId.Value, IsAdmin());
         return ToActionResult(response);
     }
 

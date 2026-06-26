@@ -20,7 +20,8 @@ public interface IStockMovementsService
     /// <summary>Get all stock movements for the user's products, ordered by date descending.</summary>
     Task<Response<List<StockMovementsDto>>> GetAllAsync(int userId);
     /// <summary>Get paginated stock movements for the user's products.</summary>
-    Task<Response<PagedList<StockMovementsDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId);
+    /// <summary>Get paginated stock movements. Admin sees all; non-admins see only movements for their own products.</summary>
+    Task<Response<PagedList<StockMovementsDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
     /// <summary>Filter stock movements by product, type, source, and/or date range.</summary>
     Task<Response<List<StockMovementsDto>>> GetFilteredAsync(
         int? productId,
@@ -253,17 +254,19 @@ public class StockMovementsService : IStockMovementsService
         return Response<List<StockMovementsDto>>.SuccessResponse(dtos, "Stock movements fetched successfully.");
     }
 
-    public async Task<Response<PagedList<StockMovementsDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId)
+    public async Task<Response<PagedList<StockMovementsDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
         var query = _dbContext.StockMovements
             .Include(sm => sm.Product)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
-            .Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId))
-            .OrderByDescending(sm => sm.MovementDate)
-            .Select(sm => ToDto(sm));
+            .AsQueryable();
 
-        var pagedList = await PagedList<StockMovementsDto>.CreateAsync(query, page, pageSize);
+        if (!isAdmin)
+            query = query.Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId));
+
+        query = query.OrderByDescending(sm => sm.MovementDate);
+        var pagedList = await PagedList<StockMovementsDto>.CreateAsync(query.Select(sm => ToDto(sm)), page, pageSize);
         return Response<PagedList<StockMovementsDto>>.SuccessResponse(pagedList, "Stock movements fetched successfully.");
     }
 
