@@ -40,7 +40,7 @@ public class ClientService : IClientService
         if (!isAdmin)
             query = query.Where(c => c.UserId == userId);
 
-        query = query.OrderBy(c => c.Name);
+        query = query.Include(c => c.ClientType).OrderBy(c => c.Name);
 
         var paged = await PagedList<Client>.CreateAsync(query, page, pageSize);
 
@@ -74,6 +74,7 @@ public class ClientService : IClientService
     public async Task<Response<ClientDto>> GetByIdAsync(int id)
     {
         var client = await _dbContext.Clients
+            .Include(client => client.ClientType)
             .Where(client => client.Id == id && client.UserId != null && _dbContext.Users.Any(user => user.Id == client.UserId))
             .FirstOrDefaultAsync();
 
@@ -94,7 +95,7 @@ public class ClientService : IClientService
         if (!isAdmin)
             query = query.Where(c => c.UserId == userId);
 
-        var clients = await query.OrderBy(c => c.Name).ToListAsync();
+        var clients = await query.Include(c => c.ClientType).OrderBy(c => c.Name).ToListAsync();
 
         var ids = clients.Select(c => c.Id).ToList();
         var balances = await GetBalancesAsync(ids);
@@ -170,6 +171,7 @@ public class ClientService : IClientService
             Id = entity.Id,
             Name = entity.Name ?? string.Empty,
             ClientTypeId = entity.ClientTypeId ?? 0,
+            ClientTypeName = entity.ClientType?.Name,
             UserId = entity.UserId ?? 0,
             Phone = entity.Phone ?? string.Empty,
             Address = entity.Address ?? string.Empty,

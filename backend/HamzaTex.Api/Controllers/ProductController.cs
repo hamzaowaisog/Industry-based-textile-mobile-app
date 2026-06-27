@@ -17,11 +17,13 @@ public class ProductController : BaseController
 {
     private readonly IProductService _productService;
     private readonly IPdfService _pdfService;
+    private readonly IStockMovementsService _stockMovementsService;
 
-    public ProductController(IProductService productService, IPdfService pdfService)
+    public ProductController(IProductService productService, IPdfService pdfService, IStockMovementsService stockMovementsService)
     {
         _productService = productService;
         _pdfService = pdfService;
+        _stockMovementsService = stockMovementsService;
     }
 
     /// <summary>Create a new product and link it to the authenticated user. Records an initial stock movement for the opening quantity.</summary>
@@ -169,5 +171,76 @@ public class ProductController : BaseController
         var products = response.Data ?? new List<ProductDto>();
         var pdfBytes = _pdfService.CreatePdf("Products", "Cost and price are per meter. Quantity is in meters.", products, EntityPdfConfigs.Product, new PdfOptions { ShowRowNumbers = true, SummaryProperty = "DefaultPrice", SummaryMultiplierProperty = "Quantity", SummaryLabel = "Total Value (Qty × Price)" });
         return File(pdfBytes, "application/pdf", "products.pdf");
+    }
+
+    /// <summary>Download a single product's full dossier as a branded PDF — profile, valuation, and complete stock-movement history. Scoped to the authenticated user's products.</summary>
+    [HttpGet("{id:int}/pdf")]
+    [Authorize(Policy = "Authenticated")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetProductDossierPdf([FromRoute] int id)
+    {
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+        var isAdmin = IsAdmin();
+
+        var productResp = await _productService.GetByIdAsync(id, userId);
+        if (!productResp.Success || productResp.Data is null)
+            return NotFound(productResp.Message);
+
+        var p = productResp.Data;
+        var movementsResp = await _stockMovementsService.GetByProductIdAsync(id, userId, isAdmin);
+        var movements = movementsResp.Data ?? new List<StockMovementsDto>();
+
+        var qty = p.Quantity ?? 0;
+        var avgCost = p.AverageCost ?? 0;
+        var inventoryValue = qty * avgCost;
+        var isLowStock = p.ReorderLevel.HasValue && qty <= p.ReorderLevel.Value;
+
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel      = "PRODUCT DOSSIER",
+            Reference           = p.Sku,
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = p.Name,
+            PreparedForSubtitle = $"SKU {p.Sku} · Unit {p.Unit}",
+            PeriodLabel         = "AS OF",
+            PeriodValue         = DateTime.Now.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat("Current Stock", $"{qty:0.##} {p.Unit}"),
+                new Stat("Avg Cost", PdfFormat.Rs(avgCost)),
+                new Stat("Avg Price", PdfFormat.Rs(p.AveragePrice ?? 0)),
+                new Stat("Inventory Value", PdfFormat.Rs(inventoryValue), Highlight: true),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Stock Movements",
+                    Headers:    new[] { "#", "Date", "Type", "Source", "Qty", "Unit Cost", "Unit Price" },
+                    RightAlign: new[] { 4, 5, 6 },
+                    Rows:       movements.Select((m, i) => new[]
+                    {
+                        (i + 1).ToString(),
+                        m.MovementDate.ToString("dd MMM yyyy"),
+                        m.MovementTypeName ?? "—",
+                        m.MovementSourceName ?? "—",
+                        m.Qty.ToString("0.##"),
+                        m.UnitCost.HasValue ? PdfFormat.Rs(m.UnitCost.Value) : "—",
+                        m.UnitPrice.HasValue ? PdfFormat.Rs(m.UnitPrice.Value) : "—",
+                    })),
+            },
+            Closing = new ClosingSummary(
+                LeftLabel:    "LIFETIME MOVEMENT",
+                LeftSubtitle: $"{p.TotalQuantityPurchased ?? 0:0.##} {p.Unit} in · {p.TotalQuantitySold ?? 0:0.##} {p.Unit} out",
+                RightLabel:   "CURRENT STOCK",
+                RightValue:   $"{qty:0.##} {p.Unit}"),
+            ClosingNote = isLowStock
+                ? $"Below reorder level ({p.ReorderLevel} {p.Unit})."
+                : $"{movements.Count} stock movements recorded.",
+        };
+
+        var fileName = $"product-dossier-{p.Sku}.pdf";
+        return File(_pdfService.CreateDocument(model), "application/pdf", fileName);
     }
 }

@@ -17,10 +17,12 @@ namespace HamzaTex.Api.Controllers;
 public class InvoiceController : BaseController
 {
     private readonly IInvoiceService _invoiceService;
+    private readonly IPdfService _pdfService;
 
-    public InvoiceController(IInvoiceService invoiceService)
+    public InvoiceController(IInvoiceService invoiceService, IPdfService pdfService)
     {
         _invoiceService = invoiceService;
+        _pdfService = pdfService;
     }
 
     /// <summary>Create a standalone invoice.</summary>
@@ -169,7 +171,7 @@ public class InvoiceController : BaseController
             },
         };
 
-        return File(HamzaTexPdf.Generate(model), "application/pdf", "invoices.pdf");
+        return File(_pdfService.CreateDocument(model), "application/pdf", "invoices.pdf");
     }
 
     /// <summary>Export a single invoice as a formal branded PDF.</summary>
@@ -224,7 +226,7 @@ public class InvoiceController : BaseController
             },
         };
 
-        return File(HamzaTexPdf.Generate(model), "application/pdf", $"{inv.InvoiceNumber}.pdf");
+        return File(_pdfService.CreateDocument(model), "application/pdf", $"{inv.InvoiceNumber}.pdf");
     }
 
     /// <summary>Export all invoices for a client as a PDF with aggregate stat cards.</summary>
@@ -270,7 +272,7 @@ public class InvoiceController : BaseController
             },
         };
 
-        return File(HamzaTexPdf.Generate(model), "application/pdf", $"invoices-client-{clientId}.pdf");
+        return File(_pdfService.CreateDocument(model), "application/pdf", $"invoices-client-{clientId}.pdf");
     }
 
     /// <summary>Export filtered invoices as a PDF.</summary>
@@ -323,9 +325,8 @@ public class InvoiceController : BaseController
             },
         };
 
-        return File(HamzaTexPdf.Generate(model), "application/pdf", "invoices-filtered.pdf");
+        return File(_pdfService.CreateDocument(model), "application/pdf", "invoices-filtered.pdf");
     }
 
-    private static string Curr(decimal v) =>
-        v.ToString("C", new CultureInfo("en-PK"));
+    private static string Curr(decimal v) => PdfFormat.Rs(v);
 }

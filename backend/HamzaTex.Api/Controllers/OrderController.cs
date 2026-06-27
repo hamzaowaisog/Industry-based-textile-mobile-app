@@ -188,4 +188,61 @@ public class OrderController : BaseController
 
         return File(pdfBytes, "application/pdf", "orders.pdf");
     }
+
+    /// <summary>Download a single order as a branded PDF dossier — header, line items, totals, and payment status.</summary>
+    [HttpGet("{id:int}/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetOrderDossierPdf([FromRoute] int id)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in token.");
+
+        var response = await _orderService.GetByIdAsync(id, userId.Value, IsAdmin());
+        if (!response.Success || response.Data is null)
+            return NotFound(response.Message);
+
+        var o = response.Data;
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel      = "ORDER",
+            Reference           = $"HT-ORDER-{o.Id}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = o.ClientName ?? "—",
+            PreparedForSubtitle = $"{o.StatusName} · {o.PaymentTypeName}",
+            PeriodLabel         = "ORDER DATE",
+            PeriodValue         = o.OrderDate.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat("Status", o.StatusName ?? "—"),
+                new Stat("Total", PdfFormat.Rs(o.Total)),
+                new Stat("Received", PdfFormat.Rs(o.AmountReceived)),
+                new Stat("Receivable", PdfFormat.Rs(o.Receivable), Highlight: true),
+                new Stat("Payment", o.PaymentStatus),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Line Items",
+                    Headers:    new[] { "#", "Product", "Qty", "Unit Price", "Line Total" },
+                    RightAlign: new[] { 2, 3, 4 },
+                    Rows:       o.OrderLines.Select((l, i) => new[]
+                    {
+                        (i + 1).ToString(),
+                        l.ProductName ?? "—",
+                        l.Qty.ToString("0.##"),
+                        PdfFormat.Rs(l.UnitPrice),
+                        PdfFormat.Rs(l.LineTotal),
+                    })),
+            },
+            Closing = new ClosingSummary(
+                LeftLabel:    "PAYMENT STATUS",
+                LeftSubtitle: o.PaymentStatus,
+                RightLabel:   "ORDER TOTAL",
+                RightValue:   PdfFormat.Rs(o.Total)),
+            ClosingNote = !string.IsNullOrWhiteSpace(o.Notes) ? $"Notes: {o.Notes}" : null,
+        };
+
+        return File(_pdfService.CreateDocument(model), "application/pdf", $"order-{o.Id}.pdf");
+    }
 }

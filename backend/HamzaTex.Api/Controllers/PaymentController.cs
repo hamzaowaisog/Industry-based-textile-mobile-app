@@ -199,4 +199,56 @@ public class PaymentController : BaseController
         var pdf = _pdfService.CreatePdf("Payments", "Payment records. All amounts in PKR.", payments, EntityPdfConfigs.Payment, new PdfOptions { ShowRowNumbers = true });
         return File(pdf, "application/pdf", "payments.pdf");
     }
+
+    /// <summary>Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations.</summary>
+    [HttpGet("{id:int}/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetPaymentDossierPdf([FromRoute] int id)
+    {
+        var response = await _paymentService.GetByIdAsync(id);
+        if (!response.Success || response.Data is null)
+            return NotFound(response.Message);
+
+        var p = response.Data;
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel      = "PAYMENT",
+            Reference           = $"HT-PAYMENT-{p.Id}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = p.PartyClientName ?? "—",
+            PreparedForSubtitle = $"{p.PaymentDirectionName} · {p.TransModeName}",
+            PeriodLabel         = "PAYMENT DATE",
+            PeriodValue         = p.PaymentDate.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat("Amount", PdfFormat.Rs(p.Amount), Highlight: true),
+                new Stat("Direction", p.PaymentDirectionName ?? "—"),
+                new Stat("Mode", p.TransModeName ?? "—"),
+                new Stat("Recorded By", p.RecordedByName ?? "—"),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Allocations",
+                    Headers:    new[] { "#", "Order", "Purchase", "Allocated" },
+                    RightAlign: new[] { 3 },
+                    Rows:       p.Allocations.Select((a, i) => new[]
+                    {
+                        (i + 1).ToString(),
+                        a.OrderId?.ToString() ?? "—",
+                        a.PurchaseId?.ToString() ?? "—",
+                        PdfFormat.Rs(a.AllocatedAmount),
+                    })),
+            },
+            Closing = new ClosingSummary(
+                LeftLabel:    "DIRECTION",
+                LeftSubtitle: p.IsReversed ? $"{p.PaymentDirectionName} (Reversed)" : (p.PaymentDirectionName ?? "—"),
+                RightLabel:   "AMOUNT",
+                RightValue:   PdfFormat.Rs(p.Amount)),
+            ClosingNote = !string.IsNullOrWhiteSpace(p.Notes) ? $"Notes: {p.Notes}" : null,
+        };
+
+        return File(_pdfService.CreateDocument(model), "application/pdf", $"payment-{p.Id}.pdf");
+    }
 }

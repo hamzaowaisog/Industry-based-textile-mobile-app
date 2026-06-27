@@ -141,4 +141,53 @@ public class ExpenseController : BaseController
         var pdf = _pdfService.CreatePdf("Expenses", "Expense records. All amounts in PKR.", expenses, EntityPdfConfigs.Expense, new PdfOptions { ShowRowNumbers = true });
         return File(pdf, "application/pdf", "expenses.pdf");
     }
+
+    /// <summary>Download a single expense as a branded PDF receipt — type, amount, and details.</summary>
+    [HttpGet("{id:int}/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetExpenseDossierPdf([FromRoute] int id)
+    {
+        var response = await _expenseService.GetByIdAsync(id);
+        if (!response.Success || response.Data is null)
+            return NotFound(response.Message);
+
+        var e = response.Data;
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel      = "EXPENSE",
+            Reference           = $"HT-EXPENSE-{e.Id}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = e.ExpenseTypeName ?? "Expense",
+            PreparedForSubtitle = $"{e.TransCategoryName} · {e.TransModeName}",
+            PeriodLabel         = "EXPENSE DATE",
+            PeriodValue         = e.ExpenseDate.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat("Amount", PdfFormat.Rs(e.Amount), Highlight: true),
+                new Stat("Type", e.ExpenseTypeName ?? "—"),
+                new Stat("Category", e.TransCategoryName ?? "—"),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Details",
+                    Headers: new[] { "Field", "Value" },
+                    Rows: new[]
+                    {
+                        new[] { "Mode", e.TransModeName ?? "—" },
+                        new[] { "Recorded By", e.RecordedByName ?? "—" },
+                        new[] { "Date", e.ExpenseDate.ToString("dd MMM yyyy") },
+                        new[] { "Notes", e.Notes ?? "—" },
+                    }),
+            },
+            Closing = new ClosingSummary(
+                LeftLabel:    "CATEGORY",
+                LeftSubtitle: e.TransCategoryName ?? "—",
+                RightLabel:   "AMOUNT",
+                RightValue:   PdfFormat.Rs(e.Amount)),
+        };
+
+        return File(_pdfService.CreateDocument(model), "application/pdf", $"expense-{e.Id}.pdf");
+    }
 }

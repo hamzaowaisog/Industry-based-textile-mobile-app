@@ -173,6 +173,59 @@ public class StockMovementsController : BaseController
         return File(pdfBytes, "application/pdf", "stock-movements.pdf");
     }
 
+    /// <summary>Download a single stock movement as a branded PDF receipt — product, type/source, quantities, and value snapshots.</summary>
+    [HttpGet("{id:int}/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetStockMovementDossierPdf([FromRoute] int id)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in token.");
+
+        var response = await _stockMovementsService.GetByIdAsync(id, userId.Value);
+        if (!response.Success || response.Data is null)
+            return NotFound(response.Message);
+
+        var m = response.Data;
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel      = "STOCK MOVEMENT",
+            Reference           = $"HT-MOVEMENT-{m.Id}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = m.ProductName ?? "—",
+            PreparedForSubtitle = $"{m.MovementTypeName} · {m.MovementSourceName}",
+            PeriodLabel         = "MOVEMENT DATE",
+            PeriodValue         = m.MovementDate.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat("Quantity", $"{m.Qty:0.##}", Highlight: true),
+                new Stat("Unit Cost", m.UnitCost.HasValue ? PdfFormat.Rs(m.UnitCost.Value) : "—"),
+                new Stat("Unit Price", m.UnitPrice.HasValue ? PdfFormat.Rs(m.UnitPrice.Value) : "—"),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Details",
+                    Headers: new[] { "Field", "Value" },
+                    Rows: new[]
+                    {
+                        new[] { "Type", m.MovementTypeName ?? "—" },
+                        new[] { "Source", m.MovementSourceName ?? "—" },
+                        new[] { "Date", m.MovementDate.ToString("dd MMM yyyy") },
+                        new[] { "Avg Cost Snapshot", m.AverageCostAtMovement.HasValue ? PdfFormat.Rs(m.AverageCostAtMovement.Value) : "—" },
+                        new[] { "Avg Price Snapshot", m.AveragePriceAtMovement.HasValue ? PdfFormat.Rs(m.AveragePriceAtMovement.Value) : "—" },
+                    }),
+            },
+            Closing = new ClosingSummary(
+                LeftLabel:    "MOVEMENT",
+                LeftSubtitle: $"{m.MovementTypeName} · {m.MovementSourceName}",
+                RightLabel:   "QUANTITY",
+                RightValue:   $"{m.Qty:0.##}"),
+        };
+
+        return File(_pdfService.CreateDocument(model), "application/pdf", $"stock-movement-{m.Id}.pdf");
+    }
+
     private bool IsAdmin()
     {
         var roleIdClaim = User.FindFirst("RoleId");

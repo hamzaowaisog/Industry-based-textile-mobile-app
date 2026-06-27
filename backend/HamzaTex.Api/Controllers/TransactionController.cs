@@ -168,4 +168,57 @@ public class TransactionController : BaseController
             "Transactions", "Full ledger. All amounts in PKR.", result.Data, EntityPdfConfigs.Transaction, new PdfOptions { ShowRowNumbers = true });
         return File(pdf, "application/pdf", "transactions.pdf");
     }
+
+    /// <summary>Download a single transaction as a branded PDF ledger slip — category/type/mode, amount, and linked party.</summary>
+    [HttpGet("{id:int}/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetTransactionDossierPdf([FromRoute] int id)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in token.");
+
+        var response = await _transactionService.GetByIdAsync(id, userId.Value, IsAdmin());
+        if (!response.Success || response.Data is null)
+            return NotFound(response.Message);
+
+        var t = response.Data;
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel      = "TRANSACTION",
+            Reference           = $"HT-TXN-{t.Id}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = t.ClientName ?? "—",
+            PreparedForSubtitle = $"{t.TransCategoryName} · {t.TransTypeName}",
+            PeriodLabel         = "TRANS DATE",
+            PeriodValue         = t.TransDate.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat("Amount", PdfFormat.Rs(t.Amount), Highlight: true),
+                new Stat("Type", t.TransTypeName ?? "—"),
+                new Stat("Category", t.TransCategoryName ?? "—"),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Details",
+                    Headers: new[] { "Field", "Value" },
+                    Rows: new[]
+                    {
+                        new[] { "Source", t.Source ?? "—" },
+                        new[] { "Mode", t.TransModeName ?? "—" },
+                        new[] { "Client", t.ClientName ?? "—" },
+                        new[] { "Date", t.TransDate.ToString("dd MMM yyyy") },
+                        new[] { "Notes", t.Notes ?? "—" },
+                    }),
+            },
+            Closing = new ClosingSummary(
+                LeftLabel:    "TYPE",
+                LeftSubtitle: t.TransTypeName ?? "—",
+                RightLabel:   "AMOUNT",
+                RightValue:   PdfFormat.Rs(t.Amount)),
+        };
+
+        return File(_pdfService.CreateDocument(model), "application/pdf", $"transaction-{t.Id}.pdf");
+    }
 }

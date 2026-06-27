@@ -188,4 +188,61 @@ public class PurchaseController : BaseController
 
         return File(pdfBytes, "application/pdf", "purchases.pdf");
     }
+
+    /// <summary>Download a single purchase as a branded PDF dossier — supplier, line items, totals, and payment status.</summary>
+    [HttpGet("{id:int}/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetPurchaseDossierPdf([FromRoute] int id)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in token.");
+
+        var response = await _purchaseService.GetByIdAsync(id, userId.Value, IsAdmin());
+        if (!response.Success || response.Data is null)
+            return NotFound(response.Message);
+
+        var p = response.Data;
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel      = "PURCHASE",
+            Reference           = $"HT-PURCHASE-{p.Id}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = p.SupplierName ?? "—",
+            PreparedForSubtitle = $"{p.StatusName} · {p.PaymentTypeName}",
+            PeriodLabel         = "PURCHASE DATE",
+            PeriodValue         = p.PurchaseDate.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat("Status", p.StatusName ?? "—"),
+                new Stat("Total", PdfFormat.Rs(p.Total)),
+                new Stat("Paid", PdfFormat.Rs(p.AmountPaid)),
+                new Stat("Payable", PdfFormat.Rs(p.Payable), Highlight: true),
+                new Stat("Payment", p.PaymentStatus),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Line Items",
+                    Headers:    new[] { "#", "Product", "Qty", "Unit Cost", "Line Total" },
+                    RightAlign: new[] { 2, 3, 4 },
+                    Rows:       p.PurchaseLines.Select((l, i) => new[]
+                    {
+                        (i + 1).ToString(),
+                        l.ProductName ?? "—",
+                        l.Qty.ToString("0.##"),
+                        PdfFormat.Rs(l.UnitCost),
+                        PdfFormat.Rs(l.Qty * l.UnitCost),
+                    })),
+            },
+            Closing = new ClosingSummary(
+                LeftLabel:    "PAYMENT STATUS",
+                LeftSubtitle: p.PaymentStatus,
+                RightLabel:   "PURCHASE TOTAL",
+                RightValue:   PdfFormat.Rs(p.Total)),
+            ClosingNote = !string.IsNullOrWhiteSpace(p.Notes) ? $"Notes: {p.Notes}" : null,
+        };
+
+        return File(_pdfService.CreateDocument(model), "application/pdf", $"purchase-{p.Id}.pdf");
+    }
 }
