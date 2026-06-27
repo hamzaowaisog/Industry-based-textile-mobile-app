@@ -10,6 +10,7 @@ import { AppCard } from '@components/common/AppCard';
 import { AppIconTile } from '@components/common/AppIconTile';
 import { AppRow } from '@components/common/AppRow';
 import { AppStepIndicator } from '@components/common/AppStepIndicator';
+import { PdfButton } from '@components/common/PdfButton';
 
 import { formatPKR } from '@utils/helpers/formatCurrency';
 import {
@@ -55,6 +56,8 @@ export const OrderDetailComponent = ({
   onRecordPayment,
   onEditOrder,
   onDelete,
+  onDossierPdfPress,
+  isDossierPdfDownloading,
 }: OrderDetailComponentProps) => {
   const { t } = useTranslation();
 
@@ -99,30 +102,34 @@ export const OrderDetailComponent = ({
           <TouchableOpacity style={styles.heroNavBtn} onPress={onBack} activeOpacity={0.75}>
             <ArrowLeftIcon size={20} color={config.fg} />
           </TouchableOpacity>
-          {(canEditLines || canDelete) && (
-            <View style={styles.heroNavActions}>
-              {canEditLines && (
-                <TouchableOpacity
-                  style={[styles.heroNavBtn, submitting && styles.btnDisabled]}
-                  onPress={() => onEditOrder(order.id)}
-                  activeOpacity={0.75}
-                  disabled={submitting}
-                >
-                  <EditIcon size={20} color={config.fg} />
-                </TouchableOpacity>
-              )}
-              {canDelete && (
-                <TouchableOpacity
-                  style={[styles.heroDeleteBtn, submitting && styles.btnDisabled]}
-                  onPress={onDelete}
-                  activeOpacity={0.75}
-                  disabled={submitting}
-                >
-                  <TrashIcon size={20} color={colors.danger} />
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
+          <View style={styles.heroNavActions}>
+            <PdfButton
+              onPress={onDossierPdfPress}
+              isLoading={isDossierPdfDownloading}
+              size={20}
+              color={config.fg}
+            />
+            {canEditLines && (
+              <TouchableOpacity
+                style={[styles.heroNavBtn, submitting && styles.btnDisabled]}
+                onPress={() => onEditOrder(order.id)}
+                activeOpacity={0.75}
+                disabled={submitting}
+              >
+                <EditIcon size={20} color={config.fg} />
+              </TouchableOpacity>
+            )}
+            {canDelete && (
+              <TouchableOpacity
+                style={[styles.heroDeleteBtn, submitting && styles.btnDisabled]}
+                onPress={onDelete}
+                activeOpacity={0.75}
+                disabled={submitting}
+              >
+                <TrashIcon size={20} color={colors.danger} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </SafeAreaView>
 

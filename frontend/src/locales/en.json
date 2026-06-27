@@ -181,7 +181,7 @@
     "rememberMe": "Remember me",
     "forgotPassword": "Forgot password?",
     "signIn": "Sign In",
-    "trustLine": "Bank-grade encryption · Your data is protected",
+    "trustLine": "Bank-grade encryption \u00b7 Your data is protected",
     "orDivider": "OR",
     "biometric": "Use Face ID / Fingerprint",
     "newUser": "New to HamzaTex?",
@@ -301,8 +301,8 @@
     "finNetProfit": "Net Profit",
     "vsLastMonth": "vs last month",
     "trendUp": "+{{pct}}% vs last month",
-    "trendDown": "−{{pct}}% vs last month",
-    "offlineBannerText": "Offline · showing cached data",
+    "trendDown": "\u2212{{pct}}% vs last month",
+    "offlineBannerText": "Offline \u00b7 showing cached data",
     "noRecentOrders": "No recent orders",
     "noMonthlyData": "No monthly data yet",
     "loadError": "Could not load dashboard",
@@ -355,7 +355,7 @@
       "subtitle": "Add to catalog",
       "photoPlaceholder": "Tap to add product photo",
       "basicInfo": "Basic info",
-      "namePlaceholder": "e.g. Cotton 40s · 280 GSM",
+      "namePlaceholder": "e.g. Cotton 40s \u00b7 280 GSM",
       "skuPlaceholder": "e.g. CTN-40s-280",
       "pricing": "Pricing",
       "defaultCost": "Default cost",
@@ -364,7 +364,7 @@
       "openingQty": "Opening quantity",
       "openingQtyHelper": "Set initial stock on hand",
       "reorderHelper": "Warned when stock falls below this",
-      "skuNote": "SKUs must be unique — used across orders, purchases, and stock movements.",
+      "skuNote": "SKUs must be unique \u2014 used across orders, purchases, and stock movements.",
       "save": "Save Product",
       "submit": "Save Product",
       "successTitle": "Product Created",
@@ -378,7 +378,7 @@
       "isActive": "Active product",
       "isActiveHelper": "Inactive products are hidden from new orders",
       "skuLocked": "SKU code (locked)",
-      "skuNote": "SKU cannot be changed — it is referenced in existing orders and stock movements.",
+      "skuNote": "SKU cannot be changed \u2014 it is referenced in existing orders and stock movements.",
       "reorderHelper": "Warned when stock falls below this",
       "save": "Save Changes",
       "successTitle": "Product Updated",
@@ -399,11 +399,11 @@
       "quantity": "Opening quantity",
       "isActive": "Active product",
       "isActiveSub": "Inactive products are hidden from new orders",
-      "namePlaceholder": "e.g. Cotton 40s · 280 GSM",
+      "namePlaceholder": "e.g. Cotton 40s \u00b7 280 GSM",
       "skuPlaceholder": "e.g. CTN-40s-280",
       "unitPlaceholder": "Select unit",
       "unitPickerTitle": "Select unit",
-      "unitPickerSearch": "Search units…"
+      "unitPickerSearch": "Search units\u2026"
     },
     "unitPicker": "Select unit",
     "deleteTitle": "Delete Product",
@@ -416,201 +416,6 @@
     "validationPriceInvalid": "Enter a valid price (0 or more)",
     "validationQtyInvalid": "Enter a valid opening quantity (0 or more)",
     "validationReorderInvalid": "Enter a valid reorder level (0 or more)"
-  },
-  "orders": {
-    "title": "Orders",
-    "createOrder": "Create Order",
-    "orderDate": "Order Date",
-    "status": "Status",
-    "client": "Client",
-    "paymentType": "Payment Type",
-    "orderLines": "Order Lines",
-    "total": "Total",
-    "notes": "Notes",
-    "pending": "Pending",
-    "inProgress": "In Progress",
-    "delivered": "Delivered",
-    "cancelled": "Cancelled"
-  },
-  "payments": {
-    "title": "Payments",
-    "recordPayment": "Record Payment",
-    "amount": "Amount",
-    "direction": "Direction",
-    "transMode": "Transaction Mode",
-    "paymentDate": "Payment Date",
-    "received": "Received",
-    "paid": "Paid",
-    "notes": "Notes"
-  },
-  "reports": {
-    "title": "Reports",
-    "profitLoss": "Profit & Loss",
-    "clientBalance": "Client Balances",
-    "creditDebit": "Credit / Debit",
-    "month": "Month",
-    "grossProfit": "Gross Profit",
-    "netProfit": "Net Profit"
-  },
-  "settings": {
-    "title": "Settings",
-    "changePassword": "Change Password",
-    "logout": "Logout"
-  },
-  "welcome": {
-    "brandSubtitle": "TEXTILE ERP · MOBILE",
-    "heroTagline": "The complete ERP\nfor textile mills & traders",
-    "stats": {
-      "mills": "Mills",
-      "appRating": "App rating",
-      "uptime": "Uptime"
-    },
-    "features": {
-      "syncLabel": "Real-time sync",
-      "syncSub": "Field staff stay in lockstep",
-      "securityLabel": "Bank-grade security",
-      "securitySub": "Biometric + encryption",
-      "insightsLabel": "Live insights",
-      "insightsSub": "P&L, balances, stock trends"
-    },
-    "getStarted": "Get Started",
-    "alreadyHaveAccount": "Already have an account?",
-    "signIn": "Sign in",
-    "termsPrefix": "By continuing you agree to our",
-    "terms": "Terms",
-    "privacy": "Privacy Policy"
-  },
-  "onboarding": {
-    "skip": "Skip",
-    "continue": "Continue",
-    "getStarted": "Get Started",
-    "counter": "{{current}} / {{total}}",
-    "slides": {
-      "slide1": {
-        "title": "Run your mill from anywhere",
-        "body": "Track every meter of fabric and every rupee — from the floor, the warehouse, or the road.",
-        "point1": "Live dashboard with KPIs",
-        "point2": "Orders, payments & invoices",
-        "point3": "Stock tracking by SKU"
-      },
-      "slide2": {
-        "title": "Works offline, syncs later",
-        "body": "No signal? No problem. Field staff record orders locally; everything syncs the moment you reconnect.",
-        "point1": "Offline-first local DB",
-        "point2": "Auto-sync on reconnect",
-        "point3": "Conflict-safe push"
-      },
-      "slide3": {
-        "title": "Insights you can act on",
-        "body": "Beautiful charts that turn raw numbers into clarity. Share PDFs with your accountant in two taps.",
-        "point1": "Profit & loss in one tap",
-        "point2": "Outstanding balance reports",
-        "point3": "PDF export & share"
-      }
-    }
-  },
-  "drawer": {
-    "companyTagline": "Textile Trading Co.",
-    "roleAdmin": "Owner · Admin",
-    "roleStaff": "Staff",
-    "sections": {
-      "main": "Main",
-      "finance": "Finance",
-      "inventory": "Inventory",
-      "insights": "Insights"
-    },
-    "items": {
-      "dashboard": "Dashboard",
-      "clients": "Clients",
-      "orders": "Orders",
-      "products": "Products",
-      "purchases": "Purchases",
-      "payments": "Payments",
-      "invoices": "Invoices",
-      "expenses": "Expenses",
-      "stockMoves": "Stock Moves",
-      "transactions": "Transactions",
-      "reports": "Reports",
-      "users": "Team & Roles"
-    },
-    "footer": {
-      "settings": "Settings",
-      "signOut": "Sign out"
-    }
-  },
-  "validation": {
-    "required": "This field is required",
-    "invalidEmail": "Invalid email address",
-    "minLength": "Minimum {{count}} characters",
-    "maxLength": "Maximum {{count}} characters",
-    "positiveNumber": "Must be a positive number"
-  },
-  "terms": {
-    "title": "Terms of Service",
-    "sections": {
-      "acceptance": "1. Acceptance of Terms",
-      "acceptanceBody": "By downloading, installing, or using the HamzaTex mobile application, you agree to be bound by these Terms of Service. If you do not agree with any part of these terms, you must not use the application.",
-      "use": "2. Permitted Use",
-      "useBody": "HamzaTex is licensed to you for lawful business use in managing textile trading operations including orders, purchases, inventory, payments, and financial reporting. You may not reverse-engineer, redistribute, or resell the application without written consent.",
-      "accounts": "3. User Accounts",
-      "accountsBody": "You are responsible for maintaining the confidentiality of your login credentials. All activity under your account is your responsibility. You must notify us immediately of any unauthorized access to your account.",
-      "data": "4. Your Data",
-      "dataBody": "You retain full ownership of all business data entered into HamzaTex. We do not sell, share, or analyze your data for advertising purposes. Data is stored securely and encrypted both in transit and at rest.",
-      "liability": "5. Limitation of Liability",
-      "liabilityBody": "HamzaTex is provided \"as is\" without warranties of any kind. We are not liable for any indirect, incidental, or consequential damages arising from the use or inability to use the application.",
-      "changes": "6. Changes to Terms",
-      "changesBody": "We reserve the right to modify these terms at any time. Continued use of the application after changes constitutes acceptance of the updated terms. We will notify users of significant changes through the application."
-    }
-  },
-  "privacy": {
-    "title": "Privacy Policy",
-    "sections": {
-      "collection": "1. Information We Collect",
-      "collectionBody": "We collect information you provide directly, such as your name, email, phone number, and business data including clients, products, orders, and financial transactions. We also collect device information and usage analytics to improve the application.",
-      "usage": "2. How We Use Your Information",
-      "usageBody": "Your information is used solely to provide and improve HamzaTex services. This includes processing transactions, generating reports, syncing data across devices, and providing customer support.",
-      "storage": "3. Data Storage & Retention",
-      "storageBody": "All data is encrypted using industry-standard AES-256 encryption and stored on secure servers. Data is retained for as long as your account is active. Upon account deletion, all associated data is permanently removed within 30 days.",
-      "sharing": "4. Data Sharing",
-      "sharingBody": "We do not sell, trade, or rent your personal or business data to third parties. Data may only be shared with your explicit consent or when required by law.",
-      "security": "5. Security Measures",
-      "securityBody": "We implement bank-grade security including end-to-end encryption, biometric authentication, JWT-based session management, and regular security audits to protect your data from unauthorized access.",
-      "rights": "6. Your Rights",
-      "rightsBody": "You have the right to access, correct, export, or delete your data at any time. You may also revoke data processing consent, which may limit certain application features.",
-      "contact": "7. Contact Us",
-      "contactBody": "For any questions or concerns about this Privacy Policy or your data, please contact us through the application's Settings screen or email us at privacy@hamzatex.com."
-    }
-  },
-  "notifications": {
-    "title": "Notifications",
-    "markAllRead": "Mark all read",
-    "emptyTitle": "You're all caught up",
-    "emptySubtext": "No new notifications. We'll ping you when orders update, payments arrive, or stock runs low.",
-    "emptySettings": "Notification settings",
-    "deleteAction": "Delete",
-    "previewSectionTitle": "Recent Notifications",
-    "permissionTitle": "Stay in the loop",
-    "permissionBody": "Get real-time alerts for orders, payments, stock alerts, and sync updates.",
-    "permissionAllow": "Allow Notifications",
-    "permissionNotNow": "Not Now"
-  },
-  "more": {
-    "title": "More",
-    "allTools": "All tools",
-    "orders": "Orders",
-    "purchases": "Purchases",
-    "payments": "Payments",
-    "invoices": "Invoices",
-    "expenses": "Expenses",
-    "products": "Products",
-    "stockMovements": "Stock Movements",
-    "transactions": "Transactions",
-    "notifications": "Notifications",
-    "reports": "Reports",
-    "users": "Users",
-    "settings": "Settings",
-    "clients": "Clients",
-    "orders": "Orders"
   },
   "orders": {
     "title": "Orders",
@@ -629,8 +434,8 @@
       "orderDate": "Order date",
       "paymentMethod": "Payment",
       "totalAmount": "Total amount",
-      "lineItems": "Line items · {{count}}",
-      "qty": "{{qty}} × {{price}}",
+      "lineItems": "Line items \u00b7 {{count}}",
+      "qty": "{{qty}} \u00d7 {{price}}",
       "subtotal": "Subtotal",
       "amountPaid": "Amount paid",
       "outstanding": "Outstanding",
@@ -745,5 +550,190 @@
     "deleteMessage": "Delete order {{id}}? This cannot be undone.",
     "deleteSuccess": "Order deleted",
     "deleteError": "Failed to delete order"
+  },
+  "payments": {
+    "title": "Payments",
+    "recordPayment": "Record Payment",
+    "amount": "Amount",
+    "direction": "Direction",
+    "transMode": "Transaction Mode",
+    "paymentDate": "Payment Date",
+    "received": "Received",
+    "paid": "Paid",
+    "notes": "Notes"
+  },
+  "reports": {
+    "title": "Reports",
+    "profitLoss": "Profit & Loss",
+    "clientBalance": "Client Balances",
+    "creditDebit": "Credit / Debit",
+    "month": "Month",
+    "grossProfit": "Gross Profit",
+    "netProfit": "Net Profit"
+  },
+  "settings": {
+    "title": "Settings",
+    "changePassword": "Change Password",
+    "logout": "Logout"
+  },
+  "welcome": {
+    "brandSubtitle": "TEXTILE ERP \u00b7 MOBILE",
+    "heroTagline": "The complete ERP\nfor textile mills & traders",
+    "stats": {
+      "mills": "Mills",
+      "appRating": "App rating",
+      "uptime": "Uptime"
+    },
+    "features": {
+      "syncLabel": "Real-time sync",
+      "syncSub": "Field staff stay in lockstep",
+      "securityLabel": "Bank-grade security",
+      "securitySub": "Biometric + encryption",
+      "insightsLabel": "Live insights",
+      "insightsSub": "P&L, balances, stock trends"
+    },
+    "getStarted": "Get Started",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "termsPrefix": "By continuing you agree to our",
+    "terms": "Terms",
+    "privacy": "Privacy Policy"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "continue": "Continue",
+    "getStarted": "Get Started",
+    "counter": "{{current}} / {{total}}",
+    "slides": {
+      "slide1": {
+        "title": "Run your mill from anywhere",
+        "body": "Track every meter of fabric and every rupee \u2014 from the floor, the warehouse, or the road.",
+        "point1": "Live dashboard with KPIs",
+        "point2": "Orders, payments & invoices",
+        "point3": "Stock tracking by SKU"
+      },
+      "slide2": {
+        "title": "Works offline, syncs later",
+        "body": "No signal? No problem. Field staff record orders locally; everything syncs the moment you reconnect.",
+        "point1": "Offline-first local DB",
+        "point2": "Auto-sync on reconnect",
+        "point3": "Conflict-safe push"
+      },
+      "slide3": {
+        "title": "Insights you can act on",
+        "body": "Beautiful charts that turn raw numbers into clarity. Share PDFs with your accountant in two taps.",
+        "point1": "Profit & loss in one tap",
+        "point2": "Outstanding balance reports",
+        "point3": "PDF export & share"
+      }
+    }
+  },
+  "drawer": {
+    "companyTagline": "Textile Trading Co.",
+    "roleAdmin": "Owner \u00b7 Admin",
+    "roleStaff": "Staff",
+    "sections": {
+      "main": "Main",
+      "finance": "Finance",
+      "inventory": "Inventory",
+      "insights": "Insights"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "clients": "Clients",
+      "orders": "Orders",
+      "products": "Products",
+      "purchases": "Purchases",
+      "payments": "Payments",
+      "invoices": "Invoices",
+      "expenses": "Expenses",
+      "stockMoves": "Stock Moves",
+      "transactions": "Transactions",
+      "reports": "Reports",
+      "users": "Team & Roles"
+    },
+    "footer": {
+      "settings": "Settings",
+      "signOut": "Sign out"
+    }
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "minLength": "Minimum {{count}} characters",
+    "maxLength": "Maximum {{count}} characters",
+    "positiveNumber": "Must be a positive number"
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "sections": {
+      "acceptance": "1. Acceptance of Terms",
+      "acceptanceBody": "By downloading, installing, or using the HamzaTex mobile application, you agree to be bound by these Terms of Service. If you do not agree with any part of these terms, you must not use the application.",
+      "use": "2. Permitted Use",
+      "useBody": "HamzaTex is licensed to you for lawful business use in managing textile trading operations including orders, purchases, inventory, payments, and financial reporting. You may not reverse-engineer, redistribute, or resell the application without written consent.",
+      "accounts": "3. User Accounts",
+      "accountsBody": "You are responsible for maintaining the confidentiality of your login credentials. All activity under your account is your responsibility. You must notify us immediately of any unauthorized access to your account.",
+      "data": "4. Your Data",
+      "dataBody": "You retain full ownership of all business data entered into HamzaTex. We do not sell, share, or analyze your data for advertising purposes. Data is stored securely and encrypted both in transit and at rest.",
+      "liability": "5. Limitation of Liability",
+      "liabilityBody": "HamzaTex is provided \"as is\" without warranties of any kind. We are not liable for any indirect, incidental, or consequential damages arising from the use or inability to use the application.",
+      "changes": "6. Changes to Terms",
+      "changesBody": "We reserve the right to modify these terms at any time. Continued use of the application after changes constitutes acceptance of the updated terms. We will notify users of significant changes through the application."
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "sections": {
+      "collection": "1. Information We Collect",
+      "collectionBody": "We collect information you provide directly, such as your name, email, phone number, and business data including clients, products, orders, and financial transactions. We also collect device information and usage analytics to improve the application.",
+      "usage": "2. How We Use Your Information",
+      "usageBody": "Your information is used solely to provide and improve HamzaTex services. This includes processing transactions, generating reports, syncing data across devices, and providing customer support.",
+      "storage": "3. Data Storage & Retention",
+      "storageBody": "All data is encrypted using industry-standard AES-256 encryption and stored on secure servers. Data is retained for as long as your account is active. Upon account deletion, all associated data is permanently removed within 30 days.",
+      "sharing": "4. Data Sharing",
+      "sharingBody": "We do not sell, trade, or rent your personal or business data to third parties. Data may only be shared with your explicit consent or when required by law.",
+      "security": "5. Security Measures",
+      "securityBody": "We implement bank-grade security including end-to-end encryption, biometric authentication, JWT-based session management, and regular security audits to protect your data from unauthorized access.",
+      "rights": "6. Your Rights",
+      "rightsBody": "You have the right to access, correct, export, or delete your data at any time. You may also revoke data processing consent, which may limit certain application features.",
+      "contact": "7. Contact Us",
+      "contactBody": "For any questions or concerns about this Privacy Policy or your data, please contact us through the application's Settings screen or email us at privacy@hamzatex.com."
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "emptyTitle": "You're all caught up",
+    "emptySubtext": "No new notifications. We'll ping you when orders update, payments arrive, or stock runs low.",
+    "emptySettings": "Notification settings",
+    "deleteAction": "Delete",
+    "previewSectionTitle": "Recent Notifications",
+    "permissionTitle": "Stay in the loop",
+    "permissionBody": "Get real-time alerts for orders, payments, stock alerts, and sync updates.",
+    "permissionAllow": "Allow Notifications",
+    "permissionNotNow": "Not Now"
+  },
+  "more": {
+    "title": "More",
+    "allTools": "All tools",
+    "orders": "Orders",
+    "purchases": "Purchases",
+    "payments": "Payments",
+    "invoices": "Invoices",
+    "expenses": "Expenses",
+    "products": "Products",
+    "stockMovements": "Stock Movements",
+    "transactions": "Transactions",
+    "notifications": "Notifications",
+    "reports": "Reports",
+    "users": "Users",
+    "settings": "Settings",
+    "clients": "Clients"
+  },
+  "pdf": {
+    "errorTitle": "PDF Error",
+    "errorGeneric": "Could not open the PDF. Please try again.",
+    "errorNoPdfApp": "No PDF viewer installed. Please install a PDF reader app and try again.",
+    "errorCannotPreview": "This file could not be previewed. The PDF may be corrupted or unsupported."
   }
 }

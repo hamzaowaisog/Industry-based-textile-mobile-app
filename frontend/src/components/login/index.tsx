@@ -81,7 +81,7 @@ export const LoginComponent = ({
       {/* Form card */}
       <KeyboardAvoidingView
         style={styles.formCardWrapper}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : undefined}
       >
         <ScrollView
           style={styles.formCard}

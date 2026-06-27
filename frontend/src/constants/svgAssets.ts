@@ -46,3 +46,4 @@ export { MoreIcon } from '../../assets/svg/icons/MoreIcon';
 export { TrashIcon } from '../../assets/svg/icons/TrashIcon';
 export { ArrowDownIcon } from '../../assets/svg/icons/ArrowDownIcon';
 export { ArrowUpIcon } from '../../assets/svg/icons/ArrowUpIcon';
+export { PdfIcon } from '../../assets/svg/icons/PdfIcon';

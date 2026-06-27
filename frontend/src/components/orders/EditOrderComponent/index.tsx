@@ -24,6 +24,7 @@ import { formatPKR } from '@utils/helpers/formatCurrency';
 
 import { colors } from '@theme/colors';
 
+import { AppConstants } from '@constants/appConstants';
 import { ArrowLeftIcon, PlusIcon } from '@constants/svgAssets';
 
 import type { EditOrderComponentProps } from '../../../types/orders.types';
@@ -73,7 +74,7 @@ export const EditOrderComponent = ({
   );
 
   const renderStep = () => {
-    if (step === 0) {
+    if (step === AppConstants.ORDER_WIZARD.STEP_CLIENT) {
       return (
         <View style={styles.stepContent}>
           <AppInputField
@@ -120,7 +121,7 @@ export const EditOrderComponent = ({
       );
     }
 
-    if (step === 1) {
+    if (step === AppConstants.ORDER_WIZARD.STEP_PRODUCTS) {
       return (
         <View style={styles.stepContent}>
           <TouchableOpacity style={styles.addLineBtn} onPress={onAddLine} activeOpacity={0.7}>
@@ -237,7 +238,7 @@ export const EditOrderComponent = ({
 
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
         <ScrollView
@@ -262,7 +263,7 @@ export const EditOrderComponent = ({
 
       <AppBottomBar>
         <View style={styles.bottomBarRow}>
-          {step > 0 && (
+          {step > AppConstants.ORDER_WIZARD.STEP_CLIENT && (
             <View style={styles.flexBtn}>
               <AppButton
                 label={t('orders.edit.back')}
@@ -275,9 +276,13 @@ export const EditOrderComponent = ({
           )}
           <View style={styles.flexBtn}>
             <AppButton
-              label={step === 2 ? t('orders.edit.saveChanges') : t('orders.edit.continue')}
-              onPress={step === 2 ? onSubmit : onNext}
-              variant={step === 2 ? 'success' : 'primary'}
+              label={
+                step === AppConstants.ORDER_WIZARD.STEP_REVIEW
+                  ? t('orders.edit.saveChanges')
+                  : t('orders.edit.continue')
+              }
+              onPress={step === AppConstants.ORDER_WIZARD.STEP_REVIEW ? onSubmit : onNext}
+              variant={step === AppConstants.ORDER_WIZARD.STEP_REVIEW ? 'success' : 'primary'}
               size="lg"
               fullWidth
               loading={submitting}

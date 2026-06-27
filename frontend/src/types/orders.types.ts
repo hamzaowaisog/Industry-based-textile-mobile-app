@@ -92,6 +92,8 @@ export type OrderListComponentProps = {
   onSearchChange: (text: string) => void;
   onNewOrder: () => void;
   onMenuPress: () => void;
+  onListPdfPress: () => void;
+  isPdfDownloading: boolean;
 };
 
 export type OrderCardProps = {
@@ -113,6 +115,8 @@ export type OrderDetailComponentProps = {
   onRecordPayment: (orderId: number) => void;
   onDelete: () => void;
   onEditOrder: (orderId: number) => void;
+  onDossierPdfPress: () => void;
+  isDossierPdfDownloading: boolean;
 };
 
 export type EditOrderComponentProps = {

@@ -596,3 +596,96 @@ export function useProductGetAllProductsPdf<TData = Awaited<ReturnType<typeof pr
 
 
 
+/**
+ * @summary Download a single product's full dossier as a branded PDF — profile, valuation, and complete stock-movement history. Scoped to the authenticated user's products.
+ */
+export const productGetProductDossierPdf = (
+    id: number,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<Blob>(
+      {url: `/api/Product/${id}/pdf`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      );
+    }
+
+
+
+
+export const getProductGetProductDossierPdfQueryKey = (id: number,) => {
+    return [
+    `/api/Product/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getProductGetProductDossierPdfQueryOptions = <TData = Awaited<ReturnType<typeof productGetProductDossierPdf>>, TError = Response>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof productGetProductDossierPdf>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getProductGetProductDossierPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof productGetProductDossierPdf>>> = ({ signal }) => productGetProductDossierPdf(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof productGetProductDossierPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ProductGetProductDossierPdfQueryResult = NonNullable<Awaited<ReturnType<typeof productGetProductDossierPdf>>>
+export type ProductGetProductDossierPdfQueryError = Response
+
+
+export function useProductGetProductDossierPdf<TData = Awaited<ReturnType<typeof productGetProductDossierPdf>>, TError = Response>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof productGetProductDossierPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof productGetProductDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof productGetProductDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProductGetProductDossierPdf<TData = Awaited<ReturnType<typeof productGetProductDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof productGetProductDossierPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof productGetProductDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof productGetProductDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProductGetProductDossierPdf<TData = Awaited<ReturnType<typeof productGetProductDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof productGetProductDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download a single product's full dossier as a branded PDF — profile, valuation, and complete stock-movement history. Scoped to the authenticated user's products.
+ */
+
+export function useProductGetProductDossierPdf<TData = Awaited<ReturnType<typeof productGetProductDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof productGetProductDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getProductGetProductDossierPdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+

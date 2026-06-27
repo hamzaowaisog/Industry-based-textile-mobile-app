@@ -93,6 +93,8 @@ export type ProductListComponentProps = {
   onPress: (id: number) => void;
   onNewProduct: () => void;
   onMenuPress: () => void;
+  onListPdfPress: () => void;
+  isPdfDownloading: boolean;
 };
 
 export type ProductDetailComponentProps = {
@@ -105,6 +107,8 @@ export type ProductDetailComponentProps = {
   onEdit: () => void;
   onDelete: () => void;
   onViewAllMovements: () => void;
+  onDossierPdfPress: () => void;
+  isDossierPdfDownloading: boolean;
 };
 
 export type UnitItem = { id: number; name: string };

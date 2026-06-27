@@ -7,10 +7,12 @@ import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
 import { useClientStore } from '@stores/clientStore';
 
 import { AppConstants } from '@constants/appConstants';
+import { queryKeys } from '@constants/queryKeys';
 
 import { fetchClientsPageAsync } from '../core/clients';
 import type { ClientFilter, ClientRow } from '../types/clients.types';
 import type { ClientStackParamList } from '../types/navigation.types';
+import { usePdfDownload } from './usePdfDownload';
 
 export const useClientList = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ClientStackParamList>>();
@@ -19,10 +21,17 @@ export const useClientList = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<ClientFilter>('all');
+  const { downloadPdf, isDownloading: isPdfDownloading } = usePdfDownload();
 
   const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
-    useInfiniteQuery<{ items: ClientRow[]; hasNextPage: boolean }, Error, InfiniteData<{ items: ClientRow[]; hasNextPage: boolean }>, string[], number>({
-      queryKey: ['clients'],
+    useInfiniteQuery<
+      { items: ClientRow[]; hasNextPage: boolean },
+      Error,
+      InfiniteData<{ items: ClientRow[]; hasNextPage: boolean }>,
+      string[],
+      number
+    >({
+      queryKey: queryKeys.clients.list(),
       queryFn: ({ pageParam }) =>
         fetchClientsPageAsync(pageParam, AppConstants.PAGINATION.DEFAULT_PAGE_SIZE),
       initialPageParam: AppConstants.PAGINATION.DEFAULT_PAGE as number,
@@ -82,6 +91,10 @@ export const useClientList = () => {
     navigation.navigate(AppConstants.SCREENS.MAIN.CLIENT_FORM, {});
   }, [navigation]);
 
+  const onListPdfPress = useCallback(() => {
+    void downloadPdf(AppConstants.PDF.PATHS.CLIENT_LIST, AppConstants.PDF.FILENAMES.CLIENT_LIST);
+  }, [downloadPdf]);
+
   return {
     rows,
     search,
@@ -97,5 +110,7 @@ export const useClientList = () => {
     onRowPress,
     onFab,
     onAddFirstClient,
+    onListPdfPress,
+    isPdfDownloading,
   };
 };

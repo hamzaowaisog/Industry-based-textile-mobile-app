@@ -32,9 +32,9 @@ export const useEditOrder = (orderId: number) => {
   const { currentOrder, detailLoading, fetchOrderDetail } = useOrderStore();
   const getList = useMetaStore((s) => s.getList);
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState<number>(AppConstants.ORDER_WIZARD.STEP_CLIENT);
   const [values, setValues] = useState<EditOrderFormValues>({
-    paymentTypeId: 1,
+    paymentTypeId: AppConstants.PAYMENT_TYPE.CASH,
     notes: '',
     lines: [],
   });
@@ -157,12 +157,12 @@ export const useEditOrder = (orderId: number) => {
   }, [values]);
 
   const onNext = useCallback(() => {
-    if (step === 1 && !validateStep2()) return;
+    if (step === AppConstants.ORDER_WIZARD.STEP_PRODUCTS && !validateStep2()) return;
     setStep((s) => s + 1);
   }, [step, values, lineErrors]);
 
   const onBack = useCallback(() => {
-    if (step > 0) {
+    if (step > AppConstants.ORDER_WIZARD.STEP_CLIENT) {
       setStep((s) => s - 1);
       return;
     }

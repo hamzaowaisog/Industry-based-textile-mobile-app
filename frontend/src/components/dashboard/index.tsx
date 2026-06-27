@@ -240,7 +240,7 @@ export const DashboardComponent = ({
                 </View>
               ) : (
                 summary.recentOrders
-                  .slice(0, 3)
+                  .slice(0, AppConstants.DASHBOARD.RECENT_ITEMS)
                   .map((order, i, arr) => (
                     <OrderRow key={order.orderId} order={order} isLast={i === arr.length - 1} />
                   ))
@@ -263,7 +263,7 @@ export const DashboardComponent = ({
                 </View>
               ) : (
                 summary.recentPurchases
-                  .slice(0, 3)
+                  .slice(0, AppConstants.DASHBOARD.RECENT_ITEMS)
                   .map((purchase, i, arr) => (
                     <PurchaseRow
                       key={purchase.purchaseId}

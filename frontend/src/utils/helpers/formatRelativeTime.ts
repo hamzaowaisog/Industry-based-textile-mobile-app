@@ -1,3 +1,7 @@
+import { AppConstants } from '@constants/appConstants';
+
+const { SECONDS_PER_MINUTE, SECONDS_PER_HOUR, SECONDS_PER_DAY } = AppConstants.TIME;
+
 const MONTH_NUM: Record<string, string> = {
   Jan: '01',
   Feb: '02',
@@ -30,9 +34,9 @@ export const formatRelativeTime = (isoString: string | null): string => {
   if (!isoString) return '';
   const date = parseDate(isoString);
   if (isNaN(date.getTime())) return '';
-  const diff = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (diff < 60) return 'Just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
+  const diff = Math.floor((Date.now() - date.getTime()) / AppConstants.TIME.MS_PER_SECOND);
+  if (diff < SECONDS_PER_MINUTE) return 'Just now';
+  if (diff < SECONDS_PER_HOUR) return `${Math.floor(diff / SECONDS_PER_MINUTE)} min ago`;
+  if (diff < SECONDS_PER_DAY) return `${Math.floor(diff / SECONDS_PER_HOUR)}h ago`;
+  return `${Math.floor(diff / SECONDS_PER_DAY)}d ago`;
 };

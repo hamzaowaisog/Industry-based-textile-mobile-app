@@ -691,3 +691,96 @@ export function useStockMovementsGetStockMovementsPdf<TData = Awaited<ReturnType
 
 
 
+/**
+ * @summary Download a single stock movement as a branded PDF receipt — product, type/source, quantities, and value snapshots.
+ */
+export const stockMovementsGetStockMovementDossierPdf = (
+    id: number,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<Blob>(
+      {url: `/api/StockMovements/${id}/pdf`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      );
+    }
+
+
+
+
+export const getStockMovementsGetStockMovementDossierPdfQueryKey = (id: number,) => {
+    return [
+    `/api/StockMovements/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getStockMovementsGetStockMovementDossierPdfQueryOptions = <TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError = Response>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockMovementsGetStockMovementDossierPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>> = ({ signal }) => stockMovementsGetStockMovementDossierPdf(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockMovementsGetStockMovementDossierPdfQueryResult = NonNullable<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>>
+export type StockMovementsGetStockMovementDossierPdfQueryError = Response
+
+
+export function useStockMovementsGetStockMovementDossierPdf<TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError = Response>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockMovementsGetStockMovementDossierPdf<TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockMovementsGetStockMovementDossierPdf<TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download a single stock movement as a branded PDF receipt — product, type/source, quantities, and value snapshots.
+ */
+
+export function useStockMovementsGetStockMovementDossierPdf<TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockMovementsGetStockMovementDossierPdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+

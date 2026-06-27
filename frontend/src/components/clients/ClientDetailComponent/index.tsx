@@ -13,6 +13,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PdfButton } from '@components/common/PdfButton';
+
 import { CUSTOMER_TABS, SUPPLIER_TABS } from '@utils/helpers/clientDetailContent';
 import {
   resolveClientBalanceColor,
@@ -56,10 +58,15 @@ export const ClientDetailComponent = ({
   onPrimaryAction,
   onSecondaryAction,
   submitting,
+  onDossierPdfPress,
+  isDossierPdfDownloading,
 }: ClientDetailComponentProps) => {
   const { t } = useTranslation();
   const { height: windowHeight } = useWindowDimensions();
-  const tabContentMaxHeight = Math.max(240, windowHeight * 0.4);
+  const tabContentMaxHeight = Math.max(
+    AppConstants.TAB_CONTENT.MIN_HEIGHT,
+    windowHeight * AppConstants.TAB_CONTENT.HEIGHT_RATIO,
+  );
 
   if (loading || !client) return <SkeletonDetail />;
 
@@ -103,6 +110,12 @@ export const ClientDetailComponent = ({
                 <ArrowLeftIcon size={22} color={colors.surface} />
               </TouchableOpacity>
               <View style={styles.headerActions}>
+                <PdfButton
+                  onPress={onDossierPdfPress}
+                  isLoading={isDossierPdfDownloading}
+                  size={20}
+                  color={colors.surface}
+                />
                 <TouchableOpacity
                   style={styles.headerActionBtn}
                   onPress={onEdit}

@@ -12,6 +12,7 @@ import i18n from '@utils/i18n';
 import { showSuccess } from '@utils/toast';
 
 import { AppConstants } from '@constants/appConstants';
+import { queryKeys } from '@constants/queryKeys';
 
 import {
   deleteProductAsync,
@@ -19,18 +20,20 @@ import {
   fetchProductMovementsAsync,
 } from '../core/products';
 import type { ProductStackParamList } from '../types/navigation.types';
+import { usePdfDownload } from './usePdfDownload';
 
 export const useProductDetail = (productId: number) => {
   const navigation = useNavigation<NativeStackNavigationProp<ProductStackParamList>>();
   const queryClient = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
+  const { downloadPdf, isDownloading: isDossierPdfDownloading } = usePdfDownload();
 
   const {
     data: product,
     isFetching: productFetching,
     refetch: refetchProduct,
   } = useQuery({
-    queryKey: ['product', productId],
+    queryKey: queryKeys.products.detail(productId),
     queryFn: () => fetchProductDetailAsync(productId),
     enabled: !!productId,
     staleTime: 0,
@@ -41,7 +44,7 @@ export const useProductDetail = (productId: number) => {
     isFetching: movementsFetching,
     refetch: refetchMovements,
   } = useQuery({
-    queryKey: ['product-movements', productId],
+    queryKey: queryKeys.products.movements(productId),
     queryFn: () => fetchProductMovementsAsync(productId),
     enabled: !!productId,
     staleTime: 0,
@@ -64,7 +67,7 @@ export const useProductDetail = (productId: number) => {
     () =>
       [...movements]
         .sort((a, b) => new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime())
-        .slice(0, 4),
+        .slice(0, AppConstants.PRODUCT.RECENT_MOVEMENTS),
     [movements],
   );
 
@@ -97,7 +100,7 @@ export const useProductDetail = (productId: number) => {
             const result = await deleteProductAsync(productId);
             setSubmitting(false);
             if (result.success) {
-              void queryClient.invalidateQueries({ queryKey: ['products'] });
+              void queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
               showSuccess(i18n.t('products.deleteSuccess'), '');
               navigation.goBack();
             } else {
@@ -108,6 +111,13 @@ export const useProductDetail = (productId: number) => {
       ],
     );
   }, [product, productId, navigation, queryClient]);
+
+  const onDossierPdfPress = useCallback(() => {
+    void downloadPdf(
+      AppConstants.PDF.PATHS.productDossier(productId),
+      AppConstants.PDF.FILENAMES.productDossier(productId),
+    );
+  }, [downloadPdf, productId]);
 
   return {
     product: loading ? null : (product ?? null),
@@ -120,6 +130,8 @@ export const useProductDetail = (productId: number) => {
     onEdit,
     onDelete,
     onViewAllMovements,
+    onDossierPdfPress,
+    isDossierPdfDownloading,
     refetch: refetchProduct,
   };
 };

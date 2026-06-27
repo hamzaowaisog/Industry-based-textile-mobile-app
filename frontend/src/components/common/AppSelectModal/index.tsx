@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@theme/colors';
 
+import { AppConstants } from '@constants/appConstants';
 import { SearchIcon } from '@constants/svgAssets';
 
 import type { AppSelectModalProps, SelectItem } from '../../../types/common.types';
@@ -93,8 +94,8 @@ export const AppSelectModal = ({
 
         <KeyboardAvoidingView
           style={styles.keyboardAvoid}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.bottom : 0}
+          behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === AppConstants.PLATFORM.OS.IOS ? insets.bottom : 0}
         >
           <View
             style={[styles.sheet, { height: SHEET_MAX_HEIGHT, paddingBottom: insets.bottom + 8 }]}

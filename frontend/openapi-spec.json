@@ -863,6 +863,47 @@
         }
       }
     },
+    "/api/Client/{id}/pdf": {
+      "get": {
+        "tags": ["Client"],
+        "summary": "Download a single client's full dossier as a branded PDF — profile, orders, purchases, payments, recent transactions, and current balance. Reuses the report aggregate so figures match the screen.",
+        "operationId": "client_getClientDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ClientType": {
       "post": {
         "tags": ["ClientType"],
@@ -1592,6 +1633,47 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Expense/{id}/pdf": {
+      "get": {
+        "tags": ["Expense"],
+        "summary": "Download a single expense as a branded PDF receipt — type, amount, and details.",
+        "operationId": "expense_getExpenseDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
                 }
               }
             }
@@ -2933,6 +3015,47 @@
         }
       }
     },
+    "/api/Order/{id}/pdf": {
+      "get": {
+        "tags": ["Order"],
+        "summary": "Download a single order as a branded PDF dossier — header, line items, totals, and payment status.",
+        "operationId": "order_getOrderDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Payment": {
       "post": {
         "tags": ["Payment"],
@@ -3466,6 +3589,47 @@
         }
       }
     },
+    "/api/Payment/{id}/pdf": {
+      "get": {
+        "tags": ["Payment"],
+        "summary": "Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations.",
+        "operationId": "payment_getPaymentDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Product": {
       "post": {
         "tags": ["Product"],
@@ -3723,6 +3887,47 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Product/{id}/pdf": {
+      "get": {
+        "tags": ["Product"],
+        "summary": "Download a single product's full dossier as a branded PDF — profile, valuation, and complete stock-movement history. Scoped to the authenticated user's products.",
+        "operationId": "product_getProductDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
           }
         }
       }
@@ -4092,6 +4297,47 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Purchase/{id}/pdf": {
+      "get": {
+        "tags": ["Purchase"],
+        "summary": "Download a single purchase as a branded PDF dossier — supplier, line items, totals, and payment status.",
+        "operationId": "purchase_getPurchaseDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
                 }
               }
             }
@@ -4828,6 +5074,47 @@
         }
       }
     },
+    "/api/StockMovements/{id}/pdf": {
+      "get": {
+        "tags": ["StockMovements"],
+        "summary": "Download a single stock movement as a branded PDF receipt — product, type/source, quantities, and value snapshots.",
+        "operationId": "stockMovements_getStockMovementDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Transaction": {
       "post": {
         "tags": ["Transaction"],
@@ -5190,6 +5477,47 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Transaction/{id}/pdf": {
+      "get": {
+        "tags": ["Transaction"],
+        "summary": "Download a single transaction as a branded PDF ledger slip — category/type/mode, amount, and linked party.",
+        "operationId": "transaction_getTransactionDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
                 }
               }
             }
@@ -5939,6 +6267,12 @@
             "type": "integer",
             "format": "int32",
             "example": 1
+          },
+          "clientTypeName": {
+            "type": "string",
+            "description": "Resolved name of the ClientType lookup (e.g. \"Customer\", \"Supplier\"). Populated on read.",
+            "nullable": true,
+            "example": "string"
           },
           "userId": {
             "type": "integer",

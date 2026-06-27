@@ -5,6 +5,8 @@ import { FlatList, RefreshControl, Text, TextInput, TouchableOpacity, View } fro
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PdfButton } from '@components/common/PdfButton';
+
 import { ORDER_STATUS_TABS } from '@utils/helpers/orderContent';
 
 import { colors } from '@theme/colors';
@@ -51,6 +53,8 @@ export const OrderListComponent = ({
   onSearchChange,
   onNewOrder,
   onMenuPress,
+  onListPdfPress,
+  isPdfDownloading,
 }: OrderListComponentProps) => {
   const { t } = useTranslation();
 
@@ -74,6 +78,12 @@ export const OrderListComponent = ({
           <TouchableOpacity style={styles.headerIconBtn} onPress={onMenuPress} activeOpacity={0.7}>
             <MenuIcon size={23} color={colors.text} />
           </TouchableOpacity>
+          <PdfButton
+            onPress={onListPdfPress}
+            isLoading={isPdfDownloading}
+            size={20}
+            color={colors.textSecondary}
+          />
         </View>
         <Text style={styles.headerTitle}>{t('orders.title')}</Text>
         <Text style={styles.headerSub}>

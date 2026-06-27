@@ -29,7 +29,8 @@ import type {
   ClientDtoPagedListResponse,
   ClientGetAllClientsFilteredParams,
   ClientUpdateViewModel,
-  ProblemDetails
+  ProblemDetails,
+  Response
 } from '../../models';
 
 import { axiosInstance } from '../../../utils/axiosInstance';
@@ -583,6 +584,99 @@ export function useClientGetAllClientsPdf<TData = Awaited<ReturnType<typeof clie
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getClientGetAllClientsPdfQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+/**
+ * @summary Download a single client's full dossier as a branded PDF — profile, orders, purchases, payments, recent transactions, and current balance. Reuses the report aggregate so figures match the screen.
+ */
+export const clientGetClientDossierPdf = (
+    id: number,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<Blob>(
+      {url: `/api/Client/${id}/pdf`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      );
+    }
+
+
+
+
+export const getClientGetClientDossierPdfQueryKey = (id: number,) => {
+    return [
+    `/api/Client/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getClientGetClientDossierPdfQueryOptions = <TData = Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError = Response>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getClientGetClientDossierPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof clientGetClientDossierPdf>>> = ({ signal }) => clientGetClientDossierPdf(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ClientGetClientDossierPdfQueryResult = NonNullable<Awaited<ReturnType<typeof clientGetClientDossierPdf>>>
+export type ClientGetClientDossierPdfQueryError = Response
+
+
+export function useClientGetClientDossierPdf<TData = Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError = Response>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof clientGetClientDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof clientGetClientDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useClientGetClientDossierPdf<TData = Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof clientGetClientDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof clientGetClientDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useClientGetClientDossierPdf<TData = Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download a single client's full dossier as a branded PDF — profile, orders, purchases, payments, recent transactions, and current balance. Reuses the report aggregate so figures match the screen.
+ */
+
+export function useClientGetClientDossierPdf<TData = Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getClientGetClientDossierPdfQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

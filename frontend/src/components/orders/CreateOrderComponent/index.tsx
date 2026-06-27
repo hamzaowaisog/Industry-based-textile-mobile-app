@@ -23,6 +23,7 @@ import { formatPKR } from '@utils/helpers/formatCurrency';
 
 import { colors } from '@theme/colors';
 
+import { AppConstants } from '@constants/appConstants';
 import { ArrowLeftIcon, PlusIcon } from '@constants/svgAssets';
 
 import type { CreateOrderComponentProps } from '../../../types/orders.types';
@@ -66,7 +67,7 @@ export const CreateOrderComponent = ({
   }, 0);
 
   const renderStep = () => {
-    if (step === 0) {
+    if (step === AppConstants.ORDER_WIZARD.STEP_CLIENT) {
       return (
         <View style={styles.stepContent}>
           {/* Customer selector */}
@@ -125,7 +126,7 @@ export const CreateOrderComponent = ({
       );
     }
 
-    if (step === 1) {
+    if (step === AppConstants.ORDER_WIZARD.STEP_PRODUCTS) {
       return (
         <View style={styles.stepContent}>
           <TouchableOpacity style={styles.addLineBtn} onPress={onAddLine} activeOpacity={0.7}>
@@ -240,7 +241,7 @@ export const CreateOrderComponent = ({
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
         <ScrollView
@@ -276,7 +277,7 @@ export const CreateOrderComponent = ({
       {/* Bottom bar */}
       <AppBottomBar>
         <View style={styles.bottomBarRow}>
-          {step > 0 && (
+          {step > AppConstants.ORDER_WIZARD.STEP_CLIENT && (
             <View style={styles.flexBtn}>
               <AppButton
                 label={t('orders.create.back')}
@@ -289,9 +290,13 @@ export const CreateOrderComponent = ({
           )}
           <View style={styles.flexBtn}>
             <AppButton
-              label={step === 2 ? t('orders.create.placeOrder') : t('orders.create.continue')}
-              onPress={step === 2 ? onSubmit : onNext}
-              variant={step === 2 ? 'success' : 'primary'}
+              label={
+                step === AppConstants.ORDER_WIZARD.STEP_REVIEW
+                  ? t('orders.create.placeOrder')
+                  : t('orders.create.continue')
+              }
+              onPress={step === AppConstants.ORDER_WIZARD.STEP_REVIEW ? onSubmit : onNext}
+              variant={step === AppConstants.ORDER_WIZARD.STEP_REVIEW ? 'success' : 'primary'}
               size="lg"
               fullWidth
               loading={submitting}

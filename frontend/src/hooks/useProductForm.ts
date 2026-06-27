@@ -18,6 +18,7 @@ import {
 } from '@utils/validation/productValidation';
 
 import { AppConstants } from '@constants/appConstants';
+import { queryKeys } from '@constants/queryKeys';
 
 import { createProductAsync, fetchProductDetailAsync, updateProductAsync } from '../core/products';
 import type { ProductStackParamList } from '../types/navigation.types';
@@ -51,7 +52,7 @@ export const useProductForm = () => {
   }, [metaUnits]);
 
   const { data: existingProduct, isLoading: loading } = useQuery({
-    queryKey: ['product', productId],
+    queryKey: queryKeys.products.detail(productId!),
     queryFn: () => fetchProductDetailAsync(productId!),
     enabled: isEdit,
   });

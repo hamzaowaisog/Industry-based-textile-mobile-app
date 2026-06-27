@@ -691,3 +691,96 @@ export function useTransactionGetPdf<TData = Awaited<ReturnType<typeof transacti
 
 
 
+/**
+ * @summary Download a single transaction as a branded PDF ledger slip — category/type/mode, amount, and linked party.
+ */
+export const transactionGetTransactionDossierPdf = (
+    id: number,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<Blob>(
+      {url: `/api/Transaction/${id}/pdf`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      );
+    }
+
+
+
+
+export const getTransactionGetTransactionDossierPdfQueryKey = (id: number,) => {
+    return [
+    `/api/Transaction/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getTransactionGetTransactionDossierPdfQueryOptions = <TData = Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError = Response>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTransactionGetTransactionDossierPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>> = ({ signal }) => transactionGetTransactionDossierPdf(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type TransactionGetTransactionDossierPdfQueryResult = NonNullable<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>>
+export type TransactionGetTransactionDossierPdfQueryError = Response
+
+
+export function useTransactionGetTransactionDossierPdf<TData = Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError = Response>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTransactionGetTransactionDossierPdf<TData = Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTransactionGetTransactionDossierPdf<TData = Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download a single transaction as a branded PDF ledger slip — category/type/mode, amount, and linked party.
+ */
+
+export function useTransactionGetTransactionDossierPdf<TData = Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTransactionGetTransactionDossierPdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+

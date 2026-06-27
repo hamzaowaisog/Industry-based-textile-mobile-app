@@ -9,10 +9,24 @@ import { formatCompactNumber } from '@utils/helpers/formatNumber';
 
 import { colors } from '@theme/colors';
 
+import { AppConstants } from '@constants/appConstants';
+
 import type { StockChartProps } from '../../../../types/products.types';
 import { styles } from './styles';
 
-const Y_AXIS_LABEL_WIDTH = 40;
+const {
+  Y_AXIS_LABEL_WIDTH,
+  HEIGHT,
+  SECTIONS,
+  INITIAL_SPACING,
+  END_SPACING,
+  DATA_POINT_RADIUS,
+  ANIMATION_DURATION_MS,
+  START_OPACITY,
+  Y_HEADROOM_EMPTY,
+  Y_HEADROOM_NORMAL,
+  FALLBACK_MAX,
+} = AppConstants.CHART;
 
 export const StockChart = ({ currentStock, unit, chartData, trendPct }: StockChartProps) => {
   const { t } = useTranslation();
@@ -23,9 +37,11 @@ export const StockChart = ({ currentStock, unit, chartData, trendPct }: StockCha
 
   const maxValue = useMemo(() => {
     const peak = Math.max(...chartData, 0);
-    if (peak === 0) return 4;
+    if (peak === 0) return FALLBACK_MAX;
     const min = Math.min(...chartData);
-    return peak === min ? Math.ceil(peak * 1.25) || 4 : Math.ceil(peak * 1.12);
+    return peak === min
+      ? Math.ceil(peak * Y_HEADROOM_EMPTY) || FALLBACK_MAX
+      : Math.ceil(peak * Y_HEADROOM_NORMAL);
   }, [chartData]);
 
   const trendPositive = trendPct !== null && trendPct >= 0;
@@ -59,18 +75,18 @@ export const StockChart = ({ currentStock, unit, chartData, trendPct }: StockCha
           <LineChart
             data={lineData}
             width={chartWidth}
-            height={120}
+            height={HEIGHT}
             maxValue={maxValue}
             color={colors.primary}
             thickness={3}
             startFillColor={colors.primary}
             endFillColor={colors.surface}
-            startOpacity={0.28}
+            startOpacity={START_OPACITY}
             endOpacity={0}
             areaChart
             hideDataPoints={false}
             dataPointsColor={colors.primary}
-            dataPointsRadius={4}
+            dataPointsRadius={DATA_POINT_RADIUS}
             xAxisThickness={0}
             yAxisThickness={0}
             yAxisLabelWidth={Y_AXIS_LABEL_WIDTH}
@@ -78,11 +94,11 @@ export const StockChart = ({ currentStock, unit, chartData, trendPct }: StockCha
             formatYLabel={(v: string) => formatCompactNumber(Number(v))}
             rulesType="solid"
             rulesColor={colors.divider}
-            noOfSections={5}
-            initialSpacing={8}
-            endSpacing={8}
+            noOfSections={SECTIONS}
+            initialSpacing={INITIAL_SPACING}
+            endSpacing={END_SPACING}
             isAnimated
-            animationDuration={600}
+            animationDuration={ANIMATION_DURATION_MS}
           />
         </View>
       ) : (

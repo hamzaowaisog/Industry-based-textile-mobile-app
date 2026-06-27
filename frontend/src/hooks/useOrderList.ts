@@ -9,10 +9,12 @@ import { useOrderStore } from '@stores/orderStore';
 import { STATUS_TAB_ID_MAP } from '@utils/helpers/orderContent';
 
 import { AppConstants } from '@constants/appConstants';
+import { queryKeys } from '@constants/queryKeys';
 
 import { fetchOrdersPageAsync } from '../core/orders';
 import type { OrderStackParamList } from '../types/navigation.types';
 import type { OrderRow, OrderStatusTab } from '../types/orders.types';
+import { usePdfDownload } from './usePdfDownload';
 
 export const useOrderList = () => {
   const navigation = useNavigation<NativeStackNavigationProp<OrderStackParamList>>();
@@ -21,10 +23,17 @@ export const useOrderList = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<OrderStatusTab>('all');
   const [search, setSearch] = useState('');
+  const { downloadPdf, isDownloading: isPdfDownloading } = usePdfDownload();
 
   const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
-    useInfiniteQuery<{ items: OrderRow[]; hasNextPage: boolean }, Error, InfiniteData<{ items: OrderRow[]; hasNextPage: boolean }>, string[], number>({
-      queryKey: ['orders'],
+    useInfiniteQuery<
+      { items: OrderRow[]; hasNextPage: boolean },
+      Error,
+      InfiniteData<{ items: OrderRow[]; hasNextPage: boolean }>,
+      string[],
+      number
+    >({
+      queryKey: queryKeys.orders.list(),
       queryFn: ({ pageParam }) =>
         fetchOrdersPageAsync(pageParam, AppConstants.PAGINATION.DEFAULT_PAGE_SIZE),
       initialPageParam: AppConstants.PAGINATION.DEFAULT_PAGE as number,
@@ -77,6 +86,10 @@ export const useOrderList = () => {
     navigation.navigate(AppConstants.SCREENS.MAIN.CREATE_ORDER, undefined);
   }, [navigation]);
 
+  const onListPdfPress = useCallback(() => {
+    void downloadPdf(AppConstants.PDF.PATHS.ORDER_LIST, AppConstants.PDF.FILENAMES.ORDER_LIST);
+  }, [downloadPdf]);
+
   return {
     orders: filtered,
     totalCount: allOrders.length,
@@ -92,5 +105,7 @@ export const useOrderList = () => {
     onMenuPress,
     onPress,
     onNewOrder,
+    onListPdfPress,
+    isPdfDownloading,
   };
 };

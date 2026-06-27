@@ -11,6 +11,11 @@ export interface ClientDto {
   /** @nullable */
   name?: string | null;
   clientTypeId?: number;
+  /**
+     * Resolved name of the ClientType lookup (e.g. "Customer", "Supplier"). Populated on read.
+     * @nullable
+     */
+  clientTypeName?: string | null;
   /** @nullable */
   userId?: number | null;
   /** @nullable */

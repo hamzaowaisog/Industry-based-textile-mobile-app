@@ -664,3 +664,96 @@ export function usePurchaseGetPurchasesPdf<TData = Awaited<ReturnType<typeof pur
 
 
 
+/**
+ * @summary Download a single purchase as a branded PDF dossier — supplier, line items, totals, and payment status.
+ */
+export const purchaseGetPurchaseDossierPdf = (
+    id: number,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<Blob>(
+      {url: `/api/Purchase/${id}/pdf`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      );
+    }
+
+
+
+
+export const getPurchaseGetPurchaseDossierPdfQueryKey = (id: number,) => {
+    return [
+    `/api/Purchase/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getPurchaseGetPurchaseDossierPdfQueryOptions = <TData = Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>, TError = Response>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPurchaseGetPurchaseDossierPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>> = ({ signal }) => purchaseGetPurchaseDossierPdf(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PurchaseGetPurchaseDossierPdfQueryResult = NonNullable<Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>>
+export type PurchaseGetPurchaseDossierPdfQueryError = Response
+
+
+export function usePurchaseGetPurchaseDossierPdf<TData = Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>, TError = Response>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePurchaseGetPurchaseDossierPdf<TData = Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePurchaseGetPurchaseDossierPdf<TData = Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download a single purchase as a branded PDF dossier — supplier, line items, totals, and payment status.
+ */
+
+export function usePurchaseGetPurchaseDossierPdf<TData = Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof purchaseGetPurchaseDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPurchaseGetPurchaseDossierPdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+

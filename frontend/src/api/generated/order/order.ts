@@ -664,3 +664,96 @@ export function useOrderGetOrdersPdf<TData = Awaited<ReturnType<typeof orderGetO
 
 
 
+/**
+ * @summary Download a single order as a branded PDF dossier — header, line items, totals, and payment status.
+ */
+export const orderGetOrderDossierPdf = (
+    id: number,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<Blob>(
+      {url: `/api/Order/${id}/pdf`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      );
+    }
+
+
+
+
+export const getOrderGetOrderDossierPdfQueryKey = (id: number,) => {
+    return [
+    `/api/Order/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getOrderGetOrderDossierPdfQueryOptions = <TData = Awaited<ReturnType<typeof orderGetOrderDossierPdf>>, TError = Response>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderGetOrderDossierPdf>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getOrderGetOrderDossierPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof orderGetOrderDossierPdf>>> = ({ signal }) => orderGetOrderDossierPdf(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof orderGetOrderDossierPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type OrderGetOrderDossierPdfQueryResult = NonNullable<Awaited<ReturnType<typeof orderGetOrderDossierPdf>>>
+export type OrderGetOrderDossierPdfQueryError = Response
+
+
+export function useOrderGetOrderDossierPdf<TData = Awaited<ReturnType<typeof orderGetOrderDossierPdf>>, TError = Response>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderGetOrderDossierPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orderGetOrderDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof orderGetOrderDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrderGetOrderDossierPdf<TData = Awaited<ReturnType<typeof orderGetOrderDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderGetOrderDossierPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orderGetOrderDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof orderGetOrderDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrderGetOrderDossierPdf<TData = Awaited<ReturnType<typeof orderGetOrderDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderGetOrderDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download a single order as a branded PDF dossier — header, line items, totals, and payment status.
+ */
+
+export function useOrderGetOrderDossierPdf<TData = Awaited<ReturnType<typeof orderGetOrderDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderGetOrderDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getOrderGetOrderDossierPdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+

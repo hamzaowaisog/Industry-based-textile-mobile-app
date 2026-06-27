@@ -1,3 +1,5 @@
+import { AppConstants } from '@constants/appConstants';
+
 import type {
   MovementKind,
   ProductDetailData,
@@ -44,8 +46,8 @@ export const mapApiMovementToRow = (m: any): ProductMovementRow => {
   const sourceName: string = m.movementSourceName ?? '';
 
   let kind: MovementKind;
-  if (typeId === 1) kind = 'in';
-  else if (typeId === 2) kind = 'out';
+  if (typeId === AppConstants.MOVEMENT_TYPE.IN) kind = 'in';
+  else if (typeId === AppConstants.MOVEMENT_TYPE.OUT) kind = 'out';
   else kind = 'adj';
 
   const rawDate: string = m.movementDate ?? '';

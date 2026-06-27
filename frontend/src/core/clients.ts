@@ -7,9 +7,12 @@ import {
 } from '@api/generated/client/client';
 import { reportGetClientDetailById } from '@api/generated/report/report';
 import type { ClientCreateViewModel, ClientDtoPagedList, ClientUpdateViewModel } from '@api/models';
+
 import { parseApiError, parseApiResponse } from '@utils/helpers/apiResponse';
 import { mapApiClientDetail, mapApiClientToRow } from '@utils/helpers/clientMappers';
 import i18n from '@utils/i18n';
+
+import { AppConstants } from '@constants/appConstants';
 
 import type { ApiClientItem, ClientDetail, ClientRow } from '../types/clients.types';
 
@@ -24,7 +27,7 @@ export const fetchClientsAsync = async (): Promise<ApiClientItem[]> => {
       id: item.id ?? 0,
       name: item.name ?? '',
       phone: item.phone ?? null,
-      clientTypeId: item.clientTypeId ?? 1,
+      clientTypeId: item.clientTypeId ?? AppConstants.CLIENT_TYPE.CUSTOMER,
       outstandingBalance: item.outstandingBalance ?? null,
       openingBalance: item.openingBalance ?? null,
     }));
@@ -46,7 +49,7 @@ export const fetchClientsPageAsync = async (
         id: item.id ?? 0,
         name: item.name ?? '',
         phone: item.phone ?? null,
-        clientTypeId: item.clientTypeId ?? 1,
+        clientTypeId: item.clientTypeId ?? AppConstants.CLIENT_TYPE.CUSTOMER,
         outstandingBalance: item.outstandingBalance ?? null,
         openingBalance: item.openingBalance ?? null,
       }),

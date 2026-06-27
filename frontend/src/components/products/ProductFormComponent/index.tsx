@@ -19,6 +19,7 @@ import { FieldLabel } from '@components/common/FieldLabel';
 
 import { colors } from '@theme/colors';
 
+import { AppConstants } from '@constants/appConstants';
 import { ArrowLeftIcon, ArrowRightIcon } from '@constants/svgAssets';
 
 import type { ProductFormComponentProps } from '../../../types/products.types';
@@ -73,7 +74,7 @@ export const ProductFormComponent = ({
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : undefined}
       >
         <View style={styles.header}>
           <TouchableOpacity style={styles.iconBtn} onPress={onCancel} activeOpacity={0.7}>

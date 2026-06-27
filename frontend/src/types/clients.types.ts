@@ -119,6 +119,8 @@ export type ClientListComponentProps = {
   onFab: () => void;
   onMenuPress: () => void;
   onAddFirstClient: () => void;
+  onListPdfPress: () => void;
+  isPdfDownloading: boolean;
 };
 
 export type ClientDetailComponentProps = {
@@ -134,6 +136,8 @@ export type ClientDetailComponentProps = {
   onPrimaryAction: () => void;
   onSecondaryAction: () => void;
   submitting?: boolean;
+  onDossierPdfPress: () => void;
+  isDossierPdfDownloading: boolean;
 };
 
 export type ClientFormComponentProps = {

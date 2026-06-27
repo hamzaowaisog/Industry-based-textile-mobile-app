@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -14,11 +15,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ArrowLeftIcon, EyeIcon, EyeOffIcon, LockIcon, WeavePattern } from '@constants/svgAssets';
-import { colors } from '@theme/colors';
 import { PASSWORD_RULES } from '@utils/helpers/passwordRules';
-import { ResetPasswordComponentProps } from '../../types/resetPassword.types';
 
+import { colors } from '@theme/colors';
+
+import { AppConstants } from '@constants/appConstants';
+import { ArrowLeftIcon, EyeIcon, EyeOffIcon, LockIcon, WeavePattern } from '@constants/svgAssets';
+
+import { ResetPasswordComponentProps } from '../../types/resetPassword.types';
 import { styles } from './styles';
 
 export const ResetPasswordComponent = ({
@@ -72,7 +76,7 @@ export const ResetPasswordComponent = ({
 
       <KeyboardAvoidingView
         style={styles.formCardWrapper}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : undefined}
       >
         <ScrollView
           style={styles.formCard}
@@ -83,12 +87,17 @@ export const ResetPasswordComponent = ({
           {/* New password */}
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>
-              {t('resetPassword.newPasswordLabel')}<Text style={styles.requiredStar}> *</Text>
+              {t('resetPassword.newPasswordLabel')}
+              <Text style={styles.requiredStar}> *</Text>
             </Text>
-            <View style={[
-              styles.inputRow,
-              formik.touched.newPassword && formik.errors.newPassword ? styles.inputRowError : null,
-            ]}>
+            <View
+              style={[
+                styles.inputRow,
+                formik.touched.newPassword && formik.errors.newPassword
+                  ? styles.inputRowError
+                  : null,
+              ]}
+            >
               <View style={styles.inputLeading}>
                 <LockIcon size={18} color={colors.textTertiary} />
               </View>
@@ -105,11 +114,16 @@ export const ResetPasswordComponent = ({
                 returnKeyType="next"
                 onSubmitEditing={() => confirmRef.current?.focus()}
               />
-              <TouchableOpacity style={styles.inputTrailing} onPress={onToggleNew} activeOpacity={0.7}>
-                {showNew
-                  ? <EyeOffIcon size={18} color={colors.textTertiary} />
-                  : <EyeIcon size={18} color={colors.textTertiary} />
-                }
+              <TouchableOpacity
+                style={styles.inputTrailing}
+                onPress={onToggleNew}
+                activeOpacity={0.7}
+              >
+                {showNew ? (
+                  <EyeOffIcon size={18} color={colors.textTertiary} />
+                ) : (
+                  <EyeIcon size={18} color={colors.textTertiary} />
+                )}
               </TouchableOpacity>
             </View>
             {formik.touched.newPassword && formik.errors.newPassword ? (
@@ -135,12 +149,17 @@ export const ResetPasswordComponent = ({
           {/* Confirm password */}
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>
-              {t('resetPassword.confirmPasswordLabel')}<Text style={styles.requiredStar}> *</Text>
+              {t('resetPassword.confirmPasswordLabel')}
+              <Text style={styles.requiredStar}> *</Text>
             </Text>
-            <View style={[
-              styles.inputRow,
-              formik.touched.confirmPassword && formik.errors.confirmPassword ? styles.inputRowError : null,
-            ]}>
+            <View
+              style={[
+                styles.inputRow,
+                formik.touched.confirmPassword && formik.errors.confirmPassword
+                  ? styles.inputRowError
+                  : null,
+              ]}
+            >
               <View style={styles.inputLeading}>
                 <LockIcon size={18} color={colors.textTertiary} />
               </View>
@@ -158,11 +177,16 @@ export const ResetPasswordComponent = ({
                 returnKeyType="done"
                 onSubmitEditing={() => formik.handleSubmit()}
               />
-              <TouchableOpacity style={styles.inputTrailing} onPress={onToggleConfirm} activeOpacity={0.7}>
-                {showConfirm
-                  ? <EyeOffIcon size={18} color={colors.textTertiary} />
-                  : <EyeIcon size={18} color={colors.textTertiary} />
-                }
+              <TouchableOpacity
+                style={styles.inputTrailing}
+                onPress={onToggleConfirm}
+                activeOpacity={0.7}
+              >
+                {showConfirm ? (
+                  <EyeOffIcon size={18} color={colors.textTertiary} />
+                ) : (
+                  <EyeIcon size={18} color={colors.textTertiary} />
+                )}
               </TouchableOpacity>
             </View>
             {formik.touched.confirmPassword && formik.errors.confirmPassword ? (
@@ -177,10 +201,11 @@ export const ResetPasswordComponent = ({
             activeOpacity={0.85}
             disabled={isPending}
           >
-            {isPending
-              ? <ActivityIndicator color="#fff" size="small" />
-              : <Text style={styles.primaryButtonText}>{t('resetPassword.submit')}</Text>
-            }
+            {isPending ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.primaryButtonText}>{t('resetPassword.submit')}</Text>
+            )}
           </TouchableOpacity>
 
           {/* Back to login */}

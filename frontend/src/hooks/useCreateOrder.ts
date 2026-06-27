@@ -13,6 +13,7 @@ import i18n from '@utils/i18n';
 import { showError, showSuccess } from '@utils/toast';
 
 import { AppConstants } from '@constants/appConstants';
+import { queryKeys } from '@constants/queryKeys';
 
 import { fetchClientsAsync } from '../core/clients';
 import { fetchProductsAsync } from '../core/products';
@@ -31,7 +32,7 @@ const EMPTY_LINE: OrderLineFormValues = {
 const INITIAL_VALUES: CreateOrderFormValues = {
   clientId: null,
   clientName: '',
-  paymentTypeId: 1,
+  paymentTypeId: AppConstants.PAYMENT_TYPE.CASH,
   orderDate: '',
   notes: '',
   lines: [],
@@ -43,7 +44,7 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
   const getList = useMetaStore((s) => s.getList);
 
   // ── Form state (declared first — other memos depend on values) ────────────
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState<number>(AppConstants.ORDER_WIZARD.STEP_CLIENT);
   const [values, setValues] = useState<CreateOrderFormValues>({
     ...INITIAL_VALUES,
     clientId: initialClientId ?? null,
@@ -55,7 +56,7 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
   const [lineAvailability, setLineAvailability] = useState<(string | undefined)[]>([]);
 
   // ── Clients ──────────────────────────────────────────────────────────────
-  const { data: clients } = useQuery({ queryKey: ['clients'], queryFn: fetchClientsAsync });
+  const { data: clients } = useQuery({ queryKey: queryKeys.clients.options(), queryFn: fetchClientsAsync });
   const [clientPickerVisible, setClientPickerVisible] = useState(false);
 
   const clientItems = useMemo(
@@ -144,13 +145,13 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
   }, [navigation]);
 
   const onNext = useCallback(() => {
-    if (step === 0 && !validateStep1()) return;
-    if (step === 1 && !validateStep2()) return;
+    if (step === AppConstants.ORDER_WIZARD.STEP_CLIENT && !validateStep1()) return;
+    if (step === AppConstants.ORDER_WIZARD.STEP_PRODUCTS && !validateStep2()) return;
     setStep((s) => s + 1);
   }, [step, values, lineErrors]);
 
   const onBack = useCallback(() => {
-    if (step > 0) {
+    if (step > AppConstants.ORDER_WIZARD.STEP_CLIENT) {
       setStep((s) => s - 1);
       return;
     }

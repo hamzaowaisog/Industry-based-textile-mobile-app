@@ -5,10 +5,12 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
 
 import { AppConstants } from '@constants/appConstants';
+import { queryKeys } from '@constants/queryKeys';
 
 import { fetchProductsPageAsync } from '../core/products';
 import type { ProductStackParamList } from '../types/navigation.types';
 import type { ProductRow, ProductStockTab } from '../types/products.types';
+import { usePdfDownload } from './usePdfDownload';
 
 export const useProductList = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ProductStackParamList>>();
@@ -16,10 +18,17 @@ export const useProductList = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<ProductStockTab>('all');
   const [search, setSearch] = useState('');
+  const { downloadPdf, isDownloading: isPdfDownloading } = usePdfDownload();
 
   const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
-    useInfiniteQuery<{ items: ProductRow[]; hasNextPage: boolean }, Error, InfiniteData<{ items: ProductRow[]; hasNextPage: boolean }>, string[], number>({
-      queryKey: ['products'],
+    useInfiniteQuery<
+      { items: ProductRow[]; hasNextPage: boolean },
+      Error,
+      InfiniteData<{ items: ProductRow[]; hasNextPage: boolean }>,
+      string[],
+      number
+    >({
+      queryKey: queryKeys.products.list(),
       queryFn: ({ pageParam }) =>
         fetchProductsPageAsync(pageParam, AppConstants.PAGINATION.DEFAULT_PAGE_SIZE),
       initialPageParam: AppConstants.PAGINATION.DEFAULT_PAGE as number,
@@ -82,6 +91,10 @@ export const useProductList = () => {
     navigation.navigate(AppConstants.SCREENS.MAIN.PRODUCT_FORM, {});
   }, [navigation]);
 
+  const onListPdfPress = useCallback(() => {
+    void downloadPdf(AppConstants.PDF.PATHS.PRODUCT_LIST, AppConstants.PDF.FILENAMES.PRODUCT_LIST);
+  }, [downloadPdf]);
+
   return {
     products: filtered,
     totalCount: allProducts.length,
@@ -98,5 +111,7 @@ export const useProductList = () => {
     onMenuPress,
     onPress,
     onNewProduct,
+    onListPdfPress,
+    isPdfDownloading,
   };
 };

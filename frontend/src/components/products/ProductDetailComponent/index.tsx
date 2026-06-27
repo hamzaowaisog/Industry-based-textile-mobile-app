@@ -5,6 +5,8 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PdfButton } from '@components/common/PdfButton';
+
 import {
   MOVEMENT_BG_MAP,
   MOVEMENT_COLOR_MAP,
@@ -35,6 +37,8 @@ export const ProductDetailComponent = ({
   onEdit,
   onDelete,
   onViewAllMovements,
+  onDossierPdfPress,
+  isDossierPdfDownloading,
 }: ProductDetailComponentProps & { submitting?: boolean }) => {
   const { t } = useTranslation();
 
@@ -71,6 +75,12 @@ export const ProductDetailComponent = ({
           <ArrowLeftIcon size={22} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.toolbarActions}>
+          <PdfButton
+            onPress={onDossierPdfPress}
+            isLoading={isDossierPdfDownloading}
+            size={20}
+            color={colors.textSecondary}
+          />
           <TouchableOpacity style={styles.iconBtn} onPress={onEdit} activeOpacity={0.7}>
             <EditIcon size={20} color={colors.text} />
           </TouchableOpacity>

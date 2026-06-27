@@ -1,14 +1,27 @@
+import { AppConstants } from '@constants/appConstants';
+
+const { ISO_DATE_STRING_LENGTH } = AppConstants.DATE;
+
 const MONTH_MAP: Record<string, string> = {
-  Jan: '01', Feb: '02', Mar: '03', Apr: '04',
-  May: '05', Jun: '06', Jul: '07', Aug: '08',
-  Sep: '09', Oct: '10', Nov: '11', Dec: '12',
+  Jan: '01',
+  Feb: '02',
+  Mar: '03',
+  Apr: '04',
+  May: '05',
+  Jun: '06',
+  Jul: '07',
+  Aug: '08',
+  Sep: '09',
+  Oct: '10',
+  Nov: '11',
+  Dec: '12',
 };
 
 export const toISODate = (date: string | null | undefined): string | null => {
   if (!date) return null;
 
   // Already ISO format (YYYY-MM-DD or starts with year)
-  if (/^\d{4}-\d{2}-\d{2}/.test(date)) return date.slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}/.test(date)) return date.slice(0, ISO_DATE_STRING_LENGTH);
 
   // "dd MMM, yyyy" format → "yyyy-MM-dd"
   const match = date.match(/^(\d{1,2})\s+(\w{3}),?\s+(\d{4})$/);
@@ -21,7 +34,7 @@ export const toISODate = (date: string | null | undefined): string | null => {
 
   // Fallback: try native Date parsing
   const parsed = new Date(date);
-  if (!isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+  if (!isNaN(parsed.getTime())) return parsed.toISOString().slice(0, ISO_DATE_STRING_LENGTH);
 
   return date;
 };

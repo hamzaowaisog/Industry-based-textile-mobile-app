@@ -19,7 +19,7 @@ const deriveInitials = (name: string | null): string => {
     .split(/[\s_.-]/)
     .map((p) => p[0]?.toUpperCase())
     .filter(Boolean)
-    .slice(0, 2)
+    .slice(0, AppConstants.INITIALS.MAX_LENGTH)
     .join('');
 };
 

@@ -915,3 +915,96 @@ export function usePaymentGetPdf<TData = Awaited<ReturnType<typeof paymentGetPdf
 
 
 
+/**
+ * @summary Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations.
+ */
+export const paymentGetPaymentDossierPdf = (
+    id: number,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<Blob>(
+      {url: `/api/Payment/${id}/pdf`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      );
+    }
+
+
+
+
+export const getPaymentGetPaymentDossierPdfQueryKey = (id: number,) => {
+    return [
+    `/api/Payment/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getPaymentGetPaymentDossierPdfQueryOptions = <TData = Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError = Response>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPaymentGetPaymentDossierPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>> = ({ signal }) => paymentGetPaymentDossierPdf(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PaymentGetPaymentDossierPdfQueryResult = NonNullable<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>>
+export type PaymentGetPaymentDossierPdfQueryError = Response
+
+
+export function usePaymentGetPaymentDossierPdf<TData = Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError = Response>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePaymentGetPaymentDossierPdf<TData = Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePaymentGetPaymentDossierPdf<TData = Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations.
+ */
+
+export function usePaymentGetPaymentDossierPdf<TData = Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPaymentGetPaymentDossierPdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+

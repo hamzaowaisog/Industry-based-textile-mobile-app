@@ -601,3 +601,96 @@ export function useExpenseGetPdf<TData = Awaited<ReturnType<typeof expenseGetPdf
 
 
 
+/**
+ * @summary Download a single expense as a branded PDF receipt — type, amount, and details.
+ */
+export const expenseGetExpenseDossierPdf = (
+    id: number,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<Blob>(
+      {url: `/api/Expense/${id}/pdf`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      );
+    }
+
+
+
+
+export const getExpenseGetExpenseDossierPdfQueryKey = (id: number,) => {
+    return [
+    `/api/Expense/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getExpenseGetExpenseDossierPdfQueryOptions = <TData = Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError = Response>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExpenseGetExpenseDossierPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>> = ({ signal }) => expenseGetExpenseDossierPdf(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExpenseGetExpenseDossierPdfQueryResult = NonNullable<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>>
+export type ExpenseGetExpenseDossierPdfQueryError = Response
+
+
+export function useExpenseGetExpenseDossierPdf<TData = Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError = Response>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExpenseGetExpenseDossierPdf<TData = Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExpenseGetExpenseDossierPdf<TData = Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download a single expense as a branded PDF receipt — type, amount, and details.
+ */
+
+export function useExpenseGetExpenseDossierPdf<TData = Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExpenseGetExpenseDossierPdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+

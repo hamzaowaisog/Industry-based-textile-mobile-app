@@ -5,6 +5,8 @@ import { FlatList, RefreshControl, Text, TextInput, TouchableOpacity, View } fro
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PdfButton } from '@components/common/PdfButton';
+
 import { CLIENT_FILTER_OPTIONS } from '@utils/helpers/clientContent';
 
 import { colors } from '@theme/colors';
@@ -33,6 +35,8 @@ export const ClientListComponent = ({
   onFab,
   onMenuPress,
   onAddFirstClient,
+  onListPdfPress,
+  isPdfDownloading,
 }: ClientListComponentProps) => {
   const { t } = useTranslation();
 
@@ -55,6 +59,12 @@ export const ClientListComponent = ({
           <TouchableOpacity style={styles.headerIconBtn} onPress={onMenuPress} activeOpacity={0.7}>
             <MenuIcon size={23} color={colors.text} />
           </TouchableOpacity>
+          <PdfButton
+            onPress={onListPdfPress}
+            isLoading={isPdfDownloading}
+            size={20}
+            color={colors.textSecondary}
+          />
         </View>
         <Text style={styles.headerTitle}>{t('clients.title')}</Text>
         <Text style={styles.headerSub}>

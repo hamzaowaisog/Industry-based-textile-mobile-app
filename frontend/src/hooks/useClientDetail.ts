@@ -15,6 +15,7 @@ import { AppConstants } from '@constants/appConstants';
 
 import type { ClientTab } from '../types/clients.types';
 import type { ClientStackParamList } from '../types/navigation.types';
+import { usePdfDownload } from './usePdfDownload';
 
 export const useClientDetail = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ClientStackParamList>>();
@@ -26,6 +27,7 @@ export const useClientDetail = () => {
   const [tab, setTab] = useState<ClientTab>(AppConstants.CLIENT_TABS.ORDERS);
   const [refreshing, setRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { downloadPdf, isDownloading: isDossierPdfDownloading } = usePdfDownload();
 
   useFocusEffect(
     useCallback(() => {
@@ -122,6 +124,13 @@ export const useClientDetail = () => {
     }
   }, [navigation, clientId, currentClient]);
 
+  const onDossierPdfPress = useCallback(() => {
+    void downloadPdf(
+      AppConstants.PDF.PATHS.clientDossier(clientId),
+      AppConstants.PDF.FILENAMES.clientDossier(clientId),
+    );
+  }, [downloadPdf, clientId]);
+
   return {
     client: currentClient,
     loading: detailLoading,
@@ -135,5 +144,7 @@ export const useClientDetail = () => {
     onPrimaryAction,
     onSecondaryAction,
     submitting,
+    onDossierPdfPress,
+    isDossierPdfDownloading,
   };
 };

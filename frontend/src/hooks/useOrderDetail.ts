@@ -14,6 +14,7 @@ import { showSuccess } from '@utils/toast';
 import { AppConstants } from '@constants/appConstants';
 
 import type { MainStackParamList, OrderStackParamList } from '../types/navigation.types';
+import { usePdfDownload } from './usePdfDownload';
 
 export const useOrderDetail = (orderId: number) => {
   const navigation =
@@ -32,6 +33,7 @@ export const useOrderDetail = (orderId: number) => {
 
   const canUpdate = roleId === AppConstants.ROLES.ADMIN || roleId === AppConstants.ROLES.STAFF;
   const canDelete = roleId === AppConstants.ROLES.ADMIN;
+  const { downloadPdf, isDownloading: isDossierPdfDownloading } = usePdfDownload();
 
   const load = useCallback(() => {
     prepareDetailLoad();
@@ -150,6 +152,13 @@ export const useOrderDetail = (orderId: number) => {
     );
   }, [currentOrder, deleteOrder, navigation]);
 
+  const onDossierPdfPress = useCallback(() => {
+    void downloadPdf(
+      AppConstants.PDF.PATHS.orderDossier(orderId),
+      AppConstants.PDF.FILENAMES.orderDossier(orderId),
+    );
+  }, [downloadPdf, orderId]);
+
   return {
     order: currentOrder,
     loading: detailLoading,
@@ -165,5 +174,7 @@ export const useOrderDetail = (orderId: number) => {
     onRecordPayment,
     onEditOrder,
     onDelete,
+    onDossierPdfPress,
+    isDossierPdfDownloading,
   };
 };

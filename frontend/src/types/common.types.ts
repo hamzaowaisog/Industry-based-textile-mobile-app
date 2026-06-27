@@ -172,6 +172,13 @@ export type AppSectionProps = {
   onAction?: () => void;
 };
 
+export type PdfButtonProps = {
+  onPress: () => void;
+  isLoading: boolean;
+  size?: number;
+  color?: string;
+};
+
 export type InputFieldProps = {
   label: string;
   required?: boolean;

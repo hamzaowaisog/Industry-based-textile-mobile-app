@@ -4,6 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > **Always read the exact versioned Expo docs at https://docs.expo.dev/versions/v56.0.0/ before writing any Expo-specific code.**
 
+## PDF Download Rule
+
+**Any screen that has a corresponding PDF endpoint must always include a PDF download button using `<PdfButton>` from `@components/common/PdfButton`.**
+
+- List screens (e.g. `GET /Client/pdf`) → add `PdfButton` in the list header row next to the menu icon
+- Detail screens (e.g. `GET /Client/{id}/pdf`) → add `PdfButton` in the detail header/toolbar actions
+- Use `usePdfDownload()` hook from `@hooks/usePdfDownload` to wire the download
+- Use `downloadAndOpenPdf(urlPath, filename)` from `@core/pdf` for the actual download + share flow
+- PDF opens in the system viewer (iOS Quick Look / Android share dialog) for preview before saving
+
 ## Design Reference
 
 All screens must be implemented pixel-accurately from the v3 design prototype:
