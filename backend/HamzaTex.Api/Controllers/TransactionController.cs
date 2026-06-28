@@ -24,17 +24,6 @@ public class TransactionController : BaseController
         _pdfService = pdfService;
     }
 
-    private int? GetUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
-    }
-
-    private bool IsAdmin()
-    {
-        var roleId = User.FindFirst("RoleId")?.Value;
-        return roleId == "1";
-    }
 
     // ── Write ─────────────────────────────────────────────────────────────────
 
@@ -45,8 +34,8 @@ public class TransactionController : BaseController
     [ProducesResponseType(typeof(Response), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] TransactionCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<TransactionDto>());
+        if (ValidateModel<TransactionDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -73,8 +62,8 @@ public class TransactionController : BaseController
     [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] TransactionUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<TransactionDto>());
+        if (ValidateModel<TransactionDto>() is { } invalid)
+            return invalid;
 
         var dto = new UpdateTransactionDto
         {
@@ -103,26 +92,19 @@ public class TransactionController : BaseController
 
     // ── Read ──────────────────────────────────────────────────────────────────
 
-    /// <summary>Get all transactions paginated. Admin only.</summary>
+    /// <summary>Get all transactions paginated. Staff see only their own; Admin sees all.</summary>
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<PagedList<TransactionDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        return ToActionResult(await _transactionService.GetAllPaginatedAsync(page, pageSize));
-    }
-
-    /// <summary>Get transactions for the currently logged-in user.</summary>
-    [HttpGet("me")]
-    [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(typeof(Response<List<TransactionDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMe()
-    {
         var userId = GetUserId();
-        if (userId is null) return Unauthorized();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
 
-        return ToActionResult(await _transactionService.GetAllByUserIdAsync(userId.Value));
+        return ToActionResult(await _transactionService.GetAllPaginatedAsync(page, pageSize, userId.Value, IsAdmin()));
     }
+
+
 
     /// <summary>Get a transaction by ID. Staff can only access their own records.</summary>
     [HttpGet("{id:int}")]
@@ -150,9 +132,9 @@ public class TransactionController : BaseController
         return ToActionResult(await _transactionService.GetAllByClientIdAsync(clientId, userId.Value, IsAdmin()));
     }
 
-    /// <summary>Filter transactions by typeId, categoryId, modeId, clientId, dateFrom, dateTo. Admin only.</summary>
+    /// <summary>Filter transactions by typeId, categoryId, modeId, clientId, dateFrom, dateTo. Admin sees all matches; non-admins see only their own.</summary>
     [HttpGet("filtered")]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<List<TransactionDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFiltered(
         [FromQuery] int? typeId,
@@ -162,22 +144,81 @@ public class TransactionController : BaseController
         [FromQuery] DateOnly? dateFrom,
         [FromQuery] DateOnly? dateTo)
     {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
         return ToActionResult(await _transactionService.GetFilteredAsync(
-            typeId, categoryId, modeId, clientId, dateFrom, dateTo));
+            typeId, categoryId, modeId, clientId, dateFrom, dateTo, userId.Value, IsAdmin()));
     }
 
-    /// <summary>Export all transactions as PDF. Admin only.</summary>
+    /// <summary>Export transactions as PDF. Admin sees all; non-admins see only their own.</summary>
     [HttpGet("pdf")]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPdf()
     {
-        var result = await _transactionService.GetAllAsync();
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        var result = await _transactionService.GetAllAsync(userId.Value, IsAdmin());
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 
         var pdf = _pdfService.CreatePdf(
             "Transactions", "Full ledger. All amounts in PKR.", result.Data, EntityPdfConfigs.Transaction, new PdfOptions { ShowRowNumbers = true });
         return File(pdf, "application/pdf", "transactions.pdf");
+    }
+
+    /// <summary>Download a single transaction as a branded PDF ledger slip — category/type/mode, amount, and linked party.</summary>
+    [HttpGet("{id:int}/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetTransactionDossierPdf([FromRoute] int id)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in token.");
+
+        var response = await _transactionService.GetByIdAsync(id, userId.Value, IsAdmin());
+        if (!response.Success || response.Data is null)
+            return NotFound(response.Message);
+
+        var t = response.Data;
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel      = "TRANSACTION",
+            Reference           = $"HT-TXN-{t.Id}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = t.ClientName ?? "—",
+            PreparedForSubtitle = $"{t.TransCategoryName} · {t.TransTypeName}",
+            PeriodLabel         = "TRANS DATE",
+            PeriodValue         = t.TransDate.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat("Amount", PdfFormat.Rs(t.Amount), Highlight: true),
+                new Stat("Type", t.TransTypeName ?? "—"),
+                new Stat("Category", t.TransCategoryName ?? "—"),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Details",
+                    Headers: new[] { "Field", "Value" },
+                    Rows: new[]
+                    {
+                        new[] { "Source", t.Source ?? "—" },
+                        new[] { "Mode", t.TransModeName ?? "—" },
+                        new[] { "Client", t.ClientName ?? "—" },
+                        new[] { "Date", t.TransDate.ToString("dd MMM yyyy") },
+                        new[] { "Notes", t.Notes ?? "—" },
+                    }),
+            },
+            Closing = new ClosingSummary(
+                LeftLabel:    "TYPE",
+                LeftSubtitle: t.TransTypeName ?? "—",
+                RightLabel:   "AMOUNT",
+                RightValue:   PdfFormat.Rs(t.Amount)),
+        };
+
+        return File(_pdfService.CreateDocument(model), "application/pdf", $"transaction-{t.Id}.pdf");
     }
 }

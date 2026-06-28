@@ -14,4 +14,5 @@ export interface ClientTransactionSummary {
   /** @nullable */
   typeName?: string | null;
   amount?: number;
+  isReversal?: boolean;
 }

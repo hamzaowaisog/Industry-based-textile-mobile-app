@@ -1,6 +1,10 @@
+import { AppConstants } from '@constants/appConstants';
+
+const { THOUSAND, MILLION, DECIMALS_COMPACT, DECIMALS_ROUND } = AppConstants.NUMBER;
+
 export const formatCompactNumber = (n: number): string =>
-  n >= 1000000
-    ? `${(n / 1000000).toFixed(1)}M`
-    : n >= 1000
-      ? `${(n / 1000).toFixed(0)}K`
+  n >= MILLION
+    ? `${(n / MILLION).toFixed(DECIMALS_COMPACT)}M`
+    : n >= THOUSAND
+      ? `${(n / THOUSAND).toFixed(DECIMALS_ROUND)}K`
       : String(n);

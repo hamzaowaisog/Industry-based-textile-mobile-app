@@ -79,11 +79,8 @@ public class UsersController : BaseController
             return ValidationProblem(ModelState);
         }
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var dto = new UpdateUserByIdDto
         {

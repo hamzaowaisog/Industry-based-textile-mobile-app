@@ -1,4 +1,5 @@
 using System.Globalization;
+using HamzaTex.Api.Helpers;
 using HamzaTex.Api.Models;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -6,9 +7,13 @@ using QuestPDF.Infrastructure;
 
 namespace HamzaTex.Api.Services;
 
+/// <summary>Single PDF renderer. <see cref="CreatePdf{T}"/> builds list/table exports; <see cref="CreateDocument"/> builds multi-section branded documents. Both share the same chrome (header/footer/stat cards) and palette.</summary>
 public interface IPdfService
 {
     byte[] CreatePdf<T>(string title, string description, List<T> dataList, IReadOnlyList<PdfColumnConfig> columns, PdfOptions? options = null);
+
+    /// <summary>Build a multi-section branded document (invoice / statement / dossier / report) using the same chrome as <see cref="CreatePdf{T}"/>.</summary>
+    byte[] CreateDocument(HamzaTexDocumentModel model, PdfOptions? options = null);
 }
 
 public class PdfOptions
@@ -22,19 +27,27 @@ public class PdfOptions
     public string SummaryLabel    { get; set; } = "Total";
     /// <summary>When set, summary = sum of (this property × SummaryProperty) per row.</summary>
     public string? SummaryMultiplierProperty { get; set; }
+    /// <summary>When set, rows where this property matches any value in SummaryExcludeValues are excluded from the grand total (e.g. cancelled documents). Rows still appear in the table.</summary>
+    public string? SummaryExcludeProperty { get; set; }
+    /// <summary>Values that, when matched against SummaryExcludeProperty, exclude a row from the grand total.</summary>
+    public List<object> SummaryExcludeValues { get; set; } = new();
     /// <summary>Culture for currency formatting. Default: en-PK (Pakistani Rupee).</summary>
     public string CurrencyCulture { get; set; } = "en-PK";
+    /// <summary>Decimal places for currency. PKR reports default to 0 (clean rupees, e.g. "Rs 50,000").</summary>
+    public int CurrencyDecimalPlaces { get; set; } = 0;
     /// <summary>Show row numbers in the first column.</summary>
-    public bool ShowRowNumbers { get; set; } = false;
+    public bool ShowRowNumbers { get; set; } = true;
     /// <summary>Override logo path. Defaults to assets/business-card.png.</summary>
     public string? LogoPath { get; set; }
     /// <summary>Additional notes displayed at the bottom of the report.</summary>
     public string? FooterNotes { get; set; }
+    /// <summary>Optional summary stat cards rendered above the table.</summary>
+    public List<Stat> Stats { get; set; } = new();
 }
 
 public class PdfService : IPdfService
 {
-    // ── Brand palette — dark navy + teal, matching business card ────────────
+    // ── Brand palette — the single source of truth for every PDF ────────────
     private const string NavyDark     = "#0f172a";  // Slate-900
     private const string NavyMedium   = "#1e293b";  // Slate-800
     private const string NavyLight    = "#334155";  // Slate-700
@@ -55,12 +68,16 @@ public class PdfService : IPdfService
     private const string GreenFg  = "#15803d";   // Green-700
     private const string GrayBg   = "#f1f5f9";   // Slate-100
     private const string GrayFg   = "#94a3b8";   // Slate-400
+    private const string NegativeFg = "#dc2626"; // Red-600 — debits / overdrawn balances
 
     static PdfService()
     {
         QuestPDF.Settings.License = LicenseType.Community;
     }
 
+    // ════════════════════════════════════════════════════════════════════════
+    //  LIST EXPORT  —  CreatePdf<T>
+    // ════════════════════════════════════════════════════════════════════════
     public byte[] CreatePdf<T>(
         string title,
         string description,
@@ -83,85 +100,15 @@ public class PdfService : IPdfService
             container.Page(page =>
             {
                 page.Size(PageSizes.A4);
-                page.Margin(2, Unit.Centimetre);
+                page.Margin(0);
                 page.DefaultTextStyle(x => x.FontSize(9).FontColor(TextPrimary));
 
-                // ── HEADER ────────────────────────────────────────────────
-                page.Header().Column(headerCol =>
-                {
-                    // ── Banner ────────────────────────────────────────────
-                    headerCol.Item()
-                        .Background(NavyDark)
-                        .Padding(16)
-                        .Row(row =>
-                        {
-                            // Logo card
-                            if (hasLogo)
-                            {
-                                row.ConstantItem(108)
-                                    .Border(1.5f).BorderColor(TealAccent)
-                                    .Padding(3)
-                                    .Image(logoPath);
-                                row.ConstantItem(16); // spacer
-                            }
-
-                            // Company identity
-                            row.RelativeItem().Column(col =>
-                            {
-                                col.Item()
-                                    .Text(options.BusinessName)
-                                    .Bold().FontSize(24).FontColor(Colors.White);
-                                col.Item().PaddingTop(4)
-                                    .Text(options.BusinessTagline)
-                                    .FontSize(9).FontColor(TealLight).Italic();
-                            });
-
-                            // Right block: stamp + date
-                            row.ConstantItem(120).AlignRight().Column(col =>
-                            {
-                                // "OFFICIAL REPORT" outlined stamp
-                                col.Item().AlignRight()
-                                    .Width(118)
-                                    .Border(1.5f).BorderColor(TealAccent)
-                                    .PaddingHorizontal(10).PaddingVertical(5)
-                                    .AlignCenter()
-                                    .Text("OFFICIAL REPORT")
-                                    .Bold().FontSize(8).FontColor(TealLight);
-
-                                col.Item().PaddingTop(10).AlignRight()
-                                    .Text(reportDate)
-                                    .Bold().FontSize(10).FontColor(Colors.White);
-                                col.Item().PaddingTop(3).AlignRight()
-                                    .Text(reportTime)
-                                    .FontSize(8).FontColor(TealLight);
-                            });
-                        });
-
-                    // ── Contact strip ─────────────────────────────────────
-                    var contactParts = BuildContactParts(options);
-                    if (contactParts.Count > 0)
-                    {
-                        headerCol.Item()
-                            .Background(NavyMedium)
-                            .PaddingHorizontal(16).PaddingVertical(7)
-                            .Row(r =>
-                            {
-                                r.RelativeItem()
-                                    .Text(string.Join("   |   ", contactParts))
-                                    .FontSize(8).FontColor(TealLight);
-                                r.ConstantItem(130).AlignRight()
-                                    .Text($"Ref: {reportRef}")
-                                    .FontSize(8).FontColor(NavyLight);
-                            });
-                    }
-
-                    // ── Teal rule ─────────────────────────────────────────
-                    headerCol.Item().Height(4).Background(TealAccent);
-                    headerCol.Item().Height(8);
-                });
+                // ── HEADER (shared chrome) ────────────────────────────────
+                page.Header().Element(c => RenderHeader(c, options, logoPath, hasLogo,
+                    stampLabel: "OFFICIAL REPORT", refText: reportRef, dateLine: $"{reportDate} at {reportTime}"));
 
                 // ── CONTENT ───────────────────────────────────────────────
-                page.Content().PaddingVertical(10).Column(column =>
+                page.Content().PaddingHorizontal(1f, Unit.Centimetre).PaddingVertical(10).Column(column =>
                 {
                     // ── Report title + record count chip ─────────────────
                     column.Item().Row(titleRow =>
@@ -172,7 +119,7 @@ public class PdfService : IPdfService
                         {
                             col.Item()
                                 .Text(title)
-                                .Bold().FontSize(16).FontColor(NavyDark);
+                                .Bold().FontSize(18).FontColor(NavyDark);
                             if (!string.IsNullOrEmpty(description))
                                 col.Item().PaddingTop(4)
                                     .Text(description)
@@ -190,9 +137,14 @@ public class PdfService : IPdfService
                             .Bold().FontSize(8).FontColor(TealAccent);
                     });
 
-                    column.Item().PaddingTop(14);
+                    column.Item().PaddingTop(12);
 
-                    // ── Stats meta bar ────────────────────────────────────
+                    // ── Meta bar (generated timestamp + currency note when relevant) ──
+                    var hasCurrency = false;
+                    for (int i = 0; i < columns.Count; i++)
+                    {
+                        if (columns[i].Format == PdfColumnFormat.Currency) { hasCurrency = true; break; }
+                    }
                     column.Item()
                         .Background("#f8fafc")
                         .Border(1).BorderColor(BorderCell)
@@ -200,12 +152,22 @@ public class PdfService : IPdfService
                         .Row(r =>
                         {
                             r.RelativeItem()
-                                .Text($"Columns: {columns.Count}   |   Total Records: {data.Count}")
+                                .Text(hasCurrency ? "All amounts in PKR (Rs)" : " ")
                                 .FontSize(8).FontColor(TextSecondary);
                             r.ConstantItem(170).AlignRight()
                                 .Text($"Generated: {reportDate} at {reportTime}")
                                 .FontSize(8).FontColor(TextMuted);
                         });
+
+                    // ── Stat cards ─────────────────────────────────────────
+                    if (options.Stats.Count > 0)
+                    {
+                        column.Item().PaddingTop(10).Row(row =>
+                        {
+                            foreach (var s in options.Stats)
+                                row.RelativeItem().PaddingRight(6).Element(c => RenderStatCard(c, s));
+                        });
+                    }
 
                     column.Item().PaddingTop(10);
 
@@ -215,9 +177,14 @@ public class PdfService : IPdfService
                         table.ColumnsDefinition(cols =>
                         {
                             if (options.ShowRowNumbers)
-                                cols.ConstantColumn(30);
+                                cols.ConstantColumn(8, Unit.Millimetre);
                             foreach (var c in columns)
-                                cols.RelativeColumn(c.Format == PdfColumnFormat.Currency ? 1.1f : 1f);
+                            {
+                                if (c.FixedWidthMm.HasValue)
+                                    cols.ConstantColumn(c.FixedWidthMm.Value, Unit.Millimetre);
+                                else
+                                    cols.RelativeColumn(c.Weight > 0 ? c.Weight : 1f);
+                            }
                         });
 
                         // Header row
@@ -227,7 +194,7 @@ public class PdfService : IPdfService
                                 header.Cell()
                                     .Background(NavyDark)
                                     .BorderBottom(2).BorderColor(TealAccent)
-                                    .Padding(11).AlignCenter()
+                                    .PaddingHorizontal(5).PaddingVertical(9).AlignCenter()
                                     .Text("#").Bold().FontSize(8).FontColor(Colors.White);
 
                             foreach (var col in columns)
@@ -236,7 +203,7 @@ public class PdfService : IPdfService
                                     .BorderBottom(2).BorderColor(TealAccent)
                                     .PaddingHorizontal(10).PaddingVertical(11)
                                     .Text(col.DisplayName.ToUpper())
-                                    .Bold().FontSize(8).FontColor(Colors.White);
+                                    .Bold().FontSize(9).FontColor(Colors.White);
                         });
 
                         // Data rows
@@ -271,7 +238,7 @@ public class PdfService : IPdfService
                                     table.Cell()
                                         .Background(rowBg)
                                         .BorderBottom(1).BorderColor(BorderCell)
-                                        .Padding(10).AlignCenter()
+                                        .PaddingHorizontal(5).PaddingVertical(7).AlignCenter()
                                         .Text((rowIndex + 1).ToString())
                                         .FontSize(9).FontColor(TextSecondary);
 
@@ -285,26 +252,28 @@ public class PdfService : IPdfService
                                         table.Cell()
                                             .Background(boolVal ? GreenBg : GrayBg)
                                             .BorderBottom(1).BorderColor(BorderCell)
-                                            .Padding(10).AlignCenter()
+                                            .PaddingHorizontal(8).PaddingVertical(7).AlignCenter()
                                             .Text(boolVal ? "✓  Yes" : "✗  No")
                                             .Bold().FontSize(9)
                                             .FontColor(boolVal ? GreenFg : GrayFg);
                                         continue;
                                     }
 
-                                    var displayValue = FormatValue(value, col.Format, options.CurrencyCulture);
+                                    var displayValue = FormatValue(value, col.Format, options.CurrencyCulture, options.CurrencyDecimalPlaces);
+                                    var isNumeric = col.Format == PdfColumnFormat.Currency
+                                        || value is int or long or decimal or double or float;
+                                    var valueColor = isNumeric && IsNegative(value) ? NegativeFg : TextPrimary;
                                     var cell = table.Cell()
                                         .Background(rowBg)
                                         .BorderBottom(1).BorderColor(BorderCell)
-                                        .Padding(10);
+                                        .PaddingHorizontal(10).PaddingVertical(10);
 
-                                    if (col.Format == PdfColumnFormat.Currency
-                                        || value is int or long or decimal or double or float)
+                                    if (isNumeric)
                                         cell.AlignRight()
-                                            .Text(displayValue).FontSize(9).FontColor(TextPrimary);
+                                            .Text(displayValue).FontSize(9f).FontColor(valueColor);
                                     else
                                         cell.AlignLeft()
-                                            .Text(displayValue).FontSize(9).FontColor(TextPrimary);
+                                            .Text(displayValue).FontSize(9f).FontColor(valueColor);
                                 }
                                 rowIndex++;
                             }
@@ -315,9 +284,10 @@ public class PdfService : IPdfService
                     if (!string.IsNullOrEmpty(options.SummaryProperty) && data.Count > 0)
                     {
                         var total = string.IsNullOrEmpty(options.SummaryMultiplierProperty)
-                            ? CalculateSum(data, options.SummaryProperty)
-                            : CalculateProductSum(data, options.SummaryMultiplierProperty, options.SummaryProperty);
+                            ? CalculateSum(data, options.SummaryProperty, options.SummaryExcludeProperty, options.SummaryExcludeValues)
+                            : CalculateProductSum(data, options.SummaryMultiplierProperty, options.SummaryProperty, options.SummaryExcludeProperty, options.SummaryExcludeValues);
                         var culture = GetCulture(options.CurrencyCulture);
+                        var totalFormat = "N" + Math.Max(0, options.CurrencyDecimalPlaces);
 
                         column.Item().PaddingTop(0)
                             .Background(NavyDark)
@@ -336,8 +306,8 @@ public class PdfService : IPdfService
                                 });
                                 row.ConstantItem(10); // spacer
                                 row.ConstantItem(120).AlignRight().AlignMiddle()
-                                    .Text(total.ToString("C", culture))
-                                    .Bold().FontSize(13).FontColor(Colors.White);
+                                    .Text($"Rs {total.ToString(totalFormat, culture)}")
+                                    .Bold().FontSize(13).FontColor(total < 0 ? NegativeFg : Colors.White);
                             });
                     }
                     else if (data.Count > 0)
@@ -370,40 +340,265 @@ public class PdfService : IPdfService
                     }
                 });
 
-                // ── FOOTER ────────────────────────────────────────────────
-                page.Footer().Column(footerCol =>
-                {
-                    footerCol.Item().Height(3).Background(TealAccent);
-                    footerCol.Item()
-                        .PaddingTop(8)
-                        .Row(row =>
-                        {
-                            row.RelativeItem().AlignMiddle()
-                                .Text($"{options.BusinessName}  —  Confidential")
-                                .FontSize(8).FontColor(TextMuted).Italic();
-
-                            row.ConstantItem(140).AlignCenter().AlignMiddle()
-                                .Text($"Ref: {reportRef}")
-                                .FontSize(7).FontColor(TextMuted);
-
-                            row.ConstantItem(80).AlignRight().AlignMiddle()
-                                .Text(text =>
-                                {
-                                    text.Span("Page ").FontSize(8).FontColor(TextMuted);
-                                    text.CurrentPageNumber().FontSize(8).FontColor(TextSecondary).Bold();
-                                    text.Span(" / ").FontSize(8).FontColor(TextMuted);
-                                    text.TotalPages().FontSize(8).FontColor(TextSecondary);
-                                });
-                        });
-                });
+                // ── FOOTER (shared chrome) ────────────────────────────────
+                page.Footer().Element(c => RenderFooter(c, options, reportRef));
             });
         });
 
         return document.GeneratePdf();
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ════════════════════════════════════════════════════════════════════════
+    //  BRANDED DOCUMENT  —  CreateDocument
+    // ════════════════════════════════════════════════════════════════════════
+    public byte[] CreateDocument(HamzaTexDocumentModel model, PdfOptions? options = null)
+    {
+        options ??= new PdfOptions();
+        var logoPath = options.LogoPath
+            ?? Path.Combine(AppContext.BaseDirectory, "assets", "business-card.png");
+        var hasLogo = File.Exists(logoPath);
+        var dateLine = $"Issued {model.IssuedDate:dd MMM yyyy}";
 
+        return Document.Create(container =>
+        {
+            container.Page(page =>
+            {
+                page.Size(PageSizes.A4);
+                page.Margin(0);
+                page.DefaultTextStyle(x => x.FontSize(9).FontColor(TextPrimary));
+
+                page.Header().Element(c => RenderHeader(c, options, logoPath, hasLogo,
+                    stampLabel: model.DocumentLabel, refText: model.Reference, dateLine: dateLine));
+
+                page.Content().PaddingHorizontal(1f, Unit.Centimetre).PaddingVertical(10).Column(column =>
+                {
+                    column.Spacing(10);
+
+                    // Prepared-for + period block
+                    if (!string.IsNullOrWhiteSpace(model.PreparedFor))
+                        column.Item().Element(c => RenderPreparedForBlock(c, model));
+
+                    // Stat cards
+                    if (model.Stats.Count > 0)
+                    {
+                        column.Item().Row(row =>
+                        {
+                            foreach (var s in model.Stats)
+                                row.RelativeItem().PaddingRight(6).Element(c => RenderStatCard(c, s));
+                        });
+                    }
+
+                    // Sections
+                    foreach (var section in model.Sections)
+                    {
+                        column.Item().Element(c => RenderSectionHeader(c, section.Title));
+                        column.Item().Element(c => RenderSectionTable(c, section));
+                    }
+
+                    // Closing box
+                    if (model.Closing is not null)
+                        column.Item().Element(c => RenderClosingBox(c, model.Closing));
+
+                    if (!string.IsNullOrWhiteSpace(model.ClosingNote))
+                        column.Item().Text(model.ClosingNote).Italic().FontSize(8).FontColor(TextMuted);
+                });
+
+                page.Footer().Element(c => RenderFooter(c, options, model.Reference));
+            });
+        }).GeneratePdf();
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  SHARED CHROME  —  used by both CreatePdf and CreateDocument
+    // ════════════════════════════════════════════════════════════════════════
+    private static void RenderHeader(IContainer c, PdfOptions options, string logoPath, bool hasLogo, string stampLabel, string refText, string dateLine)
+    {
+        c.Column(col =>
+        {
+            // ── Banner ──────────────────────────────────────────────
+            col.Item().Background(NavyDark)
+               .PaddingVertical(12).PaddingHorizontal(1.5f, Unit.Centimetre)
+               .Row(row =>
+            {
+                if (hasLogo)
+                {
+                    row.ConstantItem(96).Border(0.75f).BorderColor(TealAccent).Padding(2).Image(logoPath);
+                    row.ConstantItem(12); // spacer
+                }
+
+                row.RelativeItem().AlignMiddle().Column(x =>
+                {
+                    x.Item().Text(options.BusinessName).Bold().FontSize(22).FontColor(Colors.White);
+                    x.Item().PaddingTop(3).Text(options.BusinessTagline)
+                       .FontSize(8.5f).FontColor(TealLight).Italic();
+                });
+
+                row.ConstantItem(116).AlignRight().Column(x =>
+                {
+                    // Stamp (OFFICIAL REPORT / CLIENT DOSSIER / INVOICE …)
+                    x.Item().AlignRight().Width(112)
+                       .Border(0.75f).BorderColor(TealAccent)
+                       .PaddingHorizontal(9).PaddingVertical(4).AlignCenter()
+                       .Text(stampLabel).Bold().FontSize(7.5f).FontColor(TealLight);
+
+                    x.Item().PaddingTop(8).AlignRight()
+                       .Text(refText).Bold().FontSize(10).FontColor(Colors.White);
+                    x.Item().PaddingTop(2).AlignRight()
+                       .Text(dateLine).FontSize(8).FontColor(TealLight);
+                });
+            });
+
+            // ── Contact strip ───────────────────────────────────────
+            var contactParts = BuildContactParts(options);
+            if (contactParts.Count > 0)
+            {
+                col.Item().Background(NavyMedium)
+                   .PaddingHorizontal(1.5f, Unit.Centimetre).PaddingVertical(7)
+                   .Text(string.Join("   |   ", contactParts))
+                   .FontSize(8).FontColor(TealLight);
+            }
+
+            // ── Teal rule + breathing space ─────────────────────────
+            col.Item().Height(4).Background(TealAccent);
+            col.Item().Height(8);
+        });
+    }
+
+    private static void RenderFooter(IContainer c, PdfOptions options, string refText)
+    {
+        c.Column(col =>
+        {
+            col.Item().Height(3).Background(TealAccent); // separator under the body
+            col.Item()
+               .PaddingTop(6).PaddingHorizontal(1f, Unit.Centimetre).PaddingBottom(10)
+               .Row(row =>
+            {
+                row.RelativeItem().AlignMiddle()
+                   .Text($"{options.BusinessName}  —  Confidential")
+                   .FontSize(8).FontColor(TextMuted).Italic();
+
+                row.ConstantItem(140).AlignCenter().AlignMiddle()
+                   .Text($"Ref: {refText}").FontSize(7).FontColor(TextMuted);
+
+                row.ConstantItem(80).AlignRight().AlignMiddle()
+                   .Text(text =>
+                   {
+                       text.Span("Page ").FontSize(8).FontColor(TextMuted);
+                       text.CurrentPageNumber().FontSize(8).FontColor(TextSecondary).Bold();
+                       text.Span(" / ").FontSize(8).FontColor(TextMuted);
+                       text.TotalPages().FontSize(8).FontColor(TextSecondary);
+                   });
+            });
+        });
+    }
+
+    private static void RenderStatCard(IContainer c, Stat s)
+    {
+        c.Background(Colors.White)
+         .Border(0.5f).BorderColor(BorderCell)
+         .BorderTop(2).BorderColor(s.Highlight ? TealAccent : NavyMedium)
+         .Padding(8)
+         .Column(x =>
+         {
+             x.Item().Text(s.Label.ToUpper()).FontSize(7).FontColor(TextMuted);
+             x.Item().PaddingTop(3).Text(s.Value)
+                .Bold().FontSize(12).FontColor(s.Highlight ? TealAccent : NavyDark);
+         });
+    }
+
+    private static void RenderPreparedForBlock(IContainer c, HamzaTexDocumentModel m)
+    {
+        c.Row(row =>
+        {
+            row.RelativeItem(0.55f).Column(x =>
+            {
+                x.Item().BorderBottom(0.6f).BorderColor(TealAccent).PaddingBottom(3)
+                      .Text("PREPARED FOR").Bold().FontSize(9).FontColor(TealAccent);
+                x.Item().PaddingTop(6).Text(m.PreparedFor).FontSize(14).Bold().FontColor(NavyDark);
+                x.Item().Text(m.PreparedForSubtitle).FontSize(8.5f).FontColor(TextSecondary);
+            });
+            row.RelativeItem(0.45f).Column(x =>
+            {
+                x.Item().BorderBottom(0.6f).BorderColor(TealAccent).PaddingBottom(3)
+                      .Text(m.PeriodLabel).Bold().FontSize(9).FontColor(TealAccent);
+                x.Item().PaddingTop(6).Text(m.PeriodValue).FontSize(10).FontColor(TextPrimary);
+                x.Item().Text("All amounts in PKR (Rs)").FontSize(8.5f).FontColor(TextSecondary);
+            });
+        });
+    }
+
+    private static void RenderSectionHeader(IContainer c, string title)
+    {
+        c.BorderBottom(0.6f).BorderColor(TealAccent).PaddingBottom(3)
+         .Text(title.ToUpper()).Bold().FontSize(9).FontColor(TealAccent);
+    }
+
+    private static void RenderSectionTable(IContainer c, TableSection s)
+    {
+        var rightCols = new HashSet<int>(s.RightAlign ?? Array.Empty<int>());
+
+        c.Border(0.4f).BorderColor(BorderCell).Table(t =>
+        {
+            t.ColumnsDefinition(cd =>
+            {
+                foreach (var _ in s.Headers) cd.RelativeColumn();
+            });
+
+            // Header row
+            t.Header(h =>
+            {
+                for (int i = 0; i < s.Headers.Length; i++)
+                {
+                    var hc = h.Cell().Background(NavyDark)
+                                .BorderBottom(1.2f).BorderColor(TealAccent)
+                                .PaddingVertical(6).PaddingHorizontal(8).AlignMiddle();
+                    (rightCols.Contains(i) ? hc.AlignRight() : hc.AlignLeft())
+                        .Text(s.Headers[i]).Bold().FontSize(8).FontColor(Colors.White);
+                }
+            });
+
+            int rowIndex = 0;
+            foreach (var row in s.Rows)
+            {
+                var bg = rowIndex % 2 == 0 ? RowOdd : RowEven;
+                for (int i = 0; i < row.Length; i++)
+                {
+                    var cell = t.Cell().Background(bg)
+                                .BorderBottom(0.25f).BorderColor(BorderCell)
+                                .PaddingVertical(5).PaddingHorizontal(8);
+                    var aligned = rightCols.Contains(i) ? cell.AlignRight() : cell.AlignLeft();
+                    var isNegative = rightCols.Contains(i)
+                                     && !string.IsNullOrEmpty(row[i])
+                                     && row[i].Contains('-');
+                    aligned.Text(row[i]).FontSize(8.8f).FontColor(isNegative ? NegativeFg : TextPrimary);
+                }
+                rowIndex++;
+            }
+        });
+    }
+
+    private static void RenderClosingBox(IContainer c, ClosingSummary cs)
+    {
+        c.Background(NavyDark).BorderTop(2).BorderColor(TealAccent)
+         .PaddingVertical(14).PaddingHorizontal(16)
+         .Row(r =>
+         {
+             r.RelativeItem(0.55f).Column(x =>
+             {
+                 x.Item().Text(cs.LeftLabel).FontSize(8).FontColor(TealLight);
+                 x.Item().Text(cs.LeftSubtitle).FontSize(9).FontColor(Colors.White);
+             });
+             r.RelativeItem(0.45f).AlignRight().Column(x =>
+             {
+                 x.Item().AlignRight().Text(cs.RightLabel).FontSize(8).FontColor(TealLight);
+                 x.Item().AlignRight().Text(cs.RightValue).Bold().FontSize(20).FontColor(Colors.White);
+             });
+         });
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  HELPERS
+    // ════════════════════════════════════════════════════════════════════════
     private static List<string> BuildContactParts(PdfOptions options)
     {
         var parts = new List<string>();
@@ -419,12 +614,12 @@ public class PdfService : IPdfService
         return typeof(T).GetProperty(propertyName)?.GetValue(item, null);
     }
 
-    private static string FormatValue(object? value, PdfColumnFormat format, string currencyCulture = "en-PK")
+    private static string FormatValue(object? value, PdfColumnFormat format, string currencyCulture = "en-PK", int currencyDecimals = 0)
     {
         if (value is null) return "—";
         return format switch
         {
-            PdfColumnFormat.Currency   => FormatCurrency(value, currencyCulture),
+            PdfColumnFormat.Currency   => FormatCurrency(value, currencyCulture, currencyDecimals),
             PdfColumnFormat.Date       => FormatDate(value),
             PdfColumnFormat.Boolean    => value is bool b ? (b ? "Yes" : "No") : value.ToString() ?? "—",
             PdfColumnFormat.Percentage => FormatPercentage(value),
@@ -432,15 +627,18 @@ public class PdfService : IPdfService
         };
     }
 
-    private static string FormatCurrency(object value, string currencyCulture = "en-PK")
+    private static string FormatCurrency(object value, string currencyCulture = "en-PK", int decimals = 0)
     {
-        var culture = GetCulture(currencyCulture);
-        if (value is decimal d)  return d.ToString("C", culture);
-        if (value is double dbl) return dbl.ToString("C", culture);
-        if (value is float f)    return f.ToString("C", culture);
-        if (value is int i)      return i.ToString("C", culture);
-        if (value is long l)     return l.ToString("C", culture);
-        return value.ToString() ?? "—";
+        // Delegates to the shared PdfFormat helper so list exports and branded docs match.
+        return value switch
+        {
+            decimal d  => PdfFormat.Rs(d, decimals),
+            double dbl => PdfFormat.Rs((decimal)dbl, decimals),
+            float f    => PdfFormat.Rs((decimal)f, decimals),
+            int i      => PdfFormat.Rs(i, decimals),
+            long l     => PdfFormat.Rs(l, decimals),
+            _          => value.ToString() ?? "—"
+        };
     }
 
     private static string FormatPercentage(object value)
@@ -464,20 +662,20 @@ public class PdfService : IPdfService
         catch { return new CultureInfo("en-PK"); }
     }
 
-    private static decimal CalculateSum<T>(List<T> data, string propertyName)
+    private static decimal CalculateSum<T>(List<T> data, string propertyName, string? excludeProperty = null, List<object>? excludeValues = null)
     {
         decimal total = 0;
         var prop = typeof(T).GetProperty(propertyName);
         if (prop is null) return 0;
         foreach (var item in data)
         {
-            if (item is not null)
+            if (item is not null && !IsExcluded(item, excludeProperty, excludeValues))
                 total += GetDecimalValue(prop.GetValue(item, null));
         }
         return total;
     }
 
-    private static decimal CalculateProductSum<T>(List<T> data, string multiplierProp, string valueProp)
+    private static decimal CalculateProductSum<T>(List<T> data, string multiplierProp, string valueProp, string? excludeProperty = null, List<object>? excludeValues = null)
     {
         decimal total = 0;
         var mProp = typeof(T).GetProperty(multiplierProp);
@@ -485,11 +683,32 @@ public class PdfService : IPdfService
         if (mProp is null || vProp is null) return 0;
         foreach (var item in data)
         {
-            if (item is not null)
+            if (item is not null && !IsExcluded(item, excludeProperty, excludeValues))
                 total += GetDecimalValue(mProp.GetValue(item, null))
                        * GetDecimalValue(vProp.GetValue(item, null));
         }
         return total;
+    }
+
+    /// <summary>True when the row's exclude-property matches any of the exclude-values (e.g. a cancelled document).</summary>
+    private static bool IsExcluded<T>(T item, string? excludeProperty, List<object>? excludeValues)
+    {
+        if (string.IsNullOrEmpty(excludeProperty) || excludeValues is null || excludeValues.Count == 0)
+            return false;
+        var prop = typeof(T).GetProperty(excludeProperty!);
+        if (prop is null) return false;
+        var value = prop.GetValue(item, null);
+        if (value is null) return false;
+        foreach (var excluded in excludeValues)
+        {
+            try
+            {
+                if (value.Equals(Convert.ChangeType(excluded, value.GetType())))
+                    return true;
+            }
+            catch { /* incompatible types — treat as non-matching */ }
+        }
+        return false;
     }
 
     private static decimal GetDecimalValue(object? val) => val switch
@@ -500,5 +719,15 @@ public class PdfService : IPdfService
         int i      => i,
         long l     => l,
         _          => 0
+    };
+
+    private static bool IsNegative(object? val) => val switch
+    {
+        decimal d  => d < 0,
+        double dbl => dbl < 0,
+        float f    => f < 0,
+        int i      => i < 0,
+        long l     => l < 0,
+        _          => false
     };
 }

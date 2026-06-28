@@ -143,12 +143,10 @@ public interface IExpenseService
     Task<Response<ExpenseDto>> CreateAsync(CreateExpenseDto model, int userId);
     /// <summary>Get expense by ID.</summary>
     Task<Response<ExpenseDto>> GetByIdAsync(int id);
-    /// <summary>Get all expenses paginated (admin view — all records).</summary>
-    Task<Response<PagedList<ExpenseDto>>> GetAllPaginatedAsync(int page, int pageSize);
-    /// <summary>Get expenses recorded by a specific user, paginated. Used for the /me endpoint.</summary>
-    Task<Response<PagedList<ExpenseDto>>> GetAllByUserIdAsync(int userId, int page, int pageSize);
-    /// <summary>Filter expenses by type, mode, and date range. Returns an unpaginated list for PDF/export.</summary>
-    Task<Response<List<ExpenseDto>>> GetFilteredAsync(int? expenseTypeId, int? modeId, DateOnly? dateFrom, DateOnly? dateTo);
+    /// <summary>Get all expenses paginated. Admin sees all; non-admins see only their own expenses.</summary>
+    Task<Response<PagedList<ExpenseDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
+    /// <summary>Filter expenses by type, mode, and date range. Admin sees all matches; non-admins see only their own. Unpaginated — for PDF/export.</summary>
+    Task<Response<List<ExpenseDto>>> GetFilteredAsync(int? expenseTypeId, int? modeId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
     /// <summary>Update amount, mode, date, and notes. Atomically updates the linked Transaction. TransCategoryId cannot be changed — delete and re-create to reclassify.</summary>
     Task<Response<ExpenseDto>> UpdateByIdAsync(int id, UpdateExpenseDto model);
     /// <summary>Hard delete an expense and its linked Transaction. Admin only.</summary>
@@ -272,18 +270,12 @@ public class ExpenseService : IExpenseService
         return Response<ExpenseDto>.SuccessResponse(MapToDto(expense), "Expense fetched.");
     }
 
-    public async Task<Response<PagedList<ExpenseDto>>> GetAllPaginatedAsync(int page, int pageSize)
+    public async Task<Response<PagedList<ExpenseDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
         var query = ExpenseQueryWithIncludes();
-        var paged = await PagedList<ExpenseDto>.CreateAsync(
-            query.Select(e => MapToDto(e)), page, pageSize);
+        if (!isAdmin)
+            query = query.Where(e => e.UserId == userId);
 
-        return Response<PagedList<ExpenseDto>>.SuccessResponse(paged, "Expenses fetched.");
-    }
-
-    public async Task<Response<PagedList<ExpenseDto>>> GetAllByUserIdAsync(int userId, int page, int pageSize)
-    {
-        var query = ExpenseQueryWithIncludes().Where(e => e.UserId == userId);
         var paged = await PagedList<ExpenseDto>.CreateAsync(
             query.Select(e => MapToDto(e)), page, pageSize);
 
@@ -291,9 +283,11 @@ public class ExpenseService : IExpenseService
     }
 
     public async Task<Response<List<ExpenseDto>>> GetFilteredAsync(
-        int? expenseTypeId, int? modeId, DateOnly? dateFrom, DateOnly? dateTo)
+        int? expenseTypeId, int? modeId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin)
     {
         var query = ExpenseQueryWithIncludes();
+        if (!isAdmin)
+            query = query.Where(e => e.UserId == userId);
 
         if (expenseTypeId.HasValue) query = query.Where(e => e.ExpenseTypeId == expenseTypeId.Value);
         if (modeId.HasValue)        query = query.Where(e => e.TransModeId == modeId.Value);

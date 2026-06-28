@@ -15,14 +15,15 @@ namespace HamzaTex.Api.Controllers;
 public class ReportController : BaseController
 {
     private readonly IReportService _reportService;
+    private readonly IPdfService _pdfService;
 
-    public ReportController(IReportService reportService)
+    public ReportController(IReportService reportService, IPdfService pdfService)
     {
         _reportService = reportService;
+        _pdfService = pdfService;
     }
 
-    private static string Curr(decimal v) =>
-        v.ToString("C", new System.Globalization.CultureInfo("en-PK"));
+    private static string Curr(decimal v) => PdfFormat.Rs(v);
 
     // ── Profit & Loss ────────────────────────────────────────────────────────
 
@@ -90,7 +91,7 @@ public class ReportController : BaseController
                 : "Business is operating at a loss. Please review expenses and purchasing activity.",
         };
 
-        var pdf = HamzaTexPdf.Generate(model);
+        var pdf = _pdfService.CreateDocument(model);
         return File(pdf, "application/pdf", $"profit-loss-{periodLabel.Replace('/', '-')}.pdf");
     }
 
@@ -170,7 +171,7 @@ public class ReportController : BaseController
             },
         };
 
-        var pdf = HamzaTexPdf.Generate(model);
+        var pdf = _pdfService.CreateDocument(model);
         return File(pdf, "application/pdf", "client-balances.pdf");
     }
 
@@ -234,7 +235,7 @@ public class ReportController : BaseController
             Closing = new ClosingSummary("NET BALANCE", $"As of {DateTime.Now:dd MMM yyyy}", "TOTAL", Curr(netBalance)),
         };
 
-        var pdf = HamzaTexPdf.Generate(model);
+        var pdf = _pdfService.CreateDocument(model);
         return File(pdf, "application/pdf", $"credit-debit-{periodLabel.Replace('/', '-')}.pdf");
     }
 
@@ -295,7 +296,7 @@ public class ReportController : BaseController
             ClosingNote = "This is an aggregate summary. Use the P&L report for month-by-month breakdown.",
         };
 
-        var pdf = HamzaTexPdf.Generate(model);
+        var pdf = _pdfService.CreateDocument(model);
         return File(pdf, "application/pdf", "business-summary.pdf");
     }
 
@@ -421,7 +422,7 @@ public class ReportController : BaseController
             isCustomer ? "AMOUNT DUE" : "AMOUNT PAYABLE", Curr(d.Balance));
         model.ClosingNote = "Thank you for your continued partnership with Hamza Tex. For queries, please contact us at hamzatex007@gmail.com.";
 
-        var pdf = HamzaTexPdf.Generate(model);
+        var pdf = _pdfService.CreateDocument(model);
         return File(pdf, "application/pdf", $"client-statement-{d.ClientName.Replace(' ', '-')}.pdf");
     }
 
@@ -488,7 +489,7 @@ public class ReportController : BaseController
             Sections = sections,
         };
 
-        var pdf = HamzaTexPdf.Generate(model);
+        var pdf = _pdfService.CreateDocument(model);
         return File(pdf, "application/pdf", "client-detail.pdf");
     }
 }

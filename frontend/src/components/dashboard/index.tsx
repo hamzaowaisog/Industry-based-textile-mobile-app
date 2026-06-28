@@ -3,6 +3,8 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppStatCard } from '@components/common/AppStatCard';
+
 import { QUICK_ACTION_CONFIGS, getStatCardConfigs } from '@utils/helpers/dashboardContent';
 import { computeRevenueTrend } from '@utils/helpers/dashboardMappers';
 import { formatCompactNumber as fmt } from '@utils/helpers/formatNumber';
@@ -19,7 +21,6 @@ import { DashboardSkeleton } from './DashboardSkeleton';
 import { FinancialCell } from './FinancialCell';
 import { OrderRow } from './OrderRow';
 import { PurchaseRow } from './PurchaseRow';
-import { StatCardItem } from './StatCardItem';
 import { styles } from './styles';
 
 export const DashboardComponent = ({
@@ -110,10 +111,10 @@ export const DashboardComponent = ({
             contentContainerStyle={styles.statScrollContent}
           >
             {statCards.map((card) => (
-              <StatCardItem
+              <AppStatCard
                 key={card.label}
                 tint={card.tint}
-                icon={<card.Icon size={18} color={card.tint} />}
+                Icon={card.Icon as any}
                 label={card.label}
                 value={card.value}
                 sub={card.sub}
@@ -239,7 +240,7 @@ export const DashboardComponent = ({
                 </View>
               ) : (
                 summary.recentOrders
-                  .slice(0, 3)
+                  .slice(0, AppConstants.DASHBOARD.RECENT_ITEMS)
                   .map((order, i, arr) => (
                     <OrderRow key={order.orderId} order={order} isLast={i === arr.length - 1} />
                   ))
@@ -262,7 +263,7 @@ export const DashboardComponent = ({
                 </View>
               ) : (
                 summary.recentPurchases
-                  .slice(0, 3)
+                  .slice(0, AppConstants.DASHBOARD.RECENT_ITEMS)
                   .map((purchase, i, arr) => (
                     <PurchaseRow
                       key={purchase.purchaseId}

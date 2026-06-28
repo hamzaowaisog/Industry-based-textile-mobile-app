@@ -31,7 +31,6 @@ import type {
   PaymentDtoResponse,
   PaymentGetAllParams,
   PaymentGetFilteredParams,
-  PaymentGetMineParams,
   PaymentGetPdfParams,
   PaymentReverseParams,
   PaymentUpdateViewModel,
@@ -109,7 +108,7 @@ export const usePaymentCreate = <TError = PaymentDtoResponse,
       return useMutation(getPaymentCreateMutationOptions(options), queryClient);
     }
     /**
- * @summary Get all payments paginated. Admin only.
+ * @summary Get all payments paginated. Staff see only their own; Admin sees all.
  */
 export const paymentGetAll = (
     params?: PaymentGetAllParams,
@@ -181,7 +180,7 @@ export function usePaymentGetAll<TData = Awaited<ReturnType<typeof paymentGetAll
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get all payments paginated. Admin only.
+ * @summary Get all payments paginated. Staff see only their own; Admin sees all.
  */
 
 export function usePaymentGetAll<TData = Awaited<ReturnType<typeof paymentGetAll>>, TError = unknown>(
@@ -190,99 +189,6 @@ export function usePaymentGetAll<TData = Awaited<ReturnType<typeof paymentGetAll
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getPaymentGetAllQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-/**
- * @summary Get payments recorded by the current authenticated user.
- */
-export const paymentGetMine = (
-    params?: PaymentGetMineParams,
- signal?: AbortSignal
-) => {
-
-
-      return axiosInstance<PaymentDtoPagedListResponse>(
-      {url: `/api/Payment/me`, method: 'GET',
-        params, signal
-    },
-      );
-    }
-
-
-
-
-export const getPaymentGetMineQueryKey = (params?: PaymentGetMineParams,) => {
-    return [
-    `/api/Payment/me`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getPaymentGetMineQueryOptions = <TData = Awaited<ReturnType<typeof paymentGetMine>>, TError = unknown>(params?: PaymentGetMineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetMine>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getPaymentGetMineQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof paymentGetMine>>> = ({ signal }) => paymentGetMine(params, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof paymentGetMine>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type PaymentGetMineQueryResult = NonNullable<Awaited<ReturnType<typeof paymentGetMine>>>
-export type PaymentGetMineQueryError = unknown
-
-
-export function usePaymentGetMine<TData = Awaited<ReturnType<typeof paymentGetMine>>, TError = unknown>(
- params: undefined |  PaymentGetMineParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetMine>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof paymentGetMine>>,
-          TError,
-          Awaited<ReturnType<typeof paymentGetMine>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function usePaymentGetMine<TData = Awaited<ReturnType<typeof paymentGetMine>>, TError = unknown>(
- params?: PaymentGetMineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetMine>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof paymentGetMine>>,
-          TError,
-          Awaited<ReturnType<typeof paymentGetMine>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function usePaymentGetMine<TData = Awaited<ReturnType<typeof paymentGetMine>>, TError = unknown>(
- params?: PaymentGetMineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetMine>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get payments recorded by the current authenticated user.
- */
-
-export function usePaymentGetMine<TData = Awaited<ReturnType<typeof paymentGetMine>>, TError = unknown>(
- params?: PaymentGetMineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetMine>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getPaymentGetMineQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -916,7 +822,7 @@ export const usePaymentReverseAndCorrect = <TError = PaymentDtoResponse,
       return useMutation(getPaymentReverseAndCorrectMutationOptions(options), queryClient);
     }
     /**
- * @summary Export payments as PDF.
+ * @summary Export payments as PDF. Admin sees all; non-admins see only their own.
  */
 export const paymentGetPdf = (
     params?: PaymentGetPdfParams,
@@ -989,7 +895,7 @@ export function usePaymentGetPdf<TData = Awaited<ReturnType<typeof paymentGetPdf
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Export payments as PDF.
+ * @summary Export payments as PDF. Admin sees all; non-admins see only their own.
  */
 
 export function usePaymentGetPdf<TData = Awaited<ReturnType<typeof paymentGetPdf>>, TError = unknown>(
@@ -998,6 +904,99 @@ export function usePaymentGetPdf<TData = Awaited<ReturnType<typeof paymentGetPdf
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getPaymentGetPdfQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+/**
+ * @summary Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations.
+ */
+export const paymentGetPaymentDossierPdf = (
+    id: number,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<Blob>(
+      {url: `/api/Payment/${id}/pdf`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      );
+    }
+
+
+
+
+export const getPaymentGetPaymentDossierPdfQueryKey = (id: number,) => {
+    return [
+    `/api/Payment/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getPaymentGetPaymentDossierPdfQueryOptions = <TData = Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError = Response>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPaymentGetPaymentDossierPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>> = ({ signal }) => paymentGetPaymentDossierPdf(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PaymentGetPaymentDossierPdfQueryResult = NonNullable<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>>
+export type PaymentGetPaymentDossierPdfQueryError = Response
+
+
+export function usePaymentGetPaymentDossierPdf<TData = Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError = Response>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePaymentGetPaymentDossierPdf<TData = Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePaymentGetPaymentDossierPdf<TData = Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations.
+ */
+
+export function usePaymentGetPaymentDossierPdf<TData = Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPaymentGetPaymentDossierPdfQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

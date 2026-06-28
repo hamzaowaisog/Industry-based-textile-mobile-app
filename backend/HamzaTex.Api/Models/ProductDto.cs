@@ -9,6 +9,8 @@ public class ProductDto
     public decimal? DefaultCost { get; set; }
     public decimal? DefaultPrice { get; set; }
     public decimal? Quantity { get; set; }
+    /// <summary>On-hand Quantity minus qty already committed to other non-Delivered, non-Cancelled orders for this product. Use this for stock checks instead of Quantity.</summary>
+    public decimal AvailableQuantity { get; set; }
     public decimal? AverageCost { get; set; }
     public decimal? AveragePrice { get; set; }
     public int CostChangeCount { get; set; }

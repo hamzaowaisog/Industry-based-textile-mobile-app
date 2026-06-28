@@ -30,8 +30,8 @@ public class StockMovementsController : BaseController
     [ProducesResponseType(typeof(Response<StockMovementsDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateStockMovement([FromBody] StockMovementsCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<StockMovementsDto>());
+        if (ValidateModel<StockMovementsDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -51,7 +51,7 @@ public class StockMovementsController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Get all stock movements for the authenticated user's products, paginated.</summary>
+    /// <summary>Get all stock movements, paginated. Non-admins see only movements for their own products; Admin sees all.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(Response<PagedList<StockMovementsDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllStockMovementsPaginated([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
@@ -59,7 +59,7 @@ public class StockMovementsController : BaseController
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
 
-        var response = await _stockMovementsService.GetAllPaginatedAsync(page, pageSize, userId.Value);
+        var response = await _stockMovementsService.GetAllPaginatedAsync(page, pageSize, userId.Value, IsAdmin());
         return ToActionResult(response);
     }
 
@@ -94,6 +94,19 @@ public class StockMovementsController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Get all stock movements for a specific product ordered chronologically. Admin sees all; Staff scoped to their own products.</summary>
+    [HttpGet("by-product/{productId}")]
+    [ProducesResponseType(typeof(Response<List<StockMovementsDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByProductId(int productId)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        var isAdmin = IsAdmin();
+        var response = await _stockMovementsService.GetByProductIdAsync(productId, userId.Value, isAdmin);
+        return ToActionResult(response);
+    }
+
     /// <summary>Update a stock movement record. Does not recalculate product averages — use a new Manual movement for stock corrections.</summary>
     [HttpPut("{id}")]
     [Authorize(Policy = "AdminOrStaff")]
@@ -102,8 +115,8 @@ public class StockMovementsController : BaseController
     [ProducesResponseType(typeof(Response<StockMovementsDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateStockMovement(int id, [FromBody] StockMovementsUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<StockMovementsDto>());
+        if (ValidateModel<StockMovementsDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -160,9 +173,62 @@ public class StockMovementsController : BaseController
         return File(pdfBytes, "application/pdf", "stock-movements.pdf");
     }
 
-    private int? GetUserId()
+    /// <summary>Download a single stock movement as a branded PDF receipt — product, type/source, quantities, and value snapshots.</summary>
+    [HttpGet("{id:int}/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetStockMovementDossierPdf([FromRoute] int id)
     {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in token.");
+
+        var response = await _stockMovementsService.GetByIdAsync(id, userId.Value);
+        if (!response.Success || response.Data is null)
+            return NotFound(response.Message);
+
+        var m = response.Data;
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel      = "STOCK MOVEMENT",
+            Reference           = $"HT-MOVEMENT-{m.Id}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = m.ProductName ?? "—",
+            PreparedForSubtitle = $"{m.MovementTypeName} · {m.MovementSourceName}",
+            PeriodLabel         = "MOVEMENT DATE",
+            PeriodValue         = m.MovementDate.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat("Quantity", $"{m.Qty:0.##}", Highlight: true),
+                new Stat("Unit Cost", m.UnitCost.HasValue ? PdfFormat.Rs(m.UnitCost.Value) : "—"),
+                new Stat("Unit Price", m.UnitPrice.HasValue ? PdfFormat.Rs(m.UnitPrice.Value) : "—"),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Details",
+                    Headers: new[] { "Field", "Value" },
+                    Rows: new[]
+                    {
+                        new[] { "Type", m.MovementTypeName ?? "—" },
+                        new[] { "Source", m.MovementSourceName ?? "—" },
+                        new[] { "Date", m.MovementDate.ToString("dd MMM yyyy") },
+                        new[] { "Avg Cost Snapshot", m.AverageCostAtMovement.HasValue ? PdfFormat.Rs(m.AverageCostAtMovement.Value) : "—" },
+                        new[] { "Avg Price Snapshot", m.AveragePriceAtMovement.HasValue ? PdfFormat.Rs(m.AveragePriceAtMovement.Value) : "—" },
+                    }),
+            },
+            Closing = new ClosingSummary(
+                LeftLabel:    "MOVEMENT",
+                LeftSubtitle: $"{m.MovementTypeName} · {m.MovementSourceName}",
+                RightLabel:   "QUANTITY",
+                RightValue:   $"{m.Qty:0.##}"),
+        };
+
+        return File(_pdfService.CreateDocument(model), "application/pdf", $"stock-movement-{m.Id}.pdf");
+    }
+
+    private bool IsAdmin()
+    {
+        var roleIdClaim = User.FindFirst("RoleId");
+        return roleIdClaim is not null && int.TryParse(roleIdClaim.Value, out var roleId) && roleId == 1;
     }
 }

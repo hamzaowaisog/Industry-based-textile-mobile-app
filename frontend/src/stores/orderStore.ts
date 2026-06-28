@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import { queryClient } from '@api/queryClient';
+import { queryKeys } from '@constants/queryKeys';
 
 import {
   createOrderAsync,
@@ -31,7 +32,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
     const result = await createOrderAsync(values);
     set({ submitting: false });
     if (result.success) {
-      void queryClient.invalidateQueries({ queryKey: ['orders'] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
     }
     return result;
   },
@@ -41,7 +42,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
     const result = await updateOrderAsync(id, statusId, notes);
     set({ submitting: false });
     if (result.success) {
-      void queryClient.invalidateQueries({ queryKey: ['orders'] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
     }
     return result;
   },
@@ -49,7 +50,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
   deleteOrder: async (id) => {
     const result = await deleteOrderAsync(id);
     if (result.success) {
-      void queryClient.invalidateQueries({ queryKey: ['orders'] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
     }
     return result;
   },

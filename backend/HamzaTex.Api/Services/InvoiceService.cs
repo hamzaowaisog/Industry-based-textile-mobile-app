@@ -257,6 +257,17 @@ public class InvoiceService : IInvoiceService
         {
             invoice.InvoiceStatusId = StatusPaid;
             await _db.SaveChangesAsync();
+            if (invoice.CreatedByUserId.HasValue)
+            {
+                try { await _notification.CreateAsync(new CreateNotificationDto
+                {
+                    UserId = invoice.CreatedByUserId.Value,
+                    Type = "invoice_paid",
+                    Title = "Invoice Fully Paid",
+                    Body = $"Invoice {invoice.InvoiceNumber} has been fully paid (PKR {invoice.TotalAmount:F2})",
+                    EntityId = invoice.Id
+                }); } catch { }
+            }
         }
     }
 
@@ -274,10 +285,9 @@ public class InvoiceService : IInvoiceService
     public async Task<Response<PagedList<InvoiceDto>>> GetAllPaginatedAsync(int page, int pageSize)
     {
         var query = InvoiceQueryWithIncludes().OrderByDescending(i => i.CreatedAt);
-        var totalCount = await query.CountAsync();
-        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-        var paged = new PagedList<InvoiceDto>(items.Select(i => ToDto(i)).ToList(), page, pageSize, totalCount);
-        return Response<PagedList<InvoiceDto>>.SuccessResponse(paged, "Invoices fetched.");
+        var paged = await PagedList<Invoice>.CreateAsync(query, page, pageSize);
+        var pagedList = new PagedList<InvoiceDto>(paged.Items.Select(i => ToDto(i)).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
+        return Response<PagedList<InvoiceDto>>.SuccessResponse(pagedList, "Invoices fetched.");
     }
 
     public async Task<Response<InvoiceByClientDto>> GetAllByClientIdAsync(int clientId)

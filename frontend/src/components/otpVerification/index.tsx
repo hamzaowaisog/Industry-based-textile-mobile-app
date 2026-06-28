@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -14,11 +15,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { colors } from '@theme/colors';
+
 import { AppConstants } from '@constants/appConstants';
 import { ArrowLeftIcon, LockIcon, WeavePattern } from '@constants/svgAssets';
-import { colors } from '@theme/colors';
-import { OtpVerificationComponentProps } from '../../types/otpVerification.types';
 
+import { OtpVerificationComponentProps } from '../../types/otpVerification.types';
 import { styles } from './styles';
 
 export const OtpVerificationComponent = ({
@@ -79,7 +81,7 @@ export const OtpVerificationComponent = ({
 
       <KeyboardAvoidingView
         style={styles.formCardWrapper}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : undefined}
       >
         <ScrollView
           style={styles.formCard}
@@ -94,7 +96,9 @@ export const OtpVerificationComponent = ({
               {digits.map((digit, i) => (
                 <TextInput
                   key={i}
-                  ref={(ref) => { inputRefs.current[i] = ref; }}
+                  ref={(ref) => {
+                    inputRefs.current[i] = ref;
+                  }}
                   style={[
                     styles.otpBox,
                     focusedIndex === i && styles.otpBoxFocused,
@@ -132,17 +136,13 @@ export const OtpVerificationComponent = ({
               disabled={!canResend || isResending}
               activeOpacity={0.7}
             >
-              {isResending
-                ? <ActivityIndicator size="small" color={colors.primary} />
-                : (
-                  <Text style={[
-                    styles.resendBtnText,
-                    !canResend && styles.resendBtnDisabledText,
-                  ]}>
-                    {t('otpVerification.resendCode')}
-                  </Text>
-                )
-              }
+              {isResending ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Text style={[styles.resendBtnText, !canResend && styles.resendBtnDisabledText]}>
+                  {t('otpVerification.resendCode')}
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -150,16 +150,18 @@ export const OtpVerificationComponent = ({
           <TouchableOpacity
             style={[
               styles.primaryButton,
-              (isPending || formik.values.code.length < AppConstants.OTP.LENGTH) && styles.primaryButtonDisabled,
+              (isPending || formik.values.code.length < AppConstants.OTP.LENGTH) &&
+                styles.primaryButtonDisabled,
             ]}
             onPress={() => formik.handleSubmit()}
             activeOpacity={0.85}
             disabled={isPending || formik.values.code.length < AppConstants.OTP.LENGTH}
           >
-            {isPending
-              ? <ActivityIndicator color="#fff" size="small" />
-              : <Text style={styles.primaryButtonText}>{t('otpVerification.verify')}</Text>
-            }
+            {isPending ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.primaryButtonText}>{t('otpVerification.verify')}</Text>
+            )}
           </TouchableOpacity>
 
           {/* Back to login */}

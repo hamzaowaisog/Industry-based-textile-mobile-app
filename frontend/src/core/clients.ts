@@ -2,36 +2,61 @@ import {
   clientCreateClient,
   clientDeleteClientById,
   clientGetAllClients,
-  clientGetAllClientsByUserId,
+  clientGetAllClientsFiltered,
   clientUpdateClientById,
 } from '@api/generated/client/client';
 import { reportGetClientDetailById } from '@api/generated/report/report';
-import type { ClientCreateViewModel, ClientUpdateViewModel } from '@api/models';
-import { AppConstants } from '@constants/appConstants';
-import { useAuthStore } from '@stores/authStore';
+import type { ClientCreateViewModel, ClientDtoPagedList, ClientUpdateViewModel } from '@api/models';
+
 import { parseApiError, parseApiResponse } from '@utils/helpers/apiResponse';
-import { mapApiClientDetail } from '@utils/helpers/clientMappers';
+import { mapApiClientDetail, mapApiClientToRow } from '@utils/helpers/clientMappers';
 import i18n from '@utils/i18n';
 
-import type { ApiClientItem, ClientDetail } from '../types/clients.types';
+import { AppConstants } from '@constants/appConstants';
+
+import type { ApiClientItem, ClientDetail, ClientRow } from '../types/clients.types';
 
 export const fetchClientsAsync = async (): Promise<ApiClientItem[]> => {
   try {
-    const { roleId } = useAuthStore.getState();
-    const isAdmin = roleId === AppConstants.ROLES.ADMIN;
-    const res = isAdmin ? await clientGetAllClients() : await clientGetAllClientsByUserId();
+    const res = await clientGetAllClients();
     const r = parseApiResponse<any[]>(res, '');
     if (!r.success || !r.data) return [];
-    return r.data.map((item: any) => ({
+    const rawData = r.data as any;
+    const items: any[] = Array.isArray(rawData) ? rawData : (rawData?.items ?? []);
+    return items.map((item: any) => ({
       id: item.id ?? 0,
       name: item.name ?? '',
       phone: item.phone ?? null,
-      clientTypeId: item.clientTypeId ?? 1,
+      clientTypeId: item.clientTypeId ?? AppConstants.CLIENT_TYPE.CUSTOMER,
       outstandingBalance: item.outstandingBalance ?? null,
       openingBalance: item.openingBalance ?? null,
     }));
   } catch {
     return [];
+  }
+};
+
+export const fetchClientsPageAsync = async (
+  page: number,
+  pageSize: number,
+): Promise<{ items: ClientRow[]; hasNextPage: boolean }> => {
+  try {
+    const res = await clientGetAllClientsFiltered({ page, pageSize });
+    const r = parseApiResponse<ClientDtoPagedList>(res, '');
+    if (!r.success || !r.data) return { items: [], hasNextPage: false };
+    const items = (r.data.items ?? []).map((item) =>
+      mapApiClientToRow({
+        id: item.id ?? 0,
+        name: item.name ?? '',
+        phone: item.phone ?? null,
+        clientTypeId: item.clientTypeId ?? AppConstants.CLIENT_TYPE.CUSTOMER,
+        outstandingBalance: item.outstandingBalance ?? null,
+        openingBalance: item.openingBalance ?? null,
+      }),
+    );
+    return { items, hasNextPage: !!r.data.hasNextPage };
+  } catch {
+    return { items: [], hasNextPage: false };
   }
 };
 

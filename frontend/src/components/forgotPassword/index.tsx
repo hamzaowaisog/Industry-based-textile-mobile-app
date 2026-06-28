@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -14,9 +15,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ArrowLeftIcon, MailIcon, WeavePattern } from '@constants/svgAssets';
-import { colors } from '@theme/colors';
 import { FORGOT_PASSWORD_STEPS } from '@utils/helpers/forgotPasswordContent';
+
+import { colors } from '@theme/colors';
+
+import { AppConstants } from '@constants/appConstants';
+import { ArrowLeftIcon, MailIcon, WeavePattern } from '@constants/svgAssets';
 
 import { ForgotPasswordComponentProps } from '../../types/forgotPassword.types';
 import { styles } from './styles';
@@ -69,7 +73,7 @@ export const ForgotPasswordComponent = ({
       {/* Form card */}
       <KeyboardAvoidingView
         style={styles.formCardWrapper}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
       >
         <ScrollView
           style={styles.formCard}
@@ -80,12 +84,15 @@ export const ForgotPasswordComponent = ({
           {/* Email input */}
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>
-              {t('forgotPassword.emailLabel')}<Text style={styles.requiredStar}> *</Text>
+              {t('forgotPassword.emailLabel')}
+              <Text style={styles.requiredStar}> *</Text>
             </Text>
-            <View style={[
-              styles.inputRow,
-              formik.touched.email && formik.errors.email ? styles.inputRowError : null,
-            ]}>
+            <View
+              style={[
+                styles.inputRow,
+                formik.touched.email && formik.errors.email ? styles.inputRowError : null,
+              ]}
+            >
               <View style={styles.inputLeading}>
                 <MailIcon size={18} color={colors.textTertiary} />
               </View>
@@ -130,11 +137,11 @@ export const ForgotPasswordComponent = ({
             activeOpacity={0.85}
             disabled={isPending}
           >
-            {isPending
-              ? <ActivityIndicator color="#fff" size="small" />
-              : <Text style={styles.primaryButtonText}>{t('forgotPassword.sendLink')}</Text>
-            }
-
+            {isPending ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.primaryButtonText}>{t('forgotPassword.sendLink')}</Text>
+            )}
           </TouchableOpacity>
 
           {/* Sign in link */}

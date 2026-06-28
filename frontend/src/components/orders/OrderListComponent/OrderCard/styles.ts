@@ -4,16 +4,6 @@ import { colors } from '@theme/colors';
 import { typography } from '@theme/typography';
 
 export const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: colors.shadowBlack,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -48,23 +38,6 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
     color: colors.textSecondary,
     marginTop: 3,
-  },
-  amount: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.text,
-    letterSpacing: -0.3,
-  },
-  badge: {
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  badgeText: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 11,
-    fontWeight: '600',
   },
   progressWrap: {
     marginTop: 12,

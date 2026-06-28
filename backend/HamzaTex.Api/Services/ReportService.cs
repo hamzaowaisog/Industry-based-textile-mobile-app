@@ -41,6 +41,9 @@ public interface IReportService
 
 public class ReportService : IReportService
 {
+    private const int StatusDelivered = 3;
+    private const int StatusCancelled = 4;
+
     private readonly ApplicationDbContext _db;
 
     public ReportService(ApplicationDbContext db)
@@ -185,11 +188,91 @@ public class ReportService : IReportService
             .OrderBy(c => c.Name)
             .ToListAsync();
 
-        var result = new List<ClientDetailViewModel>();
-        foreach (var client in clients)
-            result.Add(await BuildClientDetailAsync(client));
+        var clientIds = clients.Select(c => (int?)c.Id).ToList();
+
+        var orders = await _db.Orders.AsNoTracking()
+            .Include(o => o.OrderLines)
+            .Include(o => o.Status)
+            .Where(o => clientIds.Contains(o.ClientId))
+            .OrderByDescending(o => o.OrderDate).ThenByDescending(o => o.Id)
+            .ToListAsync();
+
+        var purchases = await _db.Purchases.AsNoTracking()
+            .Include(p => p.PurchaseLines)
+            .Include(p => p.Status)
+            .Where(p => clientIds.Contains(p.SupplierId))
+            .OrderByDescending(p => p.PurchaseDate).ThenByDescending(p => p.Id)
+            .ToListAsync();
+
+        var payments = await _db.Payments.AsNoTracking()
+            .Include(p => p.PaymentDirection)
+            .Include(p => p.TransMode)
+            .Where(p => clientIds.Contains(p.PartyClientId) && p.OriginalPaymentId == null)
+            .OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.Id)
+            .ToListAsync();
+
+        var invoices = await _db.Invoices.AsNoTracking()
+            .Include(i => i.InvoiceStatus)
+            .Where(i => clientIds.Contains(i.ClientId))
+            .OrderByDescending(i => i.IssueDate).ThenByDescending(i => i.Id)
+            .ToListAsync();
+
+        var transactions = await _db.Transactions.AsNoTracking()
+            .Include(t => t.TransCategory)
+            .Include(t => t.TransType)
+            .Where(t => clientIds.Contains(t.ClientId))
+            .OrderByDescending(t => t.TransDate).ThenByDescending(t => t.Id)
+            .ToListAsync();
+
+        var balances = await _db.VClientBalances.AsNoTracking()
+            .Where(b => clientIds.Contains(b.ClientId))
+            .ToDictionaryAsync(b => b.ClientId ?? 0, b => b.Balance ?? 0);
+
+        var orderAllocations = await GetOrderAllocationsAsync(orders.Select(o => (int?)o.Id).ToList());
+        var purchaseAllocations = await GetPurchaseAllocationsAsync(purchases.Select(p => (int?)p.Id).ToList());
+
+        var ordersByClient = orders.GroupBy(o => o.ClientId ?? 0).ToDictionary(g => g.Key, g => g.ToList());
+        var purchasesByClient = purchases.GroupBy(p => p.SupplierId ?? 0).ToDictionary(g => g.Key, g => g.ToList());
+        var paymentsByClient = payments.GroupBy(p => p.PartyClientId ?? 0).ToDictionary(g => g.Key, g => g.ToList());
+        var invoicesByClient = invoices.GroupBy(i => i.ClientId ?? 0).ToDictionary(g => g.Key, g => g.ToList());
+        var transactionsByClient = transactions.GroupBy(t => t.ClientId ?? 0).ToDictionary(g => g.Key, g => g.ToList());
+
+        var result = clients.Select(client => BuildClientDetailViewModel(
+            client,
+            ordersByClient.GetValueOrDefault(client.Id, new List<Order>()),
+            purchasesByClient.GetValueOrDefault(client.Id, new List<Purchase>()),
+            paymentsByClient.GetValueOrDefault(client.Id, new List<Payment>()),
+            invoicesByClient.GetValueOrDefault(client.Id, new List<Invoice>()),
+            transactionsByClient.GetValueOrDefault(client.Id, new List<Transaction>())
+                .OrderByDescending(t => t.TransDate).ThenByDescending(t => t.Id).Take(20).ToList(),
+            balances.GetValueOrDefault(client.Id, 0),
+            orderAllocations,
+            purchaseAllocations
+        )).ToList();
 
         return Response<List<ClientDetailViewModel>>.SuccessResponse(result, "Client details fetched.");
+    }
+
+    private async Task<Dictionary<int, decimal>> GetOrderAllocationsAsync(List<int?> orderIds)
+    {
+        if (!orderIds.Any())
+            return new Dictionary<int, decimal>();
+
+        return await _db.PaymentAllocations.AsNoTracking()
+            .Where(a => orderIds.Contains(a.OrderId) && !a.Payment.IsReversed)
+            .GroupBy(a => a.OrderId)
+            .ToDictionaryAsync(g => g.Key ?? 0, g => g.Sum(a => a.AllocatedAmount));
+    }
+
+    private async Task<Dictionary<int, decimal>> GetPurchaseAllocationsAsync(List<int?> purchaseIds)
+    {
+        if (!purchaseIds.Any())
+            return new Dictionary<int, decimal>();
+
+        return await _db.PaymentAllocations.AsNoTracking()
+            .Where(a => purchaseIds.Contains(a.PurchaseId) && !a.Payment.IsReversed)
+            .GroupBy(a => a.PurchaseId)
+            .ToDictionaryAsync(g => g.Key ?? 0, g => g.Sum(a => a.AllocatedAmount));
     }
 
     public async Task<Response<ClientDetailViewModel>> GetClientDetailByIdAsync(int clientId)
@@ -214,7 +297,7 @@ public class ReportService : IReportService
             .Include(o => o.OrderLines)
             .Include(o => o.Status)
             .Where(o => o.ClientId == clientId)
-            .OrderByDescending(o => o.OrderDate)
+            .OrderByDescending(o => o.OrderDate).ThenByDescending(o => o.Id)
             .ToListAsync();
 
         // Purchases where this client is the supplier
@@ -222,7 +305,7 @@ public class ReportService : IReportService
             .Include(p => p.PurchaseLines)
             .Include(p => p.Status)
             .Where(p => p.SupplierId == clientId)
-            .OrderByDescending(p => p.PurchaseDate)
+            .OrderByDescending(p => p.PurchaseDate).ThenByDescending(p => p.Id)
             .ToListAsync();
 
         // Payments for this client
@@ -230,14 +313,14 @@ public class ReportService : IReportService
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
             .Where(p => p.PartyClientId == clientId && p.OriginalPaymentId == null)
-            .OrderByDescending(p => p.PaymentDate)
+            .OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.Id)
             .ToListAsync();
 
         // Invoices for this client
         var invoices = await _db.Invoices.AsNoTracking()
             .Include(i => i.InvoiceStatus)
             .Where(i => i.ClientId == clientId)
-            .OrderByDescending(i => i.IssueDate)
+            .OrderByDescending(i => i.IssueDate).ThenByDescending(i => i.Id)
             .ToListAsync();
 
         // Recent transactions for this client
@@ -245,7 +328,7 @@ public class ReportService : IReportService
             .Include(t => t.TransCategory)
             .Include(t => t.TransType)
             .Where(t => t.ClientId == clientId)
-            .OrderByDescending(t => t.TransDate)
+            .OrderByDescending(t => t.TransDate).ThenByDescending(t => t.Id)
             .Take(20)
             .ToListAsync();
 
@@ -254,28 +337,29 @@ public class ReportService : IReportService
             .FirstOrDefaultAsync(b => b.ClientId == client.Id);
         var balance = balanceEntity?.Balance ?? 0;
 
-        // Compute totals
-        var totalOrderAmount = orders.Sum(o => o.OrderLines.Sum(l => l.Qty * l.UnitPrice));
-        var totalPurchaseAmount = purchases.Sum(p => p.PurchaseLines.Sum(l => l.Qty * l.UnitCost));
+        var orderAllocations = await GetOrderAllocationsAsync(orders.Select(o => (int?)o.Id).ToList());
+        var purchaseAllocations = await GetPurchaseAllocationsAsync(purchases.Select(p => (int?)p.Id).ToList());
+
+        return BuildClientDetailViewModel(client, orders, purchases, payments, invoices, transactions, balance, orderAllocations, purchaseAllocations);
+    }
+
+    private static ClientDetailViewModel BuildClientDetailViewModel(
+        Client client,
+        List<Order> orders,
+        List<Purchase> purchases,
+        List<Payment> payments,
+        List<Invoice> invoices,
+        List<Transaction> transactions,
+        decimal balance,
+        Dictionary<int, decimal> orderAllocations,
+        Dictionary<int, decimal> purchaseAllocations)
+    {
+        var deliveredOrders = orders.Where(o => o.StatusId == StatusDelivered).ToList();
+        var deliveredPurchases = purchases.Where(p => p.StatusId == StatusDelivered).ToList();
+        var totalOrderAmount = deliveredOrders.Sum(o => o.OrderLines.Sum(l => l.Qty * l.UnitPrice));
+        var totalPurchaseAmount = deliveredPurchases.Sum(p => p.PurchaseLines.Sum(l => l.Qty * l.UnitCost));
         var totalPaymentsIn = payments.Where(p => p.PaymentDirectionId == 1 && !p.IsReversed && p.OriginalPaymentId == null).Sum(p => p.Amount);
         var totalPaymentsOut = payments.Where(p => p.PaymentDirectionId == 2 && !p.IsReversed && p.OriginalPaymentId == null).Sum(p => p.Amount);
-
-        // Compute per-order paid/outstanding via allocations
-        var orderIds = orders.Select(o => (int?)o.Id).ToList();
-        var orderAllocations = orderIds.Any()
-            ? await _db.PaymentAllocations.AsNoTracking()
-                .Where(a => orderIds.Contains(a.OrderId) && !a.Payment.IsReversed)
-                .GroupBy(a => a.OrderId)
-                .ToDictionaryAsync(g => g.Key ?? 0, g => g.Sum(a => a.AllocatedAmount))
-            : new Dictionary<int, decimal>();
-
-        var purchaseIds = purchases.Select(p => (int?)p.Id).ToList();
-        var purchaseAllocations = purchaseIds.Any()
-            ? await _db.PaymentAllocations.AsNoTracking()
-                .Where(a => purchaseIds.Contains(a.PurchaseId) && !a.Payment.IsReversed)
-                .GroupBy(a => a.PurchaseId)
-                .ToDictionaryAsync(g => g.Key ?? 0, g => g.Sum(a => a.AllocatedAmount))
-            : new Dictionary<int, decimal>();
 
         var orderSummaries = orders.Select(o =>
         {
@@ -322,9 +406,9 @@ public class ReportService : IReportService
             CreditLimit = client.CreditLimit,
             OpeningBalance = client.OpeningBalance,
             Notes = client.Notes,
-            TotalOrderCount = orders.Count,
+            TotalOrderCount = deliveredOrders.Count,
             TotalOrderAmount = totalOrderAmount,
-            TotalPurchaseCount = purchases.Count,
+            TotalPurchaseCount = deliveredPurchases.Count,
             TotalPurchaseAmount = totalPurchaseAmount,
             TotalPaymentsIn = totalPaymentsIn,
             TotalPaymentsOut = totalPaymentsOut,
@@ -358,6 +442,7 @@ public class ReportService : IReportService
                 CategoryName = t.TransCategory?.Name ?? "Unknown",
                 TypeName = t.TransType?.Name ?? "Unknown",
                 Amount = t.Amount,
+                IsReversal = t.Notes?.StartsWith("REVERSAL of Payment", StringComparison.OrdinalIgnoreCase) ?? false,
             }).ToList(),
         };
     }

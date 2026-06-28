@@ -21,12 +21,6 @@ public class DashboardController : BaseController
         _dashboardService = dashboardService;
     }
 
-    private int? GetUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
-    }
-
     private bool IsAdmin()
     {
         var claim = User.FindFirst(ClaimTypes.Role);

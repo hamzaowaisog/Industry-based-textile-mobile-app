@@ -212,17 +212,5 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Skeleton
-  skeletonCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 10,
-  },
-  skeletonLeft: { flex: 1, gap: 8 },
-  skeletonLine: { height: 11, borderRadius: 6, backgroundColor: colors.bgAlt },
-  skeletonRight: { width: 70, height: 44, borderRadius: 10, backgroundColor: colors.bgAlt },
+  // Skeleton placeholder styles live in SkeletonRow/styles.ts
 });

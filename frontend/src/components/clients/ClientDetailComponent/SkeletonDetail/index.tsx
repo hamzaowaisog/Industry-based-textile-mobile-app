@@ -4,7 +4,17 @@ import { Animated, ScrollView, View } from 'react-native';
 
 import { colors } from '@theme/colors';
 
+import { AppConstants } from '@constants/appConstants';
+
 import { styles } from './styles';
+
+const {
+  PULSE_MIN_OPACITY,
+  PULSE_DURATION_MS,
+  CLIENT_INFO_ROWS,
+  CLIENT_TAB_PILLS,
+  CLIENT_TAB_ROWS,
+} = AppConstants.SKELETON;
 
 export const SkeletonDetail = () => {
   const opacity = useRef(new Animated.Value(1)).current;
@@ -12,8 +22,16 @@ export const SkeletonDetail = () => {
   useEffect(() => {
     const anim = Animated.loop(
       Animated.sequence([
-        Animated.timing(opacity, { toValue: 0.4, duration: 700, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
+        Animated.timing(opacity, {
+          toValue: PULSE_MIN_OPACITY,
+          duration: PULSE_DURATION_MS,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: PULSE_DURATION_MS,
+          useNativeDriver: true,
+        }),
       ]),
     );
     anim.start();
@@ -57,7 +75,7 @@ export const SkeletonDetail = () => {
         <View style={[styles.sectionPad, { paddingTop: 24 }]}>
           <View style={[styles.skelLine, { width: 100, height: 16, marginBottom: 12 }]} />
           <View style={[styles.infoCard, { overflow: 'hidden' }]}>
-            {[0, 1, 2, 3].map((i) => (
+            {Array.from({ length: CLIENT_INFO_ROWS }).map((_, i) => (
               <View key={i}>
                 <View style={styles.infoRow}>
                   <View style={[styles.skelLine, { width: 36, height: 36, borderRadius: 10 }]} />
@@ -66,7 +84,7 @@ export const SkeletonDetail = () => {
                     <View style={[styles.skelLine, { width: '55%', height: 14 }]} />
                   </View>
                 </View>
-                {i < 3 && <View style={styles.infoDivider} />}
+                {i < CLIENT_INFO_ROWS - 1 && <View style={styles.infoDivider} />}
               </View>
             ))}
           </View>
@@ -74,13 +92,13 @@ export const SkeletonDetail = () => {
 
         <View style={[styles.tabsWrap, { paddingTop: 24, paddingBottom: 32 }]}>
           <View style={styles.tabBar}>
-            {[0, 1, 2, 3].map((i) => (
+            {Array.from({ length: CLIENT_TAB_PILLS }).map((_, i) => (
               <View key={i} style={{ flex: 1, alignItems: 'center', paddingBottom: 12 }}>
                 <View style={[styles.skelLine, { width: 40, height: 13, borderRadius: 6 }]} />
               </View>
             ))}
           </View>
-          {[0, 1, 2].map((i) => (
+          {Array.from({ length: CLIENT_TAB_ROWS }).map((_, i) => (
             <View key={i} style={styles.tabRow}>
               <View style={[styles.skelLine, { width: 36, height: 36, borderRadius: 10 }]} />
               <View style={{ flex: 1, gap: 6 }}>

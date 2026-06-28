@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -14,6 +15,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { colors } from '@theme/colors';
+
+import { AppConstants } from '@constants/appConstants';
 import {
   ArrowLeftIcon,
   EyeIcon,
@@ -22,9 +26,8 @@ import {
   MailIcon,
   WeavePattern,
 } from '@constants/svgAssets';
-import { colors } from '@theme/colors';
-import { RegisterComponentProps } from '../../types/register.types';
 
+import { RegisterComponentProps } from '../../types/register.types';
 import { styles } from './styles';
 
 export const RegisterComponent = ({
@@ -83,7 +86,7 @@ export const RegisterComponent = ({
 
       <KeyboardAvoidingView
         style={styles.formCardWrapper}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
       >
         <ScrollView
           style={styles.formCard}
@@ -94,12 +97,15 @@ export const RegisterComponent = ({
           {/* Full Name */}
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>
-              {t('register.nameLabel')}<Text style={styles.requiredStar}> *</Text>
+              {t('register.nameLabel')}
+              <Text style={styles.requiredStar}> *</Text>
             </Text>
-            <View style={[
-              styles.inputRow,
-              formik.touched.name && formik.errors.name ? styles.inputRowError : null,
-            ]}>
+            <View
+              style={[
+                styles.inputRow,
+                formik.touched.name && formik.errors.name ? styles.inputRowError : null,
+              ]}
+            >
               <View style={styles.inputLeading}>
                 <MailIcon size={18} color={colors.textTertiary} />
               </View>
@@ -124,12 +130,15 @@ export const RegisterComponent = ({
           {/* Email */}
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>
-              {t('register.emailLabel')}<Text style={styles.requiredStar}> *</Text>
+              {t('register.emailLabel')}
+              <Text style={styles.requiredStar}> *</Text>
             </Text>
-            <View style={[
-              styles.inputRow,
-              formik.touched.email && formik.errors.email ? styles.inputRowError : null,
-            ]}>
+            <View
+              style={[
+                styles.inputRow,
+                formik.touched.email && formik.errors.email ? styles.inputRowError : null,
+              ]}
+            >
               <View style={styles.inputLeading}>
                 <MailIcon size={18} color={colors.textTertiary} />
               </View>
@@ -156,12 +165,15 @@ export const RegisterComponent = ({
           {/* Username */}
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>
-              {t('register.usernameLabel')}<Text style={styles.requiredStar}> *</Text>
+              {t('register.usernameLabel')}
+              <Text style={styles.requiredStar}> *</Text>
             </Text>
-            <View style={[
-              styles.inputRow,
-              formik.touched.userName && formik.errors.userName ? styles.inputRowError : null,
-            ]}>
+            <View
+              style={[
+                styles.inputRow,
+                formik.touched.userName && formik.errors.userName ? styles.inputRowError : null,
+              ]}
+            >
               <View style={styles.inputLeading}>
                 <MailIcon size={18} color={colors.textTertiary} />
               </View>
@@ -187,12 +199,17 @@ export const RegisterComponent = ({
           {/* Phone Number */}
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>
-              {t('register.phoneLabel')}<Text style={styles.requiredStar}> *</Text>
+              {t('register.phoneLabel')}
+              <Text style={styles.requiredStar}> *</Text>
             </Text>
-            <View style={[
-              styles.inputRow,
-              formik.touched.phoneNumber && formik.errors.phoneNumber ? styles.inputRowError : null,
-            ]}>
+            <View
+              style={[
+                styles.inputRow,
+                formik.touched.phoneNumber && formik.errors.phoneNumber
+                  ? styles.inputRowError
+                  : null,
+              ]}
+            >
               <View style={styles.inputLeading}>
                 <MailIcon size={18} color={colors.textTertiary} />
               </View>
@@ -217,12 +234,15 @@ export const RegisterComponent = ({
           {/* Password */}
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>
-              {t('register.passwordLabel')}<Text style={styles.requiredStar}> *</Text>
+              {t('register.passwordLabel')}
+              <Text style={styles.requiredStar}> *</Text>
             </Text>
-            <View style={[
-              styles.inputRow,
-              formik.touched.password && formik.errors.password ? styles.inputRowError : null,
-            ]}>
+            <View
+              style={[
+                styles.inputRow,
+                formik.touched.password && formik.errors.password ? styles.inputRowError : null,
+              ]}
+            >
               <View style={styles.inputLeading}>
                 <LockIcon size={18} color={colors.textTertiary} />
               </View>
@@ -238,11 +258,16 @@ export const RegisterComponent = ({
                 returnKeyType="next"
                 onSubmitEditing={() => confirmPasswordRef.current?.focus()}
               />
-              <TouchableOpacity style={styles.inputTrailing} onPress={onTogglePassword} activeOpacity={0.7}>
-                {showPassword
-                  ? <EyeOffIcon size={18} color={colors.textTertiary} />
-                  : <EyeIcon size={18} color={colors.textTertiary} />
-                }
+              <TouchableOpacity
+                style={styles.inputTrailing}
+                onPress={onTogglePassword}
+                activeOpacity={0.7}
+              >
+                {showPassword ? (
+                  <EyeOffIcon size={18} color={colors.textTertiary} />
+                ) : (
+                  <EyeIcon size={18} color={colors.textTertiary} />
+                )}
               </TouchableOpacity>
             </View>
             {formik.touched.password && formik.errors.password ? (
@@ -253,12 +278,17 @@ export const RegisterComponent = ({
           {/* Confirm Password */}
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>
-              {t('register.confirmPasswordLabel')}<Text style={styles.requiredStar}> *</Text>
+              {t('register.confirmPasswordLabel')}
+              <Text style={styles.requiredStar}> *</Text>
             </Text>
-            <View style={[
-              styles.inputRow,
-              formik.touched.confirmPassword && formik.errors.confirmPassword ? styles.inputRowError : null,
-            ]}>
+            <View
+              style={[
+                styles.inputRow,
+                formik.touched.confirmPassword && formik.errors.confirmPassword
+                  ? styles.inputRowError
+                  : null,
+              ]}
+            >
               <View style={styles.inputLeading}>
                 <LockIcon size={18} color={colors.textTertiary} />
               </View>
@@ -274,11 +304,16 @@ export const RegisterComponent = ({
                 returnKeyType="done"
                 onSubmitEditing={() => formik.handleSubmit()}
               />
-              <TouchableOpacity style={styles.inputTrailing} onPress={onToggleConfirmPassword} activeOpacity={0.7}>
-                {showConfirmPassword
-                  ? <EyeOffIcon size={18} color={colors.textTertiary} />
-                  : <EyeIcon size={18} color={colors.textTertiary} />
-                }
+              <TouchableOpacity
+                style={styles.inputTrailing}
+                onPress={onToggleConfirmPassword}
+                activeOpacity={0.7}
+              >
+                {showConfirmPassword ? (
+                  <EyeOffIcon size={18} color={colors.textTertiary} />
+                ) : (
+                  <EyeIcon size={18} color={colors.textTertiary} />
+                )}
               </TouchableOpacity>
             </View>
             {formik.touched.confirmPassword && formik.errors.confirmPassword ? (
@@ -293,10 +328,11 @@ export const RegisterComponent = ({
             activeOpacity={0.85}
             disabled={isPending}
           >
-            {isPending
-              ? <ActivityIndicator color="#fff" size="small" />
-              : <Text style={styles.primaryButtonText}>{t('register.submit')}</Text>
-            }
+            {isPending ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.primaryButtonText}>{t('register.submit')}</Text>
+            )}
           </TouchableOpacity>
 
           {/* Sign in link */}

@@ -16,8 +16,19 @@ public class PdfColumnConfig
     /// <summary>How to format the value (Text, Currency, Date, Boolean, Percentage)</summary>
     public PdfColumnFormat Format { get; set; } = PdfColumnFormat.Text;
 
-    public static PdfColumnConfig Create(string propertyName, string displayName, PdfColumnFormat format = PdfColumnFormat.Text)
-        => new() { PropertyName = propertyName, DisplayName = displayName, Format = format };
+    /// <summary>Relative column width in the table (1 = default). Give wide text columns
+    /// (Name, Address, Notes) a higher weight and narrow columns (Type, Active, Date) a lower one
+    /// so headers/values don't truncate on A4 portrait.</summary>
+    public float Weight { get; set; } = 1f;
+
+    /// <summary>Fixed column width in millimetres. When set, the column is sized exactly — ideal
+    /// for short, predictable values (Type, Status, Phone, Date) so they fit on one line with no
+    /// wasted space. When null, the column shares the remaining width proportionally to
+    /// <see cref="Weight"/> and long text wraps within it.</summary>
+    public float? FixedWidthMm { get; set; }
+
+    public static PdfColumnConfig Create(string propertyName, string displayName, PdfColumnFormat format = PdfColumnFormat.Text, float weight = 1f, float? fixedWidthMm = null)
+        => new() { PropertyName = propertyName, DisplayName = displayName, Format = format, Weight = weight, FixedWidthMm = fixedWidthMm };
 }
 
 public enum PdfColumnFormat
@@ -35,25 +46,22 @@ public enum PdfColumnFormat
 public static class EntityPdfConfigs
 {
     public static readonly PdfColumnConfig[] Product = [
-        PdfColumnConfig.Create("Name", "Product Name"),
-        PdfColumnConfig.Create("Sku", "SKU"),
-        PdfColumnConfig.Create("Unit", "Unit"),
-        PdfColumnConfig.Create("DefaultCost", "Cost/meter (PKR)", PdfColumnFormat.Currency),
-        PdfColumnConfig.Create("DefaultPrice", "Price/meter (PKR)", PdfColumnFormat.Currency),
-        PdfColumnConfig.Create("Quantity", "Quantity (meters)"),
-        PdfColumnConfig.Create("ReorderLevel", "Reorder Level"),
-        PdfColumnConfig.Create("IsActive", "Active", PdfColumnFormat.Boolean),
+        PdfColumnConfig.Create("Name", "Product Name", weight: 1.8f),
+        PdfColumnConfig.Create("Sku", "SKU", fixedWidthMm: 26),
+        PdfColumnConfig.Create("Unit", "Unit", fixedWidthMm: 16),
+        PdfColumnConfig.Create("DefaultCost", "Cost/meter (PKR)", PdfColumnFormat.Currency, fixedWidthMm: 26),
+        PdfColumnConfig.Create("DefaultPrice", "Price/meter (PKR)", PdfColumnFormat.Currency, fixedWidthMm: 26),
+        PdfColumnConfig.Create("Quantity", "Quantity (meters)", fixedWidthMm: 20),
+        PdfColumnConfig.Create("ReorderLevel", "Reorder Level", fixedWidthMm: 20),
     ];
 
     public static readonly PdfColumnConfig[] Client = [
-        PdfColumnConfig.Create("Name", "Client Name"),
-        PdfColumnConfig.Create("ClientTypeId", "Type ID"),
-        PdfColumnConfig.Create("Phone", "Phone"),
-        PdfColumnConfig.Create("Address", "Address"),
-        PdfColumnConfig.Create("CreditLimit", "Credit Limit (PKR)", PdfColumnFormat.Currency),
-        PdfColumnConfig.Create("OpeningBalance", "Opening Balance (PKR)", PdfColumnFormat.Currency),
-        PdfColumnConfig.Create("IsActive", "Active", PdfColumnFormat.Boolean),
-        PdfColumnConfig.Create("CreatedAt", "Created", PdfColumnFormat.Date),
+        PdfColumnConfig.Create("Name", "Client Name", weight: 1.8f),
+        PdfColumnConfig.Create("ClientTypeName", "Type", fixedWidthMm: 22),
+        PdfColumnConfig.Create("Phone", "Phone", fixedWidthMm: 30),
+        PdfColumnConfig.Create("Address", "Address", weight: 2.5f),
+        PdfColumnConfig.Create("CreditLimit", "Credit Limit (PKR)", PdfColumnFormat.Currency, fixedWidthMm: 26),
+        PdfColumnConfig.Create("OpeningBalance", "Opening Balance (PKR)", PdfColumnFormat.Currency, fixedWidthMm: 26),
     ];
 
     public static readonly PdfColumnConfig[] ClientType = [
@@ -65,65 +73,61 @@ public static class EntityPdfConfigs
     ];
 
     public static readonly PdfColumnConfig[] User = [
-        PdfColumnConfig.Create("Name", "Name"),
-        PdfColumnConfig.Create("Email", "Email"),
-        PdfColumnConfig.Create("UserName", "Username"),
-        PdfColumnConfig.Create("PhoneNumber", "Phone"),
-        PdfColumnConfig.Create("IsActive", "Active", PdfColumnFormat.Boolean),
-        PdfColumnConfig.Create("CreatedAt", "Created", PdfColumnFormat.Date),
+        PdfColumnConfig.Create("Name", "Name", weight: 1.4f),
+        PdfColumnConfig.Create("Email", "Email", weight: 1.8f),
+        PdfColumnConfig.Create("UserName", "Username", weight: 1.3f),
+        PdfColumnConfig.Create("PhoneNumber", "Phone", fixedWidthMm: 30),
+        PdfColumnConfig.Create("CreatedAt", "Created", PdfColumnFormat.Date, fixedWidthMm: 24),
     ];
 
     public static readonly PdfColumnConfig[] Order = [
-        PdfColumnConfig.Create("ClientName", "Client"),
-        PdfColumnConfig.Create("StatusName", "Status"),
-        PdfColumnConfig.Create("PaymentTypeName", "Payment Type"),
-        PdfColumnConfig.Create("OrderDate", "Order Date", PdfColumnFormat.Date),
-        PdfColumnConfig.Create("Total", "Total (PKR)", PdfColumnFormat.Currency),
-        PdfColumnConfig.Create("Notes", "Notes"),
-        PdfColumnConfig.Create("CreatedAt", "Created", PdfColumnFormat.Date),
+        PdfColumnConfig.Create("ClientName", "Client", weight: 1.8f),
+        PdfColumnConfig.Create("StatusName", "Status", fixedWidthMm: 22),
+        PdfColumnConfig.Create("PaymentTypeName", "Payment Type", fixedWidthMm: 26),
+        PdfColumnConfig.Create("OrderDate", "Order Date", PdfColumnFormat.Date, fixedWidthMm: 24),
+        PdfColumnConfig.Create("Total", "Total (PKR)", PdfColumnFormat.Currency, fixedWidthMm: 26),
+        PdfColumnConfig.Create("Notes", "Notes", weight: 1.8f),
     ];
 
     public static readonly PdfColumnConfig[] Purchase = [
-        PdfColumnConfig.Create("SupplierName", "Supplier"),
-        PdfColumnConfig.Create("StatusName", "Status"),
-        PdfColumnConfig.Create("PaymentTypeName", "Payment Type"),
-        PdfColumnConfig.Create("PurchaseDate", "Purchase Date", PdfColumnFormat.Date),
-        PdfColumnConfig.Create("Total", "Total (PKR)", PdfColumnFormat.Currency),
-        PdfColumnConfig.Create("Notes", "Notes"),
-        PdfColumnConfig.Create("CreatedAt", "Created", PdfColumnFormat.Date),
+        PdfColumnConfig.Create("SupplierName", "Supplier", weight: 1.8f),
+        PdfColumnConfig.Create("StatusName", "Status", fixedWidthMm: 22),
+        PdfColumnConfig.Create("PaymentTypeName", "Payment Type", fixedWidthMm: 26),
+        PdfColumnConfig.Create("PurchaseDate", "Purchase Date", PdfColumnFormat.Date, fixedWidthMm: 24),
+        PdfColumnConfig.Create("Total", "Total (PKR)", PdfColumnFormat.Currency, fixedWidthMm: 26),
+        PdfColumnConfig.Create("Notes", "Notes", weight: 1.8f),
     ];
 
     public static readonly PdfColumnConfig[] Payment = [
-        PdfColumnConfig.Create("PartyClientName", "Client"),
-        PdfColumnConfig.Create("PaymentDirectionName", "Direction"),
-        PdfColumnConfig.Create("TransModeName", "Mode"),
-        PdfColumnConfig.Create("Amount", "Amount (PKR)", PdfColumnFormat.Currency),
-        PdfColumnConfig.Create("PaymentDate", "Date", PdfColumnFormat.Date),
-        PdfColumnConfig.Create("RecordedByName", "Recorded By"),
-        PdfColumnConfig.Create("IsReversed", "Reversed"),
-        PdfColumnConfig.Create("Notes", "Notes"),
+        PdfColumnConfig.Create("PartyClientName", "Client", weight: 1.7f),
+        PdfColumnConfig.Create("PaymentDirectionName", "Direction", fixedWidthMm: 24),
+        PdfColumnConfig.Create("TransModeName", "Mode", fixedWidthMm: 22),
+        PdfColumnConfig.Create("Amount", "Amount (PKR)", PdfColumnFormat.Currency, fixedWidthMm: 26),
+        PdfColumnConfig.Create("PaymentDate", "Date", PdfColumnFormat.Date, fixedWidthMm: 24),
+        PdfColumnConfig.Create("RecordedByName", "Recorded By", weight: 1.3f),
+        PdfColumnConfig.Create("IsReversed", "Reversed", PdfColumnFormat.Boolean, fixedWidthMm: 22),
     ];
 
     public static readonly PdfColumnConfig[] StockMovement = [
-        PdfColumnConfig.Create("ProductName", "Product"),
-        PdfColumnConfig.Create("MovementTypeName", "Type"),
-        PdfColumnConfig.Create("MovementSourceName", "Source"),
-        PdfColumnConfig.Create("Qty", "Quantity"),
-        PdfColumnConfig.Create("UnitCost", "Unit Cost (PKR)", PdfColumnFormat.Currency),
-        PdfColumnConfig.Create("UnitPrice", "Unit Price (PKR)", PdfColumnFormat.Currency),
-        PdfColumnConfig.Create("AverageCostAtMovement", "Avg Cost Snapshot (PKR)", PdfColumnFormat.Currency),
-        PdfColumnConfig.Create("AveragePriceAtMovement", "Avg Price Snapshot (PKR)", PdfColumnFormat.Currency),
-        PdfColumnConfig.Create("MovementDate", "Date", PdfColumnFormat.Date),
+        PdfColumnConfig.Create("ProductName", "Product", weight: 1.9f),
+        PdfColumnConfig.Create("MovementTypeName", "Type", weight: 0.85f),
+        PdfColumnConfig.Create("MovementSourceName", "Source", weight: 0.9f),
+        PdfColumnConfig.Create("Qty", "Quantity", weight: 0.8f),
+        PdfColumnConfig.Create("UnitCost", "Unit Cost (PKR)", PdfColumnFormat.Currency, 1.05f),
+        PdfColumnConfig.Create("UnitPrice", "Unit Price (PKR)", PdfColumnFormat.Currency, 1.05f),
+        PdfColumnConfig.Create("AverageCostAtMovement", "Avg Cost (PKR)", PdfColumnFormat.Currency, 1.05f),
+        PdfColumnConfig.Create("AveragePriceAtMovement", "Avg Price (PKR)", PdfColumnFormat.Currency, 1.05f),
+        PdfColumnConfig.Create("MovementDate", "Date", PdfColumnFormat.Date, 1f),
     ];
 
     public static readonly PdfColumnConfig[] Expense = [
-        PdfColumnConfig.Create("ExpenseTypeName", "Type"),
-        PdfColumnConfig.Create("Amount", "Amount (PKR)", PdfColumnFormat.Currency),
-        PdfColumnConfig.Create("TransModeName", "Mode"),
-        PdfColumnConfig.Create("TransCategoryName", "Category"),
-        PdfColumnConfig.Create("ExpenseDate", "Date", PdfColumnFormat.Date),
-        PdfColumnConfig.Create("RecordedByName", "Recorded By"),
-        PdfColumnConfig.Create("Notes", "Notes"),
+        PdfColumnConfig.Create("ExpenseTypeName", "Type", weight: 0.9f),
+        PdfColumnConfig.Create("Amount", "Amount (PKR)", PdfColumnFormat.Currency, 1.15f),
+        PdfColumnConfig.Create("TransModeName", "Mode", weight: 0.85f),
+        PdfColumnConfig.Create("TransCategoryName", "Category", weight: 1.1f),
+        PdfColumnConfig.Create("ExpenseDate", "Date", PdfColumnFormat.Date, 1f),
+        PdfColumnConfig.Create("RecordedByName", "Recorded By", weight: 1.2f),
+        PdfColumnConfig.Create("Notes", "Notes", weight: 1.8f),
     ];
 
     public static readonly PdfColumnConfig[] ExpenseType = [
@@ -131,14 +135,13 @@ public static class EntityPdfConfigs
     ];
 
     public static readonly PdfColumnConfig[] Transaction = [
-        PdfColumnConfig.Create("Source", "Source"),
-        PdfColumnConfig.Create("TransCategoryName", "Category"),
-        PdfColumnConfig.Create("TransTypeName", "Type"),
-        PdfColumnConfig.Create("TransModeName", "Mode"),
-        PdfColumnConfig.Create("Amount", "Amount (PKR)", PdfColumnFormat.Currency),
-        PdfColumnConfig.Create("TransDate", "Date", PdfColumnFormat.Date),
-        PdfColumnConfig.Create("ClientName", "Client"),
-        PdfColumnConfig.Create("Notes", "Notes"),
+        PdfColumnConfig.Create("Source", "Source", fixedWidthMm: 22),
+        PdfColumnConfig.Create("TransCategoryName", "Category", weight: 1.2f),
+        PdfColumnConfig.Create("TransTypeName", "Type", fixedWidthMm: 20),
+        PdfColumnConfig.Create("TransModeName", "Mode", fixedWidthMm: 22),
+        PdfColumnConfig.Create("Amount", "Amount (PKR)", PdfColumnFormat.Currency, fixedWidthMm: 26),
+        PdfColumnConfig.Create("TransDate", "Date", PdfColumnFormat.Date, fixedWidthMm: 24),
+        PdfColumnConfig.Create("ClientName", "Client", weight: 1.6f),
     ];
 
     public static readonly PdfColumnConfig[] ProfitLoss = [

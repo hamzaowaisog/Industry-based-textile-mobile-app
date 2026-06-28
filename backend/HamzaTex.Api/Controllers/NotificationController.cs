@@ -21,12 +21,6 @@ public class NotificationController : BaseController
         _notificationService = notificationService;
     }
 
-    private int? GetUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
-    }
-
     /// <summary>Get all notifications for the current user. Pass unreadOnly=true and/or limit to filter.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(Response<List<NotificationDto>>), StatusCodes.Status200OK)]

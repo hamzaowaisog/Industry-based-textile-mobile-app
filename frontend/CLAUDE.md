@@ -4,6 +4,85 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > **Always read the exact versioned Expo docs at https://docs.expo.dev/versions/v56.0.0/ before writing any Expo-specific code.**
 
+## Form Rules (MANDATORY — enforced on every form, no exceptions)
+
+Every form screen must follow all four rules below. Missing any one is a bug.
+
+### 1. Formik + Yup — always, no manual useState for form state
+
+- Every form hook uses `useFormik<FormValues>()` — never `useState` for `values`, `errors`, or `touched`.
+- Yup schema in `src/utils/validation/<feature>Validation.ts`, named `<action><Feature>Step<N>Schema` for wizard steps or `<feature>ValidationSchema` for single-step forms.
+- `validateOnBlur: true`, `validateOnChange: false` on every formik instance.
+- For multi-step wizards: call `yupSchema.validate(formik.values, { abortEarly: false })` in `onNext`; set `formik.setFieldTouched` / `formik.setFieldError` on failure. Do **not** attach `validationSchema` to formik for wizard forms.
+- `onSubmit` in the hook returns `formik.handleSubmit` — the component button calls it. The hook itself never calls `formik.handleSubmit()` internally.
+- `submitting` is `formik.isSubmitting`, never a manual `useState` flag.
+- For edit forms that load async data: use `formik.resetForm({ values: filled })` inside a `useEffect` when the data arrives.
+- Line-level stock availability (`lineErrors`, `lineAvailability`) is **not** Formik state — keep those as `useState` since they're derived from external product data, not form validation.
+
+```ts
+// ✅ correct
+const formik = useFormik<MyFormValues>({
+  initialValues: { ... },
+  validateOnBlur: true,
+  validateOnChange: false,
+  onSubmit: async (values, helpers) => { ... },
+});
+// hook returns: onSubmit: formik.handleSubmit
+
+// ❌ wrong — manual form state
+const [values, setValues] = useState<MyFormValues>({ ... });
+const [errors, setErrors] = useState({});
+const [touched, setTouched] = useState({});
+```
+
+### 2. KeyboardAvoidingView — required in every form component
+
+Every form component must wrap its scrollable content in `KeyboardAvoidingView` with correct behavior and offset:
+
+```tsx
+<KeyboardAvoidingView
+  style={{ flex: 1 }}
+  behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
+  keyboardVerticalOffset={0}
+>
+  <ScrollView keyboardShouldPersistTaps="handled">
+    {/* form fields */}
+  </ScrollView>
+</KeyboardAvoidingView>
+```
+
+### 3. Return key chains focus between fields
+
+In every `LineItemFormCard` and single-step form, text inputs must chain focus via `returnKeyType` and `onSubmitEditing`:
+
+- Numeric/text field that is NOT the last field: `returnKeyType="next"` + `onSubmitEditing={() => nextFieldRef.current?.focus()}`
+- Last field in a form or card: `returnKeyType="done"`
+- Multiline fields: `AppInputField` overrides to `returnKeyType="default"` automatically — no action needed
+- Use `useRef<TextInput>(null)` inside the card component and pass it via `ref` to `AppInputField` (which is `React.forwardRef`-wrapped)
+
+```tsx
+// ✅ correct — LineItemFormCard
+const unitCostRef = useRef<TextInput>(null);
+<AppInputField keyboardType="numeric" returnKeyType="next" onSubmitEditing={() => unitCostRef.current?.focus()} />
+<AppInputField ref={unitCostRef} keyboardType="decimal-pad" returnKeyType="done" />
+```
+
+### 4. Last field submission
+
+On single-step forms, the last non-multiline field's `onSubmitEditing` should trigger the primary action (`onNext` or `formik.handleSubmit`). Wire it from the component — do not call `formik.handleSubmit` from the hook.
+
+---
+
+## PDF Download Rule
+
+**Any screen that has a corresponding PDF endpoint must always include a PDF download button using `<PdfButton>` from `@components/common/PdfButton`.**
+
+- List screens (e.g. `GET /Client/pdf`) → add `PdfButton` in the list header row next to the menu icon
+- Detail screens (e.g. `GET /Client/{id}/pdf`) → add `PdfButton` in the detail header/toolbar actions
+- Use `usePdfDownload()` hook from `@hooks/usePdfDownload` to wire the download
+- Use `downloadAndOpenPdf(urlPath, filename)` from `@core/pdf` for the actual download + share flow
+- PDF opens in the system viewer (iOS Quick Look / Android share dialog) for preview before saving
+
 ## Design Reference
 
 All screens must be implemented pixel-accurately from the v3 design prototype:
@@ -35,6 +114,7 @@ yarn test
 ```
 
 **Regenerate API client from backend spec** (after backend changes):
+
 ```bash
 # 1. Download fresh spec from running backend
 curl http://localhost:5000/api/App/spec -o openapi-spec.json
@@ -43,6 +123,7 @@ npx orval
 ```
 
 **After `expo prebuild --clean`**, re-apply this manually to `ios/Pods/Podfile` (gets wiped on each clean):
+
 ```ruby
 use_modular_headers!
 ```
@@ -76,6 +157,7 @@ src/
 ```
 
 **Rules:**
+
 - Screens hold logic; components hold UI. Components never import from `core/` or call hooks directly.
 - Hooks live in `hooks/` and are passed as props (or their return values passed) into components.
 - All constants — colors, SecureStore keys, role IDs, pagination defaults — go in `constants/`, never hardcoded inline.
@@ -85,20 +167,20 @@ src/
 
 All `src/` subfolders have TypeScript path aliases configured in `tsconfig.json`:
 
-| Alias | Maps to |
-|---|---|
-| `@api/*` | `src/api/*` |
-| `@stores/*` | `src/stores/*` |
-| `@screens/*` | `src/screens/*` |
+| Alias           | Maps to            |
+| --------------- | ------------------ |
+| `@api/*`        | `src/api/*`        |
+| `@stores/*`     | `src/stores/*`     |
+| `@screens/*`    | `src/screens/*`    |
 | `@components/*` | `src/components/*` |
-| `@hooks/*` | `src/hooks/*` |
-| `@utils/*` | `src/utils/*` |
-| `@theme/*` | `src/theme/*` |
-| `@constants/*` | `src/constants/*` |
+| `@hooks/*`      | `src/hooks/*`      |
+| `@utils/*`      | `src/utils/*`      |
+| `@theme/*`      | `src/theme/*`      |
+| `@constants/*`  | `src/constants/*`  |
 | `@navigation/*` | `src/navigation/*` |
-| `@db/*` | `src/db/*` |
-| `@types/*` | `src/types/*` |
-| `@locales/*` | `src/locales/*` |
+| `@db/*`         | `src/db/*`         |
+| `@types/*`      | `src/types/*`      |
+| `@locales/*`    | `src/locales/*`    |
 
 Always use aliases, never relative paths crossing folder boundaries.
 
@@ -112,6 +194,7 @@ Always use aliases, never relative paths crossing folder boundaries.
 ### State Management
 
 Two Zustand stores:
+
 - `authStore` — `userId`, `roleId`, `userName`, `isAuthenticated`. `hydrate()` reads SecureStore on app start; `setAuth()` / `clearAuth()` manage login/logout.
 - `metaStore` — holds the full lookup table snapshot from `GET /api/Meta/all`, populated in `App.tsx` on every login/auth change via `fetchMeta()`. Use `AppConstants.META.*` keys to access lists: `getList(AppConstants.META.PAYMENT_TYPES)`, `getLookupName(AppConstants.META.ORDER_STATUSES, id)`.
 
@@ -129,12 +212,12 @@ Two Zustand stores:
 
 ### Theme
 
-| File | Contents |
-|---|---|
-| `theme/colors.ts` | Full color palette — always import from here |
+| File                  | Contents                                                   |
+| --------------------- | ---------------------------------------------------------- |
+| `theme/colors.ts`     | Full color palette — always import from here               |
 | `theme/typography.ts` | Quicksand font families, font sizes, weights, line heights |
-| `theme/spacing.ts` | Spacing scale |
-| `theme/index.ts` | Re-exports all theme tokens |
+| `theme/spacing.ts`    | Spacing scale                                              |
+| `theme/index.ts`      | Re-exports all theme tokens                                |
 
 Font family names: `Quicksand-Regular`, `Quicksand-Medium`, `Quicksand-SemiBold`, `Quicksand-Bold` (statically bundled via expo-font plugin in `app.config.js`).
 
@@ -174,29 +257,30 @@ interface AuthStore extends AuthState { ... }                                // 
 
 ```ts
 // ✅ correct
-AppConstants.OTP.LENGTH
+AppConstants.OTP.LENGTH;
 
 // ❌ wrong
-const OTP_LENGTH = 6;   // inside a component or hook
-digits.length < 6       // magic number inline
+const OTP_LENGTH = 6; // inside a component or hook
+digits.length < 6; // magic number inline
 ```
 
 ### 3. Architecture — Layer Responsibilities
 
-| Layer | What it does | What it must NOT do |
-|---|---|---|
-| `screens/<f>/index.tsx` | Calls hooks, reads route params, passes props down | Contain JSX layout, call API directly |
-| `components/<f>/index.tsx` | Renders UI from props only | Import from `core/`, call hooks, contain business logic |
-| `components/<f>/styles.ts` | `StyleSheet.create(...)` only | Import anything except `@theme/*` |
-| `hooks/use<Feature>.ts` | State, timers, handlers, Formik, API orchestration | Render JSX |
-| `core/<domain>.ts` | Raw async API calls, SecureStore reads/writes, store mutations | React hooks, JSX |
-| `utils/helpers/<name>.ts` | Pure functions, no React | Side effects, API calls |
+| Layer                      | What it does                                                   | What it must NOT do                                     |
+| -------------------------- | -------------------------------------------------------------- | ------------------------------------------------------- |
+| `screens/<f>/index.tsx`    | Calls hooks, reads route params, passes props down             | Contain JSX layout, call API directly                   |
+| `components/<f>/index.tsx` | Renders UI from props only                                     | Import from `core/`, call hooks, contain business logic |
+| `components/<f>/styles.ts` | `StyleSheet.create(...)` only                                  | Import anything except `@theme/*`                       |
+| `hooks/use<Feature>.ts`    | State, timers, handlers, Formik, API orchestration             | Render JSX                                              |
+| `core/<domain>.ts`         | Raw async API calls, SecureStore reads/writes, store mutations | React hooks, JSX                                        |
+| `utils/helpers/<name>.ts`  | Pure functions, no React                                       | Side effects, API calls                                 |
 
 ### 3a. Data Mapping — Always in Helpers, Never Inline
 
 Any function that transforms, maps, or shapes data — whether from the API, SQLite, or any other source — must live in `src/utils/helpers/`. This keeps components and hooks clean and makes mapping logic independently testable.
 
 **This covers:**
+
 - API response → component prop shape (e.g. `mapOrderToRow`)
 - DB row → domain model (e.g. `mapDbClientToClient`)
 - Number/date/string formatting (e.g. `formatCompactNumber`, `formatDate`)
@@ -229,9 +313,69 @@ const steps = [{ Icon: MailIcon, bg: colors.primaryLight, label: t('forgotPasswo
 ```
 
 **Naming conventions for helper files:**
+
 - Mappers: `src/utils/helpers/<feature>Mappers.ts` — exports `map<Source>To<Target>` functions
 - Formatters: `src/utils/helpers/format<Domain>.ts` — exports `format<Thing>` functions
 - Static configs: `src/utils/helpers/<feature>Content.ts` — exports `SCREAMING_SNAKE_CASE` constants
+
+**Icon component references in content helpers:**
+Helper files are `.ts` (no JSX), so icon maps store `ComponentType` references — not factory functions that return JSX. The component receives the map and renders the icon itself.
+
+```ts
+// ✅ correct — orderContent.ts (stays .ts, no JSX)
+import type { ComponentType } from 'react';
+import { ClockIcon, TruckIcon } from '@constants/svgAssets';
+
+export const ORDER_STATUS_ICONS: Record<number, ComponentType<{ size?: number; color: string }>> = {
+  [AppConstants.ORDER_STATUS.PENDING]: ClockIcon,
+  [AppConstants.ORDER_STATUS.IN_PROGRESS]: TruckIcon,
+};
+
+// In the component — a local render helper bridges the gap
+const renderStatusIcon = (statusId: number, color: string, size: number): React.ReactNode => {
+  const Icon = ORDER_STATUS_ICONS[statusId];
+  return Icon ? <Icon size={size} color={color} /> : null;
+};
+
+// ❌ wrong — factory functions returning JSX inside a .ts helper or in the component file
+const STATUS_ICONS: Record<number, (fg: string, size?: number) => React.ReactNode> = {
+  [AppConstants.ORDER_STATUS.PENDING]: (fg, size = 14) => <ClockIcon size={size} color={fg} />,
+};
+```
+
+### 3b. Sub-components — Always Folders, Never Inline Render Functions
+
+Any piece of UI complex enough to be extracted must become a proper sub-component folder with its own `index.tsx` and `styles.ts`. **Never extract UI into a `render*` function inside the parent component** — that is just an inlined component without the folder structure.
+
+```
+components/<Feature>/
+  index.tsx          ← parent component
+  styles.ts          ← parent styles only
+  <SubComponent>/
+    index.tsx        ← sub-component, receives props
+    styles.ts        ← sub-component styles only
+```
+
+**Rule of thumb:** if you find yourself writing `const renderSomething = () => { ... return <View>...</View> }` inside a component, that function should be a sub-component folder instead.
+
+```tsx
+// ✅ correct — TabContent is a proper sub-component folder
+// components/clients/ClientDetailComponent/TabContent/index.tsx
+export const TabContent = ({ tab, client }: ClientTabContentProps) => { ... };
+
+// In parent:
+import { TabContent } from './TabContent';
+<TabContent tab={tab} client={client} />
+
+// ❌ wrong — render function living inside the parent component body
+const renderTabContent = () => {
+  // ...switch on tab, map rows...
+  return rows.length === 0 ? <EmptyState /> : rows;
+};
+// used as: {renderTabContent()}
+```
+
+**Styles follow the same boundary:** styles used only by a sub-component go in the sub-component's `styles.ts`, not the parent's. Never pass style objects as props to pull parent styles into a sub-component.
 
 ### 4. Props Pattern
 
@@ -253,7 +397,7 @@ Yup.string()
   .min(8, 'At least 8 characters required')
   .matches(/[A-Z]/, 'Must contain at least one capital letter')
   .matches(/[0-9]/, 'Must contain at least one number')
-  .matches(/[^A-Za-z0-9]/, 'Must contain at least one special character')
+  .matches(/[^A-Za-z0-9]/, 'Must contain at least one special character');
 ```
 
 ### 6. API & Service Layer
@@ -283,6 +427,7 @@ return { success: true, ...res.data };
 **Every user-visible string must be a `t()` call. No exceptions for any JSX text.**
 
 This covers — without exception:
+
 - All `<Text>` content in components and screens
 - All `placeholder=` values on `TextInput`
 - All toast titles and bodies passed to `showSuccess()` / `showError()` in hooks
@@ -290,6 +435,7 @@ This covers — without exception:
 - All `accessibilityLabel` and `accessibilityHint` values
 
 The only allowed hardcoded strings:
+
 - Brand identity constants in `AppConstants.APP` (e.g. `AppConstants.APP.NAME`, `AppConstants.APP.TAG`) — these are invariant identifiers, not translatable copy.
 - SVG/icon `color=` prop values — these are color references, not text.
 - Developer-facing error strings in `catch` blocks inside `core/` (never shown in the UI).
@@ -322,13 +468,15 @@ Follow this order in every file, separated by blank lines:
 ```ts
 // 1. React / React Native core
 import React from 'react';
-import { View, Text } from 'react-native';
+
+import { Text, View } from 'react-native';
 
 // 2. Third-party libraries
 import { useFormik } from 'formik';
 
 // 3. Alias imports (@stores, @hooks, @components, @constants, @theme, @utils, @api)
 import { colors } from '@theme/colors';
+
 import { AppConstants } from '@constants/appConstants';
 
 // 4. Relative imports (types, sibling files)
@@ -336,11 +484,52 @@ import { LoginFormValues } from '../../types/login.types';
 import { styles } from './styles';
 ```
 
+### 11. List Screens — Pagination, Memoization & Loading
+
+Every list screen (Clients, Products, Orders, Purchases, Payments, Invoices, Expenses, Stock Movements, Transactions) must follow these rules. Copy the **Clients / Products / Orders** implementations as the template — do not hand-roll a new pattern.
+
+**Pagination — always infinite-query the paginated endpoint, never fetch-all:**
+
+- The hook uses `useInfiniteQuery`, **not** `useQuery`. A one-shot `useQuery` over an unbounded `GET all`/`GET /me` endpoint breaks down as the dataset grows and silently truncates if capped with a magic `pageSize`.
+- Page size comes from `AppConstants.PAGINATION.DEFAULT_PAGE_SIZE` — **never hardcode** a `pageSize` literal (e.g. `pageSize: 100`). That is a magic-number violation _and_ a silent truncation bug past that count.
+- The `core/<domain>.ts` fetcher returns `{ items: Row[]; hasNextPage: boolean }`, unwrapping `PagedList<T>` from the API:
+  ```ts
+  export const fetchXPageAsync = async (page, pageSize) => {
+    const res = await xGetAllPaginated({ page, pageSize });
+    const r = parseApiResponse<XDtoPagedList>(res, '');
+    if (!r.success || !r.data) return { items: [], hasNextPage: false };
+    return { items: (r.data.items ?? []).map(mapXToRow), hasNextPage: !!r.data.hasNextPage };
+  };
+  ```
+- Role scoping is **server-side** — the paginated endpoint scopes by `isAdmin` internally (Admin sees all, Staff sees their own). The frontend hits the same endpoint for both roles; do not branch the fetch on `roleId` client-side.
+
+**Memoization — avoid re-rendering every row on each keystroke:**
+
+- The row card (`ClientRowCard`, `ProductCard`, `OrderCard`, …) is wrapped in `React.memo`.
+- In the list component, `renderItem`, `ItemSeparatorComponent`, and `ListFooterComponent` are each wrapped in `useCallback` (deps = the callbacks they close over). Never pass an inline arrow to those props.
+
+**Loading states — the "load more" footer reuses the same skeleton row as the initial load:**
+
+- Extract one reusable `SkeletonRow/` sub-component folder (`index.tsx` + `styles.ts`) per list. The full-screen `<FeatureListSkeleton />` and the paginated `ListFooterComponent` **both render `SkeletonRow`**, so initial load and "load more" look identical. Never use a bare `<ActivityIndicator>` spinner for the footer.
+- Skeleton pulse timing uses `AppConstants.SKELETON` (`PULSE_DURATION_MS`, `PULSE_MIN_OPACITY`, `LIST_PLACEHOLDER_COUNT`) — never inline `700` / `0.4` / `[1,2,3,4]` literals.
+
+**Required hook return shape** (spread into the component by the screen):
+
+```ts
+{
+  rows, totalCount, loading, refreshing, isFetchingNextPage,
+  onRefresh, onEndReached, /* + feature-specific filters/handlers */
+}
+```
+
+`onEndReached` calls `fetchNextPage()` only when `hasNextPage && !isFetchingNextPage`. The component wires `onEndReached` + `onEndReachedThreshold={0.5}` onto the `FlatList`.
+
 ---
 
 ## Implementation Status
 
 ### Done
+
 - **Auth flow** — Splash, Welcome, Onboarding ×3, Login, Biometric, ForgotPassword, OTP Verification, ResetPassword, Register, Terms, Privacy
 - **Dashboard** — stat cards (orders, outstanding, pending payments, low stock), bar chart (monthly overview), recent orders/purchases list, skeleton loader; data from live API
 - **Navigation skeleton** — `RootNavigator`, `AuthNavigator`, `MainNavigator` (drawer), `DrawerContent`, all 13 domain stacks registered
@@ -348,27 +537,28 @@ import { styles } from './styles';
 - **Stores** — `authStore`, `lookupsStore`
 - **Core** — `core/auth.ts`, `core/clients.ts`; shared `parseApiResponse` / `parseApiError` in `src/utils/helpers/apiResponse.ts` — use these in every new core file
 - **Clients feature** — List, Detail (tabbed: orders/purchases/payments/invoices/transactions), Form (create + edit)
+- **Products feature** — List (infinite-paginated), Detail (stat grid + line chart), Form
+- **Orders feature** — List (infinite-paginated), Detail, Create (3-step), Edit
+- **List-screen convention** — Rule 11 below (infinite-query pagination, `React.memo` row cards, shared `SkeletonRow` footer) is established in **Clients / Products / Orders**; copy these as the template for every remaining list screen
 - **Common components** — `AppBottomSheet`, `AppToast`
 - **Theme** — `colors.ts`, `typography.ts`, `spacing.ts` aligned to v3 tokens
 - **i18n** — `src/locales/en.json` with all current keys
 
 ### Still Needed (domain stacks are placeholder only)
 
-| Feature | Screens | Design ref |
-|---|---|---|
-| Products | List, Detail (stat grid + line chart), Form | `screens-products.jsx` |
-| Orders | List, Detail, Create (3-step) | `screens-orders.jsx` |
-| Purchases | List, Detail, Create | `screens-purchases.jsx` |
-| Payments | List, Record payment | `screens-finance.jsx` |
-| Invoices | List, Detail + PDF viewer | `screens-finance.jsx` |
-| Expenses | List, Add | `screens-finance.jsx` |
-| Stock Movements | List, Add | `screens-stock-trans.jsx` |
-| Transactions / Ledger | List | `screens-stock-trans.jsx` |
-| Reports | Hub + 5 report screens (Admin only) | `screens-reports-extra.jsx` |
-| Users | List, Create (Admin only) | `screens-admin.jsx` |
-| Settings | Profile, security, notifications, sign-out | `screens-system.jsx` |
-| Change Password | Form + strength indicator | `screens-system.jsx` |
-| Notification Center | List, deep-link taps | `screens-extras.jsx` |
+| Feature               | Screens                                     | Design ref                  |
+| --------------------- | ------------------------------------------- | --------------------------- |
+| Purchases             | List, Detail, Create                        | `screens-purchases.jsx`     |
+| Payments              | List, Record payment                        | `screens-finance.jsx`       |
+| Invoices              | List, Detail + PDF viewer                   | `screens-finance.jsx`       |
+| Expenses              | List, Add                                   | `screens-finance.jsx`       |
+| Stock Movements       | List, Add                                   | `screens-stock-trans.jsx`   |
+| Transactions / Ledger | List                                        | `screens-stock-trans.jsx`   |
+| Reports               | Hub + 5 report screens (Admin only)         | `screens-reports-extra.jsx` |
+| Users                 | List, Create (Admin only)                   | `screens-admin.jsx`         |
+| Settings              | Profile, security, notifications, sign-out  | `screens-system.jsx`        |
+| Change Password       | Form + strength indicator                   | `screens-system.jsx`        |
+| Notification Center   | List, deep-link taps                        | `screens-extras.jsx`        |
 
 For each screen also implement: loading skeleton, empty state (illustration + CTA), error state (message + retry).
 

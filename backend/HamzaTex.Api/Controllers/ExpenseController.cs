@@ -24,12 +24,6 @@ public class ExpenseController : BaseController
         _pdfService = pdfService;
     }
 
-    private int? GetUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
-    }
-
     /// <summary>Create an expense and atomically post a Debit transaction to the ledger.</summary>
     [HttpPost]
     [Authorize(Policy = "AdminOrStaff")]
@@ -37,8 +31,8 @@ public class ExpenseController : BaseController
     [ProducesResponseType(typeof(Response<ExpenseDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] ExpenseCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<ExpenseDto>());
+        if (ValidateModel<ExpenseDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -56,27 +50,18 @@ public class ExpenseController : BaseController
         return ToActionResult(await _expenseService.CreateAsync(dto, userId.Value));
     }
 
-    /// <summary>Get all expenses paginated. Admin only.</summary>
+    /// <summary>Get all expenses paginated. Staff see only their own; Admin sees all.</summary>
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<PagedList<ExpenseDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
-        return ToActionResult(await _expenseService.GetAllPaginatedAsync(page, pageSize));
-    }
-
-    /// <summary>Get expenses recorded by the current authenticated user, paginated.</summary>
-    [HttpGet("me")]
-    [ProducesResponseType(typeof(Response<PagedList<ExpenseDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMine(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
-    {
         var userId = GetUserId();
-        if (userId is null) return Unauthorized();
-        return ToActionResult(await _expenseService.GetAllByUserIdAsync(userId.Value, page, pageSize));
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        return ToActionResult(await _expenseService.GetAllPaginatedAsync(page, pageSize, userId.Value, IsAdmin()));
     }
 
     /// <summary>Get an expense by ID.</summary>
@@ -88,7 +73,7 @@ public class ExpenseController : BaseController
         return ToActionResult(await _expenseService.GetByIdAsync(id));
     }
 
-    /// <summary>Filter expenses by type, mode, and date range.</summary>
+    /// <summary>Filter expenses by type, mode, and date range. Admin sees all matches; non-admins see only their own.</summary>
     [HttpGet("filtered")]
     [ProducesResponseType(typeof(Response<List<ExpenseDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFiltered(
@@ -97,7 +82,10 @@ public class ExpenseController : BaseController
         [FromQuery] DateOnly? dateFrom,
         [FromQuery] DateOnly? dateTo)
     {
-        return ToActionResult(await _expenseService.GetFilteredAsync(expenseTypeId, modeId, dateFrom, dateTo));
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        return ToActionResult(await _expenseService.GetFilteredAsync(expenseTypeId, modeId, dateFrom, dateTo, userId.Value, IsAdmin()));
     }
 
     /// <summary>Update amount, mode, date, and notes. TransCategoryId cannot be changed — delete and re-create to reclassify.</summary>
@@ -108,8 +96,8 @@ public class ExpenseController : BaseController
     [ProducesResponseType(typeof(Response<ExpenseDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] ExpenseUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<ExpenseDto>());
+        if (ValidateModel<ExpenseDto>() is { } invalid)
+            return invalid;
 
         var dto = new UpdateExpenseDto
         {
@@ -132,7 +120,7 @@ public class ExpenseController : BaseController
         return ToActionResult(await _expenseService.DeleteByIdAsync(id));
     }
 
-    /// <summary>Export expenses as PDF. Optionally filter by type, mode, and date range.</summary>
+    /// <summary>Export expenses as PDF. Admin sees all; non-admins see only their own. Optionally filter by type, mode, and date range.</summary>
     [HttpGet("pdf")]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
@@ -142,12 +130,64 @@ public class ExpenseController : BaseController
         [FromQuery] DateOnly? dateFrom,
         [FromQuery] DateOnly? dateTo)
     {
-        var result = await _expenseService.GetFilteredAsync(expenseTypeId, modeId, dateFrom, dateTo);
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        var result = await _expenseService.GetFilteredAsync(expenseTypeId, modeId, dateFrom, dateTo, userId.Value, IsAdmin());
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 
         var expenses = result.Data ?? new List<ExpenseDto>();
         var pdf = _pdfService.CreatePdf("Expenses", "Expense records. All amounts in PKR.", expenses, EntityPdfConfigs.Expense, new PdfOptions { ShowRowNumbers = true });
         return File(pdf, "application/pdf", "expenses.pdf");
+    }
+
+    /// <summary>Download a single expense as a branded PDF receipt — type, amount, and details.</summary>
+    [HttpGet("{id:int}/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetExpenseDossierPdf([FromRoute] int id)
+    {
+        var response = await _expenseService.GetByIdAsync(id);
+        if (!response.Success || response.Data is null)
+            return NotFound(response.Message);
+
+        var e = response.Data;
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel      = "EXPENSE",
+            Reference           = $"HT-EXPENSE-{e.Id}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = e.ExpenseTypeName ?? "Expense",
+            PreparedForSubtitle = $"{e.TransCategoryName} · {e.TransModeName}",
+            PeriodLabel         = "EXPENSE DATE",
+            PeriodValue         = e.ExpenseDate.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat("Amount", PdfFormat.Rs(e.Amount), Highlight: true),
+                new Stat("Type", e.ExpenseTypeName ?? "—"),
+                new Stat("Category", e.TransCategoryName ?? "—"),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Details",
+                    Headers: new[] { "Field", "Value" },
+                    Rows: new[]
+                    {
+                        new[] { "Mode", e.TransModeName ?? "—" },
+                        new[] { "Recorded By", e.RecordedByName ?? "—" },
+                        new[] { "Date", e.ExpenseDate.ToString("dd MMM yyyy") },
+                        new[] { "Notes", e.Notes ?? "—" },
+                    }),
+            },
+            Closing = new ClosingSummary(
+                LeftLabel:    "CATEGORY",
+                LeftSubtitle: e.TransCategoryName ?? "—",
+                RightLabel:   "AMOUNT",
+                RightValue:   PdfFormat.Rs(e.Amount)),
+        };
+
+        return File(_pdfService.CreateDocument(model), "application/pdf", $"expense-{e.Id}.pdf");
     }
 }

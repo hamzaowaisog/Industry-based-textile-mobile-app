@@ -4,7 +4,17 @@ import { Animated, ScrollView, View } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppConstants } from '@constants/appConstants';
+
 import { styles } from './styles';
+
+const {
+  PULSE_MIN_OPACITY,
+  PULSE_DURATION_MS,
+  ORDER_STAT_CARDS,
+  ORDER_PROGRESS_NODES,
+  ORDER_LINE_ITEMS,
+} = AppConstants.SKELETON;
 
 const S = ({
   w,
@@ -24,8 +34,16 @@ export const OrderDetailSkeleton = () => {
   useEffect(() => {
     const anim = Animated.loop(
       Animated.sequence([
-        Animated.timing(opacity, { toValue: 0.4, duration: 700, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
+        Animated.timing(opacity, {
+          toValue: PULSE_MIN_OPACITY,
+          duration: PULSE_DURATION_MS,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: PULSE_DURATION_MS,
+          useNativeDriver: true,
+        }),
       ]),
     );
     anim.start();
@@ -59,7 +77,7 @@ export const OrderDetailSkeleton = () => {
 
         {/* Floating stat cards */}
         <Animated.View style={[styles.statsRow, { opacity }]}>
-          {[0, 1, 2].map((i) => (
+          {Array.from({ length: ORDER_STAT_CARDS }).map((_, i) => (
             <View key={i} style={styles.statCard}>
               <S w="70%" h={10} />
               <S w="85%" h={14} />
@@ -72,13 +90,13 @@ export const OrderDetailSkeleton = () => {
           <View style={styles.progressSection}>
             <View style={styles.progressCard}>
               <View style={styles.progressNodesRow}>
-                {[0, 1, 2].map((i) => (
+                {Array.from({ length: ORDER_PROGRESS_NODES }).map((_, i) => (
                   <React.Fragment key={i}>
                     <View style={styles.progressNode}>
                       <View style={styles.progressCircleSkel} />
                       <S w={50} h={10} />
                     </View>
-                    {i < 2 && <View style={styles.progressLineSkel} />}
+                    {i < ORDER_PROGRESS_NODES - 1 && <View style={styles.progressLineSkel} />}
                   </React.Fragment>
                 ))}
               </View>
@@ -112,7 +130,7 @@ export const OrderDetailSkeleton = () => {
           <View style={styles.section}>
             <S w="35%" h={12} style={{ marginBottom: 10 }} />
             <View style={styles.linesCard}>
-              {[0, 1, 2].map((i) => (
+              {Array.from({ length: ORDER_LINE_ITEMS }).map((_, i) => (
                 <View key={i}>
                   <View style={styles.lineRow}>
                     <View style={styles.indexCircleSkel} />
@@ -122,7 +140,7 @@ export const OrderDetailSkeleton = () => {
                     </View>
                     <S w={64} h={13} />
                   </View>
-                  {i < 2 && <View style={styles.lineDivider} />}
+                  {i < ORDER_LINE_ITEMS - 1 && <View style={styles.lineDivider} />}
                 </View>
               ))}
             </View>

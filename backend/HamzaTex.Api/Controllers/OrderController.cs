@@ -31,8 +31,8 @@ public class OrderController : BaseController
     [ProducesResponseType(typeof(Response<OrderDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateOrder([FromBody] OrderCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<OrderDto>());
+        if (ValidateModel<OrderDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -55,26 +55,16 @@ public class OrderController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Get all orders, paginated. Admin only.</summary>
+    /// <summary>Get all orders, paginated. Staff see only their own; Admin sees all.</summary>
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<PagedList<OrderDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllOrdersPaginated([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
-    {
-        var response = await _orderService.GetAllPaginatedAsync(page, pageSize);
-        return ToActionResult(response);
-    }
-
-    /// <summary>Get all orders belonging to the authenticated user's clients.</summary>
-    [HttpGet("me")]
-    [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(typeof(Response<List<OrderDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMyOrders()
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
 
-        var response = await _orderService.GetAllByUserIdAsync(userId.Value);
+        var response = await _orderService.GetAllPaginatedAsync(page, pageSize, userId.Value, IsAdmin());
         return ToActionResult(response);
     }
 
@@ -117,8 +107,8 @@ public class OrderController : BaseController
     [ProducesResponseType(typeof(Response<OrderDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateOrder(int id, [FromBody] OrderUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<OrderDto>());
+        if (ValidateModel<OrderDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -143,8 +133,8 @@ public class OrderController : BaseController
     [ProducesResponseType(typeof(Response<OrderDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateOrderLines(int id, [FromBody] OrderLinesUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<OrderDto>());
+        if (ValidateModel<OrderDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -174,7 +164,7 @@ public class OrderController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Download all orders for the authenticated user as a PDF report.</summary>
+    /// <summary>Download an orders PDF report. Admin sees all orders; non-admins see only their own.</summary>
     [HttpGet("pdf")]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
@@ -183,9 +173,7 @@ public class OrderController : BaseController
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
 
-        var response = IsAdmin()
-            ? await _orderService.GetAllAsync()
-            : await _orderService.GetAllByUserIdAsync(userId.Value);
+        var response = await _orderService.GetAllAsync(userId.Value, IsAdmin());
 
         if (!response.Success)
             return BadRequest(response.Message);
@@ -196,20 +184,71 @@ public class OrderController : BaseController
             "Sales orders report. All amounts in PKR.",
             orders,
             EntityPdfConfigs.Order,
-            new PdfOptions { ShowRowNumbers = true, SummaryProperty = "Total", SummaryLabel = "Grand Total (PKR)" });
+            new PdfOptions {
+                ShowRowNumbers = true,
+                SummaryProperty = "Total",
+                SummaryLabel = "Grand Total (PKR)",
+                SummaryExcludeProperty = "StatusId",
+                SummaryExcludeValues = new List<object> { 4 }
+            });
 
         return File(pdfBytes, "application/pdf", "orders.pdf");
     }
 
-    private int? GetUserId()
+    /// <summary>Download a single order as a branded PDF dossier — header, line items, totals, and payment status.</summary>
+    [HttpGet("{id:int}/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetOrderDossierPdf([FromRoute] int id)
     {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
-    }
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in token.");
 
-    private bool IsAdmin()
-    {
-        var roleIdClaim = User.FindFirst("RoleId");
-        return roleIdClaim is not null && int.TryParse(roleIdClaim.Value, out var roleId) && roleId == 1;
+        var response = await _orderService.GetByIdAsync(id, userId.Value, IsAdmin());
+        if (!response.Success || response.Data is null)
+            return NotFound(response.Message);
+
+        var o = response.Data;
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel      = "ORDER",
+            Reference           = $"HT-ORDER-{o.Id}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = o.ClientName ?? "—",
+            PreparedForSubtitle = $"{o.StatusName} · {o.PaymentTypeName}",
+            PeriodLabel         = "ORDER DATE",
+            PeriodValue         = o.OrderDate.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat("Status", o.StatusName ?? "—"),
+                new Stat("Total", PdfFormat.Rs(o.Total)),
+                new Stat("Received", PdfFormat.Rs(o.AmountReceived)),
+                new Stat("Receivable", PdfFormat.Rs(o.Receivable), Highlight: true),
+                new Stat("Payment", o.PaymentStatus),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Line Items",
+                    Headers:    new[] { "#", "Product", "Qty", "Unit Price", "Line Total" },
+                    RightAlign: new[] { 2, 3, 4 },
+                    Rows:       o.OrderLines.Select((l, i) => new[]
+                    {
+                        (i + 1).ToString(),
+                        l.ProductName ?? "—",
+                        l.Qty.ToString("0.##"),
+                        PdfFormat.Rs(l.UnitPrice),
+                        PdfFormat.Rs(l.LineTotal),
+                    })),
+            },
+            Closing = new ClosingSummary(
+                LeftLabel:    "PAYMENT STATUS",
+                LeftSubtitle: o.PaymentStatus,
+                RightLabel:   "ORDER TOTAL",
+                RightValue:   PdfFormat.Rs(o.Total)),
+            ClosingNote = !string.IsNullOrWhiteSpace(o.Notes) ? $"Notes: {o.Notes}" : null,
+        };
+
+        return File(_pdfService.CreateDocument(model), "application/pdf", $"order-{o.Id}.pdf");
     }
 }

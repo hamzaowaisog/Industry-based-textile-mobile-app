@@ -2,24 +2,20 @@ import {
   orderCreateOrder,
   orderDeleteOrder,
   orderGetAllOrdersPaginated,
-  orderGetMyOrders,
   orderGetOrderById,
   orderUpdateOrder,
   orderUpdateOrderLines,
 } from '@api/generated/order/order';
 import type {
   OrderCreateViewModel,
+  OrderDtoPagedList,
   OrderLinesUpdateViewModel,
   OrderUpdateViewModel,
 } from '@api/models';
 
-import { useAuthStore } from '@stores/authStore';
-
 import { parseApiError, parseApiResponse } from '@utils/helpers/apiResponse';
 import { mapApiOrderDetail, mapApiOrderToRow } from '@utils/helpers/orderMappers';
 import i18n from '@utils/i18n';
-
-import { AppConstants } from '@constants/appConstants';
 
 import type {
   CreateOrderFormValues,
@@ -28,19 +24,20 @@ import type {
   OrderRow,
 } from '../types/orders.types';
 
-export const fetchOrdersAsync = async (): Promise<OrderRow[]> => {
+export const fetchOrdersPageAsync = async (
+  page: number,
+  pageSize: number,
+): Promise<{ items: OrderRow[]; hasNextPage: boolean }> => {
   try {
-    const { roleId } = useAuthStore.getState();
-    const isAdmin = roleId === AppConstants.ROLES.ADMIN;
-    const res = isAdmin
-      ? await orderGetAllOrdersPaginated({ page: 1, pageSize: 100 })
-      : await orderGetMyOrders();
-    const r = parseApiResponse<any>(res, '');
-    if (!r.success || !r.data) return [];
-    const items = r.data?.items ?? r.data ?? [];
-    return (items as any[]).map(mapApiOrderToRow);
+     const res = await orderGetAllOrdersPaginated({ page, pageSize });
+    const r = parseApiResponse<OrderDtoPagedList>(res, '');
+    if (!r.success || !r.data) return { items: [], hasNextPage: false };
+    return {
+      items: (r.data.items ?? []).map(mapApiOrderToRow),
+      hasNextPage: !!r.data.hasNextPage,
+    };
   } catch {
-    return [];
+    return { items: [], hasNextPage: false };
   }
 };
 

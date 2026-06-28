@@ -31,8 +31,8 @@ public class PurchaseController : BaseController
     [ProducesResponseType(typeof(Response<PurchaseDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreatePurchase([FromBody] PurchaseCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<PurchaseDto>());
+        if (ValidateModel<PurchaseDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -55,26 +55,16 @@ public class PurchaseController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Get all purchases, paginated. Admin only.</summary>
+    /// <summary>Get all purchases, paginated. Staff see only their own; Admin sees all.</summary>
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<PagedList<PurchaseDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllPurchasesPaginated([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
-    {
-        var response = await _purchaseService.GetAllPaginatedAsync(page, pageSize);
-        return ToActionResult(response);
-    }
-
-    /// <summary>Get all purchases belonging to the authenticated user's supplier clients.</summary>
-    [HttpGet("me")]
-    [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(typeof(Response<List<PurchaseDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMyPurchases()
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
 
-        var response = await _purchaseService.GetAllByUserIdAsync(userId.Value);
+        var response = await _purchaseService.GetAllPaginatedAsync(page, pageSize, userId.Value, IsAdmin());
         return ToActionResult(response);
     }
 
@@ -117,8 +107,8 @@ public class PurchaseController : BaseController
     [ProducesResponseType(typeof(Response<PurchaseDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdatePurchase(int id, [FromBody] PurchaseUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<PurchaseDto>());
+        if (ValidateModel<PurchaseDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -143,8 +133,8 @@ public class PurchaseController : BaseController
     [ProducesResponseType(typeof(Response<PurchaseDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdatePurchaseLines(int id, [FromBody] PurchaseLinesUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<PurchaseDto>());
+        if (ValidateModel<PurchaseDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
@@ -174,7 +164,7 @@ public class PurchaseController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Download all purchases for the authenticated user as a PDF report.</summary>
+    /// <summary>Download a purchases PDF report. Admin sees all purchases; non-admins see only their own.</summary>
     [HttpGet("pdf")]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
@@ -183,9 +173,7 @@ public class PurchaseController : BaseController
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
 
-        var response = IsAdmin()
-            ? await _purchaseService.GetAllAsync()
-            : await _purchaseService.GetAllByUserIdAsync(userId.Value);
+        var response = await _purchaseService.GetAllAsync(userId.Value, IsAdmin());
 
         if (!response.Success)
             return BadRequest(response.Message);
@@ -196,20 +184,71 @@ public class PurchaseController : BaseController
             "Procurement purchases report. All amounts in PKR.",
             purchases,
             EntityPdfConfigs.Purchase,
-            new PdfOptions { ShowRowNumbers = true, SummaryProperty = "Total", SummaryLabel = "Grand Total (PKR)" });
+            new PdfOptions {
+                ShowRowNumbers = true,
+                SummaryProperty = "Total",
+                SummaryLabel = "Grand Total (PKR)",
+                SummaryExcludeProperty = "StatusId",
+                SummaryExcludeValues = new List<object> { 4 }
+            });
 
         return File(pdfBytes, "application/pdf", "purchases.pdf");
     }
 
-    private int? GetUserId()
+    /// <summary>Download a single purchase as a branded PDF dossier — supplier, line items, totals, and payment status.</summary>
+    [HttpGet("{id:int}/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetPurchaseDossierPdf([FromRoute] int id)
     {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
-    }
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in token.");
 
-    private bool IsAdmin()
-    {
-        var roleIdClaim = User.FindFirst("RoleId");
-        return roleIdClaim is not null && int.TryParse(roleIdClaim.Value, out var roleId) && roleId == 1;
+        var response = await _purchaseService.GetByIdAsync(id, userId.Value, IsAdmin());
+        if (!response.Success || response.Data is null)
+            return NotFound(response.Message);
+
+        var p = response.Data;
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel      = "PURCHASE",
+            Reference           = $"HT-PURCHASE-{p.Id}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = p.SupplierName ?? "—",
+            PreparedForSubtitle = $"{p.StatusName} · {p.PaymentTypeName}",
+            PeriodLabel         = "PURCHASE DATE",
+            PeriodValue         = p.PurchaseDate.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat("Status", p.StatusName ?? "—"),
+                new Stat("Total", PdfFormat.Rs(p.Total)),
+                new Stat("Paid", PdfFormat.Rs(p.AmountPaid)),
+                new Stat("Payable", PdfFormat.Rs(p.Payable), Highlight: true),
+                new Stat("Payment", p.PaymentStatus),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Line Items",
+                    Headers:    new[] { "#", "Product", "Qty", "Unit Cost", "Line Total" },
+                    RightAlign: new[] { 2, 3, 4 },
+                    Rows:       p.PurchaseLines.Select((l, i) => new[]
+                    {
+                        (i + 1).ToString(),
+                        l.ProductName ?? "—",
+                        l.Qty.ToString("0.##"),
+                        PdfFormat.Rs(l.UnitCost),
+                        PdfFormat.Rs(l.Qty * l.UnitCost),
+                    })),
+            },
+            Closing = new ClosingSummary(
+                LeftLabel:    "PAYMENT STATUS",
+                LeftSubtitle: p.PaymentStatus,
+                RightLabel:   "PURCHASE TOTAL",
+                RightValue:   PdfFormat.Rs(p.Total)),
+            ClosingNote = !string.IsNullOrWhiteSpace(p.Notes) ? $"Notes: {p.Notes}" : null,
+        };
+
+        return File(_pdfService.CreateDocument(model), "application/pdf", $"purchase-{p.Id}.pdf");
     }
 }

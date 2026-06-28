@@ -1,169 +1,24 @@
-import { useEffect, useRef } from 'react';
+import { useCallback } from 'react';
 
-import {
-  Animated,
-  FlatList,
-  RefreshControl,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { FlatList, RefreshControl, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { formatPKR, resolveClientBalanceColor } from '@utils/helpers/clientMappers';
+import { PdfButton } from '@components/common/PdfButton';
+
+import { CLIENT_FILTER_OPTIONS } from '@utils/helpers/clientContent';
 
 import { colors } from '@theme/colors';
 
-import { AppConstants } from '@constants/appConstants';
-import { MenuIcon, PlusIcon, SearchIcon, TrashIcon, UsersIcon } from '@constants/svgAssets';
+import { MenuIcon, PlusIcon, SearchIcon } from '@constants/svgAssets';
 
-import type {
-  ClientFilter,
-  ClientListComponentProps,
-  ClientRow,
-} from '../../../types/clients.types';
+import type { ClientListComponentProps, ClientRow } from '../../../types/clients.types';
+import { ClientListSkeleton } from './ClientListSkeleton';
+import { ClientRowCard } from './ClientRowCard';
+import { EmptyState } from './EmptyState';
+import { SkeletonRow } from './SkeletonRow';
 import { styles } from './styles';
-
-const FILTER_OPTIONS: { value: ClientFilter; labelKey: string }[] = [
-  { value: 'all', labelKey: 'clients.filterAll' },
-  { value: 'customers', labelKey: 'clients.filterCustomers' },
-  { value: 'suppliers', labelKey: 'clients.filterSuppliers' },
-];
-
-const ClientRowCard = ({
-  item,
-  onPress,
-  onDelete,
-}: {
-  item: ClientRow;
-  onPress: (id: number) => void;
-  onDelete: (id: number, name: string) => void;
-}) => {
-  const { t } = useTranslation();
-  const avatarBg =
-    item.clientTypeId === AppConstants.CLIENT_TYPE.CUSTOMER ? colors.primary : colors.warning;
-  const balanceColor = resolveClientBalanceColor(item.balanceDirection);
-  const balanceLabel =
-    item.balanceDirection === 'receivable'
-      ? t('clients.balanceReceivable')
-      : item.balanceDirection === 'payable'
-        ? t('clients.balancePayable')
-        : null;
-
-  return (
-    <View style={styles.rowCard}>
-      <TouchableOpacity
-        style={styles.rowContent}
-        onPress={() => onPress(item.id)}
-        activeOpacity={0.7}
-      >
-        <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
-          <Text style={styles.avatarText}>{item.initials}</Text>
-        </View>
-
-        <View style={styles.rowInfo}>
-          <Text style={styles.rowName} numberOfLines={1}>
-            {item.name}
-          </Text>
-          {item.phone ? (
-            <Text style={styles.rowSub} numberOfLines={1}>
-              {item.phone}
-            </Text>
-          ) : null}
-        </View>
-
-        <View style={styles.rowRight}>
-          {item.balanceDirection !== 'settled' ? (
-            <>
-              <Text style={[styles.balanceAmount, { color: balanceColor }]}>
-                {formatPKR(item.balance)}
-              </Text>
-              {balanceLabel ? (
-                <Text style={[styles.balanceLabel, { color: balanceColor }]}>{balanceLabel}</Text>
-              ) : null}
-            </>
-          ) : (
-            <Text style={styles.settledText}>{t('clients.settled')}</Text>
-          )}
-        </View>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.deleteBtn}
-        onPress={() => onDelete(item.id, item.name)}
-        activeOpacity={0.7}
-      >
-        <TrashIcon size={18} color={colors.danger} />
-      </TouchableOpacity>
-    </View>
-  );
-};
-
-const SkeletonRow = () => (
-  <View style={[styles.skeletonCard, { marginBottom: 10 }]}>
-    <View style={styles.skeletonAvatar} />
-    <View style={{ flex: 1, gap: 8 }}>
-      <View style={[styles.skeletonLine, { width: '60%' }]} />
-      <View style={[styles.skeletonLine, { width: '40%' }]} />
-    </View>
-    <View style={styles.skeletonRight} />
-  </View>
-);
-
-const ClientListSkeleton = () => {
-  const opacity = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    const anim = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, { toValue: 0.4, duration: 700, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
-      ]),
-    );
-    anim.start();
-    return () => anim.stop();
-  }, [opacity]);
-
-  return (
-    <Animated.View style={{ opacity, paddingHorizontal: 24, flex: 1 }}>
-      {[1, 2, 3, 4, 5].map((k) => (
-        <SkeletonRow key={k} />
-      ))}
-    </Animated.View>
-  );
-};
-
-const EmptyState = ({
-  onAddFirstClient,
-  t,
-}: {
-  onAddFirstClient: () => void;
-  t: (k: string) => string;
-}) => (
-  <View style={styles.emptyWrap}>
-    <View style={[styles.emptyIconBubble, { backgroundColor: `${colors.success}18` }]}>
-      <UsersIcon size={58} color={colors.success} />
-      <View style={styles.emptyBadge}>
-        <PlusIcon size={20} color={colors.surface} />
-      </View>
-    </View>
-
-    <View style={styles.emptyTextWrap}>
-      <Text style={styles.emptyTitle}>{t('clients.emptyTitle')}</Text>
-      <Text style={styles.emptySub}>{t('clients.emptySubtext')}</Text>
-    </View>
-
-    <TouchableOpacity style={styles.emptyCta} onPress={onAddFirstClient} activeOpacity={0.8}>
-      <PlusIcon size={18} color={colors.surface} />
-      <Text style={styles.emptyCtaText}>{t('clients.emptyCtaLabel')}</Text>
-    </TouchableOpacity>
-
-    <Text style={styles.emptySecondary}>{t('clients.emptySecondary')}</Text>
-  </View>
-);
 
 export const ClientListComponent = ({
   clients,
@@ -171,29 +26,45 @@ export const ClientListComponent = ({
   search,
   loading,
   refreshing,
+  isFetchingNextPage,
   onFilterChange,
   onSearchChange,
   onRowPress,
-  onDelete,
   onRefresh,
+  onEndReached,
   onFab,
   onMenuPress,
   onAddFirstClient,
+  onListPdfPress,
+  isPdfDownloading,
 }: ClientListComponentProps) => {
   const { t } = useTranslation();
 
-  const renderItem = ({ item }: { item: ClientRow }) => (
-    <ClientRowCard item={item} onPress={onRowPress} onDelete={onDelete} />
+  const renderItem = useCallback(
+    ({ item }: { item: ClientRow }) => <ClientRowCard item={item} onPress={onRowPress} />,
+    [onRowPress],
+  );
+
+  const renderSeparator = useCallback(() => <View style={styles.gap} />, []);
+
+  const renderFooter = useCallback(
+    () => (isFetchingNextPage ? <SkeletonRow /> : null),
+    [isFetchingNextPage],
   );
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity style={styles.headerIconBtn} onPress={onMenuPress} activeOpacity={0.7}>
             <MenuIcon size={23} color={colors.text} />
           </TouchableOpacity>
+          <PdfButton
+            onPress={onListPdfPress}
+            isLoading={isPdfDownloading}
+            size={20}
+            color={colors.textSecondary}
+          />
         </View>
         <Text style={styles.headerTitle}>{t('clients.title')}</Text>
         <Text style={styles.headerSub}>
@@ -203,9 +74,7 @@ export const ClientListComponent = ({
         </Text>
       </View>
 
-      {/* Filter area */}
       <View style={styles.filterArea}>
-        {/* Search bar */}
         <View style={styles.searchRow}>
           <SearchIcon size={18} color={colors.textTertiary} />
           <TextInput
@@ -218,9 +87,8 @@ export const ClientListComponent = ({
           />
         </View>
 
-        {/* Segmented control */}
         <View style={styles.segmented}>
-          {FILTER_OPTIONS.map((opt) => {
+          {CLIENT_FILTER_OPTIONS.map((opt) => {
             const active = filter === opt.value;
             return (
               <TouchableOpacity
@@ -238,11 +106,10 @@ export const ClientListComponent = ({
         </View>
       </View>
 
-      {/* Content */}
       {loading ? (
         <ClientListSkeleton />
       ) : clients.length === 0 && !search ? (
-        <EmptyState onAddFirstClient={onAddFirstClient} t={t} />
+        <EmptyState onAddFirstClient={onAddFirstClient} />
       ) : clients.length === 0 && search ? (
         <View style={styles.noResultsWrap}>
           <Text style={styles.noResultsTitle}>{t('common.noResults')}</Text>
@@ -254,7 +121,10 @@ export const ClientListComponent = ({
           keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
-          ItemSeparatorComponent={() => <View style={styles.gap} />}
+          ItemSeparatorComponent={renderSeparator}
+          ListFooterComponent={renderFooter}
+          onEndReached={onEndReached}
+          onEndReachedThreshold={0.5}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           refreshControl={
@@ -268,7 +138,6 @@ export const ClientListComponent = ({
         />
       )}
 
-      {/* FAB */}
       <TouchableOpacity style={styles.fab} onPress={onFab} activeOpacity={0.85}>
         <PlusIcon size={24} color={colors.surface} />
       </TouchableOpacity>

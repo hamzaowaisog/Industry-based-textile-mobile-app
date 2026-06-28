@@ -17,26 +17,25 @@ public class ClientController : BaseController
 {
     private readonly IClientService _clientService;
     private readonly IPdfService _pdfService;
+    private readonly IReportService _reportService;
 
-    public ClientController(IClientService clientService, IPdfService pdfService)
+    public ClientController(IClientService clientService, IPdfService pdfService, IReportService reportService)
     {
         _clientService = clientService;
         _pdfService = pdfService;
+        _reportService = reportService;
     }
 
-    /// <summary>Get paginated clients for the authenticated user.</summary>
+    /// <summary>Get paginated clients. Staff see their own; Admin sees all clients across all users.</summary>
     [HttpGet("Filtered")]
     [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response<PagedList<ClientDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllClientsFiltered(int page = 1, int pageSize = 5)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
-        var response = await _clientService.GetAllPaginatedAsync(page, pageSize, userId);
+        var response = await _clientService.GetAllPaginatedAsync(page, pageSize, userId, IsAdmin());
         return ToActionResult(response);
     }
 
@@ -47,17 +46,11 @@ public class ClientController : BaseController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateClient([FromBody] ClientCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-        {
-            var validationResponse = ToValidationResponseFromModelState<ClientDto>();
-            return ToActionResult(validationResponse);
-        }
+        if (ValidateModel<ClientDto>() is { } invalid)
+            return invalid;
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var dto = new CreateClientDto
         {
@@ -76,29 +69,16 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Get all clients across all users. Admin only.</summary>
+    /// <summary>Get all clients (unpaginated). Admin sees all; non-admins see only their own. Prefer the paginated <c>GET /Filtered</c> for list UIs; this powers exports and pickers.</summary>
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllClients()
     {
-        var response = await _clientService.GetAllAsync();
-        return ToActionResult(response);
-    }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
-    /// <summary>Get all clients belonging to the authenticated user.</summary>
-    [HttpGet("me")]
-    [Authorize(Policy = "Authenticated")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllClientsByUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
-
-        var response = await _clientService.GetAllByUserIdAsync(userId);
+        var response = await _clientService.GetAllAsync(userId, IsAdmin());
         return ToActionResult(response);
     }
 
@@ -121,17 +101,11 @@ public class ClientController : BaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateClientById(int id, [FromBody] ClientUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-        {
-            var validationResponse = ToValidationResponseFromModelState<ClientDto>();
-            return ToActionResult(validationResponse);
-        }
+        if (ValidateModel<ClientDto>() is { } invalid)
+            return invalid;
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("User identifier is missing or invalid in the token.");
-        }
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
         var dto = new UpdateClientByIdDto
         {
@@ -162,22 +136,119 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Download the authenticated user's client list as a PDF report.</summary>
+    /// <summary>Download a client list as a PDF report. Admin sees all clients; non-admins see only their own.</summary>
     [HttpGet("pdf")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllClientsPdf()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-            return Unauthorized("User identifier is missing or invalid in the token.");
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
-        var response = await _clientService.GetAllByUserIdAsync(userId);
+        var response = await _clientService.GetAllAsync(userId, IsAdmin());
         if (!response.Success)
             return BadRequest(response.Message);
 
         var clients = response.Data ?? new List<ClientDto>();
         var pdfBytes = _pdfService.CreatePdf("Clients", "List of clients. All amounts in PKR.", clients, EntityPdfConfigs.Client, new PdfOptions { ShowRowNumbers = true, SummaryProperty = "OpeningBalance", SummaryLabel = "Total Opening Balance (PKR)" });
         return File(pdfBytes, "application/pdf", "clients.pdf");
+    }
+
+    /// <summary>Download a single client's full dossier as a branded PDF — profile, orders, purchases, payments, recent transactions, and current balance. Reuses the report aggregate so figures match the screen.</summary>
+    [HttpGet("{id:int}/pdf")]
+    [Authorize(Policy = "AdminOrStaff")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetClientDossierPdf([FromRoute] int id)
+    {
+        var result = await _reportService.GetClientDetailByIdAsync(id);
+        if (!result.Success || result.Data is null)
+            return ToActionResult(result);
+
+        var d = result.Data;
+        var isSupplier = d.ClientTypeId == 2; // ClientType seeded: 1=Customer, 2=Supplier
+
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel      = isSupplier ? "SUPPLIER DOSSIER" : "CLIENT DOSSIER",
+            Reference           = $"HT-CLIENT-{d.ClientId}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = d.ClientName,
+            PreparedForSubtitle = $"{d.ClientTypeName} · {d.Phone ?? "—"}",
+            PeriodLabel         = "AS OF",
+            PeriodValue         = DateTime.Now.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat(isSupplier ? "Purchase Total" : "Order Total",
+                         PdfFormat.Rs(isSupplier ? d.TotalPurchaseAmount : d.TotalOrderAmount)),
+                new Stat(isSupplier ? "Paid" : "Received",
+                         PdfFormat.Rs(isSupplier ? d.TotalPaymentsOut : d.TotalPaymentsIn)),
+                new Stat("Credit Limit", PdfFormat.Rs(d.CreditLimit ?? 0)),
+                new Stat(isSupplier ? "Payable" : "Receivable",
+                         PdfFormat.Rs(d.Outstanding), Highlight: true),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Orders",
+                    Headers:    new[] { "#", "Date", "Status", "Total", "Paid", "Outstanding" },
+                    RightAlign: new[] { 3, 4, 5 },
+                    Rows:       d.Orders.Select((o, i) => new[]
+                    {
+                        (i + 1).ToString(),
+                        o.OrderDate.ToString("dd MMM yyyy"),
+                        o.StatusName,
+                        PdfFormat.Rs(o.Total),
+                        PdfFormat.Rs(o.AmountPaid),
+                        PdfFormat.Rs(o.Outstanding),
+                    })),
+                new TableSection(
+                    "Purchases",
+                    Headers:    new[] { "#", "Date", "Status", "Total", "Paid", "Outstanding" },
+                    RightAlign: new[] { 3, 4, 5 },
+                    Rows:       d.Purchases.Select((p, i) => new[]
+                    {
+                        (i + 1).ToString(),
+                        p.PurchaseDate.ToString("dd MMM yyyy"),
+                        p.StatusName,
+                        PdfFormat.Rs(p.Total),
+                        PdfFormat.Rs(p.AmountPaid),
+                        PdfFormat.Rs(p.Outstanding),
+                    })),
+                new TableSection(
+                    "Payments",
+                    Headers:    new[] { "#", "Date", "Direction", "Mode", "Amount" },
+                    RightAlign: new[] { 4 },
+                    Rows:       d.Payments.Select((p, i) => new[]
+                    {
+                        (i + 1).ToString(),
+                        p.PaymentDate.ToString("dd MMM yyyy"),
+                        p.DirectionName,
+                        p.ModeName,
+                        PdfFormat.Rs(p.Amount) + (p.IsReversed ? " (rev)" : ""),
+                    })),
+                new TableSection(
+                    "Recent Transactions",
+                    Headers:    new[] { "#", "Date", "Category", "Type", "Amount" },
+                    RightAlign: new[] { 4 },
+                    Rows:       d.RecentTransactions.Select((t, i) => new[]
+                    {
+                        (i + 1).ToString(),
+                        t.TransDate.ToString("dd MMM yyyy"),
+                        t.CategoryName,
+                        t.TypeName,
+                        PdfFormat.Rs(t.Amount) + (t.IsReversal ? " (rev)" : ""),
+                    })),
+            },
+            Closing = new ClosingSummary(
+                LeftLabel:    "CURRENT BALANCE",
+                LeftSubtitle: $"As of {DateTime.Now:dd MMM yyyy}",
+                RightLabel:   isSupplier ? "PAYABLE" : "RECEIVABLE",
+                RightValue:   PdfFormat.Rs(d.Balance)),
+            ClosingNote = !string.IsNullOrWhiteSpace(d.Notes) ? $"Notes: {d.Notes}" : null,
+        };
+
+        var fileName = $"client-dossier-{d.ClientName.Replace(' ', '-')}.pdf";
+        return File(_pdfService.CreateDocument(model), "application/pdf", fileName);
     }
 }

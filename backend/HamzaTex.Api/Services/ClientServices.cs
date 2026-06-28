@@ -13,16 +13,14 @@ public interface IClientService
     Task<Response<ClientDto>> CreateAsync(CreateClientDto model);
     /// <summary>Get a client by ID.</summary>
     Task<Response<ClientDto>> GetByIdAsync(int id);
-    /// <summary>Get all clients across all users. Admin use only.</summary>
-    Task<Response<List<ClientDto>>> GetAllAsync();
-    /// <summary>Get all clients belonging to a specific user.</summary>
-    Task<Response<List<ClientDto>>> GetAllByUserIdAsync(int userId);
+    /// <summary>Get all clients. Admin sees all; non-admins see only their own. Used for PDF export + admin list.</summary>
+    Task<Response<List<ClientDto>>> GetAllAsync(int userId, bool isAdmin);
     /// <summary>Update a client by ID.</summary>
     Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model);
     /// <summary>Delete a client by ID.</summary>
     Task<Response> DeleteByIdAsync(int id);
-    /// <summary>Get paginated clients for a specific user.</summary>
-    Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId);
+    /// <summary>Get paginated clients. Scoped to the user unless isAdmin, in which case all clients are returned.</summary>
+    Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
 }
 
 public class ClientService : IClientService
@@ -36,22 +34,19 @@ public class ClientService : IClientService
         _notificationService = notificationService;
     }
 
-    public async Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId)
+    public async Task<Response<PagedList<ClientDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
-        var clients = await _dbContext.Clients
-            .AsNoTracking()
-            .Where(c => c.UserId == userId)
-            .OrderBy(c => c.Name)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        var query = _dbContext.Clients.AsNoTracking().AsQueryable();
+        if (!isAdmin)
+            query = query.Where(c => c.UserId == userId);
 
-        var total = await _dbContext.Clients.CountAsync(c => c.UserId == userId);
-        var ids = clients.Select(c => c.Id).ToList();
-        var balances = await GetBalancesAsync(ids);
+        query = query.Include(c => c.ClientType).OrderBy(c => c.Name);
 
-        var dtos = clients.Select(c => ToDto(c, balances.GetValueOrDefault(c.Id))).ToList();
-        var pagedList = new PagedList<ClientDto>(dtos, page, pageSize, total);
+        var paged = await PagedList<Client>.CreateAsync(query, page, pageSize);
+
+        var balances = await GetBalancesAsync(paged.Items.Select(c => c.Id).ToList());
+        var dtos = paged.Items.Select(c => ToDto(c, balances.GetValueOrDefault(c.Id))).ToList();
+        var pagedList = new PagedList<ClientDto>(dtos, paged.Page, paged.PageSize, paged.TotalCount);
         return Response<PagedList<ClientDto>>.SuccessResponse(pagedList, "Clients fetched successfully.");
     }
 
@@ -79,6 +74,7 @@ public class ClientService : IClientService
     public async Task<Response<ClientDto>> GetByIdAsync(int id)
     {
         var client = await _dbContext.Clients
+            .Include(client => client.ClientType)
             .Where(client => client.Id == id && client.UserId != null && _dbContext.Users.Any(user => user.Id == client.UserId))
             .FirstOrDefaultAsync();
 
@@ -93,33 +89,13 @@ public class ClientService : IClientService
         return Response<ClientDto>.SuccessResponse(ToDto(client, balance), "Client fetched successfully.");
     }
 
-    public async Task<Response<List<ClientDto>>> GetAllAsync()
+    public async Task<Response<List<ClientDto>>> GetAllAsync(int userId, bool isAdmin)
     {
-        var clients = await _dbContext.Clients
-            .AsNoTracking()
-            .Include(client => client.User)
-            .Where(client => client.User != null)
-            .ToListAsync();
+        var query = _dbContext.Clients.AsNoTracking().AsQueryable();
+        if (!isAdmin)
+            query = query.Where(c => c.UserId == userId);
 
-        if (clients is null)
-            return Response<List<ClientDto>>.ErrorResponse("Not found", "No clients found.");
-
-        var ids = clients.Select(c => c.Id).ToList();
-        var balances = await GetBalancesAsync(ids);
-
-        var dtos = clients.Select(c => ToDto(c, balances.GetValueOrDefault(c.Id))).ToList();
-        return Response<List<ClientDto>>.SuccessResponse(dtos, "Clients fetched successfully.");
-    }
-
-    public async Task<Response<List<ClientDto>>> GetAllByUserIdAsync(int userId)
-    {
-        var clients = await _dbContext.Clients
-            .AsNoTracking()
-            .Where(c => c.UserId == userId)
-            .ToListAsync();
-
-        if (clients is null)
-            return Response<List<ClientDto>>.ErrorResponse("Not found", "No clients found.");
+        var clients = await query.Include(c => c.ClientType).OrderBy(c => c.Name).ToListAsync();
 
         var ids = clients.Select(c => c.Id).ToList();
         var balances = await GetBalancesAsync(ids);
@@ -195,6 +171,7 @@ public class ClientService : IClientService
             Id = entity.Id,
             Name = entity.Name ?? string.Empty,
             ClientTypeId = entity.ClientTypeId ?? 0,
+            ClientTypeName = entity.ClientType?.Name,
             UserId = entity.UserId ?? 0,
             Phone = entity.Phone ?? string.Empty,
             Address = entity.Address ?? string.Empty,

@@ -27,9 +27,27 @@ public class ProductService : IProductService
 {
     private readonly ApplicationDbContext _dbContext;
 
+    // Mirrors OrderStatus seed IDs used by OrderService's reservation check — keep in sync.
+    private const int OrderStatusDelivered = 3;
+    private const int OrderStatusCancelled = 4;
+
     public ProductService(ApplicationDbContext dbContext)
     {
         _dbContext = dbContext;
+    }
+
+    /// <summary>Sums OrderLine.Qty per product across all non-Delivered, non-Cancelled orders, for the given product IDs.</summary>
+    private async Task<Dictionary<int, decimal>> GetCommittedQuantitiesAsync(IEnumerable<int> productIds)
+    {
+        var ids = productIds.Distinct().ToList();
+        if (ids.Count == 0) return new Dictionary<int, decimal>();
+
+        return await _dbContext.OrderLines
+            .Where(ol => ol.ProductId != null && ids.Contains(ol.ProductId.Value)
+                && ol.Order.StatusId != OrderStatusDelivered && ol.Order.StatusId != OrderStatusCancelled)
+            .GroupBy(ol => ol.ProductId!.Value)
+            .Select(g => new { ProductId = g.Key, Qty = g.Sum(ol => ol.Qty) })
+            .ToDictionaryAsync(x => x.ProductId, x => x.Qty);
     }
 
    public async Task<Response<ProductDto>> CreateWithUserIdAsync(CreateProductDto model, int userId)
@@ -95,7 +113,7 @@ public class ProductService : IProductService
             await _dbContext.SaveChangesAsync();
 
             await transaction.CommitAsync();
-            return Response<ProductDto>.SuccessResponse(ToDto(entity), "Product created successfully.");
+            return Response<ProductDto>.SuccessResponse(ToDto(entity, committed: 0), "Product created successfully.");
         }
         catch (Exception ex)
         {
@@ -117,7 +135,8 @@ public class ProductService : IProductService
             return Response<ProductDto>.ErrorResponse("Not found", "Product not found.");
         }
 
-        return Response<ProductDto>.SuccessResponse(ToDto(product), "Product fetched successfully.");
+        var committed = await GetCommittedQuantitiesAsync(new[] { product.Id });
+        return Response<ProductDto>.SuccessResponse(ToDto(product, committed.GetValueOrDefault(product.Id, 0)), "Product fetched successfully.");
 
 
    }
@@ -128,13 +147,14 @@ public class ProductService : IProductService
                        .Include(p => p.ProductUsers)
                        .Where(p => p.ProductUsers.Any(pu => pu.UserId == userId))
                        .ToListAsync();
-        
+
         if (products is null)
         {
             return Response<List<ProductDto>>.ErrorResponse("Not found", "No products found.");
         }
 
-        var productDtos = products.Select(product => ToDto(product)).ToList();
+        var committed = await GetCommittedQuantitiesAsync(products.Select(p => p.Id));
+        var productDtos = products.Select(product => ToDto(product, committed.GetValueOrDefault(product.Id, 0))).ToList();
         return Response<List<ProductDto>>.SuccessResponse(productDtos, "Products fetched successfully.");
    }
 
@@ -152,11 +172,19 @@ public class ProductService : IProductService
         }
 
         product.Name = model.Name.Trim();
-        product.Sku = model.Sku.Trim();
+        if (!string.IsNullOrWhiteSpace(model.Sku))
+        {
+            product.Sku = model.Sku.Trim();
+        }
         product.Unit = model.Unit.Trim();
-        product.Quantity = model.Quantity;
+        if (model.Quantity.HasValue) product.Quantity = model.Quantity;
         product.ReorderLevel = model.ReorderLevel;
-        product.IsActive = model.IsActive;
+        if (model.IsActive.HasValue) product.IsActive = model.IsActive;
+
+        var previousDefaultCost = product.DefaultCost;
+        var previousDefaultPrice = product.DefaultPrice;
+        var defaultCostChanged = model.DefaultCost != previousDefaultCost;
+        var defaultPriceChanged = model.DefaultPrice != previousDefaultPrice;
 
         product.DefaultCost = model.DefaultCost;
         product.DefaultPrice = model.DefaultPrice;
@@ -168,8 +196,35 @@ public class ProductService : IProductService
         if (model.TotalQuantitySold.HasValue) product.TotalQuantitySold = model.TotalQuantitySold.Value;
         if (model.TotalQuantityPurchased.HasValue) product.TotalQuantityPurchased = model.TotalQuantityPurchased.Value;
 
+        // Opening stock only: one movement, no sales yet — default cost/price edits should
+        // realign weighted averages and the initial movement snapshot (same as at creation).
+        var noSalesYet = (product.TotalQuantitySold ?? 0) == 0;
+        if (noSalesYet && (defaultCostChanged || defaultPriceChanged))
+        {
+            var movementCount = await _dbContext.StockMovements.CountAsync(sm => sm.ProductId == id);
+            if (movementCount == 1)
+            {
+                var openingMovement = await _dbContext.StockMovements
+                    .FirstAsync(sm => sm.ProductId == id);
+
+                if (defaultCostChanged)
+                {
+                    product.AverageCost = model.DefaultCost;
+                    openingMovement.UnitCost = model.DefaultCost;
+                    openingMovement.AverageCostAtMovement = model.DefaultCost;
+                }
+
+                if (defaultPriceChanged)
+                {
+                    product.AveragePrice = model.DefaultPrice;
+                    openingMovement.UnitPrice = model.DefaultPrice;
+                }
+            }
+        }
+
         await _dbContext.SaveChangesAsync();
-        return Response<ProductDto>.SuccessResponse(ToDto(product), "Product updated successfully.");
+        var committed = await GetCommittedQuantitiesAsync(new[] { product.Id });
+        return Response<ProductDto>.SuccessResponse(ToDto(product, committed.GetValueOrDefault(product.Id, 0)), "Product updated successfully.");
    }
 
    public async Task<Response> DeleteByIdAsync(int id, int userId)
@@ -194,13 +249,17 @@ public class ProductService : IProductService
    {
         var query = _dbContext.Products
                     .Include(p => p.ProductUsers)
-                    .Where(p => p.ProductUsers.Any(pu => pu.UserId == userId))
-                    .Select(p => ToDto(p));
-        
-        var pagedList = await PagedList<ProductDto>.CreateAsync(query, page, pageSize);
+                    .Where(p => p.ProductUsers.Any(pu => pu.UserId == userId));
+
+        var paged = await PagedList<Product>.CreateAsync(query, page, pageSize);
+
+        var committed = await GetCommittedQuantitiesAsync(paged.Items.Select(p => p.Id));
+        var items = paged.Items.Select(p => ToDto(p, committed.GetValueOrDefault(p.Id, 0))).ToList();
+
+        var pagedList = new PagedList<ProductDto>(items, paged.Page, paged.PageSize, paged.TotalCount);
         return Response<PagedList<ProductDto>>.SuccessResponse(pagedList, "Products fetched successfully.");
    }
-    private static ProductDto ToDto(Product entity) =>
+    private static ProductDto ToDto(Product entity, decimal committed) =>
     new()
     {
         Id = entity.Id,
@@ -210,6 +269,7 @@ public class ProductService : IProductService
         DefaultCost = entity.DefaultCost,
         DefaultPrice = entity.DefaultPrice,
         Quantity = entity.Quantity,
+        AvailableQuantity = (entity.Quantity ?? 0) - committed,
         AverageCost = entity.AverageCost,
         AveragePrice = entity.AveragePrice,
         CostChangeCount = entity.CostChangeCount,
@@ -237,7 +297,7 @@ public class ProductService : IProductService
         TotalQuantityPurchased = model.TotalQuantityPurchased,
         TotalQuantitySold = model.TotalQuantitySold,
         ReorderLevel = model.ReorderLevel,
-        IsActive = model.IsActive,
+        IsActive = model.IsActive ?? true,
         CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
     };
 
