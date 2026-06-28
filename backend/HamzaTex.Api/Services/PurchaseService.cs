@@ -452,6 +452,25 @@ public class PurchaseService : IPurchaseService
             // If previously Received, reverse stock and ledger
             if (previousStatusId == StatusReceived)
             {
+                foreach (var line in purchase.PurchaseLines)
+                {
+                    if (line.ProductId is null) continue;
+                    var product = await _dbContext.Products.FindAsync(line.ProductId.Value);
+                    if (product is null)
+                    {
+                        await transaction.RollbackAsync();
+                        return Response<PurchaseDto>.ErrorResponse("Not found", $"Product {line.ProductId} not found.");
+                    }
+                    if ((product.Quantity ?? 0) < line.Qty)
+                    {
+                        await transaction.RollbackAsync();
+                        return Response<PurchaseDto>.ErrorResponse("Cannot cancel purchase",
+                            $"Product '{product.Name}' has insufficient stock to reverse this purchase " +
+                            $"(available: {product.Quantity ?? 0} {product.Unit}, required: {line.Qty} {product.Unit}). " +
+                            "The received goods have already been fully consumed — record a manual adjustment instead.");
+                    }
+                }
+
                 // Reverse stock: Manual Out per line (undo the In)
                 foreach (var line in purchase.PurchaseLines)
                 {
@@ -463,6 +482,8 @@ public class PurchaseService : IPurchaseService
                         MovementSource = MovementSourceManual,
                         MovementType = MovementTypeOut,
                         Qty = line.Qty,
+                        UnitCost = line.UnitCost,
+                        AverageDimensionOverride = StockAverageDimension.Cost,
                         MovementDate = DateOnly.FromDateTime(DateTime.UtcNow)
                     }, userId);
 

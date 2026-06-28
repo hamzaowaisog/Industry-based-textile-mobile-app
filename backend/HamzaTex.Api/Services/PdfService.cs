@@ -27,6 +27,10 @@ public class PdfOptions
     public string SummaryLabel    { get; set; } = "Total";
     /// <summary>When set, summary = sum of (this property × SummaryProperty) per row.</summary>
     public string? SummaryMultiplierProperty { get; set; }
+    /// <summary>When set, rows where this property matches any value in SummaryExcludeValues are excluded from the grand total (e.g. cancelled documents). Rows still appear in the table.</summary>
+    public string? SummaryExcludeProperty { get; set; }
+    /// <summary>Values that, when matched against SummaryExcludeProperty, exclude a row from the grand total.</summary>
+    public List<object> SummaryExcludeValues { get; set; } = new();
     /// <summary>Culture for currency formatting. Default: en-PK (Pakistani Rupee).</summary>
     public string CurrencyCulture { get; set; } = "en-PK";
     /// <summary>Decimal places for currency. PKR reports default to 0 (clean rupees, e.g. "Rs 50,000").</summary>
@@ -280,8 +284,8 @@ public class PdfService : IPdfService
                     if (!string.IsNullOrEmpty(options.SummaryProperty) && data.Count > 0)
                     {
                         var total = string.IsNullOrEmpty(options.SummaryMultiplierProperty)
-                            ? CalculateSum(data, options.SummaryProperty)
-                            : CalculateProductSum(data, options.SummaryMultiplierProperty, options.SummaryProperty);
+                            ? CalculateSum(data, options.SummaryProperty, options.SummaryExcludeProperty, options.SummaryExcludeValues)
+                            : CalculateProductSum(data, options.SummaryMultiplierProperty, options.SummaryProperty, options.SummaryExcludeProperty, options.SummaryExcludeValues);
                         var culture = GetCulture(options.CurrencyCulture);
                         var totalFormat = "N" + Math.Max(0, options.CurrencyDecimalPlaces);
 
@@ -658,20 +662,20 @@ public class PdfService : IPdfService
         catch { return new CultureInfo("en-PK"); }
     }
 
-    private static decimal CalculateSum<T>(List<T> data, string propertyName)
+    private static decimal CalculateSum<T>(List<T> data, string propertyName, string? excludeProperty = null, List<object>? excludeValues = null)
     {
         decimal total = 0;
         var prop = typeof(T).GetProperty(propertyName);
         if (prop is null) return 0;
         foreach (var item in data)
         {
-            if (item is not null)
+            if (item is not null && !IsExcluded(item, excludeProperty, excludeValues))
                 total += GetDecimalValue(prop.GetValue(item, null));
         }
         return total;
     }
 
-    private static decimal CalculateProductSum<T>(List<T> data, string multiplierProp, string valueProp)
+    private static decimal CalculateProductSum<T>(List<T> data, string multiplierProp, string valueProp, string? excludeProperty = null, List<object>? excludeValues = null)
     {
         decimal total = 0;
         var mProp = typeof(T).GetProperty(multiplierProp);
@@ -679,11 +683,32 @@ public class PdfService : IPdfService
         if (mProp is null || vProp is null) return 0;
         foreach (var item in data)
         {
-            if (item is not null)
+            if (item is not null && !IsExcluded(item, excludeProperty, excludeValues))
                 total += GetDecimalValue(mProp.GetValue(item, null))
                        * GetDecimalValue(vProp.GetValue(item, null));
         }
         return total;
+    }
+
+    /// <summary>True when the row's exclude-property matches any of the exclude-values (e.g. a cancelled document).</summary>
+    private static bool IsExcluded<T>(T item, string? excludeProperty, List<object>? excludeValues)
+    {
+        if (string.IsNullOrEmpty(excludeProperty) || excludeValues is null || excludeValues.Count == 0)
+            return false;
+        var prop = typeof(T).GetProperty(excludeProperty!);
+        if (prop is null) return false;
+        var value = prop.GetValue(item, null);
+        if (value is null) return false;
+        foreach (var excluded in excludeValues)
+        {
+            try
+            {
+                if (value.Equals(Convert.ChangeType(excluded, value.GetType())))
+                    return true;
+            }
+            catch { /* incompatible types — treat as non-matching */ }
+        }
+        return false;
     }
 
     private static decimal GetDecimalValue(object? val) => val switch

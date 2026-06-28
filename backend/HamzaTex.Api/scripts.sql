@@ -1540,6 +1540,34 @@ UPDATE purchase_statuses SET name = 'Received' WHERE id = 3;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260627201449_RenamePurchaseStatusDeliveredToReceived', '9.0.10');
 
+ALTER TABLE `stock_movements` ADD `AverageDimensionOverride` int NULL;
+
+
+                UPDATE stock_movements
+                SET AverageDimensionOverride = 1
+                WHERE movement_source_id = 3 AND movement_type_id = 2;
+
+
+                UPDATE stock_movements
+                SET AverageDimensionOverride = 2
+                WHERE movement_source_id = 3 AND movement_type_id = 1;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260628215908_AddStockMovementDimensionOverride', '9.0.10');
+
+
+                UPDATE stock_movements
+                SET AverageDimensionOverride = 1
+                WHERE movement_source_id = 3 AND movement_type_id = 2;
+
+
+                UPDATE stock_movements
+                SET AverageDimensionOverride = 2
+                WHERE movement_source_id = 3 AND movement_type_id = 1;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260628220600_BackfillStockMovementDimensionOverride', '9.0.10');
+
 COMMIT;
 
 

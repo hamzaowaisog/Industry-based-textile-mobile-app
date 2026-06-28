@@ -464,9 +464,22 @@ public class OrderService : IOrderService
             order.StatusId = StatusCancelled;
             await _dbContext.SaveChangesAsync();
 
-            // If previously Delivered, reverse stock and ledger
             if (previousStatusId == StatusDelivered)
             {
+                foreach (var line in order.OrderLines)
+                {
+                    if (line.ProductId is null) continue;
+                    var product = await _dbContext.Products.FindAsync(line.ProductId.Value);
+                    if (product is null) continue;
+                    if ((product.TotalQuantitySold ?? 0) < line.Qty)
+                    {
+                        await transaction.RollbackAsync();
+                        return Response<OrderDto>.ErrorResponse("Cannot cancel order",
+                            $"Product '{product.Name}' sold quantity ({product.TotalQuantitySold ?? 0}) is less than " +
+                            $"this order's line quantity ({line.Qty}). Data may be inconsistent — please contact support.");
+                    }
+                }
+
                 // Reverse stock: Manual In per line
                 foreach (var line in order.OrderLines)
                 {
@@ -478,6 +491,8 @@ public class OrderService : IOrderService
                         MovementSource = MovementSourceManual,
                         MovementType = MovementTypeIn,
                         Qty = line.Qty,
+                        UnitPrice = line.UnitPrice,
+                        AverageDimensionOverride = StockAverageDimension.Price,
                         MovementDate = DateOnly.FromDateTime(DateTime.UtcNow)
                     }, userId);
 
