@@ -1,34 +1,43 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import { Alert } from 'react-native';
-
 import { DrawerActions, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useQuery } from '@tanstack/react-query';
+import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
 
 import { useClientStore } from '@stores/clientStore';
 
-import { mapApiClientToRow } from '@utils/helpers/clientMappers';
-import i18n from '@utils/i18n';
-
 import { AppConstants } from '@constants/appConstants';
+import { queryKeys } from '@constants/queryKeys';
 
-import { fetchClientsAsync } from '../core/clients';
+import { fetchClientsPageAsync } from '../core/clients';
 import type { ClientFilter, ClientRow } from '../types/clients.types';
 import type { ClientStackParamList } from '../types/navigation.types';
+import { usePdfDownload } from './usePdfDownload';
 
 export const useClientList = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ClientStackParamList>>();
-  const { deleteClient, prepareDetailLoad } = useClientStore();
+  const { prepareDetailLoad } = useClientStore();
 
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<ClientFilter>('all');
+  const { downloadPdf, isDownloading: isPdfDownloading } = usePdfDownload();
 
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: ['clients'],
-    queryFn: fetchClientsAsync,
-  });
+  const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
+    useInfiniteQuery<
+      { items: ClientRow[]; hasNextPage: boolean },
+      Error,
+      InfiniteData<{ items: ClientRow[]; hasNextPage: boolean }>,
+      string[],
+      number
+    >({
+      queryKey: queryKeys.clients.list(),
+      queryFn: ({ pageParam }) =>
+        fetchClientsPageAsync(pageParam, AppConstants.PAGINATION.DEFAULT_PAGE_SIZE),
+      initialPageParam: AppConstants.PAGINATION.DEFAULT_PAGE as number,
+      getNextPageParam: (lastPage, pages) => (lastPage.hasNextPage ? pages.length + 1 : undefined),
+      staleTime: 0,
+    });
 
   useFocusEffect(
     useCallback(() => {
@@ -36,10 +45,10 @@ export const useClientList = () => {
     }, [refetch]),
   );
 
-  const rows: ClientRow[] = useMemo(() => {
-    const mapped = (data ?? []).map(mapApiClientToRow);
+  const allClients = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
 
-    const byType = mapped.filter((c) => {
+  const rows: ClientRow[] = useMemo(() => {
+    const byType = allClients.filter((c) => {
       if (filter === 'customers') return c.clientTypeId === AppConstants.CLIENT_TYPE.CUSTOMER;
       if (filter === 'suppliers') return c.clientTypeId === AppConstants.CLIENT_TYPE.SUPPLIER;
       return true;
@@ -50,13 +59,17 @@ export const useClientList = () => {
     return byType.filter(
       (c) => c.name.toLowerCase().includes(q) || (c.phone ?? '').toLowerCase().includes(q),
     );
-  }, [data, filter, search]);
+  }, [allClients, filter, search]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await refetch();
     setRefreshing(false);
   }, [refetch]);
+
+  const onEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const onMenuPress = useCallback(() => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -78,38 +91,26 @@ export const useClientList = () => {
     navigation.navigate(AppConstants.SCREENS.MAIN.CLIENT_FORM, {});
   }, [navigation]);
 
-  const onDelete = useCallback(
-    (id: number, name: string) => {
-      Alert.alert(i18n.t('clients.deleteTitle'), i18n.t('clients.deleteMessage', { name }), [
-        { text: i18n.t('common.cancel'), style: 'cancel' },
-        {
-          text: i18n.t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            const result = await deleteClient(id);
-            if (!result.success) {
-              Alert.alert(i18n.t('common.error'), result.error ?? i18n.t('common.errorGeneric'));
-            }
-          },
-        },
-      ]);
-    },
-    [deleteClient],
-  );
+  const onListPdfPress = useCallback(() => {
+    void downloadPdf(AppConstants.PDF.PATHS.CLIENT_LIST, AppConstants.PDF.FILENAMES.CLIENT_LIST);
+  }, [downloadPdf]);
 
   return {
     rows,
     search,
     filter,
-    loading: isFetching && !refreshing,
+    loading: isFetching && !refreshing && !isFetchingNextPage,
     refreshing,
+    isFetchingNextPage,
     onRefresh,
+    onEndReached,
     onSearchChange: setSearch,
     onFilterChange: setFilter,
     onMenuPress,
     onRowPress,
     onFab,
     onAddFirstClient,
-    onDelete,
+    onListPdfPress,
+    isPdfDownloading,
   };
 };

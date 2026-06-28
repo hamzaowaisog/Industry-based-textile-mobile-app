@@ -1313,6 +1313,9 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("decimal(14,4)")
                         .HasColumnName("average_cost_at_movement");
 
+                    b.Property<int?>("AverageDimensionOverride")
+                        .HasColumnType("int");
+
                     b.Property<decimal?>("AveragePriceAtMovement")
                         .HasPrecision(14, 4)
                         .HasColumnType("decimal(14,4)")
@@ -1536,6 +1539,29 @@ namespace HamzaTex.Api.Migrations
                     b.HasIndex(new[] { "UserId" }, "IX_transactions_user_id");
 
                     b.ToTable("transactions", (string)null);
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.Unit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("date")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("units_pkey");
+
+                    b.ToTable("units", (string)null);
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.UserRole", b =>

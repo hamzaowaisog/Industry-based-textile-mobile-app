@@ -22,20 +22,14 @@ public class DeviceController : BaseController
         _deviceService = deviceService;
     }
 
-    private int? GetUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
-    }
-
     /// <summary>Register or refresh an FCM device token for push notifications.</summary>
     [HttpPost("register")]
     [ProducesResponseType(typeof(Response), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Response), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterDeviceViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<object>());
+        if (ValidateModel<object>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -56,8 +50,8 @@ public class DeviceController : BaseController
     [ProducesResponseType(typeof(Response), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Unregister([FromBody] UnregisterDeviceViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<object>());
+        if (ValidateModel<object>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized();

@@ -2,16 +2,18 @@ import React from 'react';
 
 import { Text, TextInput, View } from 'react-native';
 
-import type { InputFieldProps } from '@types/clients.types';
+import { FieldLabel } from '@components/common/FieldLabel';
 
 import { colors } from '@theme/colors';
 
+import type { InputFieldProps } from '../../../types/common.types';
 import { styles } from './styles';
 
 export const AppInputField = React.forwardRef<TextInput, InputFieldProps>(
   (
     {
       label,
+      required = false,
       value,
       onChangeText,
       onBlur,
@@ -20,7 +22,11 @@ export const AppInputField = React.forwardRef<TextInput, InputFieldProps>(
       helper,
       leading,
       keyboardType = 'default',
+      autoCapitalize = 'sentences',
       returnKeyType = 'next',
+      submitBehavior = 'submit',
+      multiline = false,
+      numberOfLines,
       onSubmitEditing,
       editable = true,
     },
@@ -29,10 +35,11 @@ export const AppInputField = React.forwardRef<TextInput, InputFieldProps>(
     const [focused, setFocused] = React.useState(false);
     return (
       <View style={styles.inputWrap}>
-        <Text style={styles.inputLabel}>{label}</Text>
+        <FieldLabel label={label} required={required} />
         <View
           style={[
             styles.inputRow,
+            multiline && styles.inputRowMultiline,
             focused && styles.inputRowFocused,
             !!error && styles.inputRowError,
             !editable && styles.inputRowDisabled,
@@ -41,7 +48,7 @@ export const AppInputField = React.forwardRef<TextInput, InputFieldProps>(
           {leading}
           <TextInput
             ref={ref}
-            style={styles.input}
+            style={[styles.input, multiline && styles.inputMultiline]}
             value={value}
             onChangeText={onChangeText}
             onBlur={() => {
@@ -52,7 +59,11 @@ export const AppInputField = React.forwardRef<TextInput, InputFieldProps>(
             placeholder={placeholder}
             placeholderTextColor={colors.textTertiary}
             keyboardType={keyboardType}
-            returnKeyType={returnKeyType}
+            autoCapitalize={autoCapitalize}
+            returnKeyType={multiline ? 'default' : returnKeyType}
+            submitBehavior={submitBehavior}
+            multiline={multiline}
+            numberOfLines={numberOfLines}
             onSubmitEditing={onSubmitEditing}
             editable={editable}
           />
@@ -63,3 +74,5 @@ export const AppInputField = React.forwardRef<TextInput, InputFieldProps>(
     );
   },
 );
+
+AppInputField.displayName = 'AppInputField';

@@ -1,7 +1,11 @@
 import { useMemo, useState } from 'react';
+
 import {
+  Dimensions,
   FlatList,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -9,14 +13,18 @@ import {
   View,
 } from 'react-native';
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { SearchIcon } from '@constants/svgAssets';
 import { colors } from '@theme/colors';
-import type { AppSelectModalProps, SelectItem } from '@types/common.types';
 
+import { AppConstants } from '@constants/appConstants';
+import { SearchIcon } from '@constants/svgAssets';
+
+import type { AppSelectModalProps, SelectItem } from '../../../types/common.types';
 import { styles } from './styles';
+
+const SHEET_MAX_HEIGHT = Dimensions.get('window').height * 0.75;
 
 export const AppSelectModal = ({
   visible,
@@ -60,9 +68,7 @@ export const AppSelectModal = ({
         activeOpacity={0.75}
       >
         <View style={styles.itemInfo}>
-          <Text style={[styles.itemName, isSelected && styles.itemNameSelected]}>
-            {item.name}
-          </Text>
+          <Text style={[styles.itemName, isSelected && styles.itemNameSelected]}>{item.name}</Text>
           {item.subtitle ? (
             <Text style={[styles.itemSub, isSelected && styles.itemSubSelected]}>
               {item.subtitle}
@@ -81,49 +87,63 @@ export const AppSelectModal = ({
       onRequestClose={handleClose}
       statusBarTranslucent
     >
-      <TouchableWithoutFeedback onPress={handleClose}>
-        <View style={styles.backdrop} />
-      </TouchableWithoutFeedback>
+      <View style={styles.modalRoot}>
+        <TouchableWithoutFeedback onPress={handleClose}>
+          <View style={styles.backdrop} />
+        </TouchableWithoutFeedback>
 
-      <View style={[styles.sheet, { paddingBottom: insets.bottom + 8 }]}>
-        {/* Handle */}
-        <View style={styles.handle} />
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoid}
+          behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === AppConstants.PLATFORM.OS.IOS ? insets.bottom : 0}
+        >
+          <View
+            style={[styles.sheet, { height: SHEET_MAX_HEIGHT, paddingBottom: insets.bottom + 8 }]}
+          >
+            {/* Handle */}
+            <View style={styles.handle} />
 
-        {/* Title */}
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>{title}</Text>
-          <TouchableOpacity onPress={handleClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Text style={styles.closeBtn}>✕</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Search */}
-        <View style={styles.searchRow}>
-          <SearchIcon size={18} color={colors.textTertiary} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder={searchPlaceholder}
-            placeholderTextColor={colors.textTertiary}
-            value={query}
-            onChangeText={setQuery}
-            autoFocus
-            returnKeyType="search"
-          />
-        </View>
-
-        {/* List */}
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderItem}
-          keyboardShouldPersistTaps="handled"
-          style={styles.list}
-          ListEmptyComponent={
-            <View style={styles.emptyWrap}>
-              <Text style={styles.emptyText}>{t('common.noResultsSub', { query })}</Text>
+            {/* Title */}
+            <View style={styles.titleRow}>
+              <Text style={styles.title}>{title}</Text>
+              <TouchableOpacity
+                onPress={handleClose}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={styles.closeBtn}>✕</Text>
+              </TouchableOpacity>
             </View>
-          }
-        />
+
+            {/* Search */}
+            <View style={styles.searchRow}>
+              <SearchIcon size={18} color={colors.textTertiary} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder={searchPlaceholder}
+                placeholderTextColor={colors.textTertiary}
+                value={query}
+                onChangeText={setQuery}
+                autoFocus
+                returnKeyType="search"
+              />
+            </View>
+
+            {/* List */}
+            <FlatList
+              data={filtered}
+              keyExtractor={(item) => String(item.id)}
+              renderItem={renderItem}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              style={styles.list}
+              ListEmptyComponent={
+                <View style={styles.emptyWrap}>
+                  <Text style={styles.emptyText}>{t('common.noResultsSub', { query })}</Text>
+                </View>
+              }
+            />
+          </View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );

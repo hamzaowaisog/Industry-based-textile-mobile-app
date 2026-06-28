@@ -35,6 +35,12 @@ public partial class StockMovement
 
     public DateOnly MovementDate { get; set; }
 
+    /// <summary>
+    /// Persisted AverageDimensionOverride so history replays know which pool
+    /// (Cost or Price) each movement targeted. Null = auto-derived from MovementType.
+    /// </summary>
+    public int? AverageDimensionOverride { get; set; }
+
     public virtual Product? Product { get; set; }
     public virtual MovementType? MovementType { get; set; }
     public virtual MovementSource? MovementSource { get; set; }

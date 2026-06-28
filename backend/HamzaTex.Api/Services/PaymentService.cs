@@ -16,14 +16,12 @@ public interface IPaymentService
     Task<Response<PaymentDto>> CreateAsync(CreatePaymentDto model, int userId);
     /// <summary>Get payment by ID with allocations.</summary>
     Task<Response<PaymentDto>> GetByIdAsync(int id);
-    /// <summary>Get all payments paginated. Admin only.</summary>
-    Task<Response<PagedList<PaymentDto>>> GetAllPaginatedAsync(int page, int pageSize, bool includeReversed);
+    /// <summary>Get all payments paginated. Admin sees all; non-admins see only their own payments.</summary>
+    Task<Response<PagedList<PaymentDto>>> GetAllPaginatedAsync(int page, int pageSize, bool includeReversed, int userId, bool isAdmin);
     /// <summary>Get all payments for a specific client.</summary>
     Task<Response<List<PaymentDto>>> GetAllByClientIdAsync(int clientId);
-    /// <summary>Get payments recorded by the current user (paginated).</summary>
-    Task<Response<PagedList<PaymentDto>>> GetAllByUserIdAsync(int userId, int page, int pageSize);
-    /// <summary>Filter payments by clientId, directionId, modeId, date range, and reversed flag.</summary>
-    Task<Response<List<PaymentDto>>> GetFilteredAsync(int? clientId, int? directionId, int? modeId, DateOnly? dateFrom, DateOnly? dateTo, bool includeReversed);
+    /// <summary>Filter payments by clientId, directionId, modeId, date range, and reversed flag. Admin sees all matches; non-admins see only their own.</summary>
+    Task<Response<List<PaymentDto>>> GetFilteredAsync(int? clientId, int? directionId, int? modeId, DateOnly? dateFrom, DateOnly? dateTo, bool includeReversed, int userId, bool isAdmin);
     /// <summary>Update payment notes, date, and mode only. Amount and client cannot be changed.</summary>
     Task<Response<PaymentDto>> UpdateByIdAsync(int id, UpdatePaymentDto model);
     /// <summary>Reverse a payment (wrong amount). Creates a reversing Transaction + reversal Payment. Original is marked IsReversed=true.</summary>
@@ -256,7 +254,7 @@ public class PaymentService : IPaymentService
         return Response<PaymentDto>.SuccessResponse(MapToDto(payment), "Payment retrieved.");
     }
 
-    public async Task<Response<PagedList<PaymentDto>>> GetAllPaginatedAsync(int page, int pageSize, bool includeReversed)
+    public async Task<Response<PagedList<PaymentDto>>> GetAllPaginatedAsync(int page, int pageSize, bool includeReversed, int userId, bool isAdmin)
     {
         var query = _db.Payments
             .Include(p => p.PartyClient)
@@ -265,6 +263,9 @@ public class PaymentService : IPaymentService
             .Include(p => p.User)
             .Include(p => p.Allocations)
             .AsQueryable();
+
+        if (!isAdmin)
+            query = query.Where(p => p.UserId == userId);
 
         if (!includeReversed)
             query = query.Where(p => !p.IsReversed);
@@ -293,26 +294,9 @@ public class PaymentService : IPaymentService
             payments.Select(MapToDto).ToList(), "Payments retrieved.");
     }
 
-    public async Task<Response<PagedList<PaymentDto>>> GetAllByUserIdAsync(int userId, int page, int pageSize)
-    {
-        var query = _db.Payments
-            .Include(p => p.PartyClient)
-            .Include(p => p.PaymentDirection)
-            .Include(p => p.TransMode)
-            .Include(p => p.User)
-            .Include(p => p.Allocations)
-            .Where(p => p.UserId == userId)
-            .OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.Id);
-
-        var paged = await PagedList<PaymentDto>.CreateAsync(
-            query.Select(p => MapToDto(p)), page, pageSize);
-
-        return Response<PagedList<PaymentDto>>.SuccessResponse(paged, "Payments retrieved.");
-    }
-
     public async Task<Response<List<PaymentDto>>> GetFilteredAsync(
         int? clientId, int? directionId, int? modeId,
-        DateOnly? dateFrom, DateOnly? dateTo, bool includeReversed)
+        DateOnly? dateFrom, DateOnly? dateTo, bool includeReversed, int userId, bool isAdmin)
     {
         var query = _db.Payments
             .Include(p => p.PartyClient)
@@ -321,6 +305,9 @@ public class PaymentService : IPaymentService
             .Include(p => p.User)
             .Include(p => p.Allocations)
             .AsQueryable();
+
+        if (!isAdmin)
+            query = query.Where(p => p.UserId == userId);
 
         if (clientId.HasValue) query = query.Where(p => p.PartyClientId == clientId);
         if (directionId.HasValue) query = query.Where(p => p.PaymentDirectionId == directionId);

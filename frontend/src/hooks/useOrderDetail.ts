@@ -14,6 +14,7 @@ import { showSuccess } from '@utils/toast';
 import { AppConstants } from '@constants/appConstants';
 
 import type { MainStackParamList, OrderStackParamList } from '../types/navigation.types';
+import { usePdfDownload } from './usePdfDownload';
 
 export const useOrderDetail = (orderId: number) => {
   const navigation =
@@ -32,6 +33,7 @@ export const useOrderDetail = (orderId: number) => {
 
   const canUpdate = roleId === AppConstants.ROLES.ADMIN || roleId === AppConstants.ROLES.STAFF;
   const canDelete = roleId === AppConstants.ROLES.ADMIN;
+  const { downloadPdf, isDownloading: isDossierPdfDownloading } = usePdfDownload();
 
   const load = useCallback(() => {
     prepareDetailLoad();
@@ -42,26 +44,6 @@ export const useOrderDetail = (orderId: number) => {
     clearCurrentOrder();
     navigation.goBack();
   }, [navigation, clearCurrentOrder]);
-
-  const onMore = useCallback(() => {
-    if (!currentOrder) return;
-    Alert.alert(
-      i18n.t('orders.detail.moreOptions'),
-      undefined,
-      [
-        canUpdate && currentOrder.statusId === AppConstants.ORDER_STATUS.DELIVERED
-          ? {
-              text: i18n.t('orders.detail.recordPayment'),
-              onPress: () => onRecordPayment(currentOrder.id),
-            }
-          : null,
-        canDelete
-          ? { text: i18n.t('common.delete'), style: 'destructive', onPress: onDelete }
-          : null,
-        { text: i18n.t('common.cancel'), style: 'cancel' },
-      ].filter(Boolean) as any[],
-    );
-  }, [currentOrder, canUpdate, canDelete, onCancelOrder, onRecordPayment, onDelete]);
 
   const onClientPress = useCallback(
     (clientId: number) => {
@@ -170,6 +152,13 @@ export const useOrderDetail = (orderId: number) => {
     );
   }, [currentOrder, deleteOrder, navigation]);
 
+  const onDossierPdfPress = useCallback(() => {
+    void downloadPdf(
+      AppConstants.PDF.PATHS.orderDossier(orderId),
+      AppConstants.PDF.FILENAMES.orderDossier(orderId),
+    );
+  }, [downloadPdf, orderId]);
+
   return {
     order: currentOrder,
     loading: detailLoading,
@@ -178,7 +167,6 @@ export const useOrderDetail = (orderId: number) => {
     canDelete,
     load,
     onBack,
-    onMore,
     onClientPress,
     onMarkInProgress,
     onMarkDelivered,
@@ -186,5 +174,7 @@ export const useOrderDetail = (orderId: number) => {
     onRecordPayment,
     onEditOrder,
     onDelete,
+    onDossierPdfPress,
+    isDossierPdfDownloading,
   };
 };

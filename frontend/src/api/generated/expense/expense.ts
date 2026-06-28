@@ -31,7 +31,6 @@ import type {
   ExpenseDtoResponse,
   ExpenseGetAllParams,
   ExpenseGetFilteredParams,
-  ExpenseGetMineParams,
   ExpenseGetPdfParams,
   ExpenseUpdateViewModel,
   Response
@@ -106,7 +105,7 @@ export const useExpenseCreate = <TError = ExpenseDtoResponse,
       return useMutation(getExpenseCreateMutationOptions(options), queryClient);
     }
     /**
- * @summary Get all expenses paginated. Admin only.
+ * @summary Get all expenses paginated. Staff see only their own; Admin sees all.
  */
 export const expenseGetAll = (
     params?: ExpenseGetAllParams,
@@ -178,7 +177,7 @@ export function useExpenseGetAll<TData = Awaited<ReturnType<typeof expenseGetAll
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get all expenses paginated. Admin only.
+ * @summary Get all expenses paginated. Staff see only their own; Admin sees all.
  */
 
 export function useExpenseGetAll<TData = Awaited<ReturnType<typeof expenseGetAll>>, TError = unknown>(
@@ -187,99 +186,6 @@ export function useExpenseGetAll<TData = Awaited<ReturnType<typeof expenseGetAll
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getExpenseGetAllQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-/**
- * @summary Get expenses recorded by the current authenticated user, paginated.
- */
-export const expenseGetMine = (
-    params?: ExpenseGetMineParams,
- signal?: AbortSignal
-) => {
-
-
-      return axiosInstance<ExpenseDtoPagedListResponse>(
-      {url: `/api/Expense/me`, method: 'GET',
-        params, signal
-    },
-      );
-    }
-
-
-
-
-export const getExpenseGetMineQueryKey = (params?: ExpenseGetMineParams,) => {
-    return [
-    `/api/Expense/me`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getExpenseGetMineQueryOptions = <TData = Awaited<ReturnType<typeof expenseGetMine>>, TError = unknown>(params?: ExpenseGetMineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetMine>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getExpenseGetMineQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof expenseGetMine>>> = ({ signal }) => expenseGetMine(params, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof expenseGetMine>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ExpenseGetMineQueryResult = NonNullable<Awaited<ReturnType<typeof expenseGetMine>>>
-export type ExpenseGetMineQueryError = unknown
-
-
-export function useExpenseGetMine<TData = Awaited<ReturnType<typeof expenseGetMine>>, TError = unknown>(
- params: undefined |  ExpenseGetMineParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetMine>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof expenseGetMine>>,
-          TError,
-          Awaited<ReturnType<typeof expenseGetMine>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useExpenseGetMine<TData = Awaited<ReturnType<typeof expenseGetMine>>, TError = unknown>(
- params?: ExpenseGetMineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetMine>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof expenseGetMine>>,
-          TError,
-          Awaited<ReturnType<typeof expenseGetMine>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useExpenseGetMine<TData = Awaited<ReturnType<typeof expenseGetMine>>, TError = unknown>(
- params?: ExpenseGetMineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetMine>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get expenses recorded by the current authenticated user, paginated.
- */
-
-export function useExpenseGetMine<TData = Awaited<ReturnType<typeof expenseGetMine>>, TError = unknown>(
- params?: ExpenseGetMineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetMine>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getExpenseGetMineQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -509,7 +415,7 @@ export const useExpenseDelete = <TError = Response,
       return useMutation(getExpenseDeleteMutationOptions(options), queryClient);
     }
     /**
- * @summary Filter expenses by type, mode, and date range.
+ * @summary Filter expenses by type, mode, and date range. Admin sees all matches; non-admins see only their own.
  */
 export const expenseGetFiltered = (
     params?: ExpenseGetFilteredParams,
@@ -581,7 +487,7 @@ export function useExpenseGetFiltered<TData = Awaited<ReturnType<typeof expenseG
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Filter expenses by type, mode, and date range.
+ * @summary Filter expenses by type, mode, and date range. Admin sees all matches; non-admins see only their own.
  */
 
 export function useExpenseGetFiltered<TData = Awaited<ReturnType<typeof expenseGetFiltered>>, TError = unknown>(
@@ -602,7 +508,7 @@ export function useExpenseGetFiltered<TData = Awaited<ReturnType<typeof expenseG
 
 
 /**
- * @summary Export expenses as PDF. Optionally filter by type, mode, and date range.
+ * @summary Export expenses as PDF. Admin sees all; non-admins see only their own. Optionally filter by type, mode, and date range.
  */
 export const expenseGetPdf = (
     params?: ExpenseGetPdfParams,
@@ -675,7 +581,7 @@ export function useExpenseGetPdf<TData = Awaited<ReturnType<typeof expenseGetPdf
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Export expenses as PDF. Optionally filter by type, mode, and date range.
+ * @summary Export expenses as PDF. Admin sees all; non-admins see only their own. Optionally filter by type, mode, and date range.
  */
 
 export function useExpenseGetPdf<TData = Awaited<ReturnType<typeof expenseGetPdf>>, TError = unknown>(
@@ -684,6 +590,99 @@ export function useExpenseGetPdf<TData = Awaited<ReturnType<typeof expenseGetPdf
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getExpenseGetPdfQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+/**
+ * @summary Download a single expense as a branded PDF receipt — type, amount, and details.
+ */
+export const expenseGetExpenseDossierPdf = (
+    id: number,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<Blob>(
+      {url: `/api/Expense/${id}/pdf`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      );
+    }
+
+
+
+
+export const getExpenseGetExpenseDossierPdfQueryKey = (id: number,) => {
+    return [
+    `/api/Expense/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getExpenseGetExpenseDossierPdfQueryOptions = <TData = Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError = Response>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExpenseGetExpenseDossierPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>> = ({ signal }) => expenseGetExpenseDossierPdf(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExpenseGetExpenseDossierPdfQueryResult = NonNullable<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>>
+export type ExpenseGetExpenseDossierPdfQueryError = Response
+
+
+export function useExpenseGetExpenseDossierPdf<TData = Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError = Response>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExpenseGetExpenseDossierPdf<TData = Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExpenseGetExpenseDossierPdf<TData = Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download a single expense as a branded PDF receipt — type, amount, and details.
+ */
+
+export function useExpenseGetExpenseDossierPdf<TData = Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof expenseGetExpenseDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExpenseGetExpenseDossierPdfQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

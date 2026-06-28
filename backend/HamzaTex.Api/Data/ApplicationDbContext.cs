@@ -86,6 +86,7 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
     public virtual DbSet<PasswordResetOtp> PasswordResetOtps { get; set; }
     public virtual DbSet<EmailVerificationOtp> EmailVerificationOtps { get; set; }
     public virtual DbSet<Notification> Notifications { get; set; }
+    public virtual DbSet<Unit> Units { get; set; }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -1018,6 +1019,15 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
         {
             entity.HasKey(e => e.Id).HasName("invoice_statuses_pkey");
             entity.ToTable("invoice_statuses");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+        });
+
+        modelBuilder.Entity<Unit>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("units_pkey");
+            entity.ToTable("units");
             entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");

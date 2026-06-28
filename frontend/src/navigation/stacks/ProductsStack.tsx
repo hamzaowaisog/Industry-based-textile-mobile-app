@@ -1,23 +1,22 @@
 import React from 'react';
 
-import { View } from 'react-native';
-
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+import { ProductDetailScreen } from '@screens/products/ProductDetail';
+import { ProductFormScreen } from '@screens/products/ProductForm';
+import { ProductListScreen } from '@screens/products/ProductList';
 
 import { AppConstants } from '@constants/appConstants';
 
 import { ProductStackParamList } from '../../types/navigation.types';
-import { placeholderStyles } from './placeholderStyles';
 
 const Stack = createNativeStackNavigator<ProductStackParamList>();
 const S = AppConstants.SCREENS.MAIN;
 
-const Placeholder = () => <View style={placeholderStyles.container} />;
-
 export const ProductsStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name={S.PRODUCT_LIST} component={Placeholder} />
-    <Stack.Screen name={S.PRODUCT_DETAIL} component={Placeholder} />
-    <Stack.Screen name={S.PRODUCT_FORM} component={Placeholder} />
+    <Stack.Screen name={S.PRODUCT_LIST} component={ProductListScreen} />
+    <Stack.Screen name={S.PRODUCT_DETAIL} component={ProductDetailScreen} />
+    <Stack.Screen name={S.PRODUCT_FORM} component={ProductFormScreen} />
   </Stack.Navigator>
 );

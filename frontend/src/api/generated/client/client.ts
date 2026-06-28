@@ -26,9 +26,11 @@ import type {
 
 import type {
   ClientCreateViewModel,
+  ClientDtoPagedListResponse,
   ClientGetAllClientsFilteredParams,
   ClientUpdateViewModel,
-  ProblemDetails
+  ProblemDetails,
+  Response
 } from '../../models';
 
 import { axiosInstance } from '../../../utils/axiosInstance';
@@ -37,7 +39,7 @@ import { axiosInstance } from '../../../utils/axiosInstance';
 
 
 /**
- * @summary Get paginated clients for the authenticated user.
+ * @summary Get paginated clients. Staff see their own; Admin sees all clients across all users.
  */
 export const clientGetAllClientsFiltered = (
     params?: ClientGetAllClientsFilteredParams,
@@ -45,7 +47,7 @@ export const clientGetAllClientsFiltered = (
 ) => {
 
 
-      return axiosInstance<void>(
+      return axiosInstance<ClientDtoPagedListResponse>(
       {url: `/api/Client/Filtered`, method: 'GET',
         params, signal
     },
@@ -109,7 +111,7 @@ export function useClientGetAllClientsFiltered<TData = Awaited<ReturnType<typeof
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get paginated clients for the authenticated user.
+ * @summary Get paginated clients. Staff see their own; Admin sees all clients across all users.
  */
 
 export function useClientGetAllClientsFiltered<TData = Awaited<ReturnType<typeof clientGetAllClientsFiltered>>, TError = unknown>(
@@ -193,7 +195,7 @@ export const useClientCreateClient = <TError = ProblemDetails,
       return useMutation(getClientCreateClientMutationOptions(options), queryClient);
     }
     /**
- * @summary Get all clients across all users. Admin only.
+ * @summary Get all clients (unpaginated). Admin sees all; non-admins see only their own. Prefer the paginated `GET /Filtered` for list UIs; this powers exports and pickers.
  */
 export const clientGetAllClients = (
 
@@ -264,7 +266,7 @@ export function useClientGetAllClients<TData = Awaited<ReturnType<typeof clientG
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get all clients across all users. Admin only.
+ * @summary Get all clients (unpaginated). Admin sees all; non-admins see only their own. Prefer the paginated `GET /Filtered` for list UIs; this powers exports and pickers.
  */
 
 export function useClientGetAllClients<TData = Awaited<ReturnType<typeof clientGetAllClients>>, TError = unknown>(
@@ -273,98 +275,6 @@ export function useClientGetAllClients<TData = Awaited<ReturnType<typeof clientG
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getClientGetAllClientsQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-/**
- * @summary Get all clients belonging to the authenticated user.
- */
-export const clientGetAllClientsByUserId = (
-
- signal?: AbortSignal
-) => {
-
-
-      return axiosInstance<void>(
-      {url: `/api/Client/me`, method: 'GET', signal
-    },
-      );
-    }
-
-
-
-
-export const getClientGetAllClientsByUserIdQueryKey = () => {
-    return [
-    `/api/Client/me`
-    ] as const;
-    }
-
-
-export const getClientGetAllClientsByUserIdQueryOptions = <TData = Awaited<ReturnType<typeof clientGetAllClientsByUserId>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetAllClientsByUserId>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getClientGetAllClientsByUserIdQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof clientGetAllClientsByUserId>>> = ({ signal }) => clientGetAllClientsByUserId(signal);
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof clientGetAllClientsByUserId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ClientGetAllClientsByUserIdQueryResult = NonNullable<Awaited<ReturnType<typeof clientGetAllClientsByUserId>>>
-export type ClientGetAllClientsByUserIdQueryError = unknown
-
-
-export function useClientGetAllClientsByUserId<TData = Awaited<ReturnType<typeof clientGetAllClientsByUserId>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetAllClientsByUserId>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof clientGetAllClientsByUserId>>,
-          TError,
-          Awaited<ReturnType<typeof clientGetAllClientsByUserId>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useClientGetAllClientsByUserId<TData = Awaited<ReturnType<typeof clientGetAllClientsByUserId>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetAllClientsByUserId>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof clientGetAllClientsByUserId>>,
-          TError,
-          Awaited<ReturnType<typeof clientGetAllClientsByUserId>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useClientGetAllClientsByUserId<TData = Awaited<ReturnType<typeof clientGetAllClientsByUserId>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetAllClientsByUserId>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get all clients belonging to the authenticated user.
- */
-
-export function useClientGetAllClientsByUserId<TData = Awaited<ReturnType<typeof clientGetAllClientsByUserId>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetAllClientsByUserId>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getClientGetAllClientsByUserIdQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -594,7 +504,7 @@ export const useClientDeleteClientById = <TError = ProblemDetails,
       return useMutation(getClientDeleteClientByIdMutationOptions(options), queryClient);
     }
     /**
- * @summary Download the authenticated user's client list as a PDF report.
+ * @summary Download a client list as a PDF report. Admin sees all clients; non-admins see only their own.
  */
 export const clientGetAllClientsPdf = (
 
@@ -665,7 +575,7 @@ export function useClientGetAllClientsPdf<TData = Awaited<ReturnType<typeof clie
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Download the authenticated user's client list as a PDF report.
+ * @summary Download a client list as a PDF report. Admin sees all clients; non-admins see only their own.
  */
 
 export function useClientGetAllClientsPdf<TData = Awaited<ReturnType<typeof clientGetAllClientsPdf>>, TError = unknown>(
@@ -674,6 +584,99 @@ export function useClientGetAllClientsPdf<TData = Awaited<ReturnType<typeof clie
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getClientGetAllClientsPdfQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+/**
+ * @summary Download a single client's full dossier as a branded PDF — profile, orders, purchases, payments, recent transactions, and current balance. Reuses the report aggregate so figures match the screen.
+ */
+export const clientGetClientDossierPdf = (
+    id: number,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<Blob>(
+      {url: `/api/Client/${id}/pdf`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      );
+    }
+
+
+
+
+export const getClientGetClientDossierPdfQueryKey = (id: number,) => {
+    return [
+    `/api/Client/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getClientGetClientDossierPdfQueryOptions = <TData = Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError = Response>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getClientGetClientDossierPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof clientGetClientDossierPdf>>> = ({ signal }) => clientGetClientDossierPdf(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ClientGetClientDossierPdfQueryResult = NonNullable<Awaited<ReturnType<typeof clientGetClientDossierPdf>>>
+export type ClientGetClientDossierPdfQueryError = Response
+
+
+export function useClientGetClientDossierPdf<TData = Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError = Response>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof clientGetClientDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof clientGetClientDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useClientGetClientDossierPdf<TData = Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof clientGetClientDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof clientGetClientDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useClientGetClientDossierPdf<TData = Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download a single client's full dossier as a branded PDF — profile, orders, purchases, payments, recent transactions, and current balance. Reuses the report aggregate so figures match the screen.
+ */
+
+export function useClientGetClientDossierPdf<TData = Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clientGetClientDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getClientGetClientDossierPdfQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

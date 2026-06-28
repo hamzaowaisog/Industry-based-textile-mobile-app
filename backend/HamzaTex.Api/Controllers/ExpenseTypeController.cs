@@ -29,8 +29,8 @@ public class ExpenseTypeController : BaseController
     [ProducesResponseType(typeof(Response<ExpenseTypeDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] ExpenseTypeCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<ExpenseTypeDto>());
+        if (ValidateModel<ExpenseTypeDto>() is { } invalid)
+            return invalid;
 
         var dto = new CreateExpenseTypeDto { Name = model.Name };
         return ToActionResult(await _expenseTypeService.CreateAsync(dto));
@@ -60,8 +60,8 @@ public class ExpenseTypeController : BaseController
     [ProducesResponseType(typeof(Response<ExpenseTypeDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] ExpenseTypeUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<ExpenseTypeDto>());
+        if (ValidateModel<ExpenseTypeDto>() is { } invalid)
+            return invalid;
 
         var dto = new UpdateExpenseTypeDto { Name = model.Name };
         return ToActionResult(await _expenseTypeService.UpdateByIdAsync(id, dto));

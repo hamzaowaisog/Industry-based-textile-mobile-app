@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import type { ClientCreateViewModel, ClientUpdateViewModel } from '@api/models';
 import { queryClient } from '@api/queryClient';
+import { queryKeys } from '@constants/queryKeys';
 
 import {
   createClientAsync,
@@ -64,7 +65,7 @@ export const useClientStore = create<ClientStore>((set) => ({
   deleteClient: async (serverId) => {
     const result = await deleteClientAsync(serverId);
     if (result.success) {
-      void queryClient.invalidateQueries({ queryKey: ['clients'] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.clients.all });
     }
     return result;
   },

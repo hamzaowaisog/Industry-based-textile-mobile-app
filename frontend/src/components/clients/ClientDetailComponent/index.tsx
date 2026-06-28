@@ -13,13 +13,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PdfButton } from '@components/common/PdfButton';
+
 import { CUSTOMER_TABS, SUPPLIER_TABS } from '@utils/helpers/clientDetailContent';
 import {
-  formatPKR,
-  getInitials,
   resolveClientBalanceColor,
   resolveClientBalanceDirection,
 } from '@utils/helpers/clientMappers';
+import { formatPKR } from '@utils/helpers/formatCurrency';
+import { getInitials } from '@utils/helpers/textHelpers';
 
 import { colors } from '@theme/colors';
 
@@ -33,6 +35,7 @@ import {
   MapPinIcon,
   PhoneIcon,
   PlusIcon,
+  TrashIcon,
   WalletIcon,
   WeavePattern,
 } from '@constants/svgAssets';
@@ -51,12 +54,19 @@ export const ClientDetailComponent = ({
   onRefresh,
   onBack,
   onEdit,
+  onDelete,
   onPrimaryAction,
   onSecondaryAction,
+  submitting,
+  onDossierPdfPress,
+  isDossierPdfDownloading,
 }: ClientDetailComponentProps) => {
   const { t } = useTranslation();
   const { height: windowHeight } = useWindowDimensions();
-  const tabContentMaxHeight = Math.max(240, windowHeight * 0.4);
+  const tabContentMaxHeight = Math.max(
+    AppConstants.TAB_CONTENT.MIN_HEIGHT,
+    windowHeight * AppConstants.TAB_CONTENT.HEIGHT_RATIO,
+  );
 
   if (loading || !client) return <SkeletonDetail />;
 
@@ -100,12 +110,27 @@ export const ClientDetailComponent = ({
                 <ArrowLeftIcon size={22} color={colors.surface} />
               </TouchableOpacity>
               <View style={styles.headerActions}>
+                <PdfButton
+                  onPress={onDossierPdfPress}
+                  isLoading={isDossierPdfDownloading}
+                  size={20}
+                  color={colors.surface}
+                />
                 <TouchableOpacity
                   style={styles.headerActionBtn}
                   onPress={onEdit}
                   activeOpacity={0.7}
+                  disabled={submitting}
                 >
                   <EditIcon size={20} color={colors.surface} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.headerDeleteBtn, submitting && styles.headerActionBtnDisabled]}
+                  onPress={onDelete}
+                  activeOpacity={0.7}
+                  disabled={submitting}
+                >
+                  <TrashIcon size={20} color={colors.danger} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -160,6 +185,12 @@ export const ClientDetailComponent = ({
               </View>
 
               <View style={styles.statRow}>
+                {!!client.openingBalance && (
+                  <View style={styles.statChip}>
+                    <Text style={styles.statChipLabel}>{t('clients.openingBalance')}</Text>
+                    <Text style={styles.statChipValue}>{formatPKR(client.openingBalance)}</Text>
+                  </View>
+                )}
                 {!isSupplier && (
                   <View style={styles.statChip}>
                     <Text style={styles.statChipLabel}>{t('clients.statsOrders')}</Text>

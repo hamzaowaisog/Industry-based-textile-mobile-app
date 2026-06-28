@@ -24,12 +24,6 @@ public class PaymentController : BaseController
         _pdfService = pdfService;
     }
 
-    private int? GetUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        return claim is not null && int.TryParse(claim.Value, out var id) ? id : null;
-    }
-
     /// <summary>Create a payment. Allocates to orders/purchases (manual or auto-FIFO) and posts to the ledger.</summary>
     [HttpPost]
     [Authorize(Policy = "AdminOrStaff")]
@@ -37,8 +31,8 @@ public class PaymentController : BaseController
     [ProducesResponseType(typeof(Response<PaymentDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] PaymentCreateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<PaymentDto>());
+        if (ValidateModel<PaymentDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -62,28 +56,19 @@ public class PaymentController : BaseController
         return ToActionResult(await _paymentService.CreateAsync(dto, userId.Value));
     }
 
-    /// <summary>Get all payments paginated. Admin only.</summary>
+    /// <summary>Get all payments paginated. Staff see only their own; Admin sees all.</summary>
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<PagedList<PaymentDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromQuery] bool includeReversed = false)
     {
-        return ToActionResult(await _paymentService.GetAllPaginatedAsync(page, pageSize, includeReversed));
-    }
-
-    /// <summary>Get payments recorded by the current authenticated user.</summary>
-    [HttpGet("me")]
-    [ProducesResponseType(typeof(Response<PagedList<PaymentDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMine(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
-    {
         var userId = GetUserId();
-        if (userId is null) return Unauthorized();
-        return ToActionResult(await _paymentService.GetAllByUserIdAsync(userId.Value, page, pageSize));
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        return ToActionResult(await _paymentService.GetAllPaginatedAsync(page, pageSize, includeReversed, userId.Value, IsAdmin()));
     }
 
     /// <summary>Get a payment by ID with its allocations.</summary>
@@ -114,8 +99,11 @@ public class PaymentController : BaseController
         [FromQuery] DateOnly? dateTo,
         [FromQuery] bool includeReversed = false)
     {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
         return ToActionResult(await _paymentService.GetFilteredAsync(
-            clientId, directionId, modeId, dateFrom, dateTo, includeReversed));
+            clientId, directionId, modeId, dateFrom, dateTo, includeReversed, userId.Value, IsAdmin()));
     }
 
     /// <summary>Get unallocated credit balance for a client.</summary>
@@ -135,8 +123,8 @@ public class PaymentController : BaseController
     [ProducesResponseType(typeof(Response<PaymentDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] PaymentUpdateViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<PaymentDto>());
+        if (ValidateModel<PaymentDto>() is { } invalid)
+            return invalid;
 
         var dto = new UpdatePaymentDto
         {
@@ -169,8 +157,8 @@ public class PaymentController : BaseController
     [ProducesResponseType(typeof(Response<PaymentDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ReverseAndCorrect([FromRoute] int id, [FromBody] ReverseAndCorrectViewModel model)
     {
-        if (!ModelState.IsValid)
-            return ToActionResult(ToValidationResponseFromModelState<PaymentDto>());
+        if (ValidateModel<PaymentDto>() is { } invalid)
+            return invalid;
 
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -194,18 +182,73 @@ public class PaymentController : BaseController
         return ToActionResult(await _paymentService.DeleteByIdAsync(id));
     }
 
-    /// <summary>Export payments as PDF.</summary>
+    /// <summary>Export payments as PDF. Admin sees all; non-admins see only their own.</summary>
     [HttpGet("pdf")]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPdf([FromQuery] bool includeReversed = false)
     {
-        var result = await _paymentService.GetFilteredAsync(null, null, null, null, null, includeReversed);
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        var result = await _paymentService.GetFilteredAsync(null, null, null, null, null, includeReversed, userId.Value, IsAdmin());
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 
         var payments = result.Data ?? new List<PaymentDto>();
         var pdf = _pdfService.CreatePdf("Payments", "Payment records. All amounts in PKR.", payments, EntityPdfConfigs.Payment, new PdfOptions { ShowRowNumbers = true });
         return File(pdf, "application/pdf", "payments.pdf");
+    }
+
+    /// <summary>Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations.</summary>
+    [HttpGet("{id:int}/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetPaymentDossierPdf([FromRoute] int id)
+    {
+        var response = await _paymentService.GetByIdAsync(id);
+        if (!response.Success || response.Data is null)
+            return NotFound(response.Message);
+
+        var p = response.Data;
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel      = "PAYMENT",
+            Reference           = $"HT-PAYMENT-{p.Id}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = p.PartyClientName ?? "—",
+            PreparedForSubtitle = $"{p.PaymentDirectionName} · {p.TransModeName}",
+            PeriodLabel         = "PAYMENT DATE",
+            PeriodValue         = p.PaymentDate.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat("Amount", PdfFormat.Rs(p.Amount), Highlight: true),
+                new Stat("Direction", p.PaymentDirectionName ?? "—"),
+                new Stat("Mode", p.TransModeName ?? "—"),
+                new Stat("Recorded By", p.RecordedByName ?? "—"),
+            },
+            Sections = new()
+            {
+                new TableSection(
+                    "Allocations",
+                    Headers:    new[] { "#", "Order", "Purchase", "Allocated" },
+                    RightAlign: new[] { 3 },
+                    Rows:       p.Allocations.Select((a, i) => new[]
+                    {
+                        (i + 1).ToString(),
+                        a.OrderId?.ToString() ?? "—",
+                        a.PurchaseId?.ToString() ?? "—",
+                        PdfFormat.Rs(a.AllocatedAmount),
+                    })),
+            },
+            Closing = new ClosingSummary(
+                LeftLabel:    "DIRECTION",
+                LeftSubtitle: p.IsReversed ? $"{p.PaymentDirectionName} (Reversed)" : (p.PaymentDirectionName ?? "—"),
+                RightLabel:   "AMOUNT",
+                RightValue:   PdfFormat.Rs(p.Amount)),
+            ClosingNote = !string.IsNullOrWhiteSpace(p.Notes) ? $"Notes: {p.Notes}" : null,
+        };
+
+        return File(_pdfService.CreateDocument(model), "application/pdf", $"payment-{p.Id}.pdf");
     }
 }

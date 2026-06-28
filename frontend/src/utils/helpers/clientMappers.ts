@@ -10,20 +10,7 @@ import type {
   ClientDetail,
   ClientRow,
 } from '../../types/clients.types';
-
-export const getInitials = (name: string): string => {
-  const parts = name.trim().split(' ').filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-};
-
-export const formatPKR = (amount: number): string => {
-  const abs = Math.abs(amount);
-  return (
-    AppConstants.APP.CURRENCY + ' ' + abs.toLocaleString('en-PK', { maximumFractionDigits: 0 })
-  );
-};
+import { getInitials } from './textHelpers';
 
 export const resolveClientBalanceDirection = (
   clientTypeId: number,

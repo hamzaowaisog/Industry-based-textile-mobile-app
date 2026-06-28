@@ -5,7 +5,14 @@ import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'rea
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { formatPKR } from '@utils/helpers/clientMappers';
+import { AppBottomBar } from '@components/common/AppBottomBar';
+import { AppCard } from '@components/common/AppCard';
+import { AppIconTile } from '@components/common/AppIconTile';
+import { AppRow } from '@components/common/AppRow';
+import { AppStepIndicator } from '@components/common/AppStepIndicator';
+import { PdfButton } from '@components/common/PdfButton';
+
+import { formatPKR } from '@utils/helpers/formatCurrency';
 import {
   ORDER_PROGRESS_STEPS,
   ORDER_STATUS_ICONS,
@@ -16,7 +23,14 @@ import {
 import { colors } from '@theme/colors';
 
 import { AppConstants } from '@constants/appConstants';
-import { AlertIcon, ArrowLeftIcon, CheckIcon, MoreIcon, UserIcon } from '@constants/svgAssets';
+import {
+  AlertIcon,
+  ArrowLeftIcon,
+  CheckIcon,
+  EditIcon,
+  TrashIcon,
+  UserIcon,
+} from '@constants/svgAssets';
 
 import type { OrderDetailComponentProps } from '../../../types/orders.types';
 import { OrderDetailSkeleton } from './OrderDetailSkeleton';
@@ -33,14 +47,17 @@ export const OrderDetailComponent = ({
   loading,
   submitting,
   canUpdate,
+  canDelete,
   onBack,
-  onMore,
   onClientPress,
   onMarkInProgress,
   onMarkDelivered,
   onCancelOrder,
   onRecordPayment,
   onEditOrder,
+  onDelete,
+  onDossierPdfPress,
+  isDossierPdfDownloading,
 }: OrderDetailComponentProps) => {
   const { t } = useTranslation();
 
@@ -51,7 +68,7 @@ export const OrderDetailComponent = ({
   const canMarkInProgress = canUpdate && isPending;
   const canMarkDelivered = canUpdate && isActive && !isPending;
   const canEditLines = canUpdate && isActive;
-  const canCancel = canUpdate && isActive;
+  const canCancel = canUpdate && !isCancelled;
 
   if (loading) {
     return <OrderDetailSkeleton />;
@@ -85,9 +102,34 @@ export const OrderDetailComponent = ({
           <TouchableOpacity style={styles.heroNavBtn} onPress={onBack} activeOpacity={0.75}>
             <ArrowLeftIcon size={20} color={config.fg} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.heroNavBtn} onPress={onMore} activeOpacity={0.75}>
-            <MoreIcon size={20} color={config.fg} />
-          </TouchableOpacity>
+          <View style={styles.heroNavActions}>
+            <PdfButton
+              onPress={onDossierPdfPress}
+              isLoading={isDossierPdfDownloading}
+              size={20}
+              color={config.fg}
+            />
+            {canEditLines && (
+              <TouchableOpacity
+                style={[styles.heroNavBtn, submitting && styles.btnDisabled]}
+                onPress={() => onEditOrder(order.id)}
+                activeOpacity={0.75}
+                disabled={submitting}
+              >
+                <EditIcon size={20} color={config.fg} />
+              </TouchableOpacity>
+            )}
+            {canDelete && (
+              <TouchableOpacity
+                style={[styles.heroDeleteBtn, submitting && styles.btnDisabled]}
+                onPress={onDelete}
+                activeOpacity={0.75}
+                disabled={submitting}
+              >
+                <TrashIcon size={20} color={colors.danger} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </SafeAreaView>
 
@@ -145,71 +187,25 @@ export const OrderDetailComponent = ({
               <Text style={styles.cancelledText}>{t('orders.detail.cancelledMsg')}</Text>
             </View>
           ) : (
-            <View style={styles.progressTrack}>
-              <View style={styles.progressNodesRow}>
-                {ORDER_PROGRESS_STEPS.map((step, i) => {
-                  const isDone = i < currentStep;
-                  const isCurrentStep = i === currentStep;
-                  return (
-                    <React.Fragment key={step.id}>
-                      <View style={styles.progressNode}>
-                        <View
-                          style={[
-                            styles.progressCircle,
-                            isDone && styles.progressCircleDone,
-                            isCurrentStep && {
-                              backgroundColor: config.fg,
-                              borderColor: config.fg,
-                            },
-                          ]}
-                        >
-                          {isDone ? (
-                            <CheckIcon size={12} color={colors.white} />
-                          ) : (
-                            renderStatusIcon(
-                              step.id,
-                              isCurrentStep ? colors.white : colors.textSecondary,
-                              12,
-                            )
-                          )}
-                        </View>
-                        <Text
-                          style={[
-                            styles.progressLabel,
-                            isDone && styles.progressLabelDone,
-                            isCurrentStep && { color: config.fg, fontWeight: '700' as const },
-                          ]}
-                        >
-                          {t(step.labelKey as any)}
-                        </Text>
-                      </View>
-                      {i < ORDER_PROGRESS_STEPS.length - 1 && (
-                        <View style={[styles.progressLine, isDone && styles.progressLineFilled]} />
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </View>
-            </View>
+            <AppStepIndicator
+              steps={ORDER_PROGRESS_STEPS.map((step) => t(step.labelKey as any))}
+              current={currentStep}
+            />
           )}
         </View>
 
         {/* Client + dates card */}
         <View style={styles.section}>
-          <View style={styles.card}>
-            <TouchableOpacity
-              style={styles.clientRow}
-              onPress={() => onClientPress(order.clientId)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.avatar}>
-                <UserIcon size={18} color={colors.primary} />
-              </View>
-              <View style={styles.clientInfo}>
-                <Text style={styles.clientName}>{order.clientName}</Text>
-                <Text style={styles.clientSub}>{order.paymentTypeName}</Text>
-              </View>
-            </TouchableOpacity>
+          <AppCard padding={0}>
+            <View style={styles.clientRowWrap}>
+              <AppRow
+                leading={<AppIconTile Icon={UserIcon} color={colors.primary} size={40} />}
+                primary={order.clientName}
+                secondary={order.paymentTypeName}
+                onPress={() => onClientPress(order.clientId)}
+                chevron={false}
+              />
+            </View>
             <View style={styles.dateGrid}>
               <View style={styles.dateCell}>
                 <Text style={styles.dateCellLabel}>{t('orders.detail.orderDate')}</Text>
@@ -220,7 +216,7 @@ export const OrderDetailComponent = ({
                 <Text style={styles.dateCellValue}>{order.paymentTypeName}</Text>
               </View>
             </View>
-          </View>
+          </AppCard>
         </View>
 
         {/* Line items */}
@@ -257,11 +253,11 @@ export const OrderDetailComponent = ({
         )}
       </ScrollView>
 
-      {/* Bottom bar — hidden for cancelled orders; bottom edge matches bar background */}
+      {/* Bottom bar — hidden for cancelled orders */}
       {canUpdate && !isCancelled && (
-        <SafeAreaView style={{ backgroundColor: colors.surface }} edges={['bottom']}>
-          <View style={styles.bottomBar}>
-            {(canMarkInProgress || canMarkDelivered || canEditLines) && (
+        <AppBottomBar>
+          <>
+            {(canMarkInProgress || canMarkDelivered) && (
               <View style={styles.ghostBtnRow}>
                 {canMarkInProgress && (
                   <TouchableOpacity
@@ -284,18 +280,6 @@ export const OrderDetailComponent = ({
                   >
                     <Text style={styles.ghostBtnText} numberOfLines={1}>
                       {t('orders.detail.markDelivered')}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                {canEditLines && (
-                  <TouchableOpacity
-                    style={[styles.ghostBtn, submitting && styles.btnDisabled]}
-                    onPress={() => onEditOrder(order.id)}
-                    disabled={submitting}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={styles.ghostBtnText} numberOfLines={1}>
-                      {t('orders.detail.editOrder')}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -331,8 +315,8 @@ export const OrderDetailComponent = ({
                 </Text>
               )}
             </TouchableOpacity>
-          </View>
-        </SafeAreaView>
+          </>
+        </AppBottomBar>
       )}
     </View>
   );

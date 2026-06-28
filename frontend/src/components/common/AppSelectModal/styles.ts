@@ -4,15 +4,22 @@ import { colors } from '@theme/colors';
 import { typography } from '@theme/typography';
 
 export const styles = StyleSheet.create({
-  backdrop: {
+  modalRoot: {
     flex: 1,
+    justifyContent: 'flex-end',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  keyboardAvoid: {
+    width: '100%',
+    maxHeight: '75%',
   },
   sheet: {
     backgroundColor: colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '75%',
     paddingTop: 8,
   },
   handle: {
@@ -62,6 +69,8 @@ export const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   list: {
+    flex: 1,
+    minHeight: 0,
     paddingHorizontal: 8,
     paddingTop: 4,
     paddingBottom: 8,

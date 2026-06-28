@@ -104,7 +104,7 @@ export const useTransactionCreate = <TError = Response,
       return useMutation(getTransactionCreateMutationOptions(options), queryClient);
     }
     /**
- * @summary Get all transactions paginated. Admin only.
+ * @summary Get all transactions paginated. Staff see only their own; Admin sees all.
  */
 export const transactionGetAll = (
     params?: TransactionGetAllParams,
@@ -176,7 +176,7 @@ export function useTransactionGetAll<TData = Awaited<ReturnType<typeof transacti
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get all transactions paginated. Admin only.
+ * @summary Get all transactions paginated. Staff see only their own; Admin sees all.
  */
 
 export function useTransactionGetAll<TData = Awaited<ReturnType<typeof transactionGetAll>>, TError = unknown>(
@@ -414,98 +414,6 @@ export function useTransactionGetById<TData = Awaited<ReturnType<typeof transact
 
 
 /**
- * @summary Get transactions for the currently logged-in user.
- */
-export const transactionGetMe = (
-
- signal?: AbortSignal
-) => {
-
-
-      return axiosInstance<TransactionDtoListResponse>(
-      {url: `/api/Transaction/me`, method: 'GET', signal
-    },
-      );
-    }
-
-
-
-
-export const getTransactionGetMeQueryKey = () => {
-    return [
-    `/api/Transaction/me`
-    ] as const;
-    }
-
-
-export const getTransactionGetMeQueryOptions = <TData = Awaited<ReturnType<typeof transactionGetMe>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetMe>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getTransactionGetMeQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof transactionGetMe>>> = ({ signal }) => transactionGetMe(signal);
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof transactionGetMe>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type TransactionGetMeQueryResult = NonNullable<Awaited<ReturnType<typeof transactionGetMe>>>
-export type TransactionGetMeQueryError = unknown
-
-
-export function useTransactionGetMe<TData = Awaited<ReturnType<typeof transactionGetMe>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetMe>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof transactionGetMe>>,
-          TError,
-          Awaited<ReturnType<typeof transactionGetMe>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useTransactionGetMe<TData = Awaited<ReturnType<typeof transactionGetMe>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetMe>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof transactionGetMe>>,
-          TError,
-          Awaited<ReturnType<typeof transactionGetMe>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useTransactionGetMe<TData = Awaited<ReturnType<typeof transactionGetMe>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetMe>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get transactions for the currently logged-in user.
- */
-
-export function useTransactionGetMe<TData = Awaited<ReturnType<typeof transactionGetMe>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetMe>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getTransactionGetMeQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-/**
  * @summary Get all transactions for a specific client. Staff: only if they own the client.
  */
 export const transactionGetByClient = (
@@ -598,7 +506,7 @@ export function useTransactionGetByClient<TData = Awaited<ReturnType<typeof tran
 
 
 /**
- * @summary Filter transactions by typeId, categoryId, modeId, clientId, dateFrom, dateTo. Admin only.
+ * @summary Filter transactions by typeId, categoryId, modeId, clientId, dateFrom, dateTo. Admin sees all matches; non-admins see only their own.
  */
 export const transactionGetFiltered = (
     params?: TransactionGetFilteredParams,
@@ -670,7 +578,7 @@ export function useTransactionGetFiltered<TData = Awaited<ReturnType<typeof tran
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Filter transactions by typeId, categoryId, modeId, clientId, dateFrom, dateTo. Admin only.
+ * @summary Filter transactions by typeId, categoryId, modeId, clientId, dateFrom, dateTo. Admin sees all matches; non-admins see only their own.
  */
 
 export function useTransactionGetFiltered<TData = Awaited<ReturnType<typeof transactionGetFiltered>>, TError = unknown>(
@@ -691,7 +599,7 @@ export function useTransactionGetFiltered<TData = Awaited<ReturnType<typeof tran
 
 
 /**
- * @summary Export all transactions as PDF. Admin only.
+ * @summary Export transactions as PDF. Admin sees all; non-admins see only their own.
  */
 export const transactionGetPdf = (
 
@@ -763,7 +671,7 @@ export function useTransactionGetPdf<TData = Awaited<ReturnType<typeof transacti
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Export all transactions as PDF. Admin only.
+ * @summary Export transactions as PDF. Admin sees all; non-admins see only their own.
  */
 
 export function useTransactionGetPdf<TData = Awaited<ReturnType<typeof transactionGetPdf>>, TError = unknown>(
@@ -772,6 +680,99 @@ export function useTransactionGetPdf<TData = Awaited<ReturnType<typeof transacti
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getTransactionGetPdfQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+/**
+ * @summary Download a single transaction as a branded PDF ledger slip — category/type/mode, amount, and linked party.
+ */
+export const transactionGetTransactionDossierPdf = (
+    id: number,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<Blob>(
+      {url: `/api/Transaction/${id}/pdf`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      );
+    }
+
+
+
+
+export const getTransactionGetTransactionDossierPdfQueryKey = (id: number,) => {
+    return [
+    `/api/Transaction/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getTransactionGetTransactionDossierPdfQueryOptions = <TData = Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError = Response>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTransactionGetTransactionDossierPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>> = ({ signal }) => transactionGetTransactionDossierPdf(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type TransactionGetTransactionDossierPdfQueryResult = NonNullable<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>>
+export type TransactionGetTransactionDossierPdfQueryError = Response
+
+
+export function useTransactionGetTransactionDossierPdf<TData = Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError = Response>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTransactionGetTransactionDossierPdf<TData = Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTransactionGetTransactionDossierPdf<TData = Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download a single transaction as a branded PDF ledger slip — category/type/mode, amount, and linked party.
+ */
+
+export function useTransactionGetTransactionDossierPdf<TData = Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetTransactionDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTransactionGetTransactionDossierPdfQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

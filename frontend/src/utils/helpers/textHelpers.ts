@@ -1,2 +1,8 @@
-export const getInitials = (name: string): string =>
-  name.trim().substring(0, 2).toUpperCase();
+import { AppConstants } from '@constants/appConstants';
+
+export const getInitials = (name: string): string => {
+  const parts = name.trim().split(' ').filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, AppConstants.INITIALS.MAX_LENGTH).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};

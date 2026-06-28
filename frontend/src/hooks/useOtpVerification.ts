@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+
 import { TextInput } from 'react-native';
 
 import { useFormik } from 'formik';
@@ -9,9 +10,9 @@ import { AppConstants } from '@constants/appConstants';
 import { forgotPasswordAsync, verifyResetOtpAsync } from '../core/auth';
 import { VerifyOtpNavProp } from '../types/navigation.types';
 import { OtpVerificationFormValues } from '../types/otpVerification.types';
-import { otpVerificationValidationSchema } from '../utils/validation/otpVerificationValidation';
-import { showError, showSuccess } from '../utils/toast';
 import { secondsUntil } from '../utils/helpers/otpHelpers';
+import { showError, showSuccess } from '../utils/toast';
+import { otpVerificationValidationSchema } from '../utils/validation/otpVerificationValidation';
 
 export const useOtpVerification = (
   navigation: VerifyOtpNavProp,
@@ -19,13 +20,13 @@ export const useOtpVerification = (
   nextResendAt?: string,
 ) => {
   const { t } = useTranslation();
-  const [secondsLeft, setSecondsLeft] = useState(() => secondsUntil(nextResendAt) || 30);
+  const [secondsLeft, setSecondsLeft] = useState(
+    () => secondsUntil(nextResendAt) || AppConstants.OTP.RESEND_COOLDOWN_SECONDS,
+  );
   const [isResending, setIsResending] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const inputRefs = useRef<Array<TextInput | null>>(
-    Array(AppConstants.OTP.LENGTH).fill(null),
-  );
+  const inputRefs = useRef<Array<TextInput | null>>(Array(AppConstants.OTP.LENGTH).fill(null));
 
   useEffect(() => {
     if (secondsLeft <= 0) return;
@@ -37,7 +38,7 @@ export const useOtpVerification = (
         }
         return s - 1;
       });
-    }, 1000);
+    }, AppConstants.TIME.MS_PER_SECOND);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
@@ -45,7 +46,7 @@ export const useOtpVerification = (
 
   const startCountdown = (resendAt?: string) => {
     if (timerRef.current) clearInterval(timerRef.current);
-    setSecondsLeft(secondsUntil(resendAt) || 30);
+    setSecondsLeft(secondsUntil(resendAt) || AppConstants.OTP.RESEND_COOLDOWN_SECONDS);
   };
 
   const formik = useFormik<OtpVerificationFormValues>({
@@ -54,7 +55,10 @@ export const useOtpVerification = (
     onSubmit: async (values) => {
       const result = await verifyResetOtpAsync({ email, code: values.code });
       if (result.success && result.resetToken) {
-        showSuccess(t('otpVerification.verifySuccessTitle'), t('otpVerification.verifySuccessSubtitle'));
+        showSuccess(
+          t('otpVerification.verifySuccessTitle'),
+          t('otpVerification.verifySuccessSubtitle'),
+        );
         navigation.navigate(AppConstants.SCREENS.AUTH.RESET_PASSWORD, {
           email,
           resetToken: result.resetToken,
@@ -94,7 +98,10 @@ export const useOtpVerification = (
     const result = await forgotPasswordAsync({ email });
     setIsResending(false);
     if (result.success) {
-      showSuccess(t('otpVerification.resendSuccessTitle'), t('otpVerification.resendSuccessSubtitle'));
+      showSuccess(
+        t('otpVerification.resendSuccessTitle'),
+        t('otpVerification.resendSuccessSubtitle'),
+      );
       startCountdown(result.nextResendAt);
     } else {
       showError(t('otpVerification.resendErrorTitle'), result.error);

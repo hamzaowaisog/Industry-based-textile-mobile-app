@@ -1,6 +1,9 @@
 import React from 'react';
+
 import { Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -8,32 +11,41 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { LinearGradient } from 'expo-linear-gradient';
-import { useTranslation } from 'react-i18next';
-
-import { FingerprintIcon, RefreshIcon } from '@constants/svgAssets';
 import { colors } from '@theme/colors';
-import { BiometricComponentProps } from '../../types/biometric.types';
 
+import { AppConstants } from '@constants/appConstants';
+import { FingerprintIcon, RefreshIcon } from '@constants/svgAssets';
+
+import { BiometricComponentProps } from '../../types/biometric.types';
 import { styles } from './styles';
 
+const { RING_DURATION_MS, RING_SCALE_MAX, RING_OPACITY_MAX, RING_OPACITY_MIN } =
+  AppConstants.BIOMETRIC;
+
 const AnimatedRing = ({ delay = 0 }: { delay?: number }) => {
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(0.15);
+  const scale = useSharedValue<number>(1);
+  const opacity = useSharedValue<number>(RING_OPACITY_MIN);
 
   React.useEffect(() => {
-    const delayMs = delay * 1000;
+    const delayMs = delay * AppConstants.TIME.MS_PER_SECOND;
     setTimeout(() => {
       scale.value = withRepeat(
-        withSequence(withTiming(1.08, { duration: 2000 }), withTiming(1, { duration: 2000 })),
+        withSequence(
+          withTiming(RING_SCALE_MAX, { duration: RING_DURATION_MS }),
+          withTiming(1, { duration: RING_DURATION_MS }),
+        ),
         -1,
-        false
+        false,
       );
       opacity.value = withRepeat(
-        withSequence(withTiming(0.4, { duration: 2000 }), withTiming(0.15, { duration: 2000 })),
+        withSequence(
+          withTiming(RING_OPACITY_MAX, { duration: RING_DURATION_MS }),
+          withTiming(RING_OPACITY_MIN, { duration: RING_DURATION_MS }),
+        ),
         -1,
-        false
+        false,
       );
     }, delayMs);
   }, [delay]);
@@ -59,12 +71,8 @@ export const BiometricComponent = ({
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
-  // Three pulsing rings with staggered delays: 0s, 0.4s, 0.8s
-  const rings = [
-    { id: 0, delay: 0 },
-    { id: 1, delay: 0.4 },
-    { id: 2, delay: 0.8 },
-  ];
+  // Pulsing rings with staggered delays defined in AppConstants.BIOMETRIC.RING_STAGGER_DELAYS
+  const rings = AppConstants.BIOMETRIC.RING_STAGGER_DELAYS.map((delay, id) => ({ id, delay }));
 
   return (
     <View style={styles.container}>

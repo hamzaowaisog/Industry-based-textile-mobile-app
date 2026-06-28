@@ -38,7 +38,9 @@ export const useNotifications = () => {
     try {
       const res = await notificationGetAll({ unreadOnly: true });
       const r = res as unknown as { success?: boolean; data?: any[] };
-      setItems((r?.data ?? []).map(toItem));
+      const rawData = r?.data as any;
+      const list: any[] = Array.isArray(rawData) ? rawData : (rawData?.items ?? []);
+      setItems(list.map(toItem));
     } catch {
       setItems([]);
     }

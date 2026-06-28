@@ -16,12 +16,10 @@ public interface IOrderService
     Task<Response<OrderDto>> CreateAsync(CreateOrderDto model, int userId);
     /// <summary>Get an order by ID with lines. Scoped to the user's clients (staff) or all (admin).</summary>
     Task<Response<OrderDto>> GetByIdAsync(int id, int userId, bool isAdmin);
-    /// <summary>Get all orders. Admin only.</summary>
-    Task<Response<List<OrderDto>>> GetAllAsync();
-    /// <summary>Get all orders for the authenticated user's clients.</summary>
-    Task<Response<List<OrderDto>>> GetAllByUserIdAsync(int userId);
-    /// <summary>Get paginated orders. Admin sees all.</summary>
-    Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize);
+    /// <summary>Get all orders (unpaginated). Admin sees all; non-admins see only their own. Used for PDF export.</summary>
+    Task<Response<List<OrderDto>>> GetAllAsync(int userId, bool isAdmin);
+    /// <summary>Get paginated orders. Admin sees all; non-admins see only their own orders.</summary>
+    Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
     /// <summary>Filter orders by clientId, statusId, and/or date range.</summary>
     Task<Response<List<OrderDto>>> GetFilteredAsync(int? clientId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
     /// <summary>Update order header and handle status transitions (Delivered → stock+ledger, Cancelled → reversal).</summary>
@@ -81,6 +79,11 @@ public class OrderService : IOrderService
         if (missingProductId != default)
             return Response<OrderDto>.ErrorResponse("Not found", $"Product with ID {missingProductId} does not exist.");
 
+        var stockError = await ValidateAvailableStockAsync(
+            model.Lines.Select(l => (l.ProductId, l.Qty)));
+        if (stockError is not null)
+            return Response<OrderDto>.ErrorResponse("Insufficient stock", stockError);
+
         var order = new Order
         {
             ClientId = model.ClientId,
@@ -132,31 +135,26 @@ public class OrderService : IOrderService
         return Response<OrderDto>.SuccessResponse(ToDto(order), "Order fetched successfully.");
     }
 
-    public async Task<Response<List<OrderDto>>> GetAllAsync()
+    public async Task<Response<List<OrderDto>>> GetAllAsync(int userId, bool isAdmin)
     {
-        var orders = await OrderQueryWithIncludes()
-            .OrderByDescending(o => o.OrderDate)
-            .ToListAsync();
+        var query = OrderQueryWithIncludes().AsQueryable();
+        if (!isAdmin)
+            query = query.Where(o => o.UserId == userId);
+
+        var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
 
         return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Orders fetched successfully.");
     }
 
-    public async Task<Response<List<OrderDto>>> GetAllByUserIdAsync(int userId)
+    public async Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
-        var orders = await OrderQueryWithIncludes()
-            .Where(o => o.UserId == userId)
-            .OrderByDescending(o => o.OrderDate)
-            .ToListAsync();
+        var query = OrderQueryWithIncludes().AsQueryable();
+        if (!isAdmin)
+            query = query.Where(o => o.UserId == userId);
 
-        return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Orders fetched successfully.");
-    }
-
-    public async Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize)
-    {
-        var query = OrderQueryWithIncludes().OrderByDescending(o => o.OrderDate);
-        var totalCount = await query.CountAsync();
-        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-        var pagedList = new PagedList<OrderDto>(items.Select(o => ToDto(o)).ToList(), page, pageSize, totalCount);
+        query = query.OrderByDescending(o => o.OrderDate);
+        var paged = await PagedList<Order>.CreateAsync(query, page, pageSize);
+        var pagedList = new PagedList<OrderDto>(paged.Items.Select(o => ToDto(o)).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
         return Response<PagedList<OrderDto>>.SuccessResponse(pagedList, "Orders fetched successfully.");
     }
 
@@ -237,6 +235,7 @@ public class OrderService : IOrderService
         }
 
         // ── Normal update (Pending ↔ InProgressed, or field changes) ──
+        var oldStatusId = order.StatusId;
         order.StatusId = model.StatusId;
         if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
         order.Notes = model.Notes;
@@ -245,6 +244,18 @@ public class OrderService : IOrderService
         await _dbContext.SaveChangesAsync();
 
         var updated = await LoadOrderWithIncludes(id);
+        if (oldStatusId != model.StatusId)
+        {
+            var statusName = updated?.Status?.Name ?? model.StatusId.ToString();
+            try { await _notification.CreateAsync(new CreateNotificationDto
+            {
+                UserId = userId,
+                Type = "order_status_updated",
+                Title = "Order Status Updated",
+                Body = $"Order #{id} status changed to {statusName}",
+                EntityId = id
+            }); } catch { }
+        }
         return Response<OrderDto>.SuccessResponse(ToDto(updated!), "Order updated successfully.");
     }
 
@@ -272,6 +283,11 @@ public class OrderService : IOrderService
         var missingProductId = requestedProductIds.FirstOrDefault(pid => !existingProducts.Select(p => p.Id).Contains(pid));
         if (missingProductId != default)
             return Response<OrderDto>.ErrorResponse("Not found", $"Product with ID {missingProductId} does not exist.");
+
+        var stockError = await ValidateAvailableStockAsync(
+            model.Lines.Select(l => (l.ProductId, l.Qty)), excludeOrderId: id);
+        if (stockError is not null)
+            return Response<OrderDto>.ErrorResponse("Insufficient stock", stockError);
 
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
         try
@@ -448,9 +464,22 @@ public class OrderService : IOrderService
             order.StatusId = StatusCancelled;
             await _dbContext.SaveChangesAsync();
 
-            // If previously Delivered, reverse stock and ledger
             if (previousStatusId == StatusDelivered)
             {
+                foreach (var line in order.OrderLines)
+                {
+                    if (line.ProductId is null) continue;
+                    var product = await _dbContext.Products.FindAsync(line.ProductId.Value);
+                    if (product is null) continue;
+                    if ((product.TotalQuantitySold ?? 0) < line.Qty)
+                    {
+                        await transaction.RollbackAsync();
+                        return Response<OrderDto>.ErrorResponse("Cannot cancel order",
+                            $"Product '{product.Name}' sold quantity ({product.TotalQuantitySold ?? 0}) is less than " +
+                            $"this order's line quantity ({line.Qty}). Data may be inconsistent — please contact support.");
+                    }
+                }
+
                 // Reverse stock: Manual In per line
                 foreach (var line in order.OrderLines)
                 {
@@ -462,6 +491,8 @@ public class OrderService : IOrderService
                         MovementSource = MovementSourceManual,
                         MovementType = MovementTypeIn,
                         Qty = line.Qty,
+                        UnitPrice = line.UnitPrice,
+                        AverageDimensionOverride = StockAverageDimension.Price,
                         MovementDate = DateOnly.FromDateTime(DateTime.UtcNow)
                     }, userId);
 
@@ -520,6 +551,46 @@ public class OrderService : IOrderService
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Validates requested line quantities against available stock, where available =
+    /// Product.Quantity minus quantity already committed to other non-Delivered, non-Cancelled
+    /// orders for the same product. Catches overselling at order create/edit time instead of
+    /// letting two pending orders both pass and conflict later at the Delivered transition.
+    /// </summary>
+    private async Task<string?> ValidateAvailableStockAsync(IEnumerable<(int ProductId, decimal Qty)> lines, int? excludeOrderId = null)
+    {
+        var requested = lines
+            .GroupBy(l => l.ProductId)
+            .ToDictionary(g => g.Key, g => g.Sum(l => l.Qty));
+        var productIds = requested.Keys.ToList();
+
+        var products = await _dbContext.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToDictionaryAsync(p => p.Id, p => new { Quantity = p.Quantity ?? 0, p.Unit });
+
+        var reservedQuery = _dbContext.OrderLines
+            .Where(ol => ol.ProductId != null && productIds.Contains(ol.ProductId.Value)
+                && ol.Order.StatusId != StatusDelivered && ol.Order.StatusId != StatusCancelled);
+
+        if (excludeOrderId.HasValue)
+            reservedQuery = reservedQuery.Where(ol => ol.OrderId != excludeOrderId.Value);
+
+        var reserved = await reservedQuery
+            .GroupBy(ol => ol.ProductId!.Value)
+            .Select(g => new { ProductId = g.Key, Qty = g.Sum(ol => ol.Qty) })
+            .ToDictionaryAsync(x => x.ProductId, x => x.Qty);
+
+        foreach (var (productId, requestedQty) in requested)
+        {
+            var product = products[productId];
+            var alreadyCommitted = reserved.GetValueOrDefault(productId, 0);
+            var available = product.Quantity - alreadyCommitted;
+            if (requestedQty > available)
+                return $"Available: {available} {product.Unit}, Requested: {requestedQty} {product.Unit} (Product ID {productId}).";
+        }
+        return null;
+    }
 
     private static int MapPaymentTypeToTransMode(int paymentTypeId) =>
         paymentTypeId switch

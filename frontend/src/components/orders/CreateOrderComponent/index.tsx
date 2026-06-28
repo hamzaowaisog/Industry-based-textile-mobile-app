@@ -1,12 +1,10 @@
 import React from 'react';
 
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -14,12 +12,18 @@ import {
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppBottomBar } from '@components/common/AppBottomBar';
+import { AppButton } from '@components/common/AppButton';
+import { AppInputField } from '@components/common/AppInputField';
 import { AppSelectModal } from '@components/common/AppSelectModal';
+import { AppStepIndicator } from '@components/common/AppStepIndicator';
+import { FieldLabel } from '@components/common/FieldLabel';
 
-import { formatPKR } from '@utils/helpers/clientMappers';
+import { formatPKR } from '@utils/helpers/formatCurrency';
 
 import { colors } from '@theme/colors';
 
+import { AppConstants } from '@constants/appConstants';
 import { ArrowLeftIcon, PlusIcon } from '@constants/svgAssets';
 
 import type { CreateOrderComponentProps } from '../../../types/orders.types';
@@ -35,6 +39,7 @@ export const CreateOrderComponent = ({
   errors,
   touched,
   lineErrors,
+  lineAvailability,
   onBack,
   onNext,
   onSubmit,
@@ -62,15 +67,12 @@ export const CreateOrderComponent = ({
   }, 0);
 
   const renderStep = () => {
-    if (step === 0) {
+    if (step === AppConstants.ORDER_WIZARD.STEP_CLIENT) {
       return (
         <View style={styles.stepContent}>
           {/* Customer selector */}
           <View style={styles.fieldGroup}>
-            <View style={styles.labelRow}>
-              <Text style={styles.fieldLabel}>{t('orders.create.customer')}</Text>
-              <Text style={styles.requiredStar}> *</Text>
-            </View>
+            <FieldLabel label={t('orders.create.customer')} required />
             <TouchableOpacity
               style={[
                 styles.selectRow,
@@ -90,7 +92,7 @@ export const CreateOrderComponent = ({
 
           {/* Payment type */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t('orders.create.paymentType')}</Text>
+            <FieldLabel label={t('orders.create.paymentType')} required />
             <View style={styles.paymentTypeRow}>
               {paymentTypes.map((pt) => {
                 const isActive = values.paymentTypeId === pt.id;
@@ -111,24 +113,20 @@ export const CreateOrderComponent = ({
           </View>
 
           {/* Notes */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t('orders.create.notes')}</Text>
-            <TextInput
-              style={[styles.textArea]}
-              value={values.notes}
-              onChangeText={(v) => onFieldChange('notes', v)}
-              onBlur={() => onFieldBlur('notes')}
-              placeholder={t('orders.create.notesPlaceholder')}
-              placeholderTextColor={colors.textTertiary}
-              multiline
-              numberOfLines={3}
-            />
-          </View>
+          <AppInputField
+            label={t('orders.create.notes')}
+            value={values.notes}
+            onChangeText={(v) => onFieldChange('notes', v)}
+            onBlur={() => onFieldBlur('notes')}
+            placeholder={t('orders.create.notesPlaceholder')}
+            multiline
+            numberOfLines={3}
+          />
         </View>
       );
     }
 
-    if (step === 1) {
+    if (step === AppConstants.ORDER_WIZARD.STEP_PRODUCTS) {
       return (
         <View style={styles.stepContent}>
           <TouchableOpacity style={styles.addLineBtn} onPress={onAddLine} activeOpacity={0.7}>
@@ -142,6 +140,13 @@ export const CreateOrderComponent = ({
               line={line}
               index={i}
               qtyError={lineErrors[i]?.qty}
+              availableLabel={lineAvailability[i]}
+              labels={{
+                qty: t('orders.create.qty'),
+                unitPrice: t('orders.create.unitPrice'),
+                addProduct: t('orders.create.addProduct'),
+                lineTotal: t('orders.create.lineTotal'),
+              }}
               onRemove={onRemoveLine}
               onChange={onLineChange}
               onSelectProduct={onSelectProduct}
@@ -205,7 +210,7 @@ export const CreateOrderComponent = ({
 
         {values.notes ? (
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t('orders.create.notes')}</Text>
+            <FieldLabel label={t('orders.create.notes')} />
             <View style={styles.reviewNotesCard}>
               <Text style={styles.reviewNotesText}>{values.notes}</Text>
             </View>
@@ -216,7 +221,7 @@ export const CreateOrderComponent = ({
   };
 
   return (
-    <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.root} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={onBack}>
@@ -231,40 +236,12 @@ export const CreateOrderComponent = ({
 
       {/* Step indicator */}
       <View style={styles.stepIndicator}>
-        {STEPS.map((key, i) => {
-          const isDone = i < step;
-          const isActive = i === step;
-          return (
-            <React.Fragment key={key}>
-              <View style={styles.stepItem}>
-                <View
-                  style={[
-                    styles.stepDot,
-                    isActive && styles.stepDotActive,
-                    isDone && styles.stepDotDone,
-                  ]}
-                >
-                  <Text
-                    style={[styles.stepDotText, (isActive || isDone) && styles.stepDotTextActive]}
-                  >
-                    {i + 1}
-                  </Text>
-                </View>
-                <Text style={[styles.stepLabel, isActive && styles.stepLabelActive]}>
-                  {t(key as any)}
-                </Text>
-              </View>
-              {i < STEPS.length - 1 && (
-                <View style={[styles.stepLine, isDone && styles.stepLineDone]} />
-              )}
-            </React.Fragment>
-          );
-        })}
+        <AppStepIndicator steps={STEPS.map((key) => t(key as any))} current={step} />
       </View>
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
         <ScrollView
@@ -298,31 +275,36 @@ export const CreateOrderComponent = ({
       />
 
       {/* Bottom bar */}
-      <View style={styles.bottomBar}>
-        {step > 0 && (
-          <TouchableOpacity style={styles.ghostBtn} onPress={onBack} activeOpacity={0.75}>
-            <Text style={styles.ghostBtnText}>{t('orders.create.back')}</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity
-          style={[
-            styles.primaryBtn,
-            step === 2 && styles.successBtn,
-            submitting && styles.btnDisabled,
-          ]}
-          onPress={step === 2 ? onSubmit : onNext}
-          disabled={submitting}
-          activeOpacity={0.85}
-        >
-          {submitting ? (
-            <ActivityIndicator color={colors.white} size="small" />
-          ) : (
-            <Text style={styles.primaryBtnText}>
-              {step === 2 ? t('orders.create.placeOrder') : t('orders.create.continue')}
-            </Text>
+      <AppBottomBar>
+        <View style={styles.bottomBarRow}>
+          {step > AppConstants.ORDER_WIZARD.STEP_CLIENT && (
+            <View style={styles.flexBtn}>
+              <AppButton
+                label={t('orders.create.back')}
+                onPress={onBack}
+                variant="ghost"
+                size="lg"
+                fullWidth
+              />
+            </View>
           )}
-        </TouchableOpacity>
-      </View>
+          <View style={styles.flexBtn}>
+            <AppButton
+              label={
+                step === AppConstants.ORDER_WIZARD.STEP_REVIEW
+                  ? t('orders.create.placeOrder')
+                  : t('orders.create.continue')
+              }
+              onPress={step === AppConstants.ORDER_WIZARD.STEP_REVIEW ? onSubmit : onNext}
+              variant={step === AppConstants.ORDER_WIZARD.STEP_REVIEW ? 'success' : 'primary'}
+              size="lg"
+              fullWidth
+              loading={submitting}
+              disabled={submitting}
+            />
+          </View>
+        </View>
+      </AppBottomBar>
     </SafeAreaView>
   );
 };

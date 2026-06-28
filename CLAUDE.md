@@ -126,7 +126,7 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
 | `UserRole` | Admin (1), Staff (2) |
 | `ClientType` | Customer (1), Supplier (2) |
 | `OrderStatus` | Pending (1), InProgressed (2), Delivered (3), Cancelled (4) |
-| `PurchaseStatus` | Pending (1), InProgressed (2), Delivered (3), Cancelled (4) |
+| `PurchaseStatus` | Pending (1), InProgressed (2), Received (3), Cancelled (4) |
 | `PaymentType` | Cash (1), Credit (2) |
 | `PaymentDirection` | Received (1), Paid (2), Adjustment (3) |
 | `TransType` | Debit (1), Credit (2) |
@@ -165,7 +165,7 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
 **Purchases (Procurement)**
 - `Purchase` — `SupplierId` (FK → `Client` where `ClientTypeId=2`), `StatusId` (FK → `PurchaseStatus`), `PaymentTypeId`, `PurchaseDate`, `Notes`, `CreatedAt`
 - `PurchaseLine` — `PurchaseId`, `ProductId`, `Qty` (decimal 14,2), `UnitCost` (decimal 14,4)
-- `PurchaseStatus` — lookup (Pending=1, InProgressed=2, Delivered=3, Cancelled=4); seeded on startup
+- `PurchaseStatus` — lookup (Pending=1, InProgressed=2, Received=3, Cancelled=4); seeded on startup
 
 **Financials**
 - `Payment` — `PartyClientId` (FK → Client), `PaymentDirectionId`, `TransModeId`, `Amount`, `PaymentDate`, `Notes`, `CreatedAt`
@@ -191,26 +191,37 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
   - `MovementSource = 3 (Manual)` → caller must supply `MovementType`: `1 (In)`, `2 (Out)`, or `3 (Adjustment)`
   - `MovementType = 3 (Adjustment)` records the event but makes no automatic qty or average change
   - `CreateStockMovementsDto.MovementType` is `int?` — null is valid for Purchase and Sale sources
-- **Weighted average cost:** Handled inside `StockMovementsService.CreateAsync` for In movements: `AverageCost = (oldAvgCost * oldQty + newUnitCost * newQty) / (oldQty + newQty)`. Increments `TotalQuantityPurchased` and `CostChangeCount` on the product.
-- **Weighted average price:** Handled inside `StockMovementsService.CreateAsync` for Out movements: `AveragePrice = (totalSoldBefore * prevAvgPrice + qty * unitPrice) / totalSoldNow`. Increments `TotalQuantitySold` and `PriceChangeCount`.
+- **Average dimension follows the document type, not the stock direction:** `StockMovementsService.CreateAsync` recalculates either the weighted-average **Cost** (touches `AverageCost`, `TotalQuantityPurchased`, `CostChangeCount`) or **Price** (touches `AveragePrice`, `TotalQuantitySold`, `PriceChangeCount`). By default the dimension is derived from `MovementType` (In→Cost, Out→Price). `CreateStockMovementsDto.AverageDimensionOverride` (`StockAverageDimension.Cost` / `StockAverageDimension.Price`) overrides this — **required for cancellation reversals** where stock direction and document type disagree (see below).
+- **Weighted average cost:** Handled inside `StockMovementsService.CreateAsync` for Cost-dimension movements: `AverageCost = (oldAvgCost * oldQty + signedQty * unitCost) / newQty`. The sign is `+` for stock-in, `−` for stock-out, so purchase receipts raise it and purchase cancellations unwind it.
+- **Weighted average price:** Handled inside `StockMovementsService.CreateAsync` for Price-dimension movements: `AveragePrice = (totalSoldBefore * prevAvgPrice + signedQty * unitPrice) / totalSoldNow`. The sign is `+` for sales, `−` for order cancellations.
 - **Calling StockMovementsService from other services (Orders, Purchases):** Inject `IStockMovementsService` and call `CreateAsync` with the correct `MovementSource`. Do NOT duplicate the quantity/average logic — it all lives in `StockMovementsService.CreateAsync`.
   ```csharp
-  // From PurchaseService — MovementType omitted, auto-derived to In
+  // From PurchaseService — MovementType omitted, auto-derived to In, dimension auto→Cost
   await _stockMovementsService.CreateAsync(new CreateStockMovementsDto {
       ProductId = line.ProductId, MovementSource = 1,
       Qty = line.Qty, UnitCost = line.UnitCost, MovementDate = purchaseDate
   }, userId);
 
-  // From OrderService — MovementType omitted, auto-derived to Out
+  // From OrderService — MovementType omitted, auto-derived to Out, dimension auto→Price
   await _stockMovementsService.CreateAsync(new CreateStockMovementsDto {
       ProductId = line.ProductId, MovementSource = 2,
       Qty = line.Qty, UnitPrice = line.UnitPrice, MovementDate = orderDate
   }, userId);
 
-  // Cancel reversal (Manual In to put stock back)
+  // Purchase cancel reversal — stock OUT but must unwind Cost, so override the dimension
+  await _stockMovementsService.CreateAsync(new CreateStockMovementsDto {
+      ProductId = line.ProductId, MovementSource = 3, MovementType = 2,
+      Qty = line.Qty, UnitCost = line.UnitCost,
+      AverageDimensionOverride = StockAverageDimension.Cost,
+      MovementDate = DateOnly.FromDateTime(DateTime.UtcNow)
+  }, userId);
+
+  // Order cancel reversal — stock IN but must unwind Price, so override the dimension
   await _stockMovementsService.CreateAsync(new CreateStockMovementsDto {
       ProductId = line.ProductId, MovementSource = 3, MovementType = 1,
-      Qty = line.Qty, MovementDate = DateOnly.FromDateTime(DateTime.UtcNow)
+      Qty = line.Qty, UnitPrice = line.UnitPrice,
+      AverageDimensionOverride = StockAverageDimension.Price,
+      MovementDate = DateOnly.FromDateTime(DateTime.UtcNow)
   }, userId);
   ```
 - **Insufficient stock guard:** `StockMovementsService.CreateAsync` returns `ErrorResponse("Insufficient stock")` for Out movements when `Qty > Product.Quantity`. OrderService must check this and roll back the order.

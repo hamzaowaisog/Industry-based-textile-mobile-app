@@ -20,7 +20,8 @@ public interface IStockMovementsService
     /// <summary>Get all stock movements for the user's products, ordered by date descending.</summary>
     Task<Response<List<StockMovementsDto>>> GetAllAsync(int userId);
     /// <summary>Get paginated stock movements for the user's products.</summary>
-    Task<Response<PagedList<StockMovementsDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId);
+    /// <summary>Get paginated stock movements. Admin sees all; non-admins see only movements for their own products.</summary>
+    Task<Response<PagedList<StockMovementsDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
     /// <summary>Filter stock movements by product, type, source, and/or date range.</summary>
     Task<Response<List<StockMovementsDto>>> GetFilteredAsync(
         int? productId,
@@ -29,6 +30,8 @@ public interface IStockMovementsService
         DateOnly? dateFrom,
         DateOnly? dateTo,
         int userId);
+    /// <summary>Get all stock movements for a specific product, ordered by date ascending (for chart/history). Admin sees all; Staff scoped to their products.</summary>
+    Task<Response<List<StockMovementsDto>>> GetByProductIdAsync(int productId, int userId, bool isAdmin);
     /// <summary>Update a movement record and replay all movements for the product to keep stock qty and weighted averages consistent.</summary>
     Task<Response<StockMovementsDto>> UpdateByIdAsync(int id, UpdateStockMovementsDto model, int userId);
     /// <summary>Delete a stock movement by ID. Does not reverse product stats — create a compensating Manual movement if needed.</summary>
@@ -104,54 +107,63 @@ public class StockMovementsService : IStockMovementsService
             decimal? snapshotAvgCost = null;
             decimal? snapshotAvgPrice = null;
 
-            if (resolvedMovementType == 2) // Out — decreases stock
+            int? dimension = model.AverageDimensionOverride;
+            if (dimension is null)
+                dimension = resolvedMovementType == 1 ? StockAverageDimension.Cost
+                          : resolvedMovementType == 2 ? StockAverageDimension.Price
+                          : (int?)null;
+
+            decimal qtyBefore = productData.Quantity ?? 0;
+            decimal stockDelta = resolvedMovementType == 1 ? model.Qty
+                               : resolvedMovementType == 2 ? -model.Qty
+                               : 0m;
+            if (stockDelta < 0 && model.Qty > qtyBefore)
             {
-                var currentQty = productData.Quantity ?? 0;
-                if (model.Qty > currentQty)
-                {
-                    if (ownTransaction) await transaction!.RollbackAsync();
-                    return Response<StockMovementsDto>.ErrorResponse("Insufficient stock",
-                        $"Available: {currentQty} {productData.Unit}, Requested: {model.Qty} {productData.Unit}");
-                }
-
-                productData.Quantity = currentQty - model.Qty;
-
-                var totalSoldBefore = productData.TotalQuantitySold ?? 0;
-                var totalSoldNow = totalSoldBefore + model.Qty;
-                productData.TotalQuantitySold = totalSoldNow;
-
-                snapshotAvgCost = productData.AverageCost ?? productData.DefaultCost ?? 0;
-
-                var prevAvgPrice = productData.AveragePrice ?? productData.DefaultPrice ?? 0;
-                var newAvgPrice = totalSoldNow > 0
-                    ? (totalSoldBefore * prevAvgPrice + model.Qty * unitPrice) / totalSoldNow
-                    : unitPrice;
-
-                productData.AveragePrice = newAvgPrice;
-                productData.PriceChangeCount = productData.PriceChangeCount + 1;
-                snapshotAvgPrice = newAvgPrice;
+                if (ownTransaction) await transaction!.RollbackAsync();
+                return Response<StockMovementsDto>.ErrorResponse("Insufficient stock",
+                    $"Available: {qtyBefore} {productData.Unit}, Requested: {model.Qty} {productData.Unit}");
             }
-            else if (resolvedMovementType == 1) // In — increases stock and recalculates weighted avg cost
-            {
-                var oldQty = productData.Quantity ?? 0;
-                var newQty = oldQty + model.Qty;
-                productData.Quantity = newQty;
+            decimal qtyAfter = qtyBefore + stockDelta;
+            productData.Quantity = qtyAfter;
 
+            // ── Average recalculation + lifetime totals (driven by dimension) ──
+            decimal contribution = stockDelta; // signed qty entering/leaving the pool
+            if (dimension == StockAverageDimension.Cost)
+            {
                 var totalPurchasedBefore = productData.TotalQuantityPurchased ?? 0;
-                var totalPurchasedNow = totalPurchasedBefore + model.Qty;
-                productData.TotalQuantityPurchased = totalPurchasedNow;
+                productData.TotalQuantityPurchased = totalPurchasedBefore + contribution;
+                var totalPurchasedAfter = productData.TotalQuantityPurchased ?? 0;
 
                 var prevAvgCost = productData.AverageCost ?? productData.DefaultCost ?? 0;
-                var newAvgCost = newQty > 0
-                    ? (oldQty * prevAvgCost + model.Qty * unitCost) / newQty
-                    : unitCost;
+                var newAvgCost = totalPurchasedAfter > 0
+                    ? (totalPurchasedBefore * prevAvgCost + contribution * unitCost) / totalPurchasedAfter
+                    : 0m; // pool empty — no net purchases, reset to zero
 
                 productData.AverageCost = newAvgCost;
-                productData.CostChangeCount = productData.CostChangeCount + 1;
+                if (contribution != 0)
+                    productData.CostChangeCount = Math.Max(0, productData.CostChangeCount + (contribution > 0 ? 1 : -1));
                 snapshotAvgCost = newAvgCost;
                 snapshotAvgPrice = productData.AveragePrice ?? productData.DefaultPrice ?? 0;
             }
-            // resolvedMovementType == 3 (Adjustment) — recorded for audit, no automatic qty change
+            else if (dimension == StockAverageDimension.Price)
+            {
+                decimal soldDelta = -contribution;
+                var totalSoldBefore = productData.TotalQuantitySold ?? 0;
+                var totalSoldNow = totalSoldBefore + soldDelta;
+                productData.TotalQuantitySold = totalSoldNow;
+
+                var prevAvgPrice = productData.AveragePrice ?? productData.DefaultPrice ?? 0;
+                var newAvgPrice = totalSoldNow > 0
+                    ? (totalSoldBefore * prevAvgPrice + soldDelta * unitPrice) / totalSoldNow
+                    : 0m; // pool empty — no net sales, reset to zero
+
+                productData.AveragePrice = newAvgPrice;
+                if (soldDelta != 0)
+                    productData.PriceChangeCount = Math.Max(0, productData.PriceChangeCount + (soldDelta > 0 ? 1 : -1));
+                snapshotAvgPrice = newAvgPrice;
+                snapshotAvgCost = productData.AverageCost ?? productData.DefaultCost ?? 0;
+            }
+            // dimension == null (Adjustment with no override) — recorded for audit, no qty or average change
 
             var updateDto = new UpdateProductByIdDto
             {
@@ -251,17 +263,19 @@ public class StockMovementsService : IStockMovementsService
         return Response<List<StockMovementsDto>>.SuccessResponse(dtos, "Stock movements fetched successfully.");
     }
 
-    public async Task<Response<PagedList<StockMovementsDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId)
+    public async Task<Response<PagedList<StockMovementsDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
         var query = _dbContext.StockMovements
             .Include(sm => sm.Product)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
-            .Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId))
-            .OrderByDescending(sm => sm.MovementDate)
-            .Select(sm => ToDto(sm));
+            .AsQueryable();
 
-        var pagedList = await PagedList<StockMovementsDto>.CreateAsync(query, page, pageSize);
+        if (!isAdmin)
+            query = query.Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId));
+
+        query = query.OrderByDescending(sm => sm.MovementDate);
+        var pagedList = await PagedList<StockMovementsDto>.CreateAsync(query.Select(sm => ToDto(sm)), page, pageSize);
         return Response<PagedList<StockMovementsDto>>.SuccessResponse(pagedList, "Stock movements fetched successfully.");
     }
 
@@ -301,6 +315,26 @@ public class StockMovementsService : IStockMovementsService
 
         var dtos = movements.Select(ToDto).ToList();
         return Response<List<StockMovementsDto>>.SuccessResponse(dtos, "Filtered stock movements fetched successfully.");
+    }
+
+    public async Task<Response<List<StockMovementsDto>>> GetByProductIdAsync(int productId, int userId, bool isAdmin)
+    {
+        var query = _dbContext.StockMovements
+            .Include(sm => sm.Product)
+            .Include(sm => sm.MovementType)
+            .Include(sm => sm.MovementSource)
+            .Where(sm => sm.ProductId == productId)
+            .AsQueryable();
+
+        if (!isAdmin)
+            query = query.Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId));
+
+        var movements = await query
+            .OrderByDescending(sm => sm.MovementDate)
+            .ToListAsync();
+
+        var dtos = movements.Select(ToDto).ToList();
+        return Response<List<StockMovementsDto>>.SuccessResponse(dtos, "Product stock movements fetched successfully.");
     }
 
     public async Task<Response<StockMovementsDto>> UpdateByIdAsync(int id, UpdateStockMovementsDto model, int userId)
@@ -382,35 +416,44 @@ public class StockMovementsService : IStockMovementsService
 
             foreach (var sm in allMovements)
             {
-                var qty      = sm.Qty ?? 0;
-                var unitCost = sm.UnitCost ?? 0;
+                var qty       = sm.Qty ?? 0;
+                var unitCost  = sm.UnitCost ?? 0;
                 var unitPrice = sm.UnitPrice ?? 0;
 
-                if (sm.MovementTypeId == 1) // In
+                decimal stockDelta = sm.MovementTypeId == 1 ? qty
+                                   : sm.MovementTypeId == 2 ? -qty
+                                   : 0m;
+                currentQty += stockDelta;
+                decimal contribution = stockDelta;
+
+                int? dim = sm.AverageDimensionOverride
+                        ?? (sm.MovementTypeId == 1 ? StockAverageDimension.Cost
+                          : sm.MovementTypeId == 2 ? StockAverageDimension.Price
+                          : (int?)null);
+
+                if (dim == StockAverageDimension.Cost)
                 {
-                    var newQty = currentQty + qty;
-                    avgCost = newQty > 0
-                        ? (currentQty * avgCost + qty * unitCost) / newQty
-                        : unitCost;
-                    currentQty     = newQty;
-                    totalPurchased += qty;
-                    costChanges++;
+                    var purchasedBefore = totalPurchased;
+                    totalPurchased += contribution;
+                    avgCost = totalPurchased > 0
+                        ? (purchasedBefore * avgCost + contribution * unitCost) / totalPurchased
+                        : 0m;
+                    if (qty != 0) costChanges += contribution > 0 ? 1 : -1;
                     sm.AverageCostAtMovement  = avgCost;
                     sm.AveragePriceAtMovement = avgPrice > 0 ? avgPrice : null;
                 }
-                else if (sm.MovementTypeId == 2) // Out
+                else if (dim == StockAverageDimension.Price)
                 {
-                    var totalSoldBefore = totalSold;
-                    totalSold  += qty;
+                    decimal soldDelta       = -contribution;
+                    var totalSoldBefore     = totalSold;
+                    totalSold              += soldDelta;
                     avgPrice = totalSold > 0
-                        ? (totalSoldBefore * avgPrice + qty * unitPrice) / totalSold
-                        : unitPrice;
-                    currentQty   -= qty;
-                    priceChanges++;
+                        ? (totalSoldBefore * avgPrice + soldDelta * unitPrice) / totalSold
+                        : 0m;
+                    if (qty != 0) priceChanges += soldDelta > 0 ? 1 : -1;
                     sm.AverageCostAtMovement  = avgCost > 0 ? avgCost : null;
                     sm.AveragePriceAtMovement = avgPrice;
                 }
-                // Adjustment (3) — recorded for audit, no qty or average change
             }
 
             // Copy snapshot values from the replay copy back to the tracked movement
@@ -428,8 +471,8 @@ public class StockMovementsService : IStockMovementsService
             product.AveragePrice          = avgPrice > 0 ? avgPrice : null;
             product.TotalQuantityPurchased = totalPurchased;
             product.TotalQuantitySold     = totalSold;
-            product.CostChangeCount       = costChanges;
-            product.PriceChangeCount      = priceChanges;
+            product.CostChangeCount       = Math.Max(0, costChanges);
+            product.PriceChangeCount      = Math.Max(0, priceChanges);
 
             await _dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -499,6 +542,7 @@ public class StockMovementsService : IStockMovementsService
         UnitPrice = unitPrice,
         AverageCostAtMovement = snapshotAvgCost,
         AveragePriceAtMovement = snapshotAvgPrice,
-        MovementDate = model.MovementDate
+        MovementDate = model.MovementDate,
+        AverageDimensionOverride = model.AverageDimensionOverride
     };
 }

@@ -640,7 +640,7 @@
     "/api/Client/Filtered": {
       "get": {
         "tags": ["Client"],
-        "summary": "Get paginated clients for the authenticated user.",
+        "summary": "Get paginated clients. Staff see their own; Admin sees all clients across all users.",
         "operationId": "client_getAllClientsFiltered",
         "parameters": [
           {
@@ -664,7 +664,14 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientDtoPagedListResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -711,20 +718,8 @@
       },
       "get": {
         "tags": ["Client"],
-        "summary": "Get all clients across all users. Admin only.",
+        "summary": "Get all clients (unpaginated). Admin sees all; non-admins see only their own. Prefer the paginated `GET /Filtered` for list UIs; this powers exports and pickers.",
         "operationId": "client_getAllClients",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/Client/me": {
-      "get": {
-        "tags": ["Client"],
-        "summary": "Get all clients belonging to the authenticated user.",
-        "operationId": "client_getAllClientsByUserId",
         "responses": {
           "200": {
             "description": "OK"
@@ -859,11 +854,52 @@
     "/api/Client/pdf": {
       "get": {
         "tags": ["Client"],
-        "summary": "Download the authenticated user's client list as a PDF report.",
+        "summary": "Download a client list as a PDF report. Admin sees all clients; non-admins see only their own.",
         "operationId": "client_getAllClientsPdf",
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Client/{id}/pdf": {
+      "get": {
+        "tags": ["Client"],
+        "summary": "Download a single client's full dossier as a branded PDF — profile, orders, purchases, payments, recent transactions, and current balance. Reuses the report aggregate so figures match the screen.",
+        "operationId": "client_getClientDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
           }
         }
       }
@@ -1316,47 +1352,8 @@
       },
       "get": {
         "tags": ["Expense"],
-        "summary": "Get all expenses paginated. Admin only.",
+        "summary": "Get all expenses paginated. Staff see only their own; Admin sees all.",
         "operationId": "expense_getAll",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 1
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 20
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExpenseDtoPagedListResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Expense/me": {
-      "get": {
-        "tags": ["Expense"],
-        "summary": "Get expenses recorded by the current authenticated user, paginated.",
-        "operationId": "expense_getMine",
         "parameters": [
           {
             "name": "page",
@@ -1539,7 +1536,7 @@
     "/api/Expense/filtered": {
       "get": {
         "tags": ["Expense"],
-        "summary": "Filter expenses by type, mode, and date range.",
+        "summary": "Filter expenses by type, mode, and date range. Admin sees all matches; non-admins see only their own.",
         "operationId": "expense_getFiltered",
         "parameters": [
           {
@@ -1592,7 +1589,7 @@
     "/api/Expense/pdf": {
       "get": {
         "tags": ["Expense"],
-        "summary": "Export expenses as PDF. Optionally filter by type, mode, and date range.",
+        "summary": "Export expenses as PDF. Admin sees all; non-admins see only their own. Optionally filter by type, mode, and date range.",
         "operationId": "expense_getPdf",
         "parameters": [
           {
@@ -1636,6 +1633,47 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Expense/{id}/pdf": {
+      "get": {
+        "tags": ["Expense"],
+        "summary": "Download a single expense as a branded PDF receipt — type, amount, and details.",
+        "operationId": "expense_getExpenseDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
                 }
               }
             }
@@ -2654,7 +2692,7 @@
       },
       "get": {
         "tags": ["Order"],
-        "summary": "Get all orders, paginated. Admin only.",
+        "summary": "Get all orders, paginated. Staff see only their own; Admin sees all.",
         "operationId": "order_getAllOrdersPaginated",
         "parameters": [
           {
@@ -2683,25 +2721,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OrderDtoPagedListResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Order/me": {
-      "get": {
-        "tags": ["Order"],
-        "summary": "Get all orders belonging to the authenticated user's clients.",
-        "operationId": "order_getMyOrders",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrderDtoListResponse"
                 }
               }
             }
@@ -2979,7 +2998,7 @@
     "/api/Order/pdf": {
       "get": {
         "tags": ["Order"],
-        "summary": "Download all orders for the authenticated user as a PDF report.",
+        "summary": "Download an orders PDF report. Admin sees all orders; non-admins see only their own.",
         "operationId": "order_getOrdersPdf",
         "responses": {
           "200": {
@@ -2989,6 +3008,47 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Order/{id}/pdf": {
+      "get": {
+        "tags": ["Order"],
+        "summary": "Download a single order as a branded PDF dossier — header, line items, totals, and payment status.",
+        "operationId": "order_getOrderDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
                 }
               }
             }
@@ -3045,7 +3105,7 @@
       },
       "get": {
         "tags": ["Payment"],
-        "summary": "Get all payments paginated. Admin only.",
+        "summary": "Get all payments paginated. Staff see only their own; Admin sees all.",
         "operationId": "payment_getAll",
         "parameters": [
           {
@@ -3072,45 +3132,6 @@
             "schema": {
               "type": "boolean",
               "default": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaymentDtoPagedListResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Payment/me": {
-      "get": {
-        "tags": ["Payment"],
-        "summary": "Get payments recorded by the current authenticated user.",
-        "operationId": "payment_getMine",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 1
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 20
             }
           }
         ],
@@ -3541,7 +3562,7 @@
     "/api/Payment/pdf": {
       "get": {
         "tags": ["Payment"],
-        "summary": "Export payments as PDF.",
+        "summary": "Export payments as PDF. Admin sees all; non-admins see only their own.",
         "operationId": "payment_getPdf",
         "parameters": [
           {
@@ -3561,6 +3582,47 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Payment/{id}/pdf": {
+      "get": {
+        "tags": ["Payment"],
+        "summary": "Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations.",
+        "operationId": "payment_getPaymentDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
                 }
               }
             }
@@ -3594,14 +3656,21 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDtoResponse"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "$ref": "#/components/schemas/ProductDtoResponse"
                 }
               }
             }
@@ -3614,7 +3683,14 @@
         "operationId": "product_getAllProducts",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDtoListResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -3637,14 +3713,21 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDtoResponse"
+                }
+              }
+            }
           },
           "404": {
             "description": "Not Found",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "$ref": "#/components/schemas/ProductDtoResponse"
                 }
               }
             }
@@ -3687,14 +3770,21 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDtoResponse"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "$ref": "#/components/schemas/ProductDtoResponse"
                 }
               }
             }
@@ -3704,7 +3794,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "$ref": "#/components/schemas/ProductDtoResponse"
                 }
               }
             }
@@ -3728,14 +3818,21 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
           },
           "404": {
             "description": "Not Found",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "$ref": "#/components/schemas/Response"
                 }
               }
             }
@@ -3770,7 +3867,14 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDtoPagedListResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -3783,6 +3887,47 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Product/{id}/pdf": {
+      "get": {
+        "tags": ["Product"],
+        "summary": "Download a single product's full dossier as a branded PDF — profile, valuation, and complete stock-movement history. Scoped to the authenticated user's products.",
+        "operationId": "product_getProductDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
           }
         }
       }
@@ -3836,7 +3981,7 @@
       },
       "get": {
         "tags": ["Purchase"],
-        "summary": "Get all purchases, paginated. Admin only.",
+        "summary": "Get all purchases, paginated. Staff see only their own; Admin sees all.",
         "operationId": "purchase_getAllPurchasesPaginated",
         "parameters": [
           {
@@ -3865,25 +4010,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PurchaseDtoPagedListResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Purchase/me": {
-      "get": {
-        "tags": ["Purchase"],
-        "summary": "Get all purchases belonging to the authenticated user's supplier clients.",
-        "operationId": "purchase_getMyPurchases",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PurchaseDtoListResponse"
                 }
               }
             }
@@ -4161,7 +4287,7 @@
     "/api/Purchase/pdf": {
       "get": {
         "tags": ["Purchase"],
-        "summary": "Download all purchases for the authenticated user as a PDF report.",
+        "summary": "Download a purchases PDF report. Admin sees all purchases; non-admins see only their own.",
         "operationId": "purchase_getPurchasesPdf",
         "responses": {
           "200": {
@@ -4171,6 +4297,47 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Purchase/{id}/pdf": {
+      "get": {
+        "tags": ["Purchase"],
+        "summary": "Download a single purchase as a branded PDF dossier — supplier, line items, totals, and payment status.",
+        "operationId": "purchase_getPurchaseDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
                 }
               }
             }
@@ -4615,7 +4782,7 @@
       },
       "get": {
         "tags": ["StockMovements"],
-        "summary": "Get all stock movements for the authenticated user's products, paginated.",
+        "summary": "Get all stock movements, paginated. Non-admins see only movements for their own products; Admin sees all.",
         "operationId": "stockMovements_getAllStockMovementsPaginated",
         "parameters": [
           {
@@ -4857,6 +5024,36 @@
         }
       }
     },
+    "/api/StockMovements/by-product/{productId}": {
+      "get": {
+        "tags": ["StockMovements"],
+        "summary": "Get all stock movements for a specific product ordered chronologically. Admin sees all; Staff scoped to their own products.",
+        "operationId": "stockMovements_getByProductId",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockMovementsDtoListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/StockMovements/pdf": {
       "get": {
         "tags": ["StockMovements"],
@@ -4870,6 +5067,47 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/StockMovements/{id}/pdf": {
+      "get": {
+        "tags": ["StockMovements"],
+        "summary": "Download a single stock movement as a branded PDF receipt — product, type/source, quantities, and value snapshots.",
+        "operationId": "stockMovements_getStockMovementDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
                 }
               }
             }
@@ -4926,7 +5164,7 @@
       },
       "get": {
         "tags": ["Transaction"],
-        "summary": "Get all transactions paginated. Admin only.",
+        "summary": "Get all transactions paginated. Staff see only their own; Admin sees all.",
         "operationId": "transaction_getAll",
         "parameters": [
           {
@@ -5117,25 +5355,6 @@
         }
       }
     },
-    "/api/Transaction/me": {
-      "get": {
-        "tags": ["Transaction"],
-        "summary": "Get transactions for the currently logged-in user.",
-        "operationId": "transaction_getMe",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TransactionDtoListResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Transaction/by-client/{clientId}": {
       "get": {
         "tags": ["Transaction"],
@@ -5179,7 +5398,7 @@
     "/api/Transaction/filtered": {
       "get": {
         "tags": ["Transaction"],
-        "summary": "Filter transactions by typeId, categoryId, modeId, clientId, dateFrom, dateTo. Admin only.",
+        "summary": "Filter transactions by typeId, categoryId, modeId, clientId, dateFrom, dateTo. Admin sees all matches; non-admins see only their own.",
         "operationId": "transaction_getFiltered",
         "parameters": [
           {
@@ -5248,7 +5467,7 @@
     "/api/Transaction/pdf": {
       "get": {
         "tags": ["Transaction"],
-        "summary": "Export all transactions as PDF. Admin only.",
+        "summary": "Export transactions as PDF. Admin sees all; non-admins see only their own.",
         "operationId": "transaction_getPdf",
         "responses": {
           "200": {
@@ -5258,6 +5477,47 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Transaction/{id}/pdf": {
+      "get": {
+        "tags": ["Transaction"],
+        "summary": "Download a single transaction as a branded PDF ledger slip — category/type/mode, amount, and linked party.",
+        "operationId": "transaction_getTransactionDossierPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
                 }
               }
             }
@@ -5990,6 +6250,136 @@
         },
         "additionalProperties": false
       },
+      "ClientDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "example": "Ahmed Textiles"
+          },
+          "clientTypeId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "clientTypeName": {
+            "type": "string",
+            "description": "Resolved name of the ClientType lookup (e.g. \"Customer\", \"Supplier\"). Populated on read.",
+            "nullable": true,
+            "example": "string"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "example": 1
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "+92-300-1234567"
+          },
+          "address": {
+            "type": "string",
+            "nullable": true,
+            "example": "123 Mall Road, Lahore"
+          },
+          "creditLimit": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 150000
+          },
+          "openingBalance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 150000
+          },
+          "outstandingBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "example": "Optional notes here"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClientDtoPagedList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClientDto"
+            },
+            "nullable": true
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClientDtoPagedListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ClientDtoPagedList"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "ClientInvoiceSummary": {
         "type": "object",
         "properties": {
@@ -6171,6 +6561,9 @@
             "type": "number",
             "format": "double",
             "example": 150000
+          },
+          "isReversal": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -7541,6 +7934,13 @@
               "$ref": "#/components/schemas/LookupDto"
             },
             "nullable": true
+          },
+          "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LookupDto"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -8447,6 +8847,208 @@
           },
           "isActive": {
             "type": "boolean",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "example": "Ahmed Textiles"
+          },
+          "sku": {
+            "type": "string",
+            "nullable": true,
+            "example": "FAB-001"
+          },
+          "unit": {
+            "type": "string",
+            "nullable": true,
+            "example": "Meters"
+          },
+          "defaultCost": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 150000
+          },
+          "defaultPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 150000
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 50
+          },
+          "availableQuantity": {
+            "type": "number",
+            "description": "On-hand Quantity minus qty already committed to other non-Delivered, non-Cancelled orders for this product. Use this for stock checks instead of Quantity.",
+            "format": "double"
+          },
+          "averageCost": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "averagePrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "costChangeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "priceChangeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalQuantityPurchased": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "totalQuantitySold": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "reorderLevel": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "example": 10
+          },
+          "isActive": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductDtoListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductDto"
+            },
+            "nullable": true
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductDtoPagedList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductDto"
+            },
+            "nullable": true
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductDtoPagedListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ProductDtoPagedList"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductDtoResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ProductDto"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "nullable": true
           }
         },

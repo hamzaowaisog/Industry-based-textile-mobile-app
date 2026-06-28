@@ -1,11 +1,14 @@
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+
+import { AppAmount } from '@components/common/AppAmount';
+import { AppBadge } from '@components/common/AppBadge';
+import { AppIconTile } from '@components/common/AppIconTile';
+import { AppRow } from '@components/common/AppRow';
 
 import { getStatusStyle } from '@utils/helpers/dashboardContent';
-import { formatCompactNumber as fmt } from '@utils/helpers/formatNumber';
 
 import { colors } from '@theme/colors';
 
-import { AppConstants } from '@constants/appConstants';
 import { ShoppingBagIcon } from '@constants/svgAssets';
 
 import type { OrderRowProps } from '../../../types/dashboard.types';
@@ -16,25 +19,17 @@ export const OrderRow = ({ order, isLast }: OrderRowProps) => {
   return (
     <>
       <View style={styles.row}>
-        <View style={styles.iconTile}>
-          <ShoppingBagIcon size={20} color={colors.primary} />
-        </View>
-        <View style={styles.info}>
-          <Text style={styles.client} numberOfLines={1}>
-            {order.clientName}
-          </Text>
-          <Text style={styles.meta}>
-            #{order.orderId} · {order.orderDate}
-          </Text>
-        </View>
-        <View style={styles.right}>
-          <Text style={styles.amount}>
-            {AppConstants.APP.CURRENCY} {fmt(order.total)}
-          </Text>
-          <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
-            <Text style={[styles.statusText, { color: s.fg }]}>{order.statusName}</Text>
-          </View>
-        </View>
+        <AppRow
+          leading={<AppIconTile Icon={ShoppingBagIcon} color={colors.primary} size={40} />}
+          primary={order.clientName}
+          secondary={`#${order.orderId} · ${order.orderDate}`}
+          right={
+            <>
+              <AppAmount value={order.total} size={14} />
+              <AppBadge label={order.statusName} bg={s.bg} fg={s.fg} size="sm" />
+            </>
+          }
+        />
       </View>
       {!isLast && <View style={styles.divider} />}
     </>

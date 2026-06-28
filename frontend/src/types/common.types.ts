@@ -66,3 +66,135 @@ export type AppPermissionModalProps = {
   onPrimary: () => void;
   onSecondary: () => void;
 };
+
+export type FieldLabelProps = {
+  label: string;
+  required?: boolean;
+};
+
+export type AppButtonVariant =
+  | 'primary'
+  | 'success'
+  | 'danger'
+  | 'ghost'
+  | 'soft'
+  | 'softDanger'
+  | 'link';
+
+export type AppButtonSize = 'sm' | 'md' | 'lg';
+
+export type AppButtonProps = {
+  label: string;
+  onPress: () => void;
+  variant?: AppButtonVariant;
+  size?: AppButtonSize;
+  fullWidth?: boolean;
+  Icon?: ComponentType<IconProps>;
+  disabled?: boolean;
+  loading?: boolean;
+};
+
+export type AppCardTone =
+  | 'surface'
+  | 'primaryLight'
+  | 'successLight'
+  | 'warningLight'
+  | 'dangerLight';
+
+export type AppCardProps = {
+  children: import('react').ReactNode;
+  padding?: number;
+  tone?: AppCardTone;
+  elevated?: boolean;
+  onPress?: () => void;
+};
+
+export type AppBadgeProps = {
+  label: string;
+  bg: string;
+  fg: string;
+  size?: 'sm' | 'md';
+};
+
+export type AppAmountTone = 'credit' | 'debit' | 'neutral' | 'primary';
+
+export type AppAmountProps = {
+  value: number;
+  tone?: AppAmountTone;
+  size?: number;
+  prefix?: string;
+};
+
+export type AppRowProps = {
+  leading?: import('react').ReactNode;
+  primary: string;
+  secondary?: string;
+  right?: import('react').ReactNode;
+  rightSub?: string;
+  onPress?: () => void;
+  chevron?: boolean;
+};
+
+export type AppAvatarProps = {
+  label: string;
+  color?: string;
+  size?: number;
+};
+
+export type AppIconTileProps = {
+  Icon: ComponentType<IconProps>;
+  color?: string;
+  size?: number;
+  soft?: boolean;
+};
+
+export type AppStatCardProps = {
+  tint?: string;
+  Icon: ComponentType<IconProps>;
+  label: string;
+  value: string;
+  sub?: string;
+  trend?: number;
+};
+
+export type AppBottomBarProps = {
+  children: import('react').ReactNode;
+};
+
+export type AppStepIndicatorProps = {
+  steps: string[];
+  current: number;
+};
+
+export type AppSectionProps = {
+  title: string;
+  actionLabel?: string;
+  onAction?: () => void;
+};
+
+export type PdfButtonProps = {
+  onPress: () => void;
+  isLoading: boolean;
+  size?: number;
+  color?: string;
+};
+
+export type InputFieldProps = {
+  label: string;
+  required?: boolean;
+  value: string;
+  onChangeText: (v: string) => void;
+  onBlur: () => void;
+  placeholder: string;
+  error?: string;
+  helper?: string;
+  leading?: import('react').ReactNode;
+  keyboardType?: 'default' | 'numeric' | 'phone-pad' | 'decimal-pad';
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  returnKeyType?: 'next' | 'done' | 'default';
+  submitBehavior?: 'submit' | 'blurAndSubmit' | 'newline';
+  multiline?: boolean;
+  numberOfLines?: number;
+  onSubmitEditing?: () => void;
+  editable?: boolean;
+};

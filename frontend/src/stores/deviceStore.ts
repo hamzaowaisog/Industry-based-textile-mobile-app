@@ -12,8 +12,14 @@ import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 
-import { deviceRegister, deviceUnregister, deviceUnregisterAll } from '@api/generated/device/device';
+import {
+  deviceRegister,
+  deviceUnregister,
+  deviceUnregisterAll,
+} from '@api/generated/device/device';
+
 import { AppConstants } from '@constants/appConstants';
+
 import type { DeviceStore } from '../types/notifications.types';
 
 const fcm = getMessaging();
@@ -24,9 +30,7 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
   hasBeenPrompted: true,
 
   hydratePromptedFlag: async () => {
-    const flag = await SecureStore.getItemAsync(
-      AppConstants.SECURE_STORE.NOTIFICATIONS_PROMPTED,
-    );
+    const flag = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.NOTIFICATIONS_PROMPTED);
     const prompted = flag === 'true';
     if (prompted) {
       const token = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.PUSH_TOKEN);
@@ -44,7 +48,10 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
 
   registerForPush: async () => {
     try {
-      if (Platform.OS === 'android' && Platform.Version >= 33) {
+      if (
+        Platform.OS === AppConstants.PLATFORM.OS.ANDROID &&
+        Platform.Version >= AppConstants.PLATFORM.ANDROID_API.POST_NOTIFICATIONS
+      ) {
         const result = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
         );
@@ -57,8 +64,7 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
 
       const status = await requestPermission(fcm);
       const authorized =
-        status === AuthorizationStatus.AUTHORIZED ||
-        status === AuthorizationStatus.PROVISIONAL;
+        status === AuthorizationStatus.AUTHORIZED || status === AuthorizationStatus.PROVISIONAL;
 
       await SecureStore.setItemAsync(AppConstants.SECURE_STORE.NOTIFICATIONS_PROMPTED, 'true');
 
@@ -106,8 +112,7 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
     try {
       const status = await hasPermission(fcm);
       const authorized =
-        status === AuthorizationStatus.AUTHORIZED ||
-        status === AuthorizationStatus.PROVISIONAL;
+        status === AuthorizationStatus.AUTHORIZED || status === AuthorizationStatus.PROVISIONAL;
       const { pushToken } = get();
 
       if (authorized && !pushToken) {

@@ -104,7 +104,7 @@ export const useStockMovementsCreateStockMovement = <TError = StockMovementsDtoR
       return useMutation(getStockMovementsCreateStockMovementMutationOptions(options), queryClient);
     }
     /**
- * @summary Get all stock movements for the authenticated user's products, paginated.
+ * @summary Get all stock movements, paginated. Non-admins see only movements for their own products; Admin sees all.
  */
 export const stockMovementsGetAllStockMovementsPaginated = (
     params?: StockMovementsGetAllStockMovementsPaginatedParams,
@@ -176,7 +176,7 @@ export function useStockMovementsGetAllStockMovementsPaginated<TData = Awaited<R
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get all stock movements for the authenticated user's products, paginated.
+ * @summary Get all stock movements, paginated. Non-admins see only movements for their own products; Admin sees all.
  */
 
 export function useStockMovementsGetAllStockMovementsPaginated<TData = Awaited<ReturnType<typeof stockMovementsGetAllStockMovementsPaginated>>, TError = unknown>(
@@ -507,6 +507,98 @@ export function useStockMovementsGetFilteredStockMovements<TData = Awaited<Retur
 
 
 /**
+ * @summary Get all stock movements for a specific product ordered chronologically. Admin sees all; Staff scoped to their own products.
+ */
+export const stockMovementsGetByProductId = (
+    productId: number,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<StockMovementsDtoListResponse>(
+      {url: `/api/StockMovements/by-product/${productId}`, method: 'GET', signal
+    },
+      );
+    }
+
+
+
+
+export const getStockMovementsGetByProductIdQueryKey = (productId: number,) => {
+    return [
+    `/api/StockMovements/by-product/${productId}`
+    ] as const;
+    }
+
+
+export const getStockMovementsGetByProductIdQueryOptions = <TData = Awaited<ReturnType<typeof stockMovementsGetByProductId>>, TError = unknown>(productId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetByProductId>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockMovementsGetByProductIdQueryKey(productId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockMovementsGetByProductId>>> = ({ signal }) => stockMovementsGetByProductId(productId, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: productId !== null && productId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetByProductId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockMovementsGetByProductIdQueryResult = NonNullable<Awaited<ReturnType<typeof stockMovementsGetByProductId>>>
+export type StockMovementsGetByProductIdQueryError = unknown
+
+
+export function useStockMovementsGetByProductId<TData = Awaited<ReturnType<typeof stockMovementsGetByProductId>>, TError = unknown>(
+ productId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetByProductId>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockMovementsGetByProductId>>,
+          TError,
+          Awaited<ReturnType<typeof stockMovementsGetByProductId>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockMovementsGetByProductId<TData = Awaited<ReturnType<typeof stockMovementsGetByProductId>>, TError = unknown>(
+ productId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetByProductId>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockMovementsGetByProductId>>,
+          TError,
+          Awaited<ReturnType<typeof stockMovementsGetByProductId>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockMovementsGetByProductId<TData = Awaited<ReturnType<typeof stockMovementsGetByProductId>>, TError = unknown>(
+ productId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetByProductId>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get all stock movements for a specific product ordered chronologically. Admin sees all; Staff scoped to their own products.
+ */
+
+export function useStockMovementsGetByProductId<TData = Awaited<ReturnType<typeof stockMovementsGetByProductId>>, TError = unknown>(
+ productId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetByProductId>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockMovementsGetByProductIdQueryOptions(productId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+/**
  * @summary Download all stock movements as a PDF report.
  */
 export const stockMovementsGetStockMovementsPdf = (
@@ -588,6 +680,99 @@ export function useStockMovementsGetStockMovementsPdf<TData = Awaited<ReturnType
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getStockMovementsGetStockMovementsPdfQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+/**
+ * @summary Download a single stock movement as a branded PDF receipt — product, type/source, quantities, and value snapshots.
+ */
+export const stockMovementsGetStockMovementDossierPdf = (
+    id: number,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<Blob>(
+      {url: `/api/StockMovements/${id}/pdf`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      );
+    }
+
+
+
+
+export const getStockMovementsGetStockMovementDossierPdfQueryKey = (id: number,) => {
+    return [
+    `/api/StockMovements/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getStockMovementsGetStockMovementDossierPdfQueryOptions = <TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError = Response>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockMovementsGetStockMovementDossierPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>> = ({ signal }) => stockMovementsGetStockMovementDossierPdf(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockMovementsGetStockMovementDossierPdfQueryResult = NonNullable<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>>
+export type StockMovementsGetStockMovementDossierPdfQueryError = Response
+
+
+export function useStockMovementsGetStockMovementDossierPdf<TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError = Response>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockMovementsGetStockMovementDossierPdf<TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>,
+          TError,
+          Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockMovementsGetStockMovementDossierPdf<TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download a single stock movement as a branded PDF receipt — product, type/source, quantities, and value snapshots.
+ */
+
+export function useStockMovementsGetStockMovementDossierPdf<TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError = Response>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementDossierPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockMovementsGetStockMovementDossierPdfQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

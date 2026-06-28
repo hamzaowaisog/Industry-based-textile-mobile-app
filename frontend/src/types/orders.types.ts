@@ -82,14 +82,18 @@ export type OrderListComponentProps = {
   totalCount: number;
   loading: boolean;
   refreshing: boolean;
+  isFetchingNextPage: boolean;
   activeTab: OrderStatusTab;
   search: string;
   onTabChange: (tab: OrderStatusTab) => void;
   onPress: (id: number) => void;
   onRefresh: () => void;
+  onEndReached: () => void;
   onSearchChange: (text: string) => void;
   onNewOrder: () => void;
   onMenuPress: () => void;
+  onListPdfPress: () => void;
+  isPdfDownloading: boolean;
 };
 
 export type OrderCardProps = {
@@ -104,7 +108,6 @@ export type OrderDetailComponentProps = {
   canUpdate: boolean;
   canDelete: boolean;
   onBack: () => void;
-  onMore: () => void;
   onClientPress: (clientId: number) => void;
   onMarkDelivered: () => void;
   onMarkInProgress: () => void;
@@ -112,17 +115,21 @@ export type OrderDetailComponentProps = {
   onRecordPayment: (orderId: number) => void;
   onDelete: () => void;
   onEditOrder: (orderId: number) => void;
+  onDossierPdfPress: () => void;
+  isDossierPdfDownloading: boolean;
 };
 
 export type EditOrderComponentProps = {
   step: number;
   submitting: boolean;
+  loading: boolean;
   orderId: number;
   clientName: string;
   values: EditOrderFormValues;
   errors: Partial<Record<keyof EditOrderFormValues, string>>;
   touched: Partial<Record<keyof EditOrderFormValues, boolean>>;
   lineErrors: { qty?: string }[];
+  lineAvailability: (string | undefined)[];
   paymentTypes: { id: number; name: string }[];
   productItems: { id: number; name: string; subtitle?: string }[];
   productPickerVisible: boolean;
@@ -144,10 +151,19 @@ export type EditOrderComponentProps = {
   onProductPickerClose: () => void;
 };
 
+export type LineItemFormCardLabels = {
+  qty: string;
+  unitPrice: string;
+  addProduct: string;
+  lineTotal: string;
+};
+
 export type LineItemFormCardProps = {
   line: OrderLineFormValues;
   index: number;
   qtyError?: string;
+  availableLabel?: string;
+  labels: LineItemFormCardLabels;
   onRemove: (index: number) => void;
   onChange: (
     index: number,
@@ -182,6 +198,7 @@ export type CreateOrderComponentProps = {
   errors: Partial<Record<keyof CreateOrderFormValues, string>>;
   touched: Partial<Record<keyof CreateOrderFormValues, boolean>>;
   lineErrors: { qty?: string }[];
+  lineAvailability: (string | undefined)[];
   onBack: () => void;
   onNext: () => void;
   onSubmit: () => void;

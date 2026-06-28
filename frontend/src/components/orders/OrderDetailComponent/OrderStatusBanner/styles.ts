@@ -8,16 +8,6 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    borderRadius: 16,
-    padding: 16,
-  },
-  iconTile: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
   },
   text: {
     flex: 1,

@@ -26,6 +26,23 @@ public class CreateStockMovementsDto
     public decimal? UnitCost { get; set; } = null;
     public decimal? UnitPrice { get; set; } = null;
     public DateOnly MovementDate { get; set; }
+
+    /// <summary>
+    /// Overrides which weighted average the movement recalculates.
+    /// Null = auto-derive from MovementType (In→Cost, Out→Price).
+    /// Set explicitly on cancellation-reversal movements where the stock
+    /// direction does not match the document type: a purchase cancellation
+    /// removes stock (Out) but must adjust Cost; an order cancellation
+    /// returns stock (In) but must adjust Price.
+    /// </summary>
+    public int? AverageDimensionOverride { get; set; } = null;
+}
+
+/// <summary>Average dimensions for <see cref="CreateStockMovementsDto.AverageDimensionOverride"/>.</summary>
+public static class StockAverageDimension
+{
+    public const int Cost = 1;
+    public const int Price = 2;
 }
 
 public class UpdateStockMovementsDto

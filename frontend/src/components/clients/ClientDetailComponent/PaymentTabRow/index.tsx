@@ -1,49 +1,54 @@
 import React from 'react';
 
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 
 import type { ClientPaymentSummary } from '@api/models';
 
-import { formatPKR } from '@utils/helpers/clientMappers';
+import { AppAmount } from '@components/common/AppAmount';
+import { AppBadge } from '@components/common/AppBadge';
+import { AppCard } from '@components/common/AppCard';
+import { AppIconTile } from '@components/common/AppIconTile';
+import { AppRow } from '@components/common/AppRow';
 
 import { colors } from '@theme/colors';
 
 import { CreditCardIcon } from '@constants/svgAssets';
 
-import { styles } from './styles';
-
 export const PaymentTabRow = ({ item }: { item: ClientPaymentSummary }) => {
   const { t } = useTranslation();
   const isReceived = item.directionName?.toLowerCase() === 'received';
   return (
-    <View style={[styles.tabRow, item.isReversed ? { opacity: 0.5 } : {}]}>
-      <View
-        style={[
-          styles.tabRowIcon,
-          { backgroundColor: isReceived ? colors.successLight : colors.warningLight },
-        ]}
-      >
-        <CreditCardIcon size={18} color={isReceived ? colors.success : colors.warning} />
-      </View>
-      <View style={styles.tabRowInfo}>
-        <Text style={styles.tabRowPrimary}>{item.directionName}</Text>
-        <Text style={styles.tabRowSub}>
-          {item.paymentDate}
-          {item.isReversed ? ` · ${t('clients.reversed')}` : ''}
-        </Text>
-      </View>
-      <View style={styles.tabRowRight}>
-        <Text style={[styles.tabRowAmount, { color: isReceived ? colors.success : colors.danger }]}>
-          {formatPKR(item.amount ?? 0)}
-        </Text>
-        <View style={[styles.tabBadge, { backgroundColor: colors.bgAlt }]}>
-          <Text style={[styles.tabBadgeText, { color: colors.textSecondary }]}>
-            {item.modeName}
-          </Text>
-        </View>
-      </View>
+    <View style={item.isReversed ? { opacity: 0.5 } : undefined}>
+      <AppCard padding={14}>
+        <AppRow
+          leading={
+            <AppIconTile
+              Icon={CreditCardIcon}
+              color={isReceived ? colors.success : colors.warning}
+              size={36}
+            />
+          }
+          primary={item.directionName ?? ''}
+          secondary={`${item.paymentDate}${item.isReversed ? ` · ${t('clients.reversed')}` : ''}`}
+          right={
+            <>
+              <AppAmount
+                value={item.amount ?? 0}
+                tone={isReceived ? 'credit' : 'debit'}
+                size={14}
+              />
+              <AppBadge
+                label={item.modeName ?? ''}
+                bg={colors.bgAlt}
+                fg={colors.textSecondary}
+                size="sm"
+              />
+            </>
+          }
+        />
+      </AppCard>
     </View>
   );
 };

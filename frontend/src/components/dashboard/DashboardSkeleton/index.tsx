@@ -1,10 +1,16 @@
 import { useEffect, useRef } from 'react';
+
 import { Animated, ScrollView, View } from 'react-native';
 
-import { styles as dashStyles } from '@components/dashboard/styles';
 import { SkeletonBlock } from '@components/dashboard/SkeletonBlock';
+import { styles as dashStyles } from '@components/dashboard/styles';
+
+import { AppConstants } from '@constants/appConstants';
 
 import { styles as S } from './styles';
+
+const { PULSE_MIN_OPACITY, PULSE_DURATION_MS, DASHBOARD_STAT_CARDS, DASHBOARD_RECENT_ORDERS } =
+  AppConstants.SKELETON;
 
 export const DashboardSkeleton = () => {
   const opacity = useRef(new Animated.Value(1)).current;
@@ -12,9 +18,17 @@ export const DashboardSkeleton = () => {
   useEffect(() => {
     const anim = Animated.loop(
       Animated.sequence([
-        Animated.timing(opacity, { toValue: 0.4, duration: 700, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
-      ])
+        Animated.timing(opacity, {
+          toValue: PULSE_MIN_OPACITY,
+          duration: PULSE_DURATION_MS,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: PULSE_DURATION_MS,
+          useNativeDriver: true,
+        }),
+      ]),
     );
     anim.start();
     return () => anim.stop();
@@ -35,7 +49,7 @@ export const DashboardSkeleton = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={dashStyles.statScrollContent}
         >
-          {[0, 1, 2, 3].map((i) => (
+          {Array.from({ length: DASHBOARD_STAT_CARDS }).map((_, i) => (
             <SkeletonBlock key={i} width={160} height={100} borderRadius={16} />
           ))}
         </ScrollView>
@@ -74,7 +88,7 @@ export const DashboardSkeleton = () => {
         <View style={dashStyles.section}>
           <SkeletonBlock width={140} height={16} borderRadius={6} />
           <View style={[dashStyles.card, S.cardSpacing]}>
-            {[0, 1, 2].map((i) => (
+            {Array.from({ length: DASHBOARD_RECENT_ORDERS }).map((_, i) => (
               <View key={i}>
                 <View style={S.orderRow}>
                   <SkeletonBlock width={40} height={40} borderRadius={12} />
@@ -86,7 +100,7 @@ export const DashboardSkeleton = () => {
                   </View>
                   <SkeletonBlock width={56} height={14} borderRadius={5} />
                 </View>
-                {i < 2 && <View style={S.orderDivider} />}
+                {i < DASHBOARD_RECENT_ORDERS - 1 && <View style={S.orderDivider} />}
               </View>
             ))}
           </View>

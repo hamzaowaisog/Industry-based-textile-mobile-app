@@ -1525,6 +1525,49 @@ UPDATE notifications SET created_at = DATE_SUB(created_at, INTERVAL 5 HOUR)
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260610093649_NotificationCreatedAtStoreUtc', '9.0.10');
 
+CREATE TABLE `units` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `name` longtext CHARACTER SET utf8mb4 NULL,
+    `created_at` date NULL,
+    CONSTRAINT `units_pkey` PRIMARY KEY (`id`)
+) CHARACTER SET=utf8mb4;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260614032924_AddUnitsLookup', '9.0.10');
+
+UPDATE purchase_statuses SET name = 'Received' WHERE id = 3;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260627201449_RenamePurchaseStatusDeliveredToReceived', '9.0.10');
+
+ALTER TABLE `stock_movements` ADD `AverageDimensionOverride` int NULL;
+
+
+                UPDATE stock_movements
+                SET AverageDimensionOverride = 1
+                WHERE movement_source_id = 3 AND movement_type_id = 2;
+
+
+                UPDATE stock_movements
+                SET AverageDimensionOverride = 2
+                WHERE movement_source_id = 3 AND movement_type_id = 1;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260628215908_AddStockMovementDimensionOverride', '9.0.10');
+
+
+                UPDATE stock_movements
+                SET AverageDimensionOverride = 1
+                WHERE movement_source_id = 3 AND movement_type_id = 2;
+
+
+                UPDATE stock_movements
+                SET AverageDimensionOverride = 2
+                WHERE movement_source_id = 3 AND movement_type_id = 1;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260628220600_BackfillStockMovementDimensionOverride', '9.0.10');
+
 COMMIT;
 
 

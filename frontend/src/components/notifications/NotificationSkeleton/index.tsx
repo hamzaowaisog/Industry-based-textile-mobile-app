@@ -2,10 +2,12 @@ import { useEffect, useRef } from 'react';
 
 import { Animated, View } from 'react-native';
 
+import { AppConstants } from '@constants/appConstants';
+
 import { SkeletonBlock } from '../../dashboard/SkeletonBlock';
 import { styles } from './styles';
 
-const ROW_COUNT = 6;
+const { PULSE_MIN_OPACITY, PULSE_DURATION_MS, DETAIL_PLACEHOLDER_COUNT } = AppConstants.SKELETON;
 
 const SkeletonRow = () => (
   <View style={styles.row}>
@@ -24,9 +26,17 @@ export const NotificationSkeleton = () => {
   useEffect(() => {
     const anim = Animated.loop(
       Animated.sequence([
-        Animated.timing(opacity, { toValue: 0.4, duration: 700, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
-      ])
+        Animated.timing(opacity, {
+          toValue: PULSE_MIN_OPACITY,
+          duration: PULSE_DURATION_MS,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: PULSE_DURATION_MS,
+          useNativeDriver: true,
+        }),
+      ]),
     );
     anim.start();
     return () => anim.stop();
@@ -35,7 +45,7 @@ export const NotificationSkeleton = () => {
   return (
     <Animated.View style={{ opacity }}>
       <View style={styles.wrap}>
-        {Array.from({ length: ROW_COUNT }).map((_, i) => (
+        {Array.from({ length: DETAIL_PLACEHOLDER_COUNT }).map((_, i) => (
           <SkeletonRow key={i} />
         ))}
       </View>

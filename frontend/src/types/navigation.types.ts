@@ -43,7 +43,8 @@ export type ProductStackParamList = {
 export type PurchaseStackParamList = {
   PurchaseList: undefined;
   PurchaseDetail: { purchaseId: number };
-  CreatePurchase: { clientId?: number; clientName?: string } | undefined;
+  CreatePurchase: { supplierId?: number; supplierName?: string } | undefined;
+  EditPurchase: { purchaseId: number };
 };
 
 export type PaymentStackParamList = {
@@ -139,6 +140,21 @@ export type BiometricNavProp = AuthNavProp<typeof S.BIOMETRIC>;
 export type VerifyOtpRouteProp = AuthRouteProp<typeof S.VERIFY_OTP>;
 export type ResetPasswordRouteProp = AuthRouteProp<typeof S.RESET_PASSWORD>;
 export type VerifySignupOtpRouteProp = AuthRouteProp<typeof S.VERIFY_SIGNUP_OTP>;
+
+// ── Purchase screen props ───────────────────────────────────────────────────────
+
+export type PurchaseDetailScreenProps = NativeStackScreenProps<
+  PurchaseStackParamList,
+  typeof SM.PURCHASE_DETAIL
+>;
+export type CreatePurchaseScreenProps = NativeStackScreenProps<
+  PurchaseStackParamList,
+  typeof SM.CREATE_PURCHASE
+>;
+export type EditPurchaseScreenProps = NativeStackScreenProps<
+  PurchaseStackParamList,
+  typeof SM.EDIT_PURCHASE
+>;
 
 // ── Order screen props ──────────────────────────────────────────────────────────
 

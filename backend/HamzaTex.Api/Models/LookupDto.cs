@@ -26,4 +26,5 @@ public class LookupsAllDto
     public List<LookupDto> ClientTypes { get; set; } = [];
     public List<LookupDto> UserRoles { get; set; } = [];
     public List<LookupDto> InvoiceStatuses { get; set; } = [];
+    public List<LookupDto> Units { get; set; } = [];
 }

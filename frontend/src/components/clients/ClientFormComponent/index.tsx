@@ -16,6 +16,7 @@ import { AppInputField } from '@components/common/AppInputField';
 
 import { colors } from '@theme/colors';
 
+import { AppConstants } from '@constants/appConstants';
 import { ArrowLeftIcon, PhoneIcon } from '@constants/svgAssets';
 
 import type { ClientFormComponentProps } from '../../../types/clients.types';
@@ -46,8 +47,8 @@ export const ClientFormComponent = ({
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -97,6 +98,7 @@ export const ClientFormComponent = ({
             <Text style={styles.sectionLabel}>{t('clients.infoSection')}</Text>
             <AppInputField
               label={t('clients.fieldName')}
+              required
               value={values.name}
               onChangeText={(v) => setFieldValue('name', v)}
               onBlur={() => setFieldTouched('name', true)}

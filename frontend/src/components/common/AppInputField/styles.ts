@@ -5,12 +5,6 @@ import { typography } from '@theme/typography';
 
 export const styles = StyleSheet.create({
   inputWrap: { gap: 6 },
-  inputLabel: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-  },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -25,12 +19,22 @@ export const styles = StyleSheet.create({
   inputRowFocused: { borderColor: colors.primary },
   inputRowError: { borderColor: colors.danger },
   inputRowDisabled: { backgroundColor: colors.bgAlt, opacity: 0.7 },
+  inputRowMultiline: {
+    height: undefined,
+    minHeight: 80,
+    alignItems: 'flex-start',
+    paddingVertical: 12,
+  },
   input: {
     flex: 1,
     fontFamily: typography.fontFamily.medium,
     fontSize: 14,
     color: colors.text,
     padding: 0,
+  },
+  inputMultiline: {
+    minHeight: 56,
+    textAlignVertical: 'top',
   },
   inputError: {
     fontFamily: typography.fontFamily.medium,
