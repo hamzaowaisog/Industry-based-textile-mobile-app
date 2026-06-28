@@ -8,7 +8,7 @@ namespace HamzaTex.Api.Services;
 
 /// <summary>
 /// Purchase (procurement) management. Handles full lifecycle including stock and ledger effects
-/// on status transitions (Delivered posts stock In + transaction, Cancelled reverses both).
+/// on status transitions (Received posts stock In + transaction, Cancelled reverses both).
 /// </summary>
 public interface IPurchaseService
 {
@@ -22,11 +22,11 @@ public interface IPurchaseService
     Task<Response<PagedList<PurchaseDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
     /// <summary>Filter purchases by supplierId, statusId, and/or date range.</summary>
     Task<Response<List<PurchaseDto>>> GetFilteredAsync(int? supplierId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
-    /// <summary>Update purchase header and handle status transitions (Delivered → stock+ledger, Cancelled → reversal).</summary>
+    /// <summary>Update purchase header and handle status transitions (Received → stock+ledger, Cancelled → reversal).</summary>
     Task<Response<PurchaseDto>> UpdateByIdAsync(int id, UpdatePurchaseDto model, int userId, bool isAdmin);
-    /// <summary>Replace all lines on a Pending or InProgress purchase. Syncs the linked Draft invoice. Blocked for Delivered/Cancelled purchases.</summary>
+    /// <summary>Replace all lines on a Pending or InProgress purchase. Syncs the linked Draft invoice. Blocked for Received/Cancelled purchases.</summary>
     Task<Response<PurchaseDto>> UpdateLinesAsync(int id, UpdatePurchaseLinesDto model, int userId, bool isAdmin);
-    /// <summary>Delete a purchase and its lines. Only allowed if purchase has not been Delivered.</summary>
+    /// <summary>Delete a purchase and its lines. Only allowed if purchase has not been Received.</summary>
     Task<Response> DeleteByIdAsync(int id);
 }
 
@@ -40,7 +40,7 @@ public class PurchaseService : IPurchaseService
 
     // Seed IDs
     private const int StatusPending = 1;
-    private const int StatusDelivered = 3;
+    private const int StatusReceived = 3;
     private const int StatusCancelled = 4;
     private const int InvoiceStatusDraft = 1;
     private const int ClientTypeSupplier = 2;
@@ -194,8 +194,8 @@ public class PurchaseService : IPurchaseService
         var previousStatusId = purchase.StatusId ?? 0;
         var newStatusId = model.StatusId;
 
-        // Idempotent re-deliver: already delivered, just update header fields
-        if (previousStatusId == StatusDelivered && newStatusId == StatusDelivered)
+        // Idempotent re-receive: already received, just update header fields
+        if (previousStatusId == StatusReceived && newStatusId == StatusReceived)
         {
             purchase.PaymentTypeId = model.PaymentTypeId;
             purchase.Notes = model.Notes;
@@ -203,15 +203,15 @@ public class PurchaseService : IPurchaseService
                 purchase.PurchaseDate = model.PurchaseDate.Value;
             await _dbContext.SaveChangesAsync();
             var reloaded = await LoadPurchaseWithIncludes(id);
-            return Response<PurchaseDto>.SuccessResponse(ToDto(reloaded!), "Purchase already delivered. Header fields updated.");
+            return Response<PurchaseDto>.SuccessResponse(ToDto(reloaded!), "Purchase already received. Header fields updated.");
         }
 
         if (previousStatusId == StatusCancelled)
             return Response<PurchaseDto>.ErrorResponse("Validation failed", "Cannot update a cancelled purchase.");
 
-        // ── Transition to Delivered: stock In + ledger posting ──
-        if (newStatusId == StatusDelivered && previousStatusId != StatusDelivered)
-            return await TransitionToDelivered(purchase, model, userId);
+        // ── Transition to Received: stock In + ledger posting ──
+        if (newStatusId == StatusReceived && previousStatusId != StatusReceived)
+            return await TransitionToReceived(purchase, model, userId);
 
         // ── Transition to Cancelled ──
         if (newStatusId == StatusCancelled)
@@ -254,7 +254,7 @@ public class PurchaseService : IPurchaseService
         if (!isAdmin && purchase.UserId != userId)
             return Response<PurchaseDto>.ErrorResponse("Not found", "Purchase not found.");
 
-        if (purchase.StatusId == StatusDelivered || purchase.StatusId == StatusCancelled)
+        if (purchase.StatusId == StatusReceived || purchase.StatusId == StatusCancelled)
             return Response<PurchaseDto>.ErrorResponse("Validation failed", "Purchase lines can only be edited when the purchase is Pending or InProgress.");
 
         var requestedProductIds = model.Lines.Select(l => l.ProductId).Distinct().ToList();
@@ -334,8 +334,8 @@ public class PurchaseService : IPurchaseService
         if (purchase is null)
             return Response.ErrorResponse("Not found", "Purchase not found.");
 
-        if (purchase.StatusId == StatusDelivered)
-            return Response.ErrorResponse("Validation failed", "Cannot delete a delivered purchase. Cancel it instead.");
+        if (purchase.StatusId == StatusReceived)
+            return Response.ErrorResponse("Validation failed", "Cannot delete a received purchase. Cancel it instead.");
 
         var linkedTransactions = await _dbContext.Transactions
             .Where(t => t.PurchaseId == id)
@@ -350,9 +350,9 @@ public class PurchaseService : IPurchaseService
         return Response.SuccessResponse("Purchase deleted successfully.");
     }
 
-    // ── Status transition: Delivered ─────────────────────────────────────────
+    // ── Status transition: Received ─────────────────────────────────────────
 
-    private async Task<Response<PurchaseDto>> TransitionToDelivered(Purchase purchase, UpdatePurchaseDto model, int userId)
+    private async Task<Response<PurchaseDto>> TransitionToReceived(Purchase purchase, UpdatePurchaseDto model, int userId)
     {
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
         try
@@ -366,7 +366,7 @@ public class PurchaseService : IPurchaseService
             }
 
             // Update header
-            purchase.StatusId = StatusDelivered;
+            purchase.StatusId = StatusReceived;
             purchase.PaymentTypeId = model.PaymentTypeId;
             purchase.Notes = model.Notes;
             if (model.PurchaseDate.HasValue)
@@ -418,19 +418,19 @@ public class PurchaseService : IPurchaseService
 
             await _invoiceService.UpdateStatusOnDeliveryAsync(null, purchase.Id);
 
-            // Auto-apply any unallocated advance payments against this newly delivered purchase
+            // Auto-apply any unallocated advance payments against this newly received purchase
             await _paymentService.ApplyUnallocatedCreditAsync(purchase.SupplierId ?? 0, null, purchase.Id);
 
             var reloaded = await LoadPurchaseWithIncludes(purchase.Id);
             try { await _notification.CreateAsync(new CreateNotificationDto
             {
                 UserId = userId,
-                Type = "purchase_delivered",
-                Title = "Purchase Delivered",
-                Body = $"Purchase #{purchase.Id} from {purchase.Supplier?.Name ?? "Supplier"} delivered",
+                Type = "purchase_received",
+                Title = "Purchase Received",
+                Body = $"Purchase #{purchase.Id} from {purchase.Supplier?.Name ?? "Supplier"} received",
                 EntityId = purchase.Id
             }); } catch { }
-            return Response<PurchaseDto>.SuccessResponse(ToDto(reloaded!), "Purchase delivered. Stock and ledger updated.");
+            return Response<PurchaseDto>.SuccessResponse(ToDto(reloaded!), "Purchase received. Stock and ledger updated.");
         }
         catch (Exception ex)
         {
@@ -449,8 +449,8 @@ public class PurchaseService : IPurchaseService
             purchase.StatusId = StatusCancelled;
             await _dbContext.SaveChangesAsync();
 
-            // If previously Delivered, reverse stock and ledger
-            if (previousStatusId == StatusDelivered)
+            // If previously Received, reverse stock and ledger
+            if (previousStatusId == StatusReceived)
             {
                 // Reverse stock: Manual Out per line (undo the In)
                 foreach (var line in purchase.PurchaseLines)
@@ -508,7 +508,7 @@ public class PurchaseService : IPurchaseService
                 Body = $"Purchase #{purchase.Id} has been cancelled",
                 EntityId = purchase.Id
             }); } catch { }
-            var message = previousStatusId == StatusDelivered
+            var message = previousStatusId == StatusReceived
                 ? "Purchase cancelled. Stock and ledger reversed."
                 : "Purchase cancelled.";
             return Response<PurchaseDto>.SuccessResponse(ToDto(reloaded!), message);

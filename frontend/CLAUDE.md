@@ -4,6 +4,75 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > **Always read the exact versioned Expo docs at https://docs.expo.dev/versions/v56.0.0/ before writing any Expo-specific code.**
 
+## Form Rules (MANDATORY — enforced on every form, no exceptions)
+
+Every form screen must follow all four rules below. Missing any one is a bug.
+
+### 1. Formik + Yup — always, no manual useState for form state
+
+- Every form hook uses `useFormik<FormValues>()` — never `useState` for `values`, `errors`, or `touched`.
+- Yup schema in `src/utils/validation/<feature>Validation.ts`, named `<action><Feature>Step<N>Schema` for wizard steps or `<feature>ValidationSchema` for single-step forms.
+- `validateOnBlur: true`, `validateOnChange: false` on every formik instance.
+- For multi-step wizards: call `yupSchema.validate(formik.values, { abortEarly: false })` in `onNext`; set `formik.setFieldTouched` / `formik.setFieldError` on failure. Do **not** attach `validationSchema` to formik for wizard forms.
+- `onSubmit` in the hook returns `formik.handleSubmit` — the component button calls it. The hook itself never calls `formik.handleSubmit()` internally.
+- `submitting` is `formik.isSubmitting`, never a manual `useState` flag.
+- For edit forms that load async data: use `formik.resetForm({ values: filled })` inside a `useEffect` when the data arrives.
+- Line-level stock availability (`lineErrors`, `lineAvailability`) is **not** Formik state — keep those as `useState` since they're derived from external product data, not form validation.
+
+```ts
+// ✅ correct
+const formik = useFormik<MyFormValues>({
+  initialValues: { ... },
+  validateOnBlur: true,
+  validateOnChange: false,
+  onSubmit: async (values, helpers) => { ... },
+});
+// hook returns: onSubmit: formik.handleSubmit
+
+// ❌ wrong — manual form state
+const [values, setValues] = useState<MyFormValues>({ ... });
+const [errors, setErrors] = useState({});
+const [touched, setTouched] = useState({});
+```
+
+### 2. KeyboardAvoidingView — required in every form component
+
+Every form component must wrap its scrollable content in `KeyboardAvoidingView` with correct behavior and offset:
+
+```tsx
+<KeyboardAvoidingView
+  style={{ flex: 1 }}
+  behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
+  keyboardVerticalOffset={0}
+>
+  <ScrollView keyboardShouldPersistTaps="handled">
+    {/* form fields */}
+  </ScrollView>
+</KeyboardAvoidingView>
+```
+
+### 3. Return key chains focus between fields
+
+In every `LineItemFormCard` and single-step form, text inputs must chain focus via `returnKeyType` and `onSubmitEditing`:
+
+- Numeric/text field that is NOT the last field: `returnKeyType="next"` + `onSubmitEditing={() => nextFieldRef.current?.focus()}`
+- Last field in a form or card: `returnKeyType="done"`
+- Multiline fields: `AppInputField` overrides to `returnKeyType="default"` automatically — no action needed
+- Use `useRef<TextInput>(null)` inside the card component and pass it via `ref` to `AppInputField` (which is `React.forwardRef`-wrapped)
+
+```tsx
+// ✅ correct — LineItemFormCard
+const unitCostRef = useRef<TextInput>(null);
+<AppInputField keyboardType="numeric" returnKeyType="next" onSubmitEditing={() => unitCostRef.current?.focus()} />
+<AppInputField ref={unitCostRef} keyboardType="decimal-pad" returnKeyType="done" />
+```
+
+### 4. Last field submission
+
+On single-step forms, the last non-multiline field's `onSubmitEditing` should trigger the primary action (`onNext` or `formik.handleSubmit`). Wire it from the component — do not call `formik.handleSubmit` from the hook.
+
+---
+
 ## PDF Download Rule
 
 **Any screen that has a corresponding PDF endpoint must always include a PDF download button using `<PdfButton>` from `@components/common/PdfButton`.**
