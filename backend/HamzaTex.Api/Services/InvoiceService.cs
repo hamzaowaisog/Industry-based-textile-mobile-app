@@ -257,6 +257,17 @@ public class InvoiceService : IInvoiceService
         {
             invoice.InvoiceStatusId = StatusPaid;
             await _db.SaveChangesAsync();
+            if (invoice.CreatedByUserId.HasValue)
+            {
+                try { await _notification.CreateAsync(new CreateNotificationDto
+                {
+                    UserId = invoice.CreatedByUserId.Value,
+                    Type = "invoice_paid",
+                    Title = "Invoice Fully Paid",
+                    Body = $"Invoice {invoice.InvoiceNumber} has been fully paid (PKR {invoice.TotalAmount:F2})",
+                    EntityId = invoice.Id
+                }); } catch { }
+            }
         }
     }
 

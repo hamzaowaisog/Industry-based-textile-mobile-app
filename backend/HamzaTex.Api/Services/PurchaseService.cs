@@ -106,6 +106,14 @@ public class PurchaseService : IPurchaseService
         await _invoiceService.CreateFromPurchaseAsync(purchase.Id, userId);
 
         var saved = await LoadPurchaseWithIncludes(purchase.Id);
+        try { await _notification.CreateAsync(new CreateNotificationDto
+        {
+            UserId = userId,
+            Type = "purchase_created",
+            Title = "New Purchase",
+            Body = $"Purchase #{purchase.Id} created from {supplier.Name ?? "Supplier"}",
+            EntityId = purchase.Id
+        }); } catch { }
         return Response<PurchaseDto>.SuccessResponse(ToDto(saved!), "Purchase created successfully.");
     }
 
@@ -210,6 +218,7 @@ public class PurchaseService : IPurchaseService
             return await TransitionToCancelled(purchase, previousStatusId, userId);
 
         // ── Normal update (Pending ↔ InProgressed, or field changes) ──
+        var oldStatusId = purchase.StatusId;
         purchase.StatusId = model.StatusId;
         purchase.PaymentTypeId = model.PaymentTypeId;
         purchase.Notes = model.Notes;
@@ -218,6 +227,18 @@ public class PurchaseService : IPurchaseService
         await _dbContext.SaveChangesAsync();
 
         var updated = await LoadPurchaseWithIncludes(id);
+        if (oldStatusId != model.StatusId)
+        {
+            var statusName = updated?.Status?.Name ?? model.StatusId.ToString();
+            try { await _notification.CreateAsync(new CreateNotificationDto
+            {
+                UserId = userId,
+                Type = "purchase_status_updated",
+                Title = "Purchase Status Updated",
+                Body = $"Purchase #{id} status changed to {statusName}",
+                EntityId = id
+            }); } catch { }
+        }
         return Response<PurchaseDto>.SuccessResponse(ToDto(updated!), "Purchase updated successfully.");
     }
 
@@ -479,6 +500,14 @@ public class PurchaseService : IPurchaseService
             await _invoiceService.CancelByOrderOrPurchaseAsync(null, purchase.Id);
 
             var reloaded = await LoadPurchaseWithIncludes(purchase.Id);
+            try { await _notification.CreateAsync(new CreateNotificationDto
+            {
+                UserId = userId,
+                Type = "purchase_cancelled",
+                Title = "Purchase Cancelled",
+                Body = $"Purchase #{purchase.Id} has been cancelled",
+                EntityId = purchase.Id
+            }); } catch { }
             var message = previousStatusId == StatusDelivered
                 ? "Purchase cancelled. Stock and ledger reversed."
                 : "Purchase cancelled.";

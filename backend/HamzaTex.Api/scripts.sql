@@ -1535,6 +1535,11 @@ CREATE TABLE `units` (
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260614032924_AddUnitsLookup', '9.0.10');
 
+UPDATE purchase_statuses SET name = 'Received' WHERE id = 3;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260627201449_RenamePurchaseStatusDeliveredToReceived', '9.0.10');
+
 COMMIT;
 
 

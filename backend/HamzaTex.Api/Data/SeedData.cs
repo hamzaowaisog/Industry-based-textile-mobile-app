@@ -10,7 +10,7 @@ public static class SeedData
     [
         new PurchaseStatus { Id = 1, Name = "Pending",      CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
         new PurchaseStatus { Id = 2, Name = "InProgressed", CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
-        new PurchaseStatus { Id = 3, Name = "Delivered",    CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
+        new PurchaseStatus { Id = 3, Name = "Received",    CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
         new PurchaseStatus { Id = 4, Name = "Cancelled",    CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) },
     ];
 
@@ -288,147 +288,59 @@ public static class SeedData
 
     private static async Task SeedStatusesAsync(ApplicationDbContext context, CancellationToken cancellationToken)
     {
-        await SeedLookupAsync(
-            context,
-            context.PurchaseStatuses,
-            status => status.Name!,
-            PurchaseStatusSeeds,
-            StringComparer.OrdinalIgnoreCase,
-            cancellationToken);
-
-        await SeedLookupAsync(
-            context,
-            context.OrderStatuses,
-            status => status.Name!,
-            OrderStatusSeeds,
-            StringComparer.OrdinalIgnoreCase,
-            cancellationToken);
-
-        await SeedLookupAsync(
-            context,
-            context.PaymentTypes,
-            type => type.Name!, 
-            PaymentTypeSeeds,
-            StringComparer.OrdinalIgnoreCase,
-            cancellationToken);
-
-        await SeedLookupAsync(
-            context,
-            context.UserRoles,
-            role => role.Name!,
-            UserRoleSeeds,
-            StringComparer.OrdinalIgnoreCase,
-            cancellationToken);
-
-        await SeedLookupAsync(
-            context,
-            context.ClientTypes,
-            type => type.Name!,
-            ClientTypeSeeds,
-            StringComparer.OrdinalIgnoreCase,
-            cancellationToken);
-
-        await SeedLookupAsync(
-            context,
-            context.TransTypes,
-            type => type.Name!,
-            TransTypeSeeds,
-            StringComparer.OrdinalIgnoreCase,
-            cancellationToken);
-
-        await SeedLookupAsync(
-            context,
-            context.TransModes,
-            mode => mode.Name!,
-            TransModeSeeds,
-            StringComparer.OrdinalIgnoreCase,
-            cancellationToken);
-
-        await SeedLookupAsync(
-            context,
-            context.TransCategories,
-            category => category.Name!,
-            TransCategorySeeds,
-            StringComparer.OrdinalIgnoreCase,
-            cancellationToken);
-
-        await SeedLookupAsync(
-            context,
-            context.ExpenseTypes,
-            type => type.Name!,
-            ExpenseTypeSeeds,
-            StringComparer.OrdinalIgnoreCase,
-            cancellationToken);
-
-        await SeedLookupAsync(
-            context,
-            context.MovementTypes,
-            type => type.Name!,
-            MovementTypeSeeds,
-            StringComparer.OrdinalIgnoreCase,
-            cancellationToken);
-
-        await SeedLookupAsync(
-            context,
-            context.MovementSources,
-            source => source.Name!,
-            MovementSourceSeeds,
-            StringComparer.OrdinalIgnoreCase,
-            cancellationToken);
-
-        await SeedLookupAsync(
-            context,
-            context.PaymentDirections,
-            direction => direction.Name!,
-            PaymentDirectionSeeds,
-            StringComparer.OrdinalIgnoreCase,
-            cancellationToken);
-
-        await SeedLookupAsync(
-            context,
-            context.InvoiceStatuses,
-            status => status.Name!,
-            InvoiceStatusSeeds,
-            StringComparer.OrdinalIgnoreCase,
-            cancellationToken);
-
-        await SeedLookupAsync(
-            context,
-            context.Units,
-            unit => unit.Name!,
-            UnitSeeds,
-            StringComparer.OrdinalIgnoreCase,
-            cancellationToken);
+        await SeedLookupAsync(context, context.PurchaseStatuses, PurchaseStatusSeeds, cancellationToken);
+        await SeedLookupAsync(context, context.OrderStatuses, OrderStatusSeeds, cancellationToken);
+        await SeedLookupAsync(context, context.PaymentTypes, PaymentTypeSeeds, cancellationToken);
+        await SeedLookupAsync(context, context.UserRoles, UserRoleSeeds, cancellationToken);
+        await SeedLookupAsync(context, context.ClientTypes, ClientTypeSeeds, cancellationToken);
+        await SeedLookupAsync(context, context.TransTypes, TransTypeSeeds, cancellationToken);
+        await SeedLookupAsync(context, context.TransModes, TransModeSeeds, cancellationToken);
+        await SeedLookupAsync(context, context.TransCategories, TransCategorySeeds, cancellationToken);
+        await SeedLookupAsync(context, context.ExpenseTypes, ExpenseTypeSeeds, cancellationToken);
+        await SeedLookupAsync(context, context.MovementTypes, MovementTypeSeeds, cancellationToken);
+        await SeedLookupAsync(context, context.MovementSources, MovementSourceSeeds, cancellationToken);
+        await SeedLookupAsync(context, context.PaymentDirections, PaymentDirectionSeeds, cancellationToken);
+        await SeedLookupAsync(context, context.InvoiceStatuses, InvoiceStatusSeeds, cancellationToken);
+        await SeedLookupAsync(context, context.Units, UnitSeeds, cancellationToken);
     }
 
-    private static async Task SeedLookupAsync<TEntity, TKey>(
+    private static async Task SeedLookupAsync<TEntity>(
         ApplicationDbContext context,
         DbSet<TEntity> dbSet,
-        Func<TEntity, TKey> keySelector,
         IEnumerable<TEntity> seeds,
-        IEqualityComparer<TKey>? keyComparer,
         CancellationToken cancellationToken)
         where TEntity : class
     {
-        var comparer = keyComparer ?? EqualityComparer<TKey>.Default;
+        var existing = await dbSet.ToListAsync(cancellationToken);
 
-        var existingKeys = (await dbSet
-            .AsNoTracking()
-            .ToListAsync(cancellationToken))
-            .Select(keySelector);
+        var existingById = existing
+            .ToDictionary(e => context.Entry(e).Property<int>("Id").CurrentValue);
 
-        var existingKeySet = new HashSet<TKey>(existingKeys, comparer);
-
-        var missingEntities = seeds
-            .Where(seed => !existingKeySet.Contains(keySelector(seed)))
-            .ToList();
-
-        if (missingEntities.Count == 0)
+        foreach (var seed in seeds)
         {
-            return;
+            var seedId = context.Entry(seed).Property<int>("Id").CurrentValue;
+
+            if (existingById.TryGetValue(seedId, out var row))
+            {
+                var entry = context.Entry(row);
+                var hasCreatedAt = entry.Metadata.FindProperty("CreatedAt") is not null;
+                DateOnly? createdAt = hasCreatedAt
+                    ? entry.Property<DateOnly?>("CreatedAt").CurrentValue
+                    : null;
+
+                entry.CurrentValues.SetValues(seed);
+
+                if (hasCreatedAt)
+                {
+                    entry.Property<DateOnly?>("CreatedAt").CurrentValue = createdAt;
+                }
+            }
+            else
+            {
+                await dbSet.AddAsync(seed, cancellationToken);
+            }
         }
 
-        await dbSet.AddRangeAsync(missingEntities, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 }

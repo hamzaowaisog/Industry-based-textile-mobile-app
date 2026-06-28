@@ -126,7 +126,7 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
 | `UserRole` | Admin (1), Staff (2) |
 | `ClientType` | Customer (1), Supplier (2) |
 | `OrderStatus` | Pending (1), InProgressed (2), Delivered (3), Cancelled (4) |
-| `PurchaseStatus` | Pending (1), InProgressed (2), Delivered (3), Cancelled (4) |
+| `PurchaseStatus` | Pending (1), InProgressed (2), Received (3), Cancelled (4) |
 | `PaymentType` | Cash (1), Credit (2) |
 | `PaymentDirection` | Received (1), Paid (2), Adjustment (3) |
 | `TransType` | Debit (1), Credit (2) |
@@ -165,7 +165,7 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
 **Purchases (Procurement)**
 - `Purchase` — `SupplierId` (FK → `Client` where `ClientTypeId=2`), `StatusId` (FK → `PurchaseStatus`), `PaymentTypeId`, `PurchaseDate`, `Notes`, `CreatedAt`
 - `PurchaseLine` — `PurchaseId`, `ProductId`, `Qty` (decimal 14,2), `UnitCost` (decimal 14,4)
-- `PurchaseStatus` — lookup (Pending=1, InProgressed=2, Delivered=3, Cancelled=4); seeded on startup
+- `PurchaseStatus` — lookup (Pending=1, InProgressed=2, Received=3, Cancelled=4); seeded on startup
 
 **Financials**
 - `Payment` — `PartyClientId` (FK → Client), `PaymentDirectionId`, `TransModeId`, `Amount`, `PaymentDate`, `Notes`, `CreatedAt`

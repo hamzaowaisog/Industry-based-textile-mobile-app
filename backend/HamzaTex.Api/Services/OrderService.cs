@@ -235,6 +235,7 @@ public class OrderService : IOrderService
         }
 
         // ── Normal update (Pending ↔ InProgressed, or field changes) ──
+        var oldStatusId = order.StatusId;
         order.StatusId = model.StatusId;
         if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
         order.Notes = model.Notes;
@@ -243,6 +244,18 @@ public class OrderService : IOrderService
         await _dbContext.SaveChangesAsync();
 
         var updated = await LoadOrderWithIncludes(id);
+        if (oldStatusId != model.StatusId)
+        {
+            var statusName = updated?.Status?.Name ?? model.StatusId.ToString();
+            try { await _notification.CreateAsync(new CreateNotificationDto
+            {
+                UserId = userId,
+                Type = "order_status_updated",
+                Title = "Order Status Updated",
+                Body = $"Order #{id} status changed to {statusName}",
+                EntityId = id
+            }); } catch { }
+        }
         return Response<OrderDto>.SuccessResponse(ToDto(updated!), "Order updated successfully.");
     }
 
