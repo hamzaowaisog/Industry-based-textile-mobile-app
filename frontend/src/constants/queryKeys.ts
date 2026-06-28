@@ -36,4 +36,9 @@ export const queryKeys = {
     detail: (id: number) => [...queryKeys.products.all, 'detail', id],
     movements: (id: number) => [...queryKeys.products.detail(id), 'movements'],
   },
+  purchases: {
+    all: ['purchases'],
+    list: () => [...queryKeys.purchases.all, 'list'],
+    detail: (id: number) => [...queryKeys.purchases.all, 'detail', id],
+  },
 };

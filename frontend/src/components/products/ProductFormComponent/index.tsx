@@ -74,7 +74,7 @@ export const ProductFormComponent = ({
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : undefined}
+        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
       >
         <View style={styles.header}>
           <TouchableOpacity style={styles.iconBtn} onPress={onCancel} activeOpacity={0.7}>

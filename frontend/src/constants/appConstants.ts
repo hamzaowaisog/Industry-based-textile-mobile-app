@@ -75,6 +75,14 @@ export const AppConstants = {
     CANCELLED: 4,
   },
 
+  // Purchase status IDs (matches backend seeded PurchaseStatus table — same values as ORDER_STATUS)
+  PURCHASE_STATUS: {
+    PENDING: 1,
+    IN_PROGRESS: 2,
+    DELIVERED: 3,
+    CANCELLED: 4,
+  },
+
   // Client detail tabs
   CLIENT_TABS: {
     ORDERS: 'orders',
@@ -160,6 +168,14 @@ export const AppConstants = {
   // Order create/edit wizard steps
   ORDER_WIZARD: {
     STEP_CLIENT: 0,
+    STEP_PRODUCTS: 1,
+    STEP_REVIEW: 2,
+    TOTAL_STEPS: 3,
+  },
+
+  // Purchase create/edit wizard steps
+  PURCHASE_WIZARD: {
+    STEP_SUPPLIER: 0,
     STEP_PRODUCTS: 1,
     STEP_REVIEW: 2,
     TOTAL_STEPS: 3,
@@ -269,6 +285,7 @@ export const AppConstants = {
       PURCHASE_LIST: 'PurchaseList',
       PURCHASE_DETAIL: 'PurchaseDetail',
       CREATE_PURCHASE: 'CreatePurchase',
+      EDIT_PURCHASE: 'EditPurchase',
       // Payment stack
       PAYMENT_LIST: 'PaymentList',
       RECORD_PAYMENT: 'RecordPayment',
@@ -318,17 +335,21 @@ export const AppConstants = {
       CLIENT_LIST: 'Client/pdf',
       ORDER_LIST: 'Order/pdf',
       PRODUCT_LIST: 'Product/pdf',
+      PURCHASE_LIST: 'Purchase/pdf',
       clientDossier: (id: number) => `Client/${id}/pdf`,
       orderDossier: (id: number) => `Order/${id}/pdf`,
       productDossier: (id: number) => `Product/${id}/pdf`,
+      purchaseDossier: (id: number) => `Purchase/${id}/pdf`,
     },
     FILENAMES: {
       CLIENT_LIST: 'clients.pdf',
       ORDER_LIST: 'orders.pdf',
       PRODUCT_LIST: 'products.pdf',
+      PURCHASE_LIST: 'purchases.pdf',
       clientDossier: (id: number) => `client-${id}.pdf`,
       orderDossier: (id: number) => `order-${id}.pdf`,
       productDossier: (id: number) => `product-${id}.pdf`,
+      purchaseDossier: (id: number) => `purchase-${id}.pdf`,
     },
   },
 

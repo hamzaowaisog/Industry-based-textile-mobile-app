@@ -47,8 +47,8 @@ export const ClientFormComponent = ({
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 0 : 0}
+        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
       >
         {/* Header */}
         <View style={styles.header}>

@@ -40,7 +40,6 @@ export const useProductForm = () => {
   const productId = route.params?.productId;
   const isEdit = !!productId;
 
-  const [submitting, setSubmitting] = useState(false);
   const [unitPickerVisible, setUnitPickerVisible] = useState(false);
 
   const metaUnits = useMetaStore((s) => s.getList)(AppConstants.META.UNITS);
@@ -74,42 +73,33 @@ export const useProductForm = () => {
 
   const isDiscardingRef = useRef(false);
 
-  const onSubmit = useCallback(
-    async (values: ProductFormValues) => {
-      setSubmitting(true);
-      try {
-        const result =
-          isEdit && productId
-            ? await updateProductAsync(productId, values)
-            : await createProductAsync(values);
-
-        if (result.success) {
-          showSuccess(
-            i18n.t(isEdit ? 'products.edit.successTitle' : 'products.create.successTitle'),
-            i18n.t(isEdit ? 'products.edit.successSubtitle' : 'products.create.successSubtitle'),
-          );
-          isDiscardingRef.current = true;
-          navigation.goBack();
-        } else {
-          showError(
-            i18n.t(isEdit ? 'products.edit.errorTitle' : 'products.create.errorTitle'),
-            result.error ?? i18n.t('common.errorGeneric'),
-          );
-        }
-      } finally {
-        setSubmitting(false);
-      }
-    },
-    [isEdit, productId, navigation],
-  );
-
   const formik = useFormik<ProductFormValues>({
     initialValues,
     enableReinitialize: true,
     validationSchema: isEdit ? productEditValidationSchema : productCreateValidationSchema,
     validateOnBlur: true,
     validateOnChange: false,
-    onSubmit,
+    onSubmit: async (values, helpers) => {
+      const result =
+        isEdit && productId
+          ? await updateProductAsync(productId, values)
+          : await createProductAsync(values);
+
+      if (result.success) {
+        showSuccess(
+          i18n.t(isEdit ? 'products.edit.successTitle' : 'products.create.successTitle'),
+          i18n.t(isEdit ? 'products.edit.successSubtitle' : 'products.create.successSubtitle'),
+        );
+        isDiscardingRef.current = true;
+        navigation.goBack();
+      } else {
+        helpers.setSubmitting(false);
+        showError(
+          i18n.t(isEdit ? 'products.edit.errorTitle' : 'products.create.errorTitle'),
+          result.error ?? i18n.t('common.errorGeneric'),
+        );
+      }
+    },
   });
 
   const confirmDiscard = useCallback((onConfirm: () => void) => {
@@ -140,7 +130,7 @@ export const useProductForm = () => {
 
   return {
     isEdit,
-    submitting,
+    submitting: formik.isSubmitting,
     loading: isEdit ? loading && !existingProduct : false,
     unitPickerVisible,
     values: formik.values,

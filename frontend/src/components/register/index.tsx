@@ -86,7 +86,7 @@ export const RegisterComponent = ({
 
       <KeyboardAvoidingView
         style={styles.formCardWrapper}
-        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : undefined}
+        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
       >
         <ScrollView
           style={styles.formCard}

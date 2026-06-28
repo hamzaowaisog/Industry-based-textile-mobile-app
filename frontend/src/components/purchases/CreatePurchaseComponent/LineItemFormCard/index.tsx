@@ -2,6 +2,8 @@ import { useRef } from 'react';
 
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+import { useTranslation } from 'react-i18next';
+
 import { AppAmount } from '@components/common/AppAmount';
 import { AppCard } from '@components/common/AppCard';
 import { AppInputField } from '@components/common/AppInputField';
@@ -10,23 +12,23 @@ import { colors } from '@theme/colors';
 
 import { TrashIcon } from '@constants/svgAssets';
 
-import type { LineItemFormCardProps } from '../../../../types/orders.types';
+import type { PurchaseLineItemFormCardProps } from '../../../../types/purchases.types';
 import { styles } from './styles';
 
 export const LineItemFormCard = ({
   line,
   index,
   qtyError,
-  availableLabel,
-  labels,
   onRemove,
   onChange,
   onSelectProduct,
-}: LineItemFormCardProps) => {
-  const unitPriceRef = useRef<TextInput>(null);
+}: PurchaseLineItemFormCardProps) => {
+  const { t } = useTranslation();
+  const unitCostRef = useRef<TextInput>(null);
+
   const qty = parseFloat(line.qty) || 0;
-  const price = parseFloat(line.unitPrice) || 0;
-  const lineTotal = qty * price;
+  const cost = parseFloat(line.unitCost) || 0;
+  const lineTotal = qty * cost;
 
   return (
     <AppCard padding={14}>
@@ -44,7 +46,7 @@ export const LineItemFormCard = ({
                   <Text style={styles.productSku}>{line.sku}</Text>
                 </>
               ) : (
-                <Text style={styles.productPlaceholder}>{labels.addProduct}</Text>
+                <Text style={styles.productPlaceholder}>{t('purchases.create.addProduct')}</Text>
               )}
             </View>
           </TouchableOpacity>
@@ -56,28 +58,25 @@ export const LineItemFormCard = ({
         <View style={styles.inputRow}>
           <View style={styles.halfField}>
             <AppInputField
-              label={labels.qty}
+              label={t('purchases.create.qty')}
               required
               value={line.qty}
-              onChangeText={(v) => onChange(index, 'qty', v, line.productId)}
+              onChangeText={(v) => onChange(index, 'qty', v)}
               onBlur={() => {}}
               placeholder="0"
               error={qtyError}
               keyboardType="numeric"
               returnKeyType="next"
-              onSubmitEditing={() => unitPriceRef.current?.focus()}
+              onSubmitEditing={() => unitCostRef.current?.focus()}
             />
-            {availableLabel && !qtyError ? (
-              <Text style={styles.availableLabel}>{availableLabel}</Text>
-            ) : null}
           </View>
           <View style={styles.halfField}>
             <AppInputField
-              ref={unitPriceRef}
-              label={labels.unitPrice}
+              ref={unitCostRef}
+              label={t('purchases.create.unitCost')}
               required
-              value={line.unitPrice}
-              onChangeText={(v) => onChange(index, 'unitPrice', v)}
+              value={line.unitCost}
+              onChangeText={(v) => onChange(index, 'unitCost', v)}
               onBlur={() => {}}
               placeholder="0.00"
               keyboardType="decimal-pad"
@@ -88,8 +87,8 @@ export const LineItemFormCard = ({
 
         {lineTotal > 0 && (
           <View style={styles.lineTotalRow}>
-            <Text style={styles.lineTotalLabel}>{labels.lineTotal}</Text>
-            <AppAmount value={lineTotal} size={16} />
+            <Text style={styles.lineTotalLabel}>{t('purchases.create.lineTotal')}</Text>
+            <AppAmount value={lineTotal} size={16} tone="debit" />
           </View>
         )}
       </View>

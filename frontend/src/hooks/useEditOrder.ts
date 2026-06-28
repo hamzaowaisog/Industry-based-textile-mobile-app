@@ -4,12 +4,14 @@ import { Alert } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useFormik } from 'formik';
 
 import { useMetaStore } from '@stores/metaStore';
 import { useOrderStore } from '@stores/orderStore';
 
 import i18n from '@utils/i18n';
 import { showError, showSuccess } from '@utils/toast';
+import { editOrderStep2Schema } from '@utils/validation/orderValidation';
 
 import { AppConstants } from '@constants/appConstants';
 
@@ -33,17 +35,59 @@ export const useEditOrder = (orderId: number) => {
   const getList = useMetaStore((s) => s.getList);
 
   const [step, setStep] = useState<number>(AppConstants.ORDER_WIZARD.STEP_CLIENT);
-  const [values, setValues] = useState<EditOrderFormValues>({
-    paymentTypeId: AppConstants.PAYMENT_TYPE.CASH,
-    notes: '',
-    lines: [],
-  });
-  const initialValues = useRef<EditOrderFormValues | null>(null);
-  const [errors, setErrors] = useState<Partial<Record<keyof EditOrderFormValues, string>>>({});
-  const [touched, setTouched] = useState<Partial<Record<keyof EditOrderFormValues, boolean>>>({});
+  const [productPickerVisible, setProductPickerVisible] = useState(false);
+  const productPickerIndex = useRef<number>(-1);
+  const [currentPickerLineIndex, setCurrentPickerLineIndex] = useState(-1);
+  const [products, setProducts] = useState<ProductPickerItem[]>([]);
   const [lineErrors, setLineErrors] = useState<{ qty?: string }[]>([]);
   const [lineAvailability, setLineAvailability] = useState<(string | undefined)[]>([]);
-  const [submitting, setSubmitting] = useState(false);
+  const initialValuesRef = useRef<EditOrderFormValues | null>(null);
+
+  useEffect(() => {
+    fetchProductsAsync()
+      .then(setProducts)
+      .catch(() => {});
+  }, []);
+
+  const paymentTypes = getList(AppConstants.META.PAYMENT_TYPES).map((p) => ({
+    id: p.id ?? 1,
+    name: p.name ?? '',
+  }));
+
+  const formik = useFormik<EditOrderFormValues>({
+    initialValues: {
+      paymentTypeId: AppConstants.PAYMENT_TYPE.CASH,
+      notes: '',
+      lines: [],
+    },
+    validateOnBlur: true,
+    validateOnChange: false,
+    onSubmit: async (values, helpers) => {
+      if (!currentOrder) return;
+      const [headerResult, linesResult] = await Promise.all([
+        updateOrderHeaderAsync(orderId, currentOrder.statusId, values.paymentTypeId, values.notes),
+        updateOrderLinesAsync(orderId, values),
+      ]);
+      if (!headerResult.success) {
+        helpers.setSubmitting(false);
+        showError(
+          i18n.t('orders.edit.errorTitle'),
+          headerResult.error ?? i18n.t('common.errorGeneric'),
+        );
+        return;
+      }
+      if (!linesResult.success) {
+        helpers.setSubmitting(false);
+        showError(
+          i18n.t('orders.edit.errorTitle'),
+          linesResult.error ?? i18n.t('common.errorGeneric'),
+        );
+        return;
+      }
+      showSuccess(i18n.t('orders.edit.successTitle'), i18n.t('orders.edit.successSubtitle'));
+      navigation.goBack();
+    },
+  });
 
   // Pre-fill when order loads
   useEffect(() => {
@@ -62,24 +106,12 @@ export const useEditOrder = (orderId: number) => {
         unitPrice: String(l.unitPrice ?? ''),
       })),
     };
-    setValues(filled);
-    initialValues.current = filled;
+    initialValuesRef.current = filled;
+    formik.resetForm({ values: filled });
   }, [currentOrder?.id, orderId]);
 
-  // Products
-  const [products, setProducts] = useState<ProductPickerItem[]>([]);
-  const [productPickerVisible, setProductPickerVisible] = useState(false);
-  const productPickerIndex = useRef<number>(-1);
-  const [currentPickerLineIndex, setCurrentPickerLineIndex] = useState(-1);
-
-  useEffect(() => {
-    fetchProductsAsync()
-      .then(setProducts)
-      .catch(() => {});
-  }, []);
-
   const getOriginalCommittedQty = useCallback((index: number, productId: number): number => {
-    const original = initialValues.current?.lines[index];
+    const original = initialValuesRef.current?.lines[index];
     if (!original || original.productId !== productId) return 0;
     return parseFloat(original.qty) || 0;
   }, []);
@@ -87,7 +119,7 @@ export const useEditOrder = (orderId: number) => {
   useEffect(() => {
     if (!currentOrder || currentOrder.id !== orderId || products.length === 0) return;
     setLineAvailability(
-      values.lines.map((line, index) => {
+      formik.values.lines.map((line, index) => {
         const prod = products.find((p) => p.id === line.productId);
         if (!prod) return undefined;
         const entered = parseFloat(line.qty) || 0;
@@ -97,11 +129,11 @@ export const useEditOrder = (orderId: number) => {
         });
       }),
     );
-  }, [currentOrder?.id, orderId, products, values.lines.length, getOriginalCommittedQty]);
+  }, [currentOrder?.id, orderId, products, formik.values.lines.length, getOriginalCommittedQty]);
 
   const productItems = useMemo(() => {
     const usedIds = new Set(
-      values.lines
+      formik.values.lines
         .filter((_, i) => i !== currentPickerLineIndex)
         .map((l) => l.productId)
         .filter((id) => id > 0),
@@ -109,57 +141,51 @@ export const useEditOrder = (orderId: number) => {
     return products
       .filter((p) => !usedIds.has(p.id))
       .map((p) => ({ id: p.id, name: p.name, subtitle: p.sku }));
-  }, [products, values.lines, currentPickerLineIndex]);
+  }, [products, formik.values.lines, currentPickerLineIndex]);
 
-  const paymentTypes = getList(AppConstants.META.PAYMENT_TYPES).map((p) => ({
-    id: p.id ?? 1,
-    name: p.name ?? '',
-  }));
-
-  const runningTotal = values.lines.reduce(
+  const runningTotal = formik.values.lines.reduce(
     (sum, l) => sum + (parseFloat(l.qty) || 0) * (parseFloat(l.unitPrice) || 0),
     0,
   );
 
-  // Validation
-  const validateStep2 = (): boolean => {
-    if (values.lines.length === 0) {
-      showError(i18n.t('orders.edit.errorTitle'), i18n.t('orders.edit.noLinesError'));
-      return false;
-    }
-    const hasInvalid = values.lines.some(
-      (l) => !l.productId || !parseFloat(l.qty) || !parseFloat(l.unitPrice),
-    );
-    if (hasInvalid) {
-      showError(i18n.t('orders.edit.errorTitle'), i18n.t('orders.edit.incompleteLines'));
-      return false;
-    }
-    const hasQtyError = lineErrors.some((e) => e?.qty);
-    if (hasQtyError) {
-      showError(i18n.t('orders.edit.errorTitle'), i18n.t('orders.edit.qtyErrorExists'));
-      return false;
-    }
-    return true;
-  };
-
   const hasUnsavedChanges = useMemo(() => {
-    const init = initialValues.current;
+    const init = initialValuesRef.current;
     if (!init) return false;
-    if (values.paymentTypeId !== init.paymentTypeId) return true;
-    if (values.notes.trim() !== init.notes.trim()) return true;
-    if (values.lines.length !== init.lines.length) return true;
-    return values.lines.some(
+    if (formik.values.paymentTypeId !== init.paymentTypeId) return true;
+    if (formik.values.notes.trim() !== init.notes.trim()) return true;
+    if (formik.values.lines.length !== init.lines.length) return true;
+    return formik.values.lines.some(
       (l, i) =>
         l.productId !== init.lines[i].productId ||
         l.qty !== init.lines[i].qty ||
         l.unitPrice !== init.lines[i].unitPrice,
     );
-  }, [values]);
+  }, [formik.values]);
 
-  const onNext = useCallback(() => {
-    if (step === AppConstants.ORDER_WIZARD.STEP_PRODUCTS && !validateStep2()) return;
+  const onNext = useCallback(async () => {
+    if (step === AppConstants.ORDER_WIZARD.STEP_PRODUCTS) {
+      try {
+        await editOrderStep2Schema.validate(formik.values, { abortEarly: false });
+        const hasInvalid = formik.values.lines.some(
+          (l) => !l.productId || !parseFloat(l.qty) || !parseFloat(l.unitPrice),
+        );
+        if (hasInvalid) {
+          showError(i18n.t('orders.edit.errorTitle'), i18n.t('orders.edit.incompleteLines'));
+          return;
+        }
+        const hasQtyError = lineErrors.some((e) => e?.qty);
+        if (hasQtyError) {
+          showError(i18n.t('orders.edit.errorTitle'), i18n.t('orders.edit.qtyErrorExists'));
+          return;
+        }
+        setStep((s) => s + 1);
+      } catch {
+        showError(i18n.t('orders.edit.errorTitle'), i18n.t('orders.edit.noLinesError'));
+      }
+      return;
+    }
     setStep((s) => s + 1);
-  }, [step, values, lineErrors]);
+  }, [step, formik.values, lineErrors]);
 
   const onBack = useCallback(() => {
     if (step > AppConstants.ORDER_WIZARD.STEP_CLIENT) {
@@ -180,61 +206,42 @@ export const useEditOrder = (orderId: number) => {
     ]);
   }, [step, hasUnsavedChanges, navigation]);
 
-  const onSubmit = useCallback(async () => {
-    if (!currentOrder) return;
-    setSubmitting(true);
-    try {
-      const [headerResult, linesResult] = await Promise.all([
-        updateOrderHeaderAsync(orderId, currentOrder.statusId, values.paymentTypeId, values.notes),
-        updateOrderLinesAsync(orderId, values),
-      ]);
-      if (!headerResult.success) {
-        showError(
-          i18n.t('orders.edit.errorTitle'),
-          headerResult.error ?? i18n.t('common.errorGeneric'),
-        );
-        return;
-      }
-      if (!linesResult.success) {
-        showError(
-          i18n.t('orders.edit.errorTitle'),
-          linesResult.error ?? i18n.t('common.errorGeneric'),
-        );
-        return;
-      }
-      showSuccess(i18n.t('orders.edit.successTitle'), i18n.t('orders.edit.successSubtitle'));
-      navigation.goBack();
-    } finally {
-      setSubmitting(false);
-    }
-  }, [currentOrder, orderId, values, navigation]);
+  const onFieldChange = useCallback(
+    (field: keyof EditOrderFormValues, value: any) => {
+      void formik.setFieldValue(field, value);
+    },
+    [formik.setFieldValue],
+  );
 
-  const onFieldChange = useCallback((field: keyof EditOrderFormValues, value: any) => {
-    setValues((v) => ({ ...v, [field]: value }));
-    setErrors((e) => ({ ...e, [field]: undefined }));
-  }, []);
-
-  const onFieldBlur = useCallback((field: keyof EditOrderFormValues) => {
-    setTouched((t) => ({ ...t, [field]: true }));
-  }, []);
+  const onFieldBlur = useCallback(
+    (field: keyof EditOrderFormValues) => {
+      void formik.setFieldTouched(field, true, true);
+    },
+    [formik.setFieldTouched],
+  );
 
   const onAddLine = useCallback(() => {
-    setValues((v) => ({ ...v, lines: [...v.lines, { ...EMPTY_LINE }] }));
-  }, []);
+    void formik.setFieldValue('lines', [...formik.values.lines, { ...EMPTY_LINE }]);
+  }, [formik.setFieldValue, formik.values.lines]);
 
-  const onRemoveLine = useCallback((index: number) => {
-    setValues((v) => ({ ...v, lines: v.lines.filter((_, i) => i !== index) }));
-    setLineErrors((prev) => prev.filter((_, i) => i !== index));
-    setLineAvailability((prev) => prev.filter((_, i) => i !== index));
-  }, []);
+  const onRemoveLine = useCallback(
+    (index: number) => {
+      void formik.setFieldValue(
+        'lines',
+        formik.values.lines.filter((_, i) => i !== index),
+      );
+      setLineErrors((prev) => prev.filter((_, i) => i !== index));
+      setLineAvailability((prev) => prev.filter((_, i) => i !== index));
+    },
+    [formik.setFieldValue, formik.values.lines],
+  );
 
   const onLineChange = useCallback(
     (index: number, field: keyof OrderLineFormValues, value: string, productId?: number) => {
-      setValues((v) => {
-        const lines = [...v.lines];
-        lines[index] = { ...lines[index], [field]: value };
-        return { ...v, lines };
-      });
+      const lines = [...formik.values.lines];
+      lines[index] = { ...lines[index], [field]: value };
+      void formik.setFieldValue('lines', lines);
+
       if (field === 'qty') {
         const entered = parseFloat(value) || 0;
         const prod = products.find((p) => p.id === productId);
@@ -258,7 +265,7 @@ export const useEditOrder = (orderId: number) => {
         });
       }
     },
-    [products, getOriginalCommittedQty],
+    [products, getOriginalCommittedQty, formik.setFieldValue, formik.values.lines],
   );
 
   const onSelectProduct = useCallback((index: number) => {
@@ -271,17 +278,15 @@ export const useEditOrder = (orderId: number) => {
     (id: number, name: string) => {
       const idx = productPickerIndex.current;
       const product = products.find((p) => p.id === id);
-      setValues((v) => {
-        const lines = [...v.lines];
-        lines[idx] = {
-          ...lines[idx],
-          productId: id,
-          productName: name,
-          sku: product?.sku ?? '',
-          unitPrice: product?.defaultPrice ? String(product.defaultPrice) : lines[idx].unitPrice,
-        };
-        return { ...v, lines };
-      });
+      const lines = [...formik.values.lines];
+      lines[idx] = {
+        ...lines[idx],
+        productId: id,
+        productName: name,
+        sku: product?.sku ?? '',
+        unitPrice: product?.defaultPrice ? String(product.defaultPrice) : lines[idx].unitPrice,
+      };
+      void formik.setFieldValue('lines', lines);
       setLineErrors((prev) => {
         const next = [...prev];
         if (next[idx]) next[idx] = { ...next[idx], qty: undefined };
@@ -297,17 +302,17 @@ export const useEditOrder = (orderId: number) => {
       });
       setProductPickerVisible(false);
     },
-    [products, getOriginalCommittedQty],
+    [products, getOriginalCommittedQty, formik.setFieldValue, formik.values.lines],
   );
 
   return {
     step,
-    values,
-    errors,
-    touched,
+    values: formik.values,
+    errors: formik.errors as Partial<Record<keyof EditOrderFormValues, string>>,
+    touched: formik.touched as Partial<Record<keyof EditOrderFormValues, boolean>>,
     lineErrors,
     lineAvailability,
-    submitting,
+    submitting: formik.isSubmitting,
     loading: detailLoading,
     clientName: currentOrder?.clientName ?? '',
     orderId,
@@ -317,7 +322,7 @@ export const useEditOrder = (orderId: number) => {
     productPickerVisible,
     onNext,
     onBack,
-    onSubmit,
+    onSubmit: formik.handleSubmit,
     onFieldChange,
     onFieldBlur,
     onAddLine,
