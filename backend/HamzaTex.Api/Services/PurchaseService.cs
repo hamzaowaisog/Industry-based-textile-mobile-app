@@ -455,7 +455,9 @@ public class PurchaseService : IPurchaseService
                 foreach (var line in purchase.PurchaseLines)
                 {
                     if (line.ProductId is null) continue;
-                    var product = await _dbContext.Products.FindAsync(line.ProductId.Value);
+                    var product = await _dbContext.Products
+                        .Include(p => p.Unit)
+                        .FirstOrDefaultAsync(p => p.Id == line.ProductId.Value);
                     if (product is null)
                     {
                         await transaction.RollbackAsync();
@@ -466,7 +468,7 @@ public class PurchaseService : IPurchaseService
                         await transaction.RollbackAsync();
                         return Response<PurchaseDto>.ErrorResponse("Cannot cancel purchase",
                             $"Product '{product.Name}' has insufficient stock to reverse this purchase " +
-                            $"(available: {product.Quantity ?? 0} {product.Unit}, required: {line.Qty} {product.Unit}). " +
+                            $"(available: {product.Quantity ?? 0} {product.Unit?.Name}, required: {line.Qty} {product.Unit?.Name}). " +
                             "The received goods have already been fully consumed — record a manual adjustment instead.");
                     }
                 }

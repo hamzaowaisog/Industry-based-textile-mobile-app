@@ -4,7 +4,7 @@ public class ProductCreateViewModel
 {
     public string Name { get; set; } = string.Empty;
     public string Sku { get; set; } = string.Empty;
-    public string Unit { get; set; } = string.Empty;
+    public int UnitId { get; set; }
     public decimal? DefaultCost { get; set; }
     public decimal? DefaultPrice { get; set; }
     public decimal? Quantity { get; set; }
@@ -16,7 +16,7 @@ public class ProductUpdateViewModel
 {
     public string Name { get; set; } = string.Empty;
     public string Sku { get; set; } = string.Empty;
-    public string Unit { get; set; } = string.Empty;
+    public int UnitId { get; set; }
     public decimal? DefaultCost { get; set; }
     public decimal? DefaultPrice { get; set; }
     public decimal? Quantity { get; set; }

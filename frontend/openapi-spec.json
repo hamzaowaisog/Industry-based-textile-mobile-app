@@ -8816,10 +8816,10 @@
             "nullable": true,
             "example": "FAB-001"
           },
-          "unit": {
-            "type": "string",
-            "nullable": true,
-            "example": "Meters"
+          "unitId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
           },
           "defaultCost": {
             "type": "number",
@@ -8870,10 +8870,15 @@
             "nullable": true,
             "example": "FAB-001"
           },
-          "unit": {
+          "unitId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "unitName": {
             "type": "string",
             "nullable": true,
-            "example": "Meters"
+            "example": "string"
           },
           "defaultCost": {
             "type": "number",
@@ -9067,10 +9072,10 @@
             "nullable": true,
             "example": "FAB-001"
           },
-          "unit": {
-            "type": "string",
-            "nullable": true,
-            "example": "Meters"
+          "unitId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
           },
           "defaultCost": {
             "type": "number",

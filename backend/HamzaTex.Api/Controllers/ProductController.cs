@@ -43,7 +43,7 @@ public class ProductController : BaseController
         {
             Name = model.Name,
             Sku = model.Sku,
-            Unit = model.Unit,
+            UnitId = model.UnitId,
             DefaultCost = model.DefaultCost,
             DefaultPrice = model.DefaultPrice,
             Quantity = model.Quantity,
@@ -109,7 +109,7 @@ public class ProductController : BaseController
         {
             Name = model.Name,
             Sku = model.Sku,
-            Unit = model.Unit,
+            UnitId = model.UnitId,
             DefaultCost = model.DefaultCost,
             DefaultPrice = model.DefaultPrice,
             Quantity = model.Quantity,
@@ -203,12 +203,12 @@ public class ProductController : BaseController
             Reference           = p.Sku,
             IssuedDate          = DateTime.Now,
             PreparedFor         = p.Name,
-            PreparedForSubtitle = $"SKU {p.Sku} · Unit {p.Unit}",
+            PreparedForSubtitle = $"SKU {p.Sku} · Unit {p.UnitName}",
             PeriodLabel         = "AS OF",
             PeriodValue         = DateTime.Now.ToString("dd MMM yyyy"),
             Stats = new()
             {
-                new Stat("Current Stock", $"{qty:0.##} {p.Unit}"),
+                new Stat("Current Stock", $"{qty:0.##} {p.UnitName}"),
                 new Stat("Avg Cost", PdfFormat.Rs(avgCost)),
                 new Stat("Avg Price", PdfFormat.Rs(p.AveragePrice ?? 0)),
                 new Stat("Inventory Value", PdfFormat.Rs(inventoryValue), Highlight: true),
@@ -232,11 +232,11 @@ public class ProductController : BaseController
             },
             Closing = new ClosingSummary(
                 LeftLabel:    "LIFETIME MOVEMENT",
-                LeftSubtitle: $"{p.TotalQuantityPurchased ?? 0:0.##} {p.Unit} in · {p.TotalQuantitySold ?? 0:0.##} {p.Unit} out",
+                LeftSubtitle: $"{p.TotalQuantityPurchased ?? 0:0.##} {p.UnitName} in · {p.TotalQuantitySold ?? 0:0.##} {p.UnitName} out",
                 RightLabel:   "CURRENT STOCK",
-                RightValue:   $"{qty:0.##} {p.Unit}"),
+                RightValue:   $"{qty:0.##} {p.UnitName}"),
             ClosingNote = isLowStock
-                ? $"Below reorder level ({p.ReorderLevel} {p.Unit})."
+                ? $"Below reorder level ({p.ReorderLevel} {p.UnitName})."
                 : $"{movements.Count} stock movements recorded.",
         };
 

@@ -1,11 +1,12 @@
 namespace HamzaTex.Api.Models;
 
-public class ProductDto 
+public class ProductDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Sku { get; set; } = string.Empty;
-    public string Unit { get; set; } = string.Empty;
+    public int UnitId { get; set; }
+    public string UnitName { get; set; } = string.Empty;
     public decimal? DefaultCost { get; set; }
     public decimal? DefaultPrice { get; set; }
     public decimal? Quantity { get; set; }
@@ -26,7 +27,7 @@ public class CreateProductDto
 {
     public string Name { get; set; } = string.Empty;
     public string Sku { get; set; } = string.Empty;
-    public string Unit { get; set; } = string.Empty;
+    public int UnitId { get; set; }
     public decimal? DefaultCost { get; set; }
     public decimal? DefaultPrice { get; set; }
     public decimal? Quantity { get; set; }
@@ -45,7 +46,7 @@ public class UpdateProductByIdDto
 {
     public string Name { get; set; } = string.Empty;
     public string Sku { get; set; } = string.Empty;
-    public string Unit { get; set; } = string.Empty;
+    public int UnitId { get; set; }
     public decimal? DefaultCost { get; set; }
     public decimal? DefaultPrice { get; set; }
     public decimal? Quantity { get; set; }

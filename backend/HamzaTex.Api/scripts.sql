@@ -1568,6 +1568,35 @@ VALUES ('20260628215908_AddStockMovementDimensionOverride', '9.0.10');
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260628220600_BackfillStockMovementDimensionOverride', '9.0.10');
 
+ALTER TABLE `products` ADD `unit_id` int NULL;
+
+UPDATE products SET unit_id = 1 WHERE LOWER(unit) IN ('m','metre','meter','metres','meters')
+
+UPDATE products SET unit_id = 2 WHERE LOWER(unit) IN ('kg','kilogram','kilograms','kgs')
+
+UPDATE products SET unit_id = 3 WHERE LOWER(unit) IN ('pcs','piece','pieces','pc')
+
+UPDATE products SET unit_id = 4 WHERE LOWER(unit) IN ('yard','yards','yd','yds')
+
+UPDATE products SET unit_id = 5 WHERE LOWER(unit) IN ('roll','rolls')
+
+UPDATE products SET unit_id = 6 WHERE LOWER(unit) IN ('bale','bales')
+
+UPDATE products SET unit_id = 7 WHERE LOWER(unit) IN ('cone','cones')
+
+UPDATE products SET unit_id = 1 WHERE unit_id IS NULL
+
+ALTER TABLE `products` MODIFY COLUMN `unit_id` int NOT NULL;
+
+CREATE INDEX `IX_products_unit_id` ON `products` (`unit_id`);
+
+ALTER TABLE `products` ADD CONSTRAINT `FK_products_units_unit_id` FOREIGN KEY (`unit_id`) REFERENCES `units` (`id`) ON DELETE RESTRICT;
+
+ALTER TABLE `products` DROP COLUMN `unit`;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260630132000_WireProductUnitForeignKey', '9.0.10');
+
 COMMIT;
 
 

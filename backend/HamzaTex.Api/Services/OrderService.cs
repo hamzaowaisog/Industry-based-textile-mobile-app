@@ -567,7 +567,8 @@ public class OrderService : IOrderService
 
         var products = await _dbContext.Products
             .Where(p => productIds.Contains(p.Id))
-            .ToDictionaryAsync(p => p.Id, p => new { Quantity = p.Quantity ?? 0, p.Unit });
+            .Select(p => new { p.Id, Quantity = p.Quantity ?? 0, UnitName = p.Unit.Name ?? "units" })
+            .ToDictionaryAsync(p => p.Id);
 
         var reservedQuery = _dbContext.OrderLines
             .Where(ol => ol.ProductId != null && productIds.Contains(ol.ProductId.Value)
@@ -587,7 +588,7 @@ public class OrderService : IOrderService
             var alreadyCommitted = reserved.GetValueOrDefault(productId, 0);
             var available = product.Quantity - alreadyCommitted;
             if (requestedQty > available)
-                return $"Available: {available} {product.Unit}, Requested: {requestedQty} {product.Unit} (Product ID {productId}).";
+                return $"Available: {available} {product.UnitName}, Requested: {requestedQty} {product.UnitName} (Product ID {productId}).";
         }
         return null;
     }

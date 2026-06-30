@@ -121,7 +121,7 @@ public class StockMovementsService : IStockMovementsService
             {
                 if (ownTransaction) await transaction!.RollbackAsync();
                 return Response<StockMovementsDto>.ErrorResponse("Insufficient stock",
-                    $"Available: {qtyBefore} {productData.Unit}, Requested: {model.Qty} {productData.Unit}");
+                    $"Available: {qtyBefore} {productData.UnitName}, Requested: {model.Qty} {productData.UnitName}");
             }
             decimal qtyAfter = qtyBefore + stockDelta;
             productData.Quantity = qtyAfter;
@@ -169,7 +169,7 @@ public class StockMovementsService : IStockMovementsService
             {
                 Name = productData.Name,
                 Sku = productData.Sku,
-                Unit = productData.Unit,
+                UnitId = productData.UnitId,
                 DefaultCost = productData.DefaultCost,
                 DefaultPrice = productData.DefaultPrice,
                 Quantity = productData.Quantity,
