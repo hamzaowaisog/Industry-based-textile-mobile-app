@@ -53,7 +53,7 @@ export const ProductCard = React.memo(({ product, onPress }: ProductCardProps) =
         )}
         <Text style={styles.subLine}>
           {!product.isOut &&
-            `${product.unit} · ${AppConstants.CURRENCY.PREFIX}${product.avgPrice.toLocaleString()}`}
+            `${product.unitName} · ${AppConstants.CURRENCY.PREFIX}${product.avgPrice.toLocaleString()}`}
         </Text>
         {!product.isOut && (
           <Text style={styles.availableLine}>

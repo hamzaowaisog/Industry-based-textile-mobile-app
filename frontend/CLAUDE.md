@@ -528,39 +528,9 @@ Every list screen (Clients, Products, Orders, Purchases, Payments, Invoices, Exp
 
 ## Implementation Status
 
-### Done
+Done: Auth flow, Dashboard, Navigation skeleton, Orval API layer, `authStore`/`metaStore`, `core/` with shared `parseApiResponse`/`parseApiError`, Clients/Products/Orders features, common components, theme, i18n. The List-screen convention (Rule 11) is established — copy Clients/Products/Orders as the template.
 
-- **Auth flow** — Splash, Welcome, Onboarding ×3, Login, Biometric, ForgotPassword, OTP Verification, ResetPassword, Register, Terms, Privacy
-- **Dashboard** — stat cards (orders, outstanding, pending payments, low stock), bar chart (monthly overview), recent orders/purchases list, skeleton loader; data from live API
-- **Navigation skeleton** — `RootNavigator`, `AuthNavigator`, `MainNavigator` (drawer), `DrawerContent`, all 13 domain stacks registered
-- **API layer** — full Orval-generated client (`src/api/generated/`), `axiosInstance.ts` with JWT bearer + 401 refresh; `orval.config.js` uses `clean: true`
-- **Stores** — `authStore`, `lookupsStore`
-- **Core** — `core/auth.ts`, `core/clients.ts`; shared `parseApiResponse` / `parseApiError` in `src/utils/helpers/apiResponse.ts` — use these in every new core file
-- **Clients feature** — List, Detail (tabbed: orders/purchases/payments/invoices/transactions), Form (create + edit)
-- **Products feature** — List (infinite-paginated), Detail (stat grid + line chart), Form
-- **Orders feature** — List (infinite-paginated), Detail, Create (3-step), Edit
-- **List-screen convention** — Rule 11 below (infinite-query pagination, `React.memo` row cards, shared `SkeletonRow` footer) is established in **Clients / Products / Orders**; copy these as the template for every remaining list screen
-- **Common components** — `AppBottomSheet`, `AppToast`
-- **Theme** — `colors.ts`, `typography.ts`, `spacing.ts` aligned to v3 tokens
-- **i18n** — `src/locales/en.json` with all current keys
-
-### Still Needed (domain stacks are placeholder only)
-
-| Feature               | Screens                                     | Design ref                  |
-| --------------------- | ------------------------------------------- | --------------------------- |
-| Purchases             | List, Detail, Create                        | `screens-purchases.jsx`     |
-| Payments              | List, Record payment                        | `screens-finance.jsx`       |
-| Invoices              | List, Detail + PDF viewer                   | `screens-finance.jsx`       |
-| Expenses              | List, Add                                   | `screens-finance.jsx`       |
-| Stock Movements       | List, Add                                   | `screens-stock-trans.jsx`   |
-| Transactions / Ledger | List                                        | `screens-stock-trans.jsx`   |
-| Reports               | Hub + 5 report screens (Admin only)         | `screens-reports-extra.jsx` |
-| Users                 | List, Create (Admin only)                   | `screens-admin.jsx`         |
-| Settings              | Profile, security, notifications, sign-out  | `screens-system.jsx`        |
-| Change Password       | Form + strength indicator                   | `screens-system.jsx`        |
-| Notification Center   | List, deep-link taps                        | `screens-extras.jsx`        |
-
-For each screen also implement: loading skeleton, empty state (illustration + CTA), error state (message + retry).
+Remaining feature screens (Purchases, Payments, Invoices, Expenses, Stock Movements, Transactions, Reports, Users, Settings, Change Password, Notification Center) and per-screen design refs are tracked in `todo/12-frontend.md`. Every screen needs: loading skeleton, empty state (illustration + CTA), error state (message + retry).
 
 ---
 

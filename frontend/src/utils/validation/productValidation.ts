@@ -5,7 +5,7 @@ import i18n from '@utils/i18n';
 export const productCreateValidationSchema = Yup.object({
   name: Yup.string().trim().required(() => i18n.t('products.validationNameRequired')),
   sku: Yup.string().trim().required(() => i18n.t('products.validationSkuRequired')),
-  unit: Yup.string().trim().required(() => i18n.t('products.validationUnitRequired')),
+  unitId: Yup.number().min(1, () => i18n.t('products.validationUnitRequired')),
   defaultCost: Yup.string()
     .required(() => i18n.t('products.validationCostInvalid'))
     .test('is-valid-cost', () => i18n.t('products.validationCostInvalid'), (v) => {
@@ -34,7 +34,7 @@ export const productCreateValidationSchema = Yup.object({
 
 export const productEditValidationSchema = Yup.object({
   name: Yup.string().trim().required(() => i18n.t('products.validationNameRequired')),
-  unit: Yup.string().trim().required(() => i18n.t('products.validationUnitRequired')),
+  unitId: Yup.number().min(1, () => i18n.t('products.validationUnitRequired')),
   defaultCost: Yup.string()
     .required(() => i18n.t('products.validationCostInvalid'))
     .test('is-valid-cost', () => i18n.t('products.validationCostInvalid'), (v) => {

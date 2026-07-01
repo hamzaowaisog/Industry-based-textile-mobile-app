@@ -52,6 +52,8 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
   const [currentPickerLineIndex, setCurrentPickerLineIndex] = useState(-1);
   const [products, setProducts] = useState<ProductPickerItem[]>([]);
   const [lineErrors, setLineErrors] = useState<{ qty?: string }[]>([]);
+
+  const isClientLocked = !!initialClientId;
   const [lineAvailability, setLineAvailability] = useState<(string | undefined)[]>([]);
 
   const { data: clients } = useQuery({
@@ -313,6 +315,7 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
 
   return {
     step,
+    isClientLocked,
     values: formik.values,
     errors: formik.errors as Partial<Record<keyof CreateOrderFormValues, string>>,
     touched: formik.touched as Partial<Record<keyof CreateOrderFormValues, boolean>>,

@@ -152,6 +152,7 @@ export type EditPurchaseComponentProps = {
 
 export type CreatePurchaseComponentProps = {
   step: number;
+  isSupplierLocked: boolean;
   submitting: boolean;
   values: CreatePurchaseFormValues;
   errors: Partial<Record<keyof CreatePurchaseFormValues, string>>;

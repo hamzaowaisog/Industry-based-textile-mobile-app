@@ -189,8 +189,16 @@ export type InputFieldProps = {
   error?: string;
   helper?: string;
   leading?: import('react').ReactNode;
-  keyboardType?: 'default' | 'numeric' | 'phone-pad' | 'decimal-pad';
+  trailing?: import('react').ReactNode;
+  keyboardType?:
+    | 'default'
+    | 'numeric'
+    | 'phone-pad'
+    | 'decimal-pad'
+    | 'email-address';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  autoCorrect?: boolean;
+  secureTextEntry?: boolean;
   returnKeyType?: 'next' | 'done' | 'default';
   submitBehavior?: 'submit' | 'blurAndSubmit' | 'newline';
   multiline?: boolean;

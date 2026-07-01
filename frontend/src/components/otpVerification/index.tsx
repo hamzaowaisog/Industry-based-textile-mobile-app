@@ -91,7 +91,10 @@ export const OtpVerificationComponent = ({
         >
           {/* OTP boxes */}
           <View style={styles.otpSection}>
-            <Text style={styles.otpLabel}>{t('otpVerification.codeLabel')}</Text>
+            <Text style={styles.otpLabel}>
+              {t('otpVerification.codeLabel')}
+              <Text style={styles.requiredStar}> *</Text>
+            </Text>
             <View style={styles.otpRow}>
               {digits.map((digit, i) => (
                 <TextInput

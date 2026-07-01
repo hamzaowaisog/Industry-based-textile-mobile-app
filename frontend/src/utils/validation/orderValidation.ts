@@ -3,7 +3,6 @@ import * as Yup from 'yup';
 export const createOrderStep1Schema = Yup.object({
   clientId: Yup.number().nullable().required('orders.create.selectCustomerError'),
   paymentTypeId: Yup.number().required(),
-  orderDate: Yup.string().required(),
   notes: Yup.string(),
 });
 

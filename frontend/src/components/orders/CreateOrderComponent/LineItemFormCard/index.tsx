@@ -5,6 +5,7 @@ import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { AppAmount } from '@components/common/AppAmount';
 import { AppCard } from '@components/common/AppCard';
 import { AppInputField } from '@components/common/AppInputField';
+import { FieldLabel } from '@components/common/FieldLabel';
 
 import { colors } from '@theme/colors';
 
@@ -31,6 +32,7 @@ export const LineItemFormCard = ({
   return (
     <AppCard padding={14}>
       <View style={styles.cardInner}>
+        <FieldLabel label={labels.product} required />
         <View style={styles.productRow}>
           <TouchableOpacity
             style={styles.productTile}

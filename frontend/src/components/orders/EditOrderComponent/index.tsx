@@ -60,6 +60,7 @@ export const EditOrderComponent = ({
 
   const lineLabels = useMemo(
     () => ({
+      product: t('orders.edit.product'),
       qty: t('orders.edit.qty'),
       unitPrice: t('orders.edit.unitPrice'),
       addProduct: t('orders.edit.addProduct'),

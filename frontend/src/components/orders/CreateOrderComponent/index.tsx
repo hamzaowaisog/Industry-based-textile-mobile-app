@@ -34,6 +34,7 @@ const STEPS = ['orders.create.stepDetails', 'orders.create.stepLines', 'orders.c
 
 export const CreateOrderComponent = ({
   step,
+  isClientLocked,
   submitting,
   values,
   errors,
@@ -71,24 +72,37 @@ export const CreateOrderComponent = ({
       return (
         <View style={styles.stepContent}>
           {/* Customer selector */}
-          <View style={styles.fieldGroup}>
-            <FieldLabel label={t('orders.create.customer')} required />
-            <TouchableOpacity
-              style={[
-                styles.selectRow,
-                errors.clientId && touched.clientId && styles.selectRowError,
-              ]}
-              onPress={onSelectClient}
-              activeOpacity={0.7}
-            >
-              <Text style={values.clientName ? styles.selectValue : styles.selectPlaceholder}>
-                {values.clientName || t('orders.create.customerPlaceholder')}
-              </Text>
-            </TouchableOpacity>
-            {touched.clientId && errors.clientId ? (
-              <Text style={styles.fieldError}>{errors.clientId}</Text>
-            ) : null}
-          </View>
+          {isClientLocked ? (
+            <AppInputField
+              label={t('orders.create.customer')}
+              required
+              value={values.clientName}
+              onChangeText={() => {}}
+              onBlur={() => {}}
+              placeholder={t('orders.create.customerPlaceholder')}
+              helper={t('orders.create.customerLocked')}
+              editable={false}
+            />
+          ) : (
+            <View style={styles.fieldGroup}>
+              <FieldLabel label={t('orders.create.customer')} required />
+              <TouchableOpacity
+                style={[
+                  styles.selectRow,
+                  errors.clientId && touched.clientId && styles.selectRowError,
+                ]}
+                onPress={onSelectClient}
+                activeOpacity={0.7}
+              >
+                <Text style={values.clientName ? styles.selectValue : styles.selectPlaceholder}>
+                  {values.clientName || t('orders.create.customerPlaceholder')}
+                </Text>
+              </TouchableOpacity>
+              {touched.clientId && errors.clientId ? (
+                <Text style={styles.fieldError}>{errors.clientId}</Text>
+              ) : null}
+            </View>
+          )}
 
           {/* Payment type */}
           <View style={styles.fieldGroup}>
@@ -142,6 +156,7 @@ export const CreateOrderComponent = ({
               qtyError={lineErrors[i]?.qty}
               availableLabel={lineAvailability[i]}
               labels={{
+                product: t('orders.create.product'),
                 qty: t('orders.create.qty'),
                 unitPrice: t('orders.create.unitPrice'),
                 addProduct: t('orders.create.addProduct'),

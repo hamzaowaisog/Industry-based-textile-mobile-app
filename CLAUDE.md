@@ -141,47 +141,9 @@ All lookup tables are seeded on startup — **do not re-seed manually**:
 
 ## Domain Model
 
-### Entities (all in `Entities/`, all mapped in `ApplicationDbContext`)
+### Entities
 
-**Users & Auth**
-- `ApplicationUser` — extends `IdentityUser<int>`; has `Name`, `RoleId`, `IsActive`, `CreatedAt` (DateOnly); navigates to `UserRole`, `Transaction[]`, `Client[]`, `Expense[]`, `ProductUser[]`
-- `UserRole` — custom role table (separate from ASP.NET Identity roles); `Id`, `Name`
-- `RefreshToken` — `Token`, `UserId`, `ExpiresAt`, `CreatedAt`, `RevokedAt`, `ReplacedByToken`; `IsActive` and `IsExpired` are computed
-- `PasswordResetOtp` — OTP-based password reset: `Email`, `CodeHash` (SHA-256), `ResetTokenHash` (SHA-256, set after OTP verified), `CreatedAt`, `ExpiresAt` (15 min), `ResetTokenExpiresAt` (10 min), `AttemptCount` (max 5), `IsUsed`. 30-second resend cooldown enforced server-side. Successful reset calls `IRefreshTokenService.RevokeAllUserTokensAsync` to sign out all devices.
-
-**Clients**
-- `Client` — `Name`, `ClientTypeId`, `UserId` (owner), `Phone`, `Address`, `CreditLimit`, `OpeningBalance`, `Notes`, `IsActive`, `CreatedAt`
-- `ClientType` — lookup (Customer / Supplier); `ClientTypeId=2` clients are used as `Supplier` in `Purchase`
-
-**Products & Inventory**
-- `Product` — `Name`, `Sku` (unique), `Unit`, `DefaultCost`, `DefaultPrice`, `Quantity`, `AverageCost`, `AveragePrice`, `CostChangeCount`, `PriceChangeCount`, `TotalQuantityPurchased`, `TotalQuantitySold`, `ReorderLevel`, `IsActive`
-- `StockMovement` — `ProductId`, `MovementTypeId`, `MovementSourceId`, `Qty`, `UnitCost`, `UnitPrice`, `AverageCostAtMovement`, `AveragePriceAtMovement`, `MovementDate`
-- `ProductUser` — join table `(ProductId, UserId, Date)` — tracks which users work with which products
-
-**Orders (Sales)**
-- `Order` — `ClientId`, `StatusId`, `PaymentTypeId`, `OrderDate`, `Notes`, `CreatedAt`
-- `OrderLine` — `OrderId`, `ProductId`, `Qty`, `UnitPrice`
-
-**Purchases (Procurement)**
-- `Purchase` — `SupplierId` (FK → `Client` where `ClientTypeId=2`), `StatusId` (FK → `PurchaseStatus`), `PaymentTypeId`, `PurchaseDate`, `Notes`, `CreatedAt`
-- `PurchaseLine` — `PurchaseId`, `ProductId`, `Qty` (decimal 14,2), `UnitCost` (decimal 14,4)
-- `PurchaseStatus` — lookup (Pending=1, InProgressed=2, Received=3, Cancelled=4); seeded on startup
-
-**Financials**
-- `Payment` — `PartyClientId` (FK → Client), `PaymentDirectionId`, `TransModeId`, `Amount`, `PaymentDate`, `Notes`, `CreatedAt`
-- `Expense` — `ExpenseTypeId`, `Amount`, `TransModeId`, `UserId`, `TransCategoryId`, `TransactionId` (optional link), `ExpenseDate` (DateOnly), `Notes`, `CreatedAt`
-- `Transaction` — `ClientId?`, `ProductId?`, `UserId`, `OrderId?` (FK → Order), `PurchaseId?` (FK → Purchase), `InvoiceId?` (FK → Invoice), `TransTypeId`, `TransModeId`, `TransCategoryId`, `Amount`, `TransDate` (DateOnly), `Notes`, `CreatedAt`; owns `Expense[]`
-
-**Invoices**
-- `InvoiceStatus` — lookup (Draft=1, Issued=2, Paid=3, Cancelled=4); seeded on startup
-- `Invoice` — `InvoiceNumber` (unique, INV-YYYY-NNNN), `OrderId?`, `PurchaseId?`, `ClientId?`, `InvoiceStatusId`, `IssueDate?` (DateOnly), `DueDate?` (DateOnly), `TotalAmount`, `Notes?`, `CreatedByUserId?`, `CreatedAt` (DateOnly)
-- `InvoiceLine` — `InvoiceId`, `ProductName` (string snapshot), `Qty` (decimal 14,2), `UnitPrice` (decimal 14,4), `LineTotal` (decimal 14,2)
-- `PaymentAllocation` — `PaymentId`, `OrderId?`, `PurchaseId?`, `InvoiceId?`, `AllocatedAmount`
-
-**Reporting Views (read-only)**
-- `VMonthlyProfitLoss` — `Month`, `TotalSales`, `TotalPurchases`, `TotalExpenses`, `GrossProfit`, `NetProfit`
-- `VClientBalance` — `ClientId`, `Name`, `Balance`
-- `VMonthlyCreditDebit` — `Month`, `TotalCredit`, `TotalDebit`, `Balance`
+All entities live in `Entities/` and are mapped in `ApplicationDbContext` — read the source for fields/FKs. Lookup tables (UserRole, ClientType, OrderStatus, PurchaseStatus, PaymentType, PaymentDirection, TransType, TransMode, TransCategory, ExpenseType, MovementType, MovementSource, InvoiceStatus) are seeded on startup via `SeedData` — do not re-seed manually.
 
 ### Key Business Rules
 
@@ -289,116 +251,21 @@ private int? GetUserId()
 
 ---
 
-## Existing Services Summary
+## Existing Services & Controllers
 
-| Interface | Methods present |
-|---|---|
-| `IUserService` | SignupAsync, GetByIdAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync, ResendEmailConfirmationAsync, EmailConfirmationTokenAsync, AdminCreateAsync |
-| `IPasswordResetService` | SendOtpAsync, VerifyOtpAsync, ResetPasswordAsync |
-| `ILoginService` | LoginAsync, RefreshTokenAsync, LogoutAsync, LogoutAllAsync |
-| `IRefreshTokenService` | CreateRefreshTokenAsync, GetRefreshTokenByTokenAsync, RevokeRefreshTokenAsync, RevokeAllUserTokensAsync, IsRefreshTokenValidAsync, CleanupExpiredTokensAsync |
-| `IChangePasswordService` | ChangePasswordAsync |
-| `IUserRoleService` | CreateAsync, GetByIdAsync, GetAllAsync, UpdateAsync, DeleteAsync |
-| `IClientService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllByUserIdAsync, UpdateByIdAsync, DeleteByIdAsync, GetAllPaginatedAsync |
-| `IClientTypeService` | CreateAsync, GetByIdAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync |
-| `IProductService` | CreateWithUserIdAsync, GetByIdAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync, GetAllPaginatedAsync |
-| `IStockMovementsService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
-| `IOrderService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllByUserIdAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
-| `IPurchaseService` | CreateAsync, GetByIdAsync, GetAllAsync, GetAllByUserIdAsync, GetAllPaginatedAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
-| `IPaymentService` | CreateAsync, GetByIdAsync, GetAllPaginatedAsync, GetAllByUserIdAsync, GetAllByClientIdAsync, GetFilteredAsync, GetUnallocatedCreditAsync, UpdateByIdAsync, ReverseAsync, ReverseAndCorrectAsync, DeleteByIdAsync, ApplyUnallocatedCreditAsync |
-| `IExpenseTypeService` | CreateAsync, GetByIdAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync |
-| `IExpenseService` | CreateAsync, GetByIdAsync, GetAllPaginatedAsync, GetAllByUserIdAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync |
-| `ILookupService` | GetAllAsync, GetByTypeAsync, GetOrderStatusesAsync, GetPurchaseStatusesAsync, GetPaymentTypesAsync, GetPaymentDirectionsAsync, GetTransTypesAsync, GetTransModesAsync, GetTransCategoriesAsync, GetExpenseTypesAsync, GetMovementTypesAsync, GetMovementSourcesAsync, GetClientTypesAsync, GetUserRolesAsync |
-| `ITransactionService` | CreateAsync, GetByIdAsync, GetAllPaginatedAsync, GetAllByUserIdAsync, GetAllByClientIdAsync, GetFilteredAsync, GetAllAsync, UpdateByIdAsync, DeleteByIdAsync |
-| `IPdfService` | CreatePdf |
-| `IReportService` | GetMonthlyProfitLossAsync, GetClientBalancesAsync, GetClientBalanceByIdAsync, GetMonthlyCreditDebitAsync, GetSummaryTotalsAsync, GetClientDetailsAsync, GetClientDetailByIdAsync |
-| `IInvoiceService` | CreateAsync, CreateFromOrderAsync, CreateFromPurchaseAsync, GetByIdAsync, GetAllPaginatedAsync, GetAllByClientIdAsync, GetFilteredAsync, UpdateByIdAsync, DeleteByIdAsync, UpdateStatusOnDeliveryAsync, CancelByOrderOrPurchaseAsync, TryMarkPaidAsync, GenerateInvoiceNumberAsync |
+Service interfaces (`IXxxService`) and their methods live in `Services/`; controllers and their endpoints live in `Controllers/`. Read the source for exact signatures — every new service/controller must follow the Layer Conventions below. `DashboardController` (GET /summary, GET /monthly-overview) and `DeviceController` (not yet created) are the only gaps.
 
 ---
 
-## Existing Controllers & Endpoints
+## Frontend
 
-| Controller | Done endpoints |
-|---|---|
-| `AuthController` | POST register, login, logout, refresh, change-password, GET confirm-email, POST resend-email-confirmation, POST forgot-password (sends OTP), POST verify-reset-otp (returns resetToken), POST reset-password (token + email + new password; revokes all sessions on success), POST biometric/setup, POST biometric/login, DELETE biometric/disable |
-| `UsersController` | POST / (admin create), GET /{id}, GET / (all), PUT /me, DELETE /{id}, GET /pdf |
-| `UserRolesController` | POST, GET all, GET /{id}, PUT /{id}, DELETE /{id}, GET /pdf |
-| `ClientController` | POST, GET all (AdminOnly), GET /me (scoped), GET /Filtered, GET /{id}, PUT /{id}, DELETE /{id}, GET /pdf |
-| `ClientTypeController` | POST, GET all, GET /{id}, PUT /{id}, DELETE /{id}, GET /pdf |
-| `ProductController` | POST, GET /{id}, GET all, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf |
-| `StockMovementsController` | POST, GET (paginated), GET /{id}, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf |
-| `OrderController` | POST, GET (paginated), GET /me, GET /{id}, GET /filtered, PUT /{id} (status transitions: Delivered→stock+ledger, Cancelled→reversal), DELETE /{id}, GET /pdf |
-| `PurchaseController` | POST, GET (paginated), GET /me, GET /{id}, GET /filtered, PUT /{id} (status transitions: Delivered→stock In+ledger, Cancelled→reversal), DELETE /{id}, GET /pdf |
-| `PaymentController` | POST (create + allocate), GET (paginated), GET /me, GET /{id}, GET /by-client/{clientId}, GET /filtered, GET /unallocated/{clientId}, PUT /{id}, POST /{id}/reverse, POST /{id}/reverse-and-correct, DELETE /{id}, GET /pdf |
-| `ExpenseTypeController` | POST, GET all, GET /{id}, PUT /{id}, DELETE /{id} (guarded), GET /pdf — AdminOnly |
-| `ExpenseController` | POST (AdminOrStaff), GET (paginated, AdminOnly), GET /me, GET /{id}, GET /filtered, PUT /{id} (AdminOrStaff), DELETE /{id} (AdminOnly), GET /pdf |
-| `MetaController` | GET /all, GET /{type} (switch-case dispatch for all 13 lookup tables incl. purchasestatuses, invoicestatuses) |
-| `TransactionController` | POST, GET (paginated), GET /me, GET /{id}, GET /by-client/{clientId}, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf |
-| `AppController` | GET /health, GET /info, GET /spec (downloads OpenAPI JSON for Orval) |
-| `ReportController` | GET profit-loss, profit-loss/pdf, client-balance, client-balance/{id}, client-balance/pdf, credit-debit, credit-debit/pdf, summary, summary/pdf, client-detail, client-detail/{id}, client-detail/{id}/pdf, client-detail/pdf |
-| `InvoiceController` | POST /, GET / (paginated), GET /{id} (detail with lines+transactions), GET /by-client/{clientId}, GET /filtered, PUT /{id}, DELETE /{id}, GET /pdf (all), GET /{id}/pdf (single), GET /by-client/{clientId}/pdf, GET /filtered/pdf |
-
-| `DashboardController` | GET /summary (role-scoped stats + recent orders), GET /monthly-overview (last N months chart data) |
-
-**Not yet created:** DeviceController
+See `frontend/CLAUDE.md` for the authoritative frontend architecture, form rules, and coding rules. Progress tracker: `todo/12-frontend.md`. Design reference: `frontend/textile-erp/project/design_handoff_hamzatex_erp/` (v3 prototype — visual source of truth).
 
 ---
 
-## Frontend State
+## Backend Progress
 
-See `frontend/CLAUDE.md` for full architecture rules. Design reference: `frontend/textile-erp/project/design_handoff_hamzatex_erp/` (97-screen v3 prototype — the visual source of truth for every screen).
-
-**Done:**
-- `App.tsx` — QueryClientProvider, Toast renderer, splash hide, auth hydration
-- Full auth flow: Splash → Welcome → Onboarding (×3) → Login → Biometric → ForgotPassword → OTP Verification → ResetPassword; also Register, Terms, Privacy screens
-- `MainNavigator` — side drawer (`@react-navigation/drawer`), width 296, all 13 domain stacks registered; `DashboardScreen` is a direct drawer screen (no stack)
-- `DrawerContent` / `DrawerComponent` — user name, role, sign-out
-- Dashboard screen — stat cards, bar chart, recent orders/purchases, skeleton loader; backed by live API
-- Orval-generated API client — all backend tag groups in `src/api/generated/`; `orval.config.js` uses `clean: true` so stale files are pruned on regen
-- Zustand stores: `authStore`, `metaStore`
-- `core/auth.ts`, `core/clients.ts` — all API calls use shared `parseApiResponse` / `parseApiError` helpers (`src/utils/helpers/apiResponse.ts`)
-- Clients feature — List, Detail (tabbed: orders/purchases/payments/invoices/transactions), Form (create + edit)
-- Full i18n (`src/locales/en.json`), theme (`colors`, `typography`, `spacing`), toast system, `AppBottomSheet`
-
-**Still needed (all domain stacks contain placeholder screens only):**
-- Products (List, Detail with chart, Form)
-- Orders (List, Detail, Create 3-step)
-- Purchases (List, Detail, Create)
-- Payments (List, Record)
-- Invoices (List, Detail + PDF viewer)
-- Expenses (List, Add)
-- Stock Movements (List, Add)
-- Transactions / Ledger (List)
-- Reports (Hub, P&L, Client Balances, Credit/Debit, Summary, Client Detail) — Admin only
-- Users (List, Create) — Admin only
-- Settings screen
-- Notification Center screen
-- Change Password screen
-
-See `todo/12-frontend.md` for the full plan.
-
----
-
-## What Still Needs Building
-
-See `todo/` for detailed task breakdowns:
-
-| File | Area |
-|---|---|
-| `todo/01-stock-movements-read.md` | ✅ Complete |
-| `todo/02-orders.md` | ✅ Complete — full Orders API incl. Delivered/Cancelled lifecycle, ledger, stock |
-| `todo/03-purchases.md` | ✅ Complete — full Purchases API incl. Delivered/Cancelled lifecycle, ledger, stock, PurchaseStatus |
-| `todo/04-payments.md` | ✅ Complete — full Payments API incl. FIFO allocation, reversal, reverse-and-correct, ledger posting, v_client_balance redesign |
-| `todo/05-expenses.md` | ✅ Complete — full Expenses API with atomic ledger posting, ExpenseType CRUD, P&L integration |
-| `todo/06-transactions.md` | ✅ Complete — full Transactions API with CRUD, filtered, me, by-client, pdf |
-| `todo/07-reports.md` | ✅ Complete — profit-loss, client-balance, credit-debit, summary, client-detail (all with PDF) |
-| `todo/08-invoices.md` | ✅ Complete — full Invoices API with auto-generation, lifecycle, payment tracking, directional PDFs |
-| `todo/09-users-admin-create.md` | ✅ Complete — admin can create pre-confirmed user accounts via POST /api/Users |
-| `todo/10-sync.md` | ~~Removed~~ — sync infrastructure (SyncController, SyncService, SyncDto) deleted; `LocalId`, `Version`, `UpdatedAt` columns dropped from all entities via migration `RemoveOfflineSyncColumns`; app is fully online-only |
-| `todo/11-push-notifications.md` | Device token registration + FCM push provider (not started) |
-| `todo/12-frontend.md` | Everything on mobile — design prompt at `docs/mobile-design-prompt.md` (not started) |
-| `todo/13-dashboard.md` | ✅ Complete — GET /summary (role-scoped stats + recent orders), GET /monthly-overview |
-| `todo/14-biometric-auth.md` | ✅ Complete — biometric setup, login, disable endpoints; IsBiometric flag on RefreshToken |
+All backend todos are complete except push notifications (`todo/11-push-notifications.md`) and the DeviceController. See `todo/` for per-area detail. The app is fully online-only — the old SQLite sync architecture was removed (migration `RemoveOfflineSyncColumns`).
 
 ---
 

@@ -21,8 +21,11 @@ export const AppInputField = React.forwardRef<TextInput, InputFieldProps>(
       error,
       helper,
       leading,
+      trailing,
       keyboardType = 'default',
       autoCapitalize = 'sentences',
+      autoCorrect,
+      secureTextEntry,
       returnKeyType = 'next',
       submitBehavior = 'submit',
       multiline = false,
@@ -60,6 +63,8 @@ export const AppInputField = React.forwardRef<TextInput, InputFieldProps>(
             placeholderTextColor={colors.textTertiary}
             keyboardType={keyboardType}
             autoCapitalize={autoCapitalize}
+            autoCorrect={autoCorrect}
+            secureTextEntry={secureTextEntry}
             returnKeyType={multiline ? 'default' : returnKeyType}
             submitBehavior={submitBehavior}
             multiline={multiline}
@@ -67,6 +72,7 @@ export const AppInputField = React.forwardRef<TextInput, InputFieldProps>(
             onSubmitEditing={onSubmitEditing}
             editable={editable}
           />
+          {trailing}
         </View>
         {error ? <Text style={styles.inputError}>{error}</Text> : null}
         {!error && helper ? <Text style={styles.inputHelper}>{helper}</Text> : null}

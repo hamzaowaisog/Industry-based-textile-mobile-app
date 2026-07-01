@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { AppAmount } from '@components/common/AppAmount';
 import { AppCard } from '@components/common/AppCard';
 import { AppInputField } from '@components/common/AppInputField';
+import { FieldLabel } from '@components/common/FieldLabel';
 
 import { colors } from '@theme/colors';
 
@@ -33,6 +34,7 @@ export const LineItemFormCard = ({
   return (
     <AppCard padding={14}>
       <View style={styles.cardInner}>
+        <FieldLabel label={t('purchases.create.product')} required />
         <View style={styles.productRow}>
           <TouchableOpacity
             style={styles.productTile}

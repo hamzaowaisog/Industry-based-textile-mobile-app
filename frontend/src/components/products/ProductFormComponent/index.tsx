@@ -52,11 +52,12 @@ export const ProductFormComponent = ({
 
   const err = (field: string) => (touched[field] ? errors[field] : undefined);
 
-  const selectedUnitId = unitItems.find((u) => u.name === values.unit)?.id;
+  const selectedUnitId = values.unitId || undefined;
+  const selectedUnitName = unitItems.find((u) => u.id === values.unitId)?.name ?? '';
 
-  const onUnitSelect = (_id: number, name: string) => {
-    void setFieldValue('unit', name);
-    setFieldTouched('unit', true);
+  const onUnitSelect = (id: number, _name: string) => {
+    void setFieldValue('unitId', id);
+    setFieldTouched('unitId', true);
     onCloseUnitPicker();
   };
 
@@ -123,16 +124,16 @@ export const ProductFormComponent = ({
           <View style={styles.fieldWrap}>
             <FieldLabel label={t('products.fields.unit')} required />
             <TouchableOpacity
-              style={[styles.pickerRow, touched.unit && errors.unit ? styles.pickerError : null]}
+              style={[styles.pickerRow, touched.unitId && errors.unitId ? styles.pickerError : null]}
               onPress={onOpenUnitPicker}
               activeOpacity={0.7}
             >
-              <Text style={values.unit ? styles.pickerValue : styles.pickerPlaceholder}>
-                {values.unit || t('products.fields.unitPlaceholder')}
+              <Text style={selectedUnitName ? styles.pickerValue : styles.pickerPlaceholder}>
+                {selectedUnitName || t('products.fields.unitPlaceholder')}
               </Text>
               <ArrowRightIcon size={16} color={colors.textTertiary} />
             </TouchableOpacity>
-            <FieldError msg={err('unit')} />
+            <FieldError msg={err('unitId')} />
           </View>
 
           <View style={styles.rowFields}>

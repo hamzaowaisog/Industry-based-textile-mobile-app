@@ -16,6 +16,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppInputField } from '@components/common/AppInputField';
+
 import { colors } from '@theme/colors';
 
 import { AppConstants } from '@constants/appConstants';
@@ -90,70 +92,33 @@ export const LoginComponent = ({
           keyboardShouldPersistTaps="handled"
         >
           {/* Username */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>
-              {t('login.usernameLabel')}
-              <Text style={styles.requiredStar}> *</Text>
-            </Text>
-            <View
-              style={[
-                styles.inputRow,
-                formik.touched.userName && formik.errors.userName ? styles.inputRowError : null,
-              ]}
-            >
-              <View style={styles.inputLeading}>
-                <MailIcon size={18} color={colors.textTertiary} />
-              </View>
-              <TextInput
-                style={styles.input}
-                value={formik.values.userName}
-                onChangeText={formik.handleChange('userName')}
-                onBlur={formik.handleBlur('userName')}
-                autoCapitalize="none"
-                autoCorrect={false}
-                placeholder={t('login.usernamePlaceholder')}
-                placeholderTextColor={colors.textTertiary}
-                returnKeyType="next"
-                onSubmitEditing={() => passwordRef.current?.focus()}
-                submitBehavior="blurAndSubmit"
-              />
-            </View>
-            {formik.touched.userName && formik.errors.userName ? (
-              <Text style={styles.fieldError}>{formik.errors.userName}</Text>
-            ) : null}
-          </View>
+          <AppInputField
+            label={t('login.usernameLabel')}
+            required
+            leading={<MailIcon size={18} color={colors.textTertiary} />}
+            value={formik.values.userName}
+            onChangeText={(v) => void formik.setFieldValue('userName', v)}
+            onBlur={() => formik.setFieldTouched('userName', true)}
+            placeholder={t('login.usernamePlaceholder')}
+            error={formik.touched.userName ? formik.errors.userName : undefined}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="next"
+            submitBehavior="blurAndSubmit"
+            onSubmitEditing={() => passwordRef.current?.focus()}
+          />
 
           {/* Password */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>
-              {t('login.passwordLabel')}
-              <Text style={styles.requiredStar}> *</Text>
-            </Text>
-            <View
-              style={[
-                styles.inputRow,
-                formik.touched.password && formik.errors.password ? styles.inputRowError : null,
-              ]}
-            >
-              <View style={styles.inputLeading}>
-                <LockIcon size={18} color={colors.textTertiary} />
-              </View>
-              <TextInput
-                ref={passwordRef}
-                style={[styles.input, styles.inputWithTrailing]}
-                value={formik.values.password}
-                onChangeText={formik.handleChange('password')}
-                onBlur={formik.handleBlur('password')}
-                secureTextEntry={!showPassword}
-                placeholder="••••••••"
-                placeholderTextColor={colors.textTertiary}
-                returnKeyType="done"
-                onSubmitEditing={() => formik.handleSubmit()}
-              />
+          <AppInputField
+            ref={passwordRef}
+            label={t('login.passwordLabel')}
+            required
+            leading={<LockIcon size={18} color={colors.textTertiary} />}
+            trailing={
               <TouchableOpacity
-                style={styles.inputTrailing}
                 onPress={onTogglePassword}
                 activeOpacity={0.7}
+                hitSlop={{ top: 12, bottom: 12, left: 8, right: 4 }}
               >
                 {showPassword ? (
                   <EyeOffIcon size={18} color={colors.textTertiary} />
@@ -161,11 +126,16 @@ export const LoginComponent = ({
                   <EyeIcon size={18} color={colors.textTertiary} />
                 )}
               </TouchableOpacity>
-            </View>
-            {formik.touched.password && formik.errors.password ? (
-              <Text style={styles.fieldError}>{formik.errors.password}</Text>
-            ) : null}
-          </View>
+            }
+            secureTextEntry={!showPassword}
+            value={formik.values.password}
+            onChangeText={(v) => void formik.setFieldValue('password', v)}
+            onBlur={() => formik.setFieldTouched('password', true)}
+            placeholder="••••••••"
+            error={formik.touched.password ? formik.errors.password : undefined}
+            returnKeyType="done"
+            onSubmitEditing={() => formik.handleSubmit()}
+          />
 
           {/* Remember + Forgot */}
           <View style={styles.rememberRow}>

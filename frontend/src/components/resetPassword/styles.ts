@@ -136,61 +136,6 @@ export const styles = StyleSheet.create({
     gap: 20,
   },
 
-  // ── Inputs ──
-  inputWrapper: {
-    gap: 6,
-  },
-  inputLabel: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 13,
-    color: colors.text,
-  },
-  requiredStar: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 13,
-    color: colors.danger,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
-    height: 50,
-    paddingHorizontal: 14,
-    gap: 10,
-  },
-  inputRowError: {
-    borderColor: colors.danger,
-  },
-  inputLeading: {
-    width: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  input: {
-    flex: 1,
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 14,
-    color: colors.text,
-    height: '100%',
-  },
-  inputWithTrailing: {
-    paddingRight: 4,
-  },
-  inputTrailing: {
-    width: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fieldError: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 12,
-    color: colors.danger,
-    marginTop: 2,
-  },
-
   // ── Password rules ──
   rulesBox: {
     backgroundColor: colors.primaryLight,

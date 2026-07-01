@@ -38,6 +38,7 @@ const STEPS = [
 
 export const CreatePurchaseComponent = ({
   step,
+  isSupplierLocked,
   submitting,
   values,
   errors,
@@ -71,24 +72,37 @@ export const CreatePurchaseComponent = ({
       return (
         <View style={styles.stepContent}>
           {/* Supplier selector */}
-          <View style={styles.fieldGroup}>
-            <FieldLabel label={t('purchases.create.supplier')} required />
-            <TouchableOpacity
-              style={[
-                styles.selectRow,
-                errors.supplierId && touched.supplierId && styles.selectRowError,
-              ]}
-              onPress={onSelectSupplier}
-              activeOpacity={0.7}
-            >
-              <Text style={values.supplierName ? styles.selectValue : styles.selectPlaceholder}>
-                {values.supplierName || t('purchases.create.supplierPlaceholder')}
-              </Text>
-            </TouchableOpacity>
-            {touched.supplierId && errors.supplierId ? (
-              <Text style={styles.fieldError}>{errors.supplierId}</Text>
-            ) : null}
-          </View>
+          {isSupplierLocked ? (
+            <AppInputField
+              label={t('purchases.create.supplier')}
+              required
+              value={values.supplierName}
+              onChangeText={() => {}}
+              onBlur={() => {}}
+              placeholder={t('purchases.create.supplierPlaceholder')}
+              helper={t('purchases.create.supplierLocked')}
+              editable={false}
+            />
+          ) : (
+            <View style={styles.fieldGroup}>
+              <FieldLabel label={t('purchases.create.supplier')} required />
+              <TouchableOpacity
+                style={[
+                  styles.selectRow,
+                  errors.supplierId && touched.supplierId && styles.selectRowError,
+                ]}
+                onPress={onSelectSupplier}
+                activeOpacity={0.7}
+              >
+                <Text style={values.supplierName ? styles.selectValue : styles.selectPlaceholder}>
+                  {values.supplierName || t('purchases.create.supplierPlaceholder')}
+                </Text>
+              </TouchableOpacity>
+              {touched.supplierId && errors.supplierId ? (
+                <Text style={styles.fieldError}>{errors.supplierId}</Text>
+              ) : null}
+            </View>
+          )}
 
           {/* Payment type */}
           <View style={styles.fieldGroup}>

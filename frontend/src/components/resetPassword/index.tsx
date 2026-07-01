@@ -15,6 +15,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppInputField } from '@components/common/AppInputField';
+
 import { PASSWORD_RULES } from '@utils/helpers/passwordRules';
 
 import { colors } from '@theme/colors';
@@ -85,39 +87,15 @@ export const ResetPasswordComponent = ({
           keyboardShouldPersistTaps="handled"
         >
           {/* New password */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>
-              {t('resetPassword.newPasswordLabel')}
-              <Text style={styles.requiredStar}> *</Text>
-            </Text>
-            <View
-              style={[
-                styles.inputRow,
-                formik.touched.newPassword && formik.errors.newPassword
-                  ? styles.inputRowError
-                  : null,
-              ]}
-            >
-              <View style={styles.inputLeading}>
-                <LockIcon size={18} color={colors.textTertiary} />
-              </View>
-              <TextInput
-                style={[styles.input, styles.inputWithTrailing]}
-                value={formik.values.newPassword}
-                onChangeText={formik.handleChange('newPassword')}
-                onBlur={formik.handleBlur('newPassword')}
-                placeholder={t('resetPassword.newPasswordPlaceholder')}
-                placeholderTextColor={colors.textTertiary}
-                secureTextEntry={!showNew}
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="next"
-                onSubmitEditing={() => confirmRef.current?.focus()}
-              />
+          <AppInputField
+            label={t('resetPassword.newPasswordLabel')}
+            required
+            leading={<LockIcon size={18} color={colors.textTertiary} />}
+            trailing={
               <TouchableOpacity
-                style={styles.inputTrailing}
                 onPress={onToggleNew}
                 activeOpacity={0.7}
+                hitSlop={{ top: 12, bottom: 12, left: 8, right: 4 }}
               >
                 {showNew ? (
                   <EyeOffIcon size={18} color={colors.textTertiary} />
@@ -125,11 +103,18 @@ export const ResetPasswordComponent = ({
                   <EyeIcon size={18} color={colors.textTertiary} />
                 )}
               </TouchableOpacity>
-            </View>
-            {formik.touched.newPassword && formik.errors.newPassword ? (
-              <Text style={styles.fieldError}>{formik.errors.newPassword}</Text>
-            ) : null}
-          </View>
+            }
+            secureTextEntry={!showNew}
+            value={formik.values.newPassword}
+            onChangeText={(v) => void formik.setFieldValue('newPassword', v)}
+            onBlur={() => formik.setFieldTouched('newPassword', true)}
+            placeholder={t('resetPassword.newPasswordPlaceholder')}
+            error={formik.touched.newPassword ? formik.errors.newPassword : undefined}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="next"
+            onSubmitEditing={() => confirmRef.current?.focus()}
+          />
 
           {/* Password rules — only shown while typing */}
           {pw.length > 0 && (
@@ -147,40 +132,16 @@ export const ResetPasswordComponent = ({
           )}
 
           {/* Confirm password */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>
-              {t('resetPassword.confirmPasswordLabel')}
-              <Text style={styles.requiredStar}> *</Text>
-            </Text>
-            <View
-              style={[
-                styles.inputRow,
-                formik.touched.confirmPassword && formik.errors.confirmPassword
-                  ? styles.inputRowError
-                  : null,
-              ]}
-            >
-              <View style={styles.inputLeading}>
-                <LockIcon size={18} color={colors.textTertiary} />
-              </View>
-              <TextInput
-                ref={confirmRef}
-                style={[styles.input, styles.inputWithTrailing]}
-                value={formik.values.confirmPassword}
-                onChangeText={formik.handleChange('confirmPassword')}
-                onBlur={formik.handleBlur('confirmPassword')}
-                placeholder={t('resetPassword.confirmPasswordPlaceholder')}
-                placeholderTextColor={colors.textTertiary}
-                secureTextEntry={!showConfirm}
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="done"
-                onSubmitEditing={() => formik.handleSubmit()}
-              />
+          <AppInputField
+            ref={confirmRef}
+            label={t('resetPassword.confirmPasswordLabel')}
+            required
+            leading={<LockIcon size={18} color={colors.textTertiary} />}
+            trailing={
               <TouchableOpacity
-                style={styles.inputTrailing}
                 onPress={onToggleConfirm}
                 activeOpacity={0.7}
+                hitSlop={{ top: 12, bottom: 12, left: 8, right: 4 }}
               >
                 {showConfirm ? (
                   <EyeOffIcon size={18} color={colors.textTertiary} />
@@ -188,11 +149,18 @@ export const ResetPasswordComponent = ({
                   <EyeIcon size={18} color={colors.textTertiary} />
                 )}
               </TouchableOpacity>
-            </View>
-            {formik.touched.confirmPassword && formik.errors.confirmPassword ? (
-              <Text style={styles.fieldError}>{formik.errors.confirmPassword}</Text>
-            ) : null}
-          </View>
+            }
+            secureTextEntry={!showConfirm}
+            value={formik.values.confirmPassword}
+            onChangeText={(v) => void formik.setFieldValue('confirmPassword', v)}
+            onBlur={() => formik.setFieldTouched('confirmPassword', true)}
+            placeholder={t('resetPassword.confirmPasswordPlaceholder')}
+            error={formik.touched.confirmPassword ? formik.errors.confirmPassword : undefined}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="done"
+            onSubmitEditing={() => formik.handleSubmit()}
+          />
 
           {/* Submit */}
           <TouchableOpacity
