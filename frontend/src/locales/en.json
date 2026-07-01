@@ -677,14 +677,83 @@
   },
   "payments": {
     "title": "Payments",
+    "subtitle": "Money in and out",
     "recordPayment": "Record Payment",
     "amount": "Amount",
     "direction": "Direction",
-    "transMode": "Transaction Mode",
+    "transMode": "Payment Mode",
     "paymentDate": "Payment Date",
     "received": "Received",
     "paid": "Paid",
-    "notes": "Notes"
+    "paidOut": "Paid Out",
+    "notes": "Notes",
+    "notesPlaceholder": "Reference or memo (optional)",
+    "client": "Client",
+    "clientPlaceholder": "Select a client",
+    "clientLocked": "Client pre-selected from previous screen",
+    "balanceHelper": "Currently owes you {{amount}}",
+    "balancePaidHelper": "You owe {{amount}}",
+    "amountHelperReceived": "Money coming into your account",
+    "amountHelperPaid": "Money going out of your account",
+    "overpayHelperReceived": "{{allocated}} will be applied to this order. The remaining {{excess}} will be applied to this client's other outstanding orders, then held as unallocated credit.",
+    "overpayHelperPaid": "{{allocated}} will be applied to this purchase. The remaining {{excess}} will be applied to this supplier's other outstanding purchases, then held as unallocated credit.",
+    "thisMonth": "{{count}} this month",
+    "tabs": {
+      "all": "All",
+      "received": "Received",
+      "paid": "Paid"
+    },
+    "empty": {
+      "title": "No payments yet",
+      "subtitle": "Record your first payment to track money in and out."
+    },
+    "validation": {
+      "clientRequired": "Please select a client",
+      "directionRequired": "Please select a direction",
+      "modeRequired": "Please select a payment mode",
+      "amountRequired": "Amount is required",
+      "amountPositive": "Amount must be greater than zero"
+    },
+    "record": {
+      "errorTitle": "Payment Failed",
+      "successTitle": "Payment Recorded",
+      "successSubtitle": "The payment has been saved successfully.",
+      "discardTitle": "Discard payment?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
+    "edit": {
+      "title": "Edit Payment",
+      "errorTitle": "Update Failed",
+      "successTitle": "Payment Updated",
+      "successSubtitle": "Changes have been saved.",
+      "immutableAmount": "Amount cannot be changed after recording",
+      "immutableClient": "Client cannot be changed after recording",
+    "immutableDirection": "Direction cannot be changed after recording",
+    "dateHint": "Leave unchanged or enter a new date (yyyy-MM-dd)",
+    "discardTitle": "Discard changes?",
+    "discardMessage": "Any unsaved changes will be lost.",
+    "discard": "Discard",
+    "keepEditing": "Keep editing"
+  },
+    "detail": {
+      "reference": "HT-PAYMENT-{{id}}",
+      "allocations": "Allocations",
+      "noAllocations": "No allocations — credit applied automatically when documents are delivered.",
+      "unallocated": "Unallocated (credit)",
+      "recordedBy": "Recorded by",
+      "reversed": "Reversed",
+      "edit": "Edit",
+      "reverse": "Reverse Payment",
+      "reverseConfirm": "Reverse this payment?",
+      "reverseConfirmMsg": "This will create a reversing ledger entry. The original payment will be marked as reversed.",
+      "reverseError": "Reversal Failed",
+      "reverseSuccess": "Payment reversed"
+    },
+    "deleteTitle": "Delete Payment",
+    "deleteMessage": "Permanently delete payment {{id}}? This cannot be undone.",
+    "deleteSuccess": "Payment deleted"
   },
   "reports": {
     "title": "Reports",

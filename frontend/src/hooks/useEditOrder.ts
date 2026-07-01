@@ -215,7 +215,7 @@ export const useEditOrder = (orderId: number) => {
 
   const onFieldBlur = useCallback(
     (field: keyof EditOrderFormValues) => {
-      void formik.setFieldTouched(field, true, true);
+      void formik.setFieldTouched(field, true, false);
     },
     [formik.setFieldTouched],
   );

@@ -185,7 +185,7 @@ export type InputFieldProps = {
   value: string;
   onChangeText: (v: string) => void;
   onBlur: () => void;
-  placeholder: string;
+  placeholder?: string;
   error?: string;
   helper?: string;
   leading?: import('react').ReactNode;
@@ -205,4 +205,5 @@ export type InputFieldProps = {
   numberOfLines?: number;
   onSubmitEditing?: () => void;
   editable?: boolean;
+  onFocus?: () => void;
 };

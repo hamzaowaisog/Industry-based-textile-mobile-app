@@ -1,17 +1,10 @@
 import React from 'react';
 
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
+import { AppKeyboardAwareScrollView } from '@components/common/AppKeyboardAwareScrollView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppInputField } from '@components/common/AppInputField';
@@ -72,15 +65,13 @@ export const ForgotPasswordComponent = ({
       </LinearGradient>
 
       {/* Form card */}
-      <KeyboardAvoidingView
-        style={styles.formCardWrapper}
-        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
-      >
-        <ScrollView
+      <View style={styles.formCardWrapper}>
+        <AppKeyboardAwareScrollView
           style={styles.formCard}
           contentContainerStyle={[styles.formContent, { paddingBottom: insets.bottom + 32 }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          bottomOffset={24}
         >
           {/* Email input */}
           <AppInputField
@@ -135,8 +126,8 @@ export const ForgotPasswordComponent = ({
               <Text style={styles.signInLink}>{t('forgotPassword.signIn')}</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </AppKeyboardAwareScrollView>
+      </View>
     </View>
   );
 };

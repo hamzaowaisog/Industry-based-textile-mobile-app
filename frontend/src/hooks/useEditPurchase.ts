@@ -200,7 +200,7 @@ export const useEditPurchase = (purchaseId: number) => {
 
   const onFieldBlur = useCallback(
     (field: keyof EditPurchaseFormValues) => {
-      void formik.setFieldTouched(field, true, true);
+      void formik.setFieldTouched(field, true, false);
     },
     [formik.setFieldTouched],
   );

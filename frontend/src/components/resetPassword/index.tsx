@@ -2,9 +2,6 @@ import React, { useRef } from 'react';
 
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -13,6 +10,7 @@ import {
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
+import { AppKeyboardAwareScrollView } from '@components/common/AppKeyboardAwareScrollView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppInputField } from '@components/common/AppInputField';
@@ -76,15 +74,13 @@ export const ResetPasswordComponent = ({
         </View>
       </LinearGradient>
 
-      <KeyboardAvoidingView
-        style={styles.formCardWrapper}
-        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
-      >
-        <ScrollView
+      <View style={styles.formCardWrapper}>
+        <AppKeyboardAwareScrollView
           style={styles.formCard}
           contentContainerStyle={[styles.formContent, { paddingBottom: insets.bottom + 32 }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          bottomOffset={24}
         >
           {/* New password */}
           <AppInputField
@@ -183,8 +179,8 @@ export const ResetPasswordComponent = ({
               <Text style={styles.backToLoginLink}>{t('resetPassword.backToLogin')}</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </AppKeyboardAwareScrollView>
+      </View>
     </View>
   );
 };

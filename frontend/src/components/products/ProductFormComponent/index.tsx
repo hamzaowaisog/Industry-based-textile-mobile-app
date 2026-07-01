@@ -2,15 +2,13 @@ import React, { useRef } from 'react';
 
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
+import { AppKeyboardAwareScrollView } from '@components/common/AppKeyboardAwareScrollView';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppInputField } from '@components/common/AppInputField';
@@ -73,10 +71,7 @@ export const ProductFormComponent = ({
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
-      >
+      <View style={styles.flex}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.iconBtn} onPress={onCancel} activeOpacity={0.7}>
             <ArrowLeftIcon size={22} color={colors.text} />
@@ -86,10 +81,11 @@ export const ProductFormComponent = ({
           </Text>
         </View>
 
-        <ScrollView
+        <AppKeyboardAwareScrollView
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          bottomOffset={24}
         >
           <AppInputField
             label={t('products.fields.name')}
@@ -221,7 +217,7 @@ export const ProductFormComponent = ({
               onSubmitEditing={() => handleSubmit()}
             />
           )}
-        </ScrollView>
+        </AppKeyboardAwareScrollView>
 
         <View style={styles.bottomBar}>
           <TouchableOpacity style={styles.cancelBtn} onPress={onCancel} activeOpacity={0.7}>
@@ -242,7 +238,7 @@ export const ProductFormComponent = ({
             )}
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </View>
 
       <AppSelectModal
         visible={unitPickerVisible}

@@ -1,15 +1,9 @@
 import React from 'react';
 
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
+import { AppKeyboardAwareScrollView } from '@components/common/AppKeyboardAwareScrollView';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppInputField } from '@components/common/AppInputField';
@@ -45,11 +39,7 @@ export const ClientFormComponent = ({
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
-      >
+      <View style={styles.flex}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backBtn} onPress={onCancel} activeOpacity={0.7}>
@@ -65,10 +55,11 @@ export const ClientFormComponent = ({
           </View>
         </View>
 
-        <ScrollView
+        <AppKeyboardAwareScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
+          bottomOffset={24}
         >
           {/* Client type */}
           <View style={styles.section}>
@@ -183,7 +174,7 @@ export const ClientFormComponent = ({
               onSubmitEditing={handleSubmit}
             />
           </View>
-        </ScrollView>
+        </AppKeyboardAwareScrollView>
 
         {/* Bottom bar */}
         <View style={styles.bottomBar}>
@@ -201,7 +192,7 @@ export const ClientFormComponent = ({
             </Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 };

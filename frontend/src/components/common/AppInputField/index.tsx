@@ -3,6 +3,7 @@ import React from 'react';
 import { Text, TextInput, View } from 'react-native';
 
 import { FieldLabel } from '@components/common/FieldLabel';
+import { useKeyboardScrollToFocusedInput } from '@components/common/AppKeyboardAwareScrollView';
 
 import { colors } from '@theme/colors';
 
@@ -32,10 +33,12 @@ export const AppInputField = React.forwardRef<TextInput, InputFieldProps>(
       numberOfLines,
       onSubmitEditing,
       editable = true,
+      onFocus,
     },
     ref,
   ) => {
     const [focused, setFocused] = React.useState(false);
+    const scrollToFocusedInput = useKeyboardScrollToFocusedInput();
     return (
       <View style={styles.inputWrap}>
         <FieldLabel label={label} required={required} />
@@ -58,7 +61,11 @@ export const AppInputField = React.forwardRef<TextInput, InputFieldProps>(
               setFocused(false);
               onBlur();
             }}
-            onFocus={() => setFocused(true)}
+            onFocus={() => {
+              setFocused(true);
+              scrollToFocusedInput();
+              onFocus?.();
+            }}
             placeholder={placeholder}
             placeholderTextColor={colors.textTertiary}
             keyboardType={keyboardType}

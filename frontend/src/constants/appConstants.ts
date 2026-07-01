@@ -67,6 +67,20 @@ export const AppConstants = {
     CREDIT: 2,
   },
 
+  // Payment direction IDs (matches backend seeded PaymentDirection table)
+  PAYMENT_DIRECTION: {
+    RECEIVED: 1,
+    PAID: 2,
+    ADJUSTMENT: 3,
+  },
+
+  // Transaction mode IDs (matches backend seeded TransMode table)
+  TRANS_MODE: {
+    CASH: 1,
+    BANK: 2,
+    CREDIT: 3,
+  },
+
   // Order status IDs (matches backend seeded OrderStatus table)
   ORDER_STATUS: {
     PENDING: 1,
@@ -288,7 +302,9 @@ export const AppConstants = {
       EDIT_PURCHASE: 'EditPurchase',
       // Payment stack
       PAYMENT_LIST: 'PaymentList',
+      PAYMENT_DETAIL: 'PaymentDetail',
       RECORD_PAYMENT: 'RecordPayment',
+      EDIT_PAYMENT: 'EditPayment',
       // Invoice stack
       INVOICE_LIST: 'InvoiceList',
       INVOICE_DETAIL: 'InvoiceDetail',
@@ -336,20 +352,24 @@ export const AppConstants = {
       ORDER_LIST: 'Order/pdf',
       PRODUCT_LIST: 'Product/pdf',
       PURCHASE_LIST: 'Purchase/pdf',
+      PAYMENT_LIST: 'Payment/pdf',
       clientDossier: (id: number) => `Client/${id}/pdf`,
       orderDossier: (id: number) => `Order/${id}/pdf`,
       productDossier: (id: number) => `Product/${id}/pdf`,
       purchaseDossier: (id: number) => `Purchase/${id}/pdf`,
+      paymentDossier: (id: number) => `Payment/${id}/pdf`,
     },
     FILENAMES: {
       CLIENT_LIST: 'clients.pdf',
       ORDER_LIST: 'orders.pdf',
       PRODUCT_LIST: 'products.pdf',
       PURCHASE_LIST: 'purchases.pdf',
+      PAYMENT_LIST: 'payments.pdf',
       clientDossier: (id: number) => `client-${id}.pdf`,
       orderDossier: (id: number) => `order-${id}.pdf`,
       productDossier: (id: number) => `product-${id}.pdf`,
       purchaseDossier: (id: number) => `purchase-${id}.pdf`,
+      paymentDossier: (id: number) => `payment-${id}.pdf`,
     },
   },
 

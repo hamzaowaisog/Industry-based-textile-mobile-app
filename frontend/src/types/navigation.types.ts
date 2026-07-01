@@ -48,8 +48,15 @@ export type PurchaseStackParamList = {
 };
 
 export type PaymentStackParamList = {
-  PaymentList: undefined;
-  RecordPayment: { clientId?: number; clientName?: string };
+  PaymentList: { clientId?: number } | undefined;
+  PaymentDetail: { paymentId: number };
+  RecordPayment: {
+    clientId?: number;
+    clientName?: string;
+    orderId?: number;
+    purchaseId?: number;
+  };
+  EditPayment: { paymentId: number };
 };
 
 export type InvoiceStackParamList = {
@@ -171,4 +178,19 @@ export type OrderDetailScreenProps = NativeStackScreenProps<
 export type EditOrderScreenProps = NativeStackScreenProps<
   OrderStackParamList,
   typeof SM.EDIT_ORDER
+>;
+
+// ── Payment screen props ────────────────────────────────────────────────────────
+
+export type PaymentDetailScreenProps = NativeStackScreenProps<
+  PaymentStackParamList,
+  typeof SM.PAYMENT_DETAIL
+>;
+export type RecordPaymentScreenProps = NativeStackScreenProps<
+  PaymentStackParamList,
+  typeof SM.RECORD_PAYMENT
+>;
+export type EditPaymentScreenProps = NativeStackScreenProps<
+  PaymentStackParamList,
+  typeof SM.EDIT_PAYMENT
 >;

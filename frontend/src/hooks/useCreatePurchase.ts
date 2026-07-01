@@ -152,7 +152,7 @@ export const useCreatePurchase = (initialSupplierId?: number, initialSupplierNam
         await createPurchaseStep1Schema.validate(formik.values, { abortEarly: false });
         setStep((s) => s + 1);
       } catch {
-        void formik.setFieldTouched('supplierId', true, true);
+        void formik.setFieldTouched('supplierId', true, false);
         void formik.setFieldError(
           'supplierId',
           i18n.t('purchases.create.selectSupplierError'),
@@ -224,7 +224,7 @@ export const useCreatePurchase = (initialSupplierId?: number, initialSupplierNam
 
   const onFieldBlur = useCallback(
     (field: keyof CreatePurchaseFormValues) => {
-      void formik.setFieldTouched(field, true, true);
+      void formik.setFieldTouched(field, true, false);
     },
     [formik.setFieldTouched],
   );

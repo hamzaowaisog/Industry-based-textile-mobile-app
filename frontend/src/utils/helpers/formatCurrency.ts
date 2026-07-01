@@ -5,3 +5,10 @@ export const formatAmount = (amount: number): string =>
 
 export const formatPKR = (amount: number): string =>
   AppConstants.APP.CURRENCY + ' ' + formatAmount(amount);
+
+export const formatAmountInput = (raw: string): string => {
+  if (!raw) return '';
+  const [intPart, decPart] = raw.split('.');
+  const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
+};

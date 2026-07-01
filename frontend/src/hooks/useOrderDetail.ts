@@ -123,9 +123,17 @@ export const useOrderDetail = (orderId: number) => {
 
   const onRecordPayment = useCallback(
     (id: number) => {
-      navigation.navigate(AppConstants.SCREENS.MAIN.RECORD_PAYMENT as any, { orderId: id });
+      if (!currentOrder) return;
+      navigation.getParent()?.navigate(AppConstants.SCREENS.MAIN.PAYMENTS_STACK, {
+        screen: AppConstants.SCREENS.MAIN.RECORD_PAYMENT,
+        params: {
+          clientId: currentOrder.clientId,
+          clientName: currentOrder.clientName,
+          orderId: id,
+        },
+      });
     },
-    [navigation],
+    [navigation, currentOrder],
   );
 
   const onDelete = useCallback(() => {

@@ -2,15 +2,13 @@ import React, { useMemo } from 'react';
 
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
+import { AppKeyboardAwareScrollView } from '@components/common/AppKeyboardAwareScrollView';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppBottomBar } from '@components/common/AppBottomBar';
@@ -237,20 +235,15 @@ export const EditOrderComponent = ({
         <AppStepIndicator steps={STEPS.map((key) => t(key))} current={step} />
       </View>
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
+      <AppKeyboardAwareScrollView
+        style={[styles.flex, styles.scroll]}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={24}
       >
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {renderStep()}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        {renderStep()}
+      </AppKeyboardAwareScrollView>
 
       <AppSelectModal
         visible={productPickerVisible}

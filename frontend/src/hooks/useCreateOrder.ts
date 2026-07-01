@@ -149,7 +149,7 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
         await createOrderStep1Schema.validate(formik.values, { abortEarly: false });
         setStep((s) => s + 1);
       } catch {
-        void formik.setFieldTouched('clientId', true, true);
+        void formik.setFieldTouched('clientId', true, false);
         void formik.setFieldError('clientId', i18n.t('orders.create.selectCustomerError'));
       }
       return;
@@ -213,7 +213,7 @@ export const useCreateOrder = (initialClientId?: number, initialClientName?: str
 
   const onFieldBlur = useCallback(
     (field: keyof CreateOrderFormValues) => {
-      void formik.setFieldTouched(field, true, true);
+      void formik.setFieldTouched(field, true, false);
     },
     [formik.setFieldTouched],
   );
