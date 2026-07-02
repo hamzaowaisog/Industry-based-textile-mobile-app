@@ -1970,7 +1970,7 @@
       },
       "get": {
         "tags": ["Invoice"],
-        "summary": "Get all invoices paginated. Admin only.",
+        "summary": "Get all invoices paginated. Admin sees all; staff see invoices they created.",
         "operationId": "invoice_getAll",
         "parameters": [
           {
