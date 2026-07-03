@@ -62,7 +62,8 @@ export type PaymentStackParamList = {
 export type InvoiceStackParamList = {
   InvoiceList: undefined;
   InvoiceDetail: { invoiceId: number };
-  InvoiceForm: { invoiceId?: number };
+  CreateInvoice: undefined;
+  EditInvoice: { invoiceId: number };
 };
 
 export type ExpenseStackParamList = {
@@ -193,4 +194,19 @@ export type RecordPaymentScreenProps = NativeStackScreenProps<
 export type EditPaymentScreenProps = NativeStackScreenProps<
   PaymentStackParamList,
   typeof SM.EDIT_PAYMENT
+>;
+
+// ── Invoice screen props ─────────────────────────────────────────────────────
+
+export type InvoiceDetailScreenProps = NativeStackScreenProps<
+  InvoiceStackParamList,
+  typeof SM.INVOICE_DETAIL
+>;
+export type CreateInvoiceScreenProps = NativeStackScreenProps<
+  InvoiceStackParamList,
+  typeof SM.CREATE_INVOICE
+>;
+export type EditInvoiceScreenProps = NativeStackScreenProps<
+  InvoiceStackParamList,
+  typeof SM.EDIT_INVOICE
 >;

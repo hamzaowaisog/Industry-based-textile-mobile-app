@@ -97,6 +97,14 @@ export const AppConstants = {
     CANCELLED: 4,
   },
 
+  // Invoice status IDs (matches backend seeded InvoiceStatus table)
+  INVOICE_STATUS: {
+    DRAFT: 1,
+    ISSUED: 2,
+    PAID: 3,
+    CANCELLED: 4,
+  },
+
   // Client detail tabs
   CLIENT_TABS: {
     ORDERS: 'orders',
@@ -308,7 +316,8 @@ export const AppConstants = {
       // Invoice stack
       INVOICE_LIST: 'InvoiceList',
       INVOICE_DETAIL: 'InvoiceDetail',
-      INVOICE_FORM: 'InvoiceForm',
+      CREATE_INVOICE: 'CreateInvoice',
+      EDIT_INVOICE: 'EditInvoice',
       // Expense stack
       EXPENSE_LIST: 'ExpenseList',
       ADD_EXPENSE: 'AddExpense',
@@ -334,6 +343,8 @@ export const AppConstants = {
   PDF: {
     MIME_TYPE: 'application/pdf',
     ANDROID_CHOOSER_TITLE: 'Open PDF',
+    SHARE_TITLE: 'Share invoice',
+    FILE_URL_SCHEME: 'file://',
     ERROR: {
       NO_APP: 'no_pdf_app',
       CANNOT_PREVIEW: 'cannot_preview',
@@ -346,6 +357,7 @@ export const AppConstants = {
       NOT_AUTHENTICATED: 'Not authenticated',
       DOWNLOAD_FAILED: 'Download failed',
       UNKNOWN_ERROR: 'Unknown error',
+      SHARE_FAILED: 'Could not share the PDF',
     },
     PATHS: {
       CLIENT_LIST: 'Client/pdf',
@@ -353,11 +365,13 @@ export const AppConstants = {
       PRODUCT_LIST: 'Product/pdf',
       PURCHASE_LIST: 'Purchase/pdf',
       PAYMENT_LIST: 'Payment/pdf',
+      INVOICE_LIST: 'Invoice/pdf',
       clientDossier: (id: number) => `Client/${id}/pdf`,
       orderDossier: (id: number) => `Order/${id}/pdf`,
       productDossier: (id: number) => `Product/${id}/pdf`,
       purchaseDossier: (id: number) => `Purchase/${id}/pdf`,
       paymentDossier: (id: number) => `Payment/${id}/pdf`,
+      invoiceDossier: (id: number) => `Invoice/${id}/pdf`,
     },
     FILENAMES: {
       CLIENT_LIST: 'clients.pdf',
@@ -365,11 +379,13 @@ export const AppConstants = {
       PRODUCT_LIST: 'products.pdf',
       PURCHASE_LIST: 'purchases.pdf',
       PAYMENT_LIST: 'payments.pdf',
+      INVOICE_LIST: 'invoices.pdf',
       clientDossier: (id: number) => `client-${id}.pdf`,
       orderDossier: (id: number) => `order-${id}.pdf`,
       productDossier: (id: number) => `product-${id}.pdf`,
       purchaseDossier: (id: number) => `purchase-${id}.pdf`,
       paymentDossier: (id: number) => `payment-${id}.pdf`,
+      invoiceDossier: (id: number) => `invoice-${id}.pdf`,
     },
   },
 

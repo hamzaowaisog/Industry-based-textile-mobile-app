@@ -108,7 +108,7 @@ export const useInvoiceCreate = <TError = Response,
       return useMutation(getInvoiceCreateMutationOptions(options), queryClient);
     }
     /**
- * @summary Get all invoices paginated. Admin only.
+ * @summary Get all invoices paginated. Admin sees all; staff see invoices they created.
  */
 export const invoiceGetAll = (
     params?: InvoiceGetAllParams,
@@ -180,7 +180,7 @@ export function useInvoiceGetAll<TData = Awaited<ReturnType<typeof invoiceGetAll
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get all invoices paginated. Admin only.
+ * @summary Get all invoices paginated. Admin sees all; staff see invoices they created.
  */
 
 export function useInvoiceGetAll<TData = Awaited<ReturnType<typeof invoiceGetAll>>, TError = unknown>(

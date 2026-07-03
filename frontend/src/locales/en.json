@@ -755,6 +755,96 @@
     "deleteMessage": "Permanently delete payment {{id}}? This cannot be undone.",
     "deleteSuccess": "Payment deleted"
   },
+  "invoices": {
+    "title": "Invoices",
+    "subtitle": "Bills and receivables",
+    "createInvoice": "Create Invoice",
+    "viewPdf": "View PDF",
+    "share": "Share",
+    "thisMonth": "{{count}} this month",
+    "received": "Receivable",
+    "paidOut": "Payable",
+    "overdue": "Overdue",
+    "duePrefix": "Due",
+    "tabs": {
+      "all": "All",
+      "draft": "Draft",
+      "issued": "Issued",
+      "paid": "Paid"
+    },
+    "empty": {
+      "title": "No invoices yet",
+      "subtitle": "Create your first invoice to bill a client."
+    },
+    "validation": {
+      "clientRequired": "Please select a client",
+      "linesRequired": "Add at least one line item",
+      "lineInvalid": "Each line needs a product, quantity and price"
+    },
+    "create": {
+      "title": "Create Invoice",
+      "subtitle": "Bill a client for goods or services",
+      "client": "Bill To",
+      "clientPlaceholder": "Select a client",
+      "dueDate": "Due Date",
+      "dueDateHint": "Optional (yyyy-MM-dd)",
+      "notes": "Notes",
+      "notesPlaceholder": "Payment instructions or memo (optional)",
+      "addLine": "Add line item",
+      "lineItems": "Line items",
+      "lineItemsCount": "{{count}} line items",
+      "product": "Product",
+      "productPlaceholder": "Product / service name",
+      "qty": "Qty",
+      "unitPrice": "Unit Price",
+      "lineTotal": "Line Total",
+      "total": "Total",
+      "errorTitle": "Invoice Failed",
+      "successTitle": "Invoice Created",
+      "successSubtitle": "The invoice has been saved as a draft.",
+      "discardTitle": "Discard invoice?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
+    "edit": {
+      "title": "Edit Invoice",
+      "status": "Status",
+      "errorTitle": "Update Failed",
+      "successTitle": "Invoice Updated",
+      "successSubtitle": "Changes have been saved.",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
+    "detail": {
+      "reference": "{{id}}",
+      "totalInvoice": "Total invoice",
+      "issued": "Issued",
+      "due": "Due",
+      "lineItems": "Line items",
+      "noLines": "No line items",
+      "amountPaid": "Amount paid",
+      "outstanding": "Outstanding",
+      "linkedTransactions": "Linked transactions",
+      "noTransactions": "No linked transactions",
+      "issue": "Issue Invoice",
+      "issueConfirm": "Issue this invoice?",
+      "issueConfirmMsg": "The invoice will be marked as issued and become payable.",
+      "cancel": "Cancel Invoice",
+      "cancelConfirm": "Cancel this invoice?",
+      "cancelConfirmMsg": "The invoice will be marked as cancelled. This cannot be undone.",
+      "statusError": "Status change failed",
+      "statusChanged": "Invoice updated"
+    },
+    "deleteTitle": "Delete Invoice",
+    "deleteMessage": "Permanently delete invoice {{id}}? This cannot be undone.",
+    "deleteSuccess": "Invoice deleted",
+    "deleteErrorTitle": "Cannot Delete Invoice",
+    "deleteOnlyDraft": "Only Draft invoices can be deleted. Issued, Paid, and Cancelled invoices are kept for record-keeping.",
+    "deleteError": "Failed to delete invoice. Please try again."
+  },
   "reports": {
     "title": "Reports",
     "profitLoss": "Profit & Loss",
@@ -927,6 +1017,7 @@
     "errorTitle": "PDF Error",
     "errorGeneric": "Could not open the PDF. Please try again.",
     "errorNoPdfApp": "No PDF viewer installed. Please install a PDF reader app and try again.",
-    "errorCannotPreview": "This file could not be previewed. The PDF may be corrupted or unsupported."
+    "errorCannotPreview": "This file could not be previewed. The PDF may be corrupted or unsupported.",
+    "errorShare": "Could not share the PDF. Please try again."
   }
 }
