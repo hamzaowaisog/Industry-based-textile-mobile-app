@@ -15,6 +15,8 @@ import { AppInputField } from '@components/common/AppInputField';
 import { AppSelectModal } from '@components/common/AppSelectModal';
 import { FieldLabel } from '@components/common/FieldLabel';
 
+import { sanitizeDecimalInput } from '@utils/helpers/sanitizeInput';
+
 import { colors } from '@theme/colors';
 
 import { AppConstants } from '@constants/appConstants';
@@ -139,7 +141,7 @@ export const ProductFormComponent = ({
                 label={t('products.fields.defaultCost')}
                 required
                 value={values.defaultCost}
-                onChangeText={(v) => void setFieldValue('defaultCost', v)}
+                onChangeText={(v) => void setFieldValue('defaultCost', sanitizeDecimalInput(v))}
                 onBlur={() => setFieldTouched('defaultCost', true)}
                 placeholder="0"
                 error={err('defaultCost')}
@@ -154,7 +156,7 @@ export const ProductFormComponent = ({
                 label={t('products.fields.defaultPrice')}
                 required
                 value={values.defaultPrice}
-                onChangeText={(v) => void setFieldValue('defaultPrice', v)}
+                onChangeText={(v) => void setFieldValue('defaultPrice', sanitizeDecimalInput(v))}
                 onBlur={() => setFieldTouched('defaultPrice', true)}
                 placeholder="0"
                 error={err('defaultPrice')}
@@ -175,7 +177,7 @@ export const ProductFormComponent = ({
                   label={t('products.fields.quantity')}
                   required
                   value={values.quantity}
-                  onChangeText={(v) => void setFieldValue('quantity', v)}
+                  onChangeText={(v) => void setFieldValue('quantity', sanitizeDecimalInput(v))}
                   onBlur={() => setFieldTouched('quantity', true)}
                   placeholder="0"
                   error={err('quantity')}
@@ -190,7 +192,7 @@ export const ProductFormComponent = ({
                   label={t('products.fields.reorderLevel')}
                   required
                   value={values.reorderLevel}
-                  onChangeText={(v) => void setFieldValue('reorderLevel', v)}
+                  onChangeText={(v) => void setFieldValue('reorderLevel', sanitizeDecimalInput(v))}
                   onBlur={() => setFieldTouched('reorderLevel', true)}
                   placeholder="0"
                   error={err('reorderLevel')}
@@ -208,7 +210,7 @@ export const ProductFormComponent = ({
               label={t('products.fields.reorderLevel')}
               required
               value={values.reorderLevel}
-              onChangeText={(v) => void setFieldValue('reorderLevel', v)}
+              onChangeText={(v) => void setFieldValue('reorderLevel', sanitizeDecimalInput(v))}
               onBlur={() => setFieldTouched('reorderLevel', true)}
               placeholder="0"
               error={err('reorderLevel')}

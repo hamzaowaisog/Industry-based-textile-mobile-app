@@ -2,6 +2,8 @@ import * as Yup from 'yup';
 
 import i18n from '@utils/i18n';
 
+import { optionalNonNegativeDecimalString } from './validators';
+
 export const clientValidationSchema = Yup.object({
   name: Yup.string()
     .trim()
@@ -13,7 +15,7 @@ export const clientValidationSchema = Yup.object({
     .matches(/^[+\d\s\-()]*$/, () => i18n.t('clients.validationPhoneInvalid'))
     .nullable(),
   address: Yup.string().nullable(),
-  creditLimit: Yup.string().nullable(),
+  creditLimit: optionalNonNegativeDecimalString('clients.validationCreditLimitNegative'),
   openingBalance: Yup.string().nullable(),
   notes: Yup.string().nullable(),
 });

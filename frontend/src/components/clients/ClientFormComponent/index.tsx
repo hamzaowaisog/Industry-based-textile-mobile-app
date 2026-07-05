@@ -8,6 +8,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppInputField } from '@components/common/AppInputField';
 
+import { sanitizeDecimalInput } from '@utils/helpers/sanitizeInput';
+
 import { colors } from '@theme/colors';
 
 import { AppConstants } from '@constants/appConstants';
@@ -133,7 +135,7 @@ export const ClientFormComponent = ({
               ref={creditLimitRef}
               label={t('clients.fieldCreditLimit')}
               value={values.creditLimit}
-              onChangeText={(v) => setFieldValue('creditLimit', v)}
+              onChangeText={(v) => setFieldValue('creditLimit', sanitizeDecimalInput(v))}
               onBlur={() => setFieldTouched('creditLimit', true)}
               placeholder="0"
               error={err('creditLimit')}

@@ -2,6 +2,8 @@ import * as Yup from 'yup';
 
 import { AppConstants } from '@constants/appConstants';
 
+import { positiveDecimalString } from './validators';
+
 export const recordPaymentValidationSchema = Yup.object({
   partyClientId: Yup.number()
     .nullable()
@@ -16,12 +18,10 @@ export const recordPaymentValidationSchema = Yup.object({
   transModeId: Yup.number()
     .required('payments.validation.modeRequired')
     .min(1, 'payments.validation.modeRequired'),
-  amount: Yup.string()
-    .required('payments.validation.amountRequired')
-    .test('positive', 'payments.validation.amountPositive', (v) => {
-      const n = parseFloat(v ?? '');
-      return !Number.isNaN(n) && n > 0;
-    }),
+  amount: positiveDecimalString(
+    'payments.validation.amountRequired',
+    'payments.validation.amountPositive',
+  ),
   notes: Yup.string(),
 });
 

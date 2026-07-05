@@ -2,6 +2,7 @@
   "common": {
     "save": "Save",
     "cancel": "Cancel",
+    "done": "Done",
     "noResults": "No results found",
     "noResultsSub": "No matches for \"{{query}}\"",
     "delete": "Delete",
@@ -83,6 +84,7 @@
     "validationNameRequired": "Client name is required",
     "validationNameTooShort": "Name must be at least 2 characters",
     "validationPhoneInvalid": "Invalid phone format",
+    "validationCreditLimitNegative": "Credit limit cannot be negative",
     "validationPhoneTooShort": "Phone number must be at least 10 digits",
     "validationPhoneTooLong": "Phone number must be at most 15 digits",
     "tabOrders": "Orders",
@@ -412,10 +414,10 @@
     "validationNameRequired": "Product name is required",
     "validationSkuRequired": "SKU is required",
     "validationUnitRequired": "Unit is required",
-    "validationCostInvalid": "Enter a valid cost (0 or more)",
-    "validationPriceInvalid": "Enter a valid price (0 or more)",
-    "validationQtyInvalid": "Enter a valid opening quantity (0 or more)",
-    "validationReorderInvalid": "Enter a valid reorder level (0 or more)"
+    "validationCostInvalid": "Enter a valid cost (greater than zero)",
+    "validationPriceInvalid": "Enter a valid price (greater than zero)",
+    "validationQtyInvalid": "Enter a valid opening quantity (greater than zero)",
+    "validationReorderInvalid": "Enter a valid reorder level (greater than zero)"
   },
   "orders": {
     "title": "Orders",
@@ -466,6 +468,12 @@
       "2": "Production in progress",
       "3": "Delivered",
       "4": "Cancelled"
+    },
+    "validation": {
+      "qtyRequired": "Quantity is required",
+      "qtyPositive": "Quantity must be greater than zero",
+      "unitPriceRequired": "Unit price is required",
+      "unitPricePositive": "Unit price must be greater than zero"
     },
     "create": {
       "title": "New Order",
@@ -595,6 +603,12 @@
       "inProgress": "In Progress",
       "received": "Received",
       "cancelled": "Cancelled"
+    },
+    "validation": {
+      "qtyRequired": "Quantity is required",
+      "qtyPositive": "Quantity must be greater than zero",
+      "unitCostRequired": "Unit cost is required",
+      "unitCostPositive": "Unit cost must be greater than zero"
     },
     "create": {
       "title": "New Purchase",
@@ -844,6 +858,69 @@
     "deleteErrorTitle": "Cannot Delete Invoice",
     "deleteOnlyDraft": "Only Draft invoices can be deleted. Issued, Paid, and Cancelled invoices are kept for record-keeping.",
     "deleteError": "Failed to delete invoice. Please try again."
+  },
+  "expenses": {
+    "title": "Expenses",
+    "subtitle": "Track your spending",
+    "addExpense": "Add Expense",
+    "amount": "Amount",
+    "category": "Category",
+    "mode": "Mode",
+    "expenseDate": "Expense Date",
+    "notes": "Notes",
+    "notesPlaceholder": "What was this for? (optional)",
+    "searchPlaceholder": "Search by notes or category",
+    "recent": "Recent",
+    "thisMonth": "This month",
+    "summaryMeta": "{{entries}} entries · {{categories}} categories",
+    "entriesCount": "{{count}} this month",
+    "empty": {
+      "title": "No expenses yet",
+      "subtitle": "Add your first expense to start tracking spending."
+    },
+    "validation": {
+      "typeRequired": "Please select a category",
+      "modeRequired": "Please select a payment mode",
+      "amountRequired": "Amount is required",
+      "amountPositive": "Amount must be greater than zero"
+    },
+    "add": {
+      "title": "Add Expense",
+      "errorTitle": "Expense Failed",
+      "successTitle": "Expense Added",
+      "successSubtitle": "The expense has been saved successfully.",
+      "dateHint": "Defaults to today if not selected",
+      "datePlaceholder": "Select a date",
+      "discardTitle": "Discard expense?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
+    "edit": {
+      "title": "Edit Expense",
+      "errorTitle": "Update Failed",
+      "successTitle": "Expense Updated",
+      "successSubtitle": "Changes have been saved.",
+      "immutableCategory": "Category cannot be changed — delete and re-create to reclassify",
+      "dateHint": "Tap to change the expense date",
+      "datePlaceholder": "Select a date",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
+    "detail": {
+      "reference": "HT-EXPENSE-{{id}}",
+      "category": "Category",
+      "mode": "Mode",
+      "recordedBy": "Recorded by",
+      "ledgerCategory": "Ledger category",
+      "transaction": "Transaction",
+      "createdAt": "Created"
+    },
+    "deleteTitle": "Delete Expense",
+    "deleteMessage": "Permanently delete expense {{id}}? Its ledger transaction will also be removed. This cannot be undone.",
+    "deleteSuccess": "Expense deleted"
   },
   "reports": {
     "title": "Reports",

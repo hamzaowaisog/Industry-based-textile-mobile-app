@@ -68,7 +68,9 @@ export type InvoiceStackParamList = {
 
 export type ExpenseStackParamList = {
   ExpenseList: undefined;
+  ExpenseDetail: { expenseId: number };
   AddExpense: undefined;
+  EditExpense: { expenseId: number };
 };
 
 export type StockStackParamList = {
@@ -209,4 +211,15 @@ export type CreateInvoiceScreenProps = NativeStackScreenProps<
 export type EditInvoiceScreenProps = NativeStackScreenProps<
   InvoiceStackParamList,
   typeof SM.EDIT_INVOICE
+>;
+
+// ── Expense screen props ─────────────────────────────────────────────────────
+
+export type ExpenseDetailScreenProps = NativeStackScreenProps<
+  ExpenseStackParamList,
+  typeof SM.EXPENSE_DETAIL
+>;
+export type EditExpenseScreenProps = NativeStackScreenProps<
+  ExpenseStackParamList,
+  typeof SM.EDIT_EXPENSE
 >;

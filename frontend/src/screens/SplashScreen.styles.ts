@@ -11,7 +11,7 @@ export const splashStyles = StyleSheet.create({
     overflow: 'hidden',
   },
   weavePattern: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   orbTopLeft: {
     position: 'absolute',

@@ -207,3 +207,15 @@ export type InputFieldProps = {
   editable?: boolean;
   onFocus?: () => void;
 };
+
+export type AppDatePickerProps = {
+  label?: string;
+  required?: boolean;
+  value: string;
+  onChange: (isoDate: string) => void;
+  placeholder?: string;
+  error?: string;
+  helper?: string;
+  maximumDate?: Date;
+  minimumDate?: Date;
+};

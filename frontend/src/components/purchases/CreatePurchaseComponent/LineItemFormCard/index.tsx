@@ -9,6 +9,8 @@ import { AppCard } from '@components/common/AppCard';
 import { AppInputField } from '@components/common/AppInputField';
 import { FieldLabel } from '@components/common/FieldLabel';
 
+import { sanitizeDecimalInput } from '@utils/helpers/sanitizeInput';
+
 import { colors } from '@theme/colors';
 
 import { TrashIcon } from '@constants/svgAssets';
@@ -63,7 +65,7 @@ export const LineItemFormCard = ({
               label={t('purchases.create.qty')}
               required
               value={line.qty}
-              onChangeText={(v) => onChange(index, 'qty', v)}
+              onChangeText={(v) => onChange(index, 'qty', sanitizeDecimalInput(v))}
               onBlur={() => {}}
               placeholder="0"
               error={qtyError}
@@ -78,7 +80,7 @@ export const LineItemFormCard = ({
               label={t('purchases.create.unitCost')}
               required
               value={line.unitCost}
-              onChangeText={(v) => onChange(index, 'unitCost', v)}
+              onChangeText={(v) => onChange(index, 'unitCost', sanitizeDecimalInput(v))}
               onBlur={() => {}}
               placeholder="0.00"
               keyboardType="decimal-pad"
