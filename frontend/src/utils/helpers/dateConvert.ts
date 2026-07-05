@@ -38,3 +38,31 @@ export const toISODate = (date: string | null | undefined): string | null => {
 
   return date;
 };
+
+const MONTH_NAMES = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+export const formatDateForDisplay = (date: string | null | undefined): string => {
+  const iso = toISODate(date);
+  if (!iso) return '';
+  const [year, month, day] = iso.split('-').map(Number);
+  if (!year || !month || !day) return '';
+  return `${String(day).padStart(2, '0')} ${MONTH_NAMES[month - 1]}, ${year}`;
+};
+
+export const localDateToISO = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+export const getCurrentMonthRange = (): { from: string; to: string } => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return { from: `${year}-${month}-01`, to: `${year}-${month}-${day}` };
+};

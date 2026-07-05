@@ -130,7 +130,7 @@ export const ProductDetailComponent = ({
         {/* Chart card */}
         <StockChart
           currentStock={product.stock}
-          unit={product.unit}
+          unit={product.unitName}
           chartData={chartData}
           trendPct={trendPct}
         />

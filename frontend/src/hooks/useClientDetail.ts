@@ -112,7 +112,7 @@ export const useClientDetail = () => {
         .getParent<NativeStackNavigationProp<any>>()
         ?.navigate(AppConstants.SCREENS.MAIN.PURCHASES_STACK, {
           screen: AppConstants.SCREENS.MAIN.CREATE_PURCHASE,
-          params: { clientId, clientName: currentClient.clientName },
+          params: { supplierId: clientId, supplierName: currentClient.clientName },
         });
     } else {
       navigation

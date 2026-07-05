@@ -5,6 +5,7 @@ import { Text, View, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { LineChart } from 'react-native-gifted-charts';
 
+import { computeNiceMaxValue } from '@utils/helpers/formatChartScale';
 import { formatCompactNumber } from '@utils/helpers/formatNumber';
 
 import { colors } from '@theme/colors';
@@ -39,9 +40,8 @@ export const StockChart = ({ currentStock, unit, chartData, trendPct }: StockCha
     const peak = Math.max(...chartData, 0);
     if (peak === 0) return FALLBACK_MAX;
     const min = Math.min(...chartData);
-    return peak === min
-      ? Math.ceil(peak * Y_HEADROOM_EMPTY) || FALLBACK_MAX
-      : Math.ceil(peak * Y_HEADROOM_NORMAL);
+    const headroom = peak === min ? Y_HEADROOM_EMPTY : Y_HEADROOM_NORMAL;
+    return computeNiceMaxValue(peak, headroom, SECTIONS);
   }, [chartData]);
 
   const trendPositive = trendPct !== null && trendPct >= 0;

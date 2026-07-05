@@ -100,7 +100,7 @@ public class PaymentService : IPaymentService
             return Response<PaymentDto>.ErrorResponse("Validation failed", "Invalid client type for this payment direction.");
 
         // Strip empty allocation items — treat 0 same as null (user may send [{orderId:0}] instead of [])
-        var providedAllocations = model.Allocations
+        var providedAllocations = (model.Allocations ?? [])
             .Where(a => (a.OrderId ?? 0) > 0 || (a.PurchaseId ?? 0) > 0)
             .ToList();
 
@@ -116,6 +116,13 @@ public class PaymentService : IPaymentService
             allocations = model.Allocations
                 .Select(a => (a.OrderId, a.PurchaseId, a.AllocatedAmount))
                 .ToList();
+
+            var remaining = model.Amount - allocations.Sum(a => a.Amount);
+            if (remaining > 0)
+            {
+                var swept = await BuildFifoAllocations(model.PartyClientId, model.PaymentDirectionId, remaining, allocations);
+                allocations.AddRange(swept);
+            }
         }
         else
         {
@@ -241,6 +248,7 @@ public class PaymentService : IPaymentService
     public async Task<Response<PaymentDto>> GetByIdAsync(int id)
     {
         var payment = await _db.Payments
+            .AsNoTracking()
             .Include(p => p.PartyClient)
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
@@ -257,6 +265,7 @@ public class PaymentService : IPaymentService
     public async Task<Response<PagedList<PaymentDto>>> GetAllPaginatedAsync(int page, int pageSize, bool includeReversed, int userId, bool isAdmin)
     {
         var query = _db.Payments
+            .AsNoTracking()
             .Include(p => p.PartyClient)
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
@@ -268,7 +277,7 @@ public class PaymentService : IPaymentService
             query = query.Where(p => p.UserId == userId);
 
         if (!includeReversed)
-            query = query.Where(p => !p.IsReversed);
+            query = query.Where(p => p.OriginalPaymentId == null);
 
         query = query.OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.Id);
 
@@ -281,6 +290,7 @@ public class PaymentService : IPaymentService
     public async Task<Response<List<PaymentDto>>> GetAllByClientIdAsync(int clientId)
     {
         var payments = await _db.Payments
+            .AsNoTracking()
             .Include(p => p.PartyClient)
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
@@ -299,6 +309,7 @@ public class PaymentService : IPaymentService
         DateOnly? dateFrom, DateOnly? dateTo, bool includeReversed, int userId, bool isAdmin)
     {
         var query = _db.Payments
+            .AsNoTracking()
             .Include(p => p.PartyClient)
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
@@ -314,7 +325,7 @@ public class PaymentService : IPaymentService
         if (modeId.HasValue) query = query.Where(p => p.TransModeId == modeId);
         if (dateFrom.HasValue) query = query.Where(p => p.PaymentDate >= dateFrom.Value);
         if (dateTo.HasValue) query = query.Where(p => p.PaymentDate <= dateTo.Value);
-        if (!includeReversed) query = query.Where(p => !p.IsReversed);
+        if (!includeReversed) query = query.Where(p => p.OriginalPaymentId == null);
 
         var list = await query.OrderByDescending(p => p.PaymentDate).ToListAsync();
         return Response<List<PaymentDto>>.SuccessResponse(list.Select(MapToDto).ToList(), "Payments retrieved.");
@@ -367,6 +378,10 @@ public class PaymentService : IPaymentService
             // Reversing transaction (negates cash flow)
             var originalSingleAlloc = original.Allocations.Count == 1 ? original.Allocations.First() : null;
             var originalSingleInvoiceId = original.Allocations.Count == 1 ? original.Allocations.First().InvoiceId : null;
+            var reversalAmount = (transCategoryId == CatSales || transCategoryId == CatPurchases)
+                ? -original.Amount
+                : original.Amount;
+
             var reversalTransaction = new Transaction
             {
                 ClientId = original.PartyClientId,
@@ -374,7 +389,7 @@ public class PaymentService : IPaymentService
                 TransTypeId = reversalTransTypeId,
                 TransModeId = original.TransModeId,
                 TransCategoryId = transCategoryId,
-                Amount = original.Amount,
+                Amount = reversalAmount,
                 TransDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 OrderId = originalSingleAlloc?.OrderId,
                 PurchaseId = originalSingleAlloc?.PurchaseId,
@@ -668,7 +683,8 @@ public class PaymentService : IPaymentService
     }
 
     private async Task<List<(int? OrderId, int? PurchaseId, decimal Amount)>> BuildFifoAllocations(
-        int clientId, int directionId, decimal paymentAmount)
+        int clientId, int directionId, decimal paymentAmount,
+        List<(int? OrderId, int? PurchaseId, decimal Amount)>? inFlightAllocations = null)
     {
         var result = new List<(int? OrderId, int? PurchaseId, decimal Amount)>();
         decimal remaining = paymentAmount;
@@ -690,7 +706,8 @@ public class PaymentService : IPaymentService
                 var alreadyAllocated = await _db.PaymentAllocations
                     .Where(a => a.OrderId == order.Id && !a.Payment.IsReversed && a.Payment.OriginalPaymentId == null)
                     .SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
-                var outstanding = orderTotal - alreadyAllocated;
+                var inFlight = inFlightAllocations?.Where(a => a.OrderId == order.Id).Sum(a => a.Amount) ?? 0;
+                var outstanding = orderTotal - alreadyAllocated - inFlight;
 
                 if (outstanding <= 0) continue;
 
@@ -716,7 +733,8 @@ public class PaymentService : IPaymentService
                 var alreadyAllocated = await _db.PaymentAllocations
                     .Where(a => a.PurchaseId == purchase.Id && !a.Payment.IsReversed && a.Payment.OriginalPaymentId == null)
                     .SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
-                var outstanding = purchaseTotal - alreadyAllocated;
+                var inFlight = inFlightAllocations?.Where(a => a.PurchaseId == purchase.Id).Sum(a => a.Amount) ?? 0;
+                var outstanding = purchaseTotal - alreadyAllocated - inFlight;
 
                 if (outstanding <= 0) continue;
 

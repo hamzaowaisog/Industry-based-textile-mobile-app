@@ -113,7 +113,10 @@ public class ReportController : BaseController
     [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetClientBalanceById([FromRoute] int clientId)
     {
-        return ToActionResult(await _reportService.GetClientBalanceByIdAsync(clientId));
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        return ToActionResult(await _reportService.GetClientBalanceByIdAsync(clientId, userId, IsAdmin()));
     }
 
     /// <summary>Export all client balances as PDF.</summary>
@@ -318,7 +321,10 @@ public class ReportController : BaseController
     [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetClientDetailById([FromRoute] int clientId)
     {
-        return ToActionResult(await _reportService.GetClientDetailByIdAsync(clientId));
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        return ToActionResult(await _reportService.GetClientDetailByIdAsync(clientId, userId, IsAdmin()));
     }
 
     /// <summary>Export full single client detail as PDF with orders, purchases, payments, and transactions.</summary>
@@ -328,7 +334,10 @@ public class ReportController : BaseController
     [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetClientDetailByIdPdf([FromRoute] int clientId)
     {
-        var result = await _reportService.GetClientDetailByIdAsync(clientId);
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        var result = await _reportService.GetClientDetailByIdAsync(clientId, userId, IsAdmin());
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 

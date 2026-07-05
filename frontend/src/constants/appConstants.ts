@@ -67,6 +67,20 @@ export const AppConstants = {
     CREDIT: 2,
   },
 
+  // Payment direction IDs (matches backend seeded PaymentDirection table)
+  PAYMENT_DIRECTION: {
+    RECEIVED: 1,
+    PAID: 2,
+    ADJUSTMENT: 3,
+  },
+
+  // Transaction mode IDs (matches backend seeded TransMode table)
+  TRANS_MODE: {
+    CASH: 1,
+    BANK: 2,
+    CREDIT: 3,
+  },
+
   // Order status IDs (matches backend seeded OrderStatus table)
   ORDER_STATUS: {
     PENDING: 1,
@@ -80,6 +94,14 @@ export const AppConstants = {
     PENDING: 1,
     IN_PROGRESS: 2,
     DELIVERED: 3,
+    CANCELLED: 4,
+  },
+
+  // Invoice status IDs (matches backend seeded InvoiceStatus table)
+  INVOICE_STATUS: {
+    DRAFT: 1,
+    ISSUED: 2,
+    PAID: 3,
     CANCELLED: 4,
   },
 
@@ -235,6 +257,11 @@ export const AppConstants = {
     Y_HEADROOM_NORMAL: 1.12,
     FALLBACK_MAX: 4,
   },
+  DONUT: {
+    SIZE: 84,
+    STROKE_WIDTH: 12,
+    START_ROTATION_DEGREES: -90,
+  },
 
   // Screen names
   SCREENS: {
@@ -288,14 +315,19 @@ export const AppConstants = {
       EDIT_PURCHASE: 'EditPurchase',
       // Payment stack
       PAYMENT_LIST: 'PaymentList',
+      PAYMENT_DETAIL: 'PaymentDetail',
       RECORD_PAYMENT: 'RecordPayment',
+      EDIT_PAYMENT: 'EditPayment',
       // Invoice stack
       INVOICE_LIST: 'InvoiceList',
       INVOICE_DETAIL: 'InvoiceDetail',
-      INVOICE_FORM: 'InvoiceForm',
+      CREATE_INVOICE: 'CreateInvoice',
+      EDIT_INVOICE: 'EditInvoice',
       // Expense stack
       EXPENSE_LIST: 'ExpenseList',
+      EXPENSE_DETAIL: 'ExpenseDetail',
       ADD_EXPENSE: 'AddExpense',
+      EDIT_EXPENSE: 'EditExpense',
       // Stock stack
       STOCK_MOVE_LIST: 'StockMoveList',
       ADD_STOCK_MOVE: 'AddStockMove',
@@ -318,6 +350,8 @@ export const AppConstants = {
   PDF: {
     MIME_TYPE: 'application/pdf',
     ANDROID_CHOOSER_TITLE: 'Open PDF',
+    SHARE_TITLE: 'Share invoice',
+    FILE_URL_SCHEME: 'file://',
     ERROR: {
       NO_APP: 'no_pdf_app',
       CANNOT_PREVIEW: 'cannot_preview',
@@ -330,26 +364,39 @@ export const AppConstants = {
       NOT_AUTHENTICATED: 'Not authenticated',
       DOWNLOAD_FAILED: 'Download failed',
       UNKNOWN_ERROR: 'Unknown error',
+      SHARE_FAILED: 'Could not share the PDF',
     },
     PATHS: {
       CLIENT_LIST: 'Client/pdf',
       ORDER_LIST: 'Order/pdf',
       PRODUCT_LIST: 'Product/pdf',
       PURCHASE_LIST: 'Purchase/pdf',
+      PAYMENT_LIST: 'Payment/pdf',
+      INVOICE_LIST: 'Invoice/pdf',
+      EXPENSE_LIST: 'Expense/pdf',
       clientDossier: (id: number) => `Client/${id}/pdf`,
       orderDossier: (id: number) => `Order/${id}/pdf`,
       productDossier: (id: number) => `Product/${id}/pdf`,
       purchaseDossier: (id: number) => `Purchase/${id}/pdf`,
+      paymentDossier: (id: number) => `Payment/${id}/pdf`,
+      invoiceDossier: (id: number) => `Invoice/${id}/pdf`,
+      expenseDossier: (id: number) => `Expense/${id}/pdf`,
     },
     FILENAMES: {
       CLIENT_LIST: 'clients.pdf',
       ORDER_LIST: 'orders.pdf',
       PRODUCT_LIST: 'products.pdf',
       PURCHASE_LIST: 'purchases.pdf',
+      PAYMENT_LIST: 'payments.pdf',
+      INVOICE_LIST: 'invoices.pdf',
+      EXPENSE_LIST: 'expenses.pdf',
       clientDossier: (id: number) => `client-${id}.pdf`,
       orderDossier: (id: number) => `order-${id}.pdf`,
       productDossier: (id: number) => `product-${id}.pdf`,
       purchaseDossier: (id: number) => `purchase-${id}.pdf`,
+      paymentDossier: (id: number) => `payment-${id}.pdf`,
+      invoiceDossier: (id: number) => `invoice-${id}.pdf`,
+      expenseDossier: (id: number) => `expense-${id}.pdf`,
     },
   },
 

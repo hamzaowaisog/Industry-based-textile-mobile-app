@@ -477,7 +477,11 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
                 .HasDefaultValue(0)
                 .HasColumnName("reorder_level");
             entity.Property(e => e.Sku).HasColumnName("sku");
-            entity.Property(e => e.Unit).HasColumnName("unit");
+            entity.Property(e => e.UnitId).HasColumnName("unit_id");
+
+            entity.HasOne(d => d.Unit).WithMany()
+                .HasForeignKey(d => d.UnitId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Purchase>(entity =>

@@ -48,7 +48,7 @@ public static class EntityPdfConfigs
     public static readonly PdfColumnConfig[] Product = [
         PdfColumnConfig.Create("Name", "Product Name", weight: 1.8f),
         PdfColumnConfig.Create("Sku", "SKU", fixedWidthMm: 26),
-        PdfColumnConfig.Create("Unit", "Unit", fixedWidthMm: 16),
+        PdfColumnConfig.Create("UnitName", "Unit", fixedWidthMm: 16),
         PdfColumnConfig.Create("DefaultCost", "Cost/meter (PKR)", PdfColumnFormat.Currency, fixedWidthMm: 26),
         PdfColumnConfig.Create("DefaultPrice", "Price/meter (PKR)", PdfColumnFormat.Currency, fixedWidthMm: 26),
         PdfColumnConfig.Create("Quantity", "Quantity (meters)", fixedWidthMm: 20),

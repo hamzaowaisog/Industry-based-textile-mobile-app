@@ -2,6 +2,7 @@
   "common": {
     "save": "Save",
     "cancel": "Cancel",
+    "done": "Done",
     "noResults": "No results found",
     "noResultsSub": "No matches for \"{{query}}\"",
     "delete": "Delete",
@@ -83,6 +84,8 @@
     "validationNameRequired": "Client name is required",
     "validationNameTooShort": "Name must be at least 2 characters",
     "validationPhoneInvalid": "Invalid phone format",
+    "validationCreditLimitNegative": "Credit limit cannot be negative",
+    "validationOpeningBalanceInvalid": "Opening balance must be a valid number",
     "validationPhoneTooShort": "Phone number must be at least 10 digits",
     "validationPhoneTooLong": "Phone number must be at most 15 digits",
     "tabOrders": "Orders",
@@ -412,10 +415,10 @@
     "validationNameRequired": "Product name is required",
     "validationSkuRequired": "SKU is required",
     "validationUnitRequired": "Unit is required",
-    "validationCostInvalid": "Enter a valid cost (0 or more)",
-    "validationPriceInvalid": "Enter a valid price (0 or more)",
+    "validationCostInvalid": "Enter a valid cost (greater than zero)",
+    "validationPriceInvalid": "Enter a valid price (greater than zero)",
     "validationQtyInvalid": "Enter a valid opening quantity (0 or more)",
-    "validationReorderInvalid": "Enter a valid reorder level (0 or more)"
+    "validationReorderInvalid": "Enter a valid reorder level (greater than zero)"
   },
   "orders": {
     "title": "Orders",
@@ -467,6 +470,12 @@
       "3": "Delivered",
       "4": "Cancelled"
     },
+    "validation": {
+      "qtyRequired": "Quantity is required",
+      "qtyPositive": "Quantity must be greater than zero",
+      "unitPriceRequired": "Unit price is required",
+      "unitPricePositive": "Unit price must be greater than zero"
+    },
     "create": {
       "title": "New Order",
       "subtitle": "Draft a sales order",
@@ -475,10 +484,12 @@
       "stepReview": "Review",
       "customer": "Customer",
       "customerPlaceholder": "Select a customer",
+      "customerLocked": "Customer is preset from the client profile",
       "paymentType": "Payment type",
       "orderDate": "Order date",
       "notes": "Notes",
       "notesPlaceholder": "Internal notes (optional)",
+      "product": "Product",
       "addProduct": "Add product",
       "qty": "Quantity",
       "unitPrice": "Unit price",
@@ -514,6 +525,7 @@
       "paymentType": "Payment type",
       "notes": "Notes",
       "notesPlaceholder": "Internal notes (optional)",
+      "product": "Product",
       "addProduct": "Add product",
       "qty": "Quantity",
       "unitPrice": "Unit price",
@@ -593,6 +605,12 @@
       "received": "Received",
       "cancelled": "Cancelled"
     },
+    "validation": {
+      "qtyRequired": "Quantity is required",
+      "qtyPositive": "Quantity must be greater than zero",
+      "unitCostRequired": "Unit cost is required",
+      "unitCostPositive": "Unit cost must be greater than zero"
+    },
     "create": {
       "title": "New Purchase",
       "subtitle": "Order from a supplier",
@@ -601,9 +619,11 @@
       "stepReview": "Review",
       "supplier": "Supplier",
       "supplierPlaceholder": "Select a supplier",
+      "supplierLocked": "Supplier is preset from the client profile",
       "paymentType": "Payment type",
       "notes": "Notes",
       "notesPlaceholder": "Internal notes (optional)",
+      "product": "Product",
       "addProduct": "Add product",
       "qty": "Quantity",
       "unitCost": "Unit cost",
@@ -636,6 +656,7 @@
       "paymentType": "Payment type",
       "notes": "Notes",
       "notesPlaceholder": "Internal notes (optional)",
+      "product": "Product",
       "addProduct": "Add product",
       "qty": "Quantity",
       "unitCost": "Unit cost",
@@ -671,14 +692,236 @@
   },
   "payments": {
     "title": "Payments",
+    "subtitle": "Money in and out",
     "recordPayment": "Record Payment",
     "amount": "Amount",
     "direction": "Direction",
-    "transMode": "Transaction Mode",
+    "transMode": "Payment Mode",
     "paymentDate": "Payment Date",
     "received": "Received",
     "paid": "Paid",
-    "notes": "Notes"
+    "paidOut": "Paid Out",
+    "notes": "Notes",
+    "notesPlaceholder": "Reference or memo (optional)",
+    "client": "Client",
+    "clientPlaceholder": "Select a client",
+    "clientLocked": "Client pre-selected from previous screen",
+    "balanceHelper": "Currently owes you {{amount}}",
+    "balancePaidHelper": "You owe {{amount}}",
+    "amountHelperReceived": "Money coming into your account",
+    "amountHelperPaid": "Money going out of your account",
+    "overpayHelperReceived": "{{allocated}} will be applied to this order. The remaining {{excess}} will be applied to this client's other outstanding orders, then held as unallocated credit.",
+    "overpayHelperPaid": "{{allocated}} will be applied to this purchase. The remaining {{excess}} will be applied to this supplier's other outstanding purchases, then held as unallocated credit.",
+    "thisMonth": "{{count}} this month",
+    "tabs": {
+      "all": "All",
+      "received": "Received",
+      "paid": "Paid"
+    },
+    "empty": {
+      "title": "No payments yet",
+      "subtitle": "Record your first payment to track money in and out."
+    },
+    "validation": {
+      "clientRequired": "Please select a client",
+      "directionRequired": "Please select a direction",
+      "modeRequired": "Please select a payment mode",
+      "amountRequired": "Amount is required",
+      "amountPositive": "Amount must be greater than zero"
+    },
+    "record": {
+      "errorTitle": "Payment Failed",
+      "successTitle": "Payment Recorded",
+      "successSubtitle": "The payment has been saved successfully.",
+      "discardTitle": "Discard payment?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
+    "edit": {
+      "title": "Edit Payment",
+      "errorTitle": "Update Failed",
+      "successTitle": "Payment Updated",
+      "successSubtitle": "Changes have been saved.",
+      "immutableAmount": "Amount cannot be changed after recording",
+      "immutableClient": "Client cannot be changed after recording",
+    "immutableDirection": "Direction cannot be changed after recording",
+    "dateHint": "Leave unchanged or enter a new date (yyyy-MM-dd)",
+    "discardTitle": "Discard changes?",
+    "discardMessage": "Any unsaved changes will be lost.",
+    "discard": "Discard",
+    "keepEditing": "Keep editing"
+  },
+    "detail": {
+      "reference": "HT-PAYMENT-{{id}}",
+      "allocations": "Allocations",
+      "noAllocations": "No allocations — credit applied automatically when documents are delivered.",
+      "unallocated": "Unallocated (credit)",
+      "recordedBy": "Recorded by",
+      "reversed": "Reversed",
+      "edit": "Edit",
+      "reverse": "Reverse Payment",
+      "reverseConfirm": "Reverse this payment?",
+      "reverseConfirmMsg": "This will create a reversing ledger entry. The original payment will be marked as reversed.",
+      "reverseError": "Reversal Failed",
+      "reverseSuccess": "Payment reversed"
+    },
+    "deleteTitle": "Delete Payment",
+    "deleteMessage": "Permanently delete payment {{id}}? This cannot be undone.",
+    "deleteSuccess": "Payment deleted"
+  },
+  "invoices": {
+    "title": "Invoices",
+    "subtitle": "Bills and receivables",
+    "createInvoice": "Create Invoice",
+    "viewPdf": "View PDF",
+    "share": "Share",
+    "thisMonth": "{{count}} this month",
+    "received": "Receivable",
+    "paidOut": "Payable",
+    "overdue": "Overdue",
+    "duePrefix": "Due",
+    "tabs": {
+      "all": "All",
+      "draft": "Draft",
+      "issued": "Issued",
+      "paid": "Paid"
+    },
+    "empty": {
+      "title": "No invoices yet",
+      "subtitle": "Create your first invoice to bill a client."
+    },
+    "validation": {
+      "clientRequired": "Please select a client",
+      "linesRequired": "Add at least one line item",
+      "lineInvalid": "Each line needs a product, quantity and price"
+    },
+    "create": {
+      "title": "Create Invoice",
+      "subtitle": "Bill a client for goods or services",
+      "client": "Bill To",
+      "clientPlaceholder": "Select a client",
+      "dueDate": "Due Date",
+      "dueDateHint": "Optional (yyyy-MM-dd)",
+      "notes": "Notes",
+      "notesPlaceholder": "Payment instructions or memo (optional)",
+      "addLine": "Add line item",
+      "lineItems": "Line items",
+      "lineItemsCount": "{{count}} line items",
+      "product": "Product",
+      "productPlaceholder": "Product / service name",
+      "qty": "Qty",
+      "unitPrice": "Unit Price",
+      "lineTotal": "Line Total",
+      "total": "Total",
+      "errorTitle": "Invoice Failed",
+      "successTitle": "Invoice Created",
+      "successSubtitle": "The invoice has been saved as a draft.",
+      "discardTitle": "Discard invoice?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
+    "edit": {
+      "title": "Edit Invoice",
+      "status": "Status",
+      "errorTitle": "Update Failed",
+      "successTitle": "Invoice Updated",
+      "successSubtitle": "Changes have been saved.",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
+    "detail": {
+      "reference": "{{id}}",
+      "totalInvoice": "Total invoice",
+      "issued": "Issued",
+      "due": "Due",
+      "lineItems": "Line items",
+      "noLines": "No line items",
+      "amountPaid": "Amount paid",
+      "outstanding": "Outstanding",
+      "linkedTransactions": "Linked transactions",
+      "noTransactions": "No linked transactions",
+      "issue": "Issue Invoice",
+      "issueConfirm": "Issue this invoice?",
+      "issueConfirmMsg": "The invoice will be marked as issued and become payable.",
+      "cancel": "Cancel Invoice",
+      "cancelConfirm": "Cancel this invoice?",
+      "cancelConfirmMsg": "The invoice will be marked as cancelled. This cannot be undone.",
+      "statusError": "Status change failed",
+      "statusChanged": "Invoice updated"
+    },
+    "deleteTitle": "Delete Invoice",
+    "deleteMessage": "Permanently delete invoice {{id}}? This cannot be undone.",
+    "deleteSuccess": "Invoice deleted",
+    "deleteErrorTitle": "Cannot Delete Invoice",
+    "deleteOnlyDraft": "Only Draft invoices can be deleted. Issued, Paid, and Cancelled invoices are kept for record-keeping.",
+    "deleteError": "Failed to delete invoice. Please try again."
+  },
+  "expenses": {
+    "title": "Expenses",
+    "subtitle": "Track your spending",
+    "addExpense": "Add Expense",
+    "amount": "Amount",
+    "category": "Category",
+    "mode": "Mode",
+    "expenseDate": "Expense Date",
+    "notes": "Notes",
+    "notesPlaceholder": "What was this for? (optional)",
+    "searchPlaceholder": "Search by notes or category",
+    "recent": "Recent",
+    "thisMonth": "This month",
+    "summaryMeta": "{{entries}} entries · {{categories}} categories",
+    "entriesCount": "{{count}} this month",
+    "empty": {
+      "title": "No expenses yet",
+      "subtitle": "Add your first expense to start tracking spending."
+    },
+    "validation": {
+      "typeRequired": "Please select a category",
+      "modeRequired": "Please select a payment mode",
+      "amountRequired": "Amount is required",
+      "amountPositive": "Amount must be greater than zero"
+    },
+    "add": {
+      "title": "Add Expense",
+      "errorTitle": "Expense Failed",
+      "successTitle": "Expense Added",
+      "successSubtitle": "The expense has been saved successfully.",
+      "dateHint": "Defaults to today if not selected",
+      "datePlaceholder": "Select a date",
+      "discardTitle": "Discard expense?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
+    "edit": {
+      "title": "Edit Expense",
+      "errorTitle": "Update Failed",
+      "successTitle": "Expense Updated",
+      "successSubtitle": "Changes have been saved.",
+      "immutableCategory": "Category cannot be changed — delete and re-create to reclassify",
+      "dateHint": "Tap to change the expense date",
+      "datePlaceholder": "Select a date",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
+    "detail": {
+      "reference": "HT-EXPENSE-{{id}}",
+      "category": "Category",
+      "mode": "Mode",
+      "recordedBy": "Recorded by",
+      "ledgerCategory": "Ledger category",
+      "transaction": "Transaction",
+      "createdAt": "Created"
+    },
+    "deleteTitle": "Delete Expense",
+    "deleteMessage": "Permanently delete expense {{id}}? Its ledger transaction will also be removed. This cannot be undone.",
+    "deleteSuccess": "Expense deleted"
   },
   "reports": {
     "title": "Reports",
@@ -852,6 +1095,7 @@
     "errorTitle": "PDF Error",
     "errorGeneric": "Could not open the PDF. Please try again.",
     "errorNoPdfApp": "No PDF viewer installed. Please install a PDF reader app and try again.",
-    "errorCannotPreview": "This file could not be previewed. The PDF may be corrupted or unsupported."
+    "errorCannotPreview": "This file could not be previewed. The PDF may be corrupted or unsupported.",
+    "errorShare": "Could not share the PDF. Please try again."
   }
 }

@@ -43,17 +43,61 @@ export const MainNavigator = () => {
       }}
     >
       <Drawer.Screen name={S.DASHBOARD} component={DashboardScreen} />
-      <Drawer.Screen name={S.CLIENTS_STACK} component={ClientsStack} />
-      <Drawer.Screen name={S.ORDERS_STACK} component={OrdersStack} />
-      <Drawer.Screen name={S.PRODUCTS_STACK} component={ProductsStack} />
-      <Drawer.Screen name={S.PURCHASES_STACK} component={PurchasesStack} />
-      <Drawer.Screen name={S.PAYMENTS_STACK} component={PaymentsStack} />
-      <Drawer.Screen name={S.INVOICES_STACK} component={InvoicesStack} />
-      <Drawer.Screen name={S.EXPENSES_STACK} component={ExpensesStack} />
-      <Drawer.Screen name={S.STOCK_STACK} component={StockStack} />
-      <Drawer.Screen name={S.LEDGER_STACK} component={LedgerStack} />
-      {isAdmin && <Drawer.Screen name={S.REPORTS_STACK} component={ReportsStack} />}
-      {isAdmin && <Drawer.Screen name={S.USERS_STACK} component={UsersStack} />}
+      <Drawer.Screen
+        name={S.CLIENTS_STACK}
+        component={ClientsStack}
+        options={{ unmountOnBlur: true }}
+      />
+      <Drawer.Screen
+        name={S.ORDERS_STACK}
+        component={OrdersStack}
+        options={{ unmountOnBlur: true }}
+      />
+      <Drawer.Screen
+        name={S.PRODUCTS_STACK}
+        component={ProductsStack}
+        options={{ unmountOnBlur: true }}
+      />
+      <Drawer.Screen
+        name={S.PURCHASES_STACK}
+        component={PurchasesStack}
+        options={{ unmountOnBlur: true }}
+      />
+      <Drawer.Screen
+        name={S.PAYMENTS_STACK}
+        component={PaymentsStack}
+        options={{ unmountOnBlur: true }}
+      />
+      <Drawer.Screen
+        name={S.INVOICES_STACK}
+        component={InvoicesStack}
+        options={{ unmountOnBlur: true }}
+      />
+      <Drawer.Screen
+        name={S.EXPENSES_STACK}
+        component={ExpensesStack}
+        options={{ unmountOnBlur: true }}
+      />
+      <Drawer.Screen name={S.STOCK_STACK} component={StockStack} options={{ unmountOnBlur: true }} />
+      <Drawer.Screen
+        name={S.LEDGER_STACK}
+        component={LedgerStack}
+        options={{ unmountOnBlur: true }}
+      />
+      {isAdmin && (
+        <Drawer.Screen
+          name={S.REPORTS_STACK}
+          component={ReportsStack}
+          options={{ unmountOnBlur: true }}
+        />
+      )}
+      {isAdmin && (
+        <Drawer.Screen
+          name={S.USERS_STACK}
+          component={UsersStack}
+          options={{ unmountOnBlur: true }}
+        />
+      )}
       <Drawer.Screen name={S.SETTINGS} component={SettingsPlaceholder} />
     </Drawer.Navigator>
   );

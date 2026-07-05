@@ -1080,13 +1080,14 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnName("total_quantity_sold")
                         .HasDefaultValueSql("0");
 
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("unit");
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("unit_id");
 
                     b.HasKey("Id")
                         .HasName("products_pkey");
+
+                    b.HasIndex("UnitId");
 
                     b.HasIndex(new[] { "IsActive" }, "IX_products_is_active");
 
@@ -2097,6 +2098,17 @@ namespace HamzaTex.Api.Migrations
                     b.Navigation("Payment");
 
                     b.Navigation("Purchase");
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.Product", b =>
+                {
+                    b.HasOne("HamzaTex.Api.Entities.Unit", "Unit")
+                        .WithMany()
+                        .HasForeignKey("UnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Unit");
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.ProductUser", b =>

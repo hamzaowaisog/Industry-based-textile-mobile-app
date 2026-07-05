@@ -20,7 +20,9 @@ public partial class Product
 
     public string Sku { get; set; } = null!;
 
-    public string Unit { get; set; } = null!;
+    public int UnitId { get; set; }
+
+    public virtual Unit Unit { get; set; } = null!;
 
     public decimal? DefaultCost { get; set; }
 

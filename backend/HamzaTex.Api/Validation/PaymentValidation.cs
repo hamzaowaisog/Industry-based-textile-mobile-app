@@ -25,8 +25,10 @@ public class PaymentCreateViewModelValidation : AbstractValidator<PaymentCreateV
         });
 
         RuleFor(x => x).Must(x =>
-            x.Allocations.Count == 0 ||
-            x.Allocations.Sum(a => a.AllocatedAmount) <= x.Amount)
+        {
+            var allocations = x.Allocations ?? new List<AllocationItemViewModel>();
+            return allocations.Count == 0 || allocations.Sum(a => a.AllocatedAmount) <= x.Amount;
+        })
             .WithMessage("Total allocated amount cannot exceed the payment amount.");
     }
 }

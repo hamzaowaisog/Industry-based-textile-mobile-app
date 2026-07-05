@@ -1,15 +1,9 @@
 import React from 'react';
 
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
+import { AppKeyboardAwareScrollView } from '@components/common/AppKeyboardAwareScrollView';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppBottomBar } from '@components/common/AppBottomBar';
@@ -38,6 +32,7 @@ const STEPS = [
 
 export const CreatePurchaseComponent = ({
   step,
+  isSupplierLocked,
   submitting,
   values,
   errors,
@@ -71,24 +66,37 @@ export const CreatePurchaseComponent = ({
       return (
         <View style={styles.stepContent}>
           {/* Supplier selector */}
-          <View style={styles.fieldGroup}>
-            <FieldLabel label={t('purchases.create.supplier')} required />
-            <TouchableOpacity
-              style={[
-                styles.selectRow,
-                errors.supplierId && touched.supplierId && styles.selectRowError,
-              ]}
-              onPress={onSelectSupplier}
-              activeOpacity={0.7}
-            >
-              <Text style={values.supplierName ? styles.selectValue : styles.selectPlaceholder}>
-                {values.supplierName || t('purchases.create.supplierPlaceholder')}
-              </Text>
-            </TouchableOpacity>
-            {touched.supplierId && errors.supplierId ? (
-              <Text style={styles.fieldError}>{errors.supplierId}</Text>
-            ) : null}
-          </View>
+          {isSupplierLocked ? (
+            <AppInputField
+              label={t('purchases.create.supplier')}
+              required
+              value={values.supplierName}
+              onChangeText={() => {}}
+              onBlur={() => {}}
+              placeholder={t('purchases.create.supplierPlaceholder')}
+              helper={t('purchases.create.supplierLocked')}
+              editable={false}
+            />
+          ) : (
+            <View style={styles.fieldGroup}>
+              <FieldLabel label={t('purchases.create.supplier')} required />
+              <TouchableOpacity
+                style={[
+                  styles.selectRow,
+                  errors.supplierId && touched.supplierId && styles.selectRowError,
+                ]}
+                onPress={onSelectSupplier}
+                activeOpacity={0.7}
+              >
+                <Text style={values.supplierName ? styles.selectValue : styles.selectPlaceholder}>
+                  {values.supplierName || t('purchases.create.supplierPlaceholder')}
+                </Text>
+              </TouchableOpacity>
+              {touched.supplierId && errors.supplierId ? (
+                <Text style={styles.fieldError}>{errors.supplierId}</Text>
+              ) : null}
+            </View>
+          )}
 
           {/* Payment type */}
           <View style={styles.fieldGroup}>
@@ -232,20 +240,15 @@ export const CreatePurchaseComponent = ({
         <AppStepIndicator steps={STEPS.map((key) => t(key as any))} current={step} />
       </View>
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
+      <AppKeyboardAwareScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={24}
       >
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {renderStep()}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        {renderStep()}
+      </AppKeyboardAwareScrollView>
 
       <AppSelectModal
         visible={supplierPickerVisible}

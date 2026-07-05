@@ -14,7 +14,7 @@ export const mapApiProductToRow = (p: any): ProductRow => {
     id: p.id ?? 0,
     name: p.name ?? '',
     sku: p.sku ?? '',
-    unit: p.unit ?? '',
+    unitName: p.unitName ?? '',
     stock,
     availableQuantity: p.availableQuantity ?? stock,
     reorderLevel,
@@ -28,7 +28,8 @@ export const mapApiProductToDetail = (p: any): ProductDetailData => ({
   id: p.id ?? 0,
   name: p.name ?? '',
   sku: p.sku ?? '',
-  unit: p.unit ?? '',
+  unitId: p.unitId ?? 0,
+  unitName: p.unitName ?? '',
   stock: p.quantity ?? 0,
   availableQuantity: p.availableQuantity ?? p.quantity ?? 0,
   averageCost: p.averageCost ?? p.defaultCost ?? 0,
@@ -80,17 +81,13 @@ export const buildChartData = (movements: ProductMovementRow[], currentStock: nu
 
   const sorted = sortMovementsChronologically(movements);
   let running = toQty(currentStock);
-  let points: number[] = [running];
+  const points: number[] = [running];
 
   for (let i = sorted.length - 1; i >= 0; i -= 1) {
     const m = sorted[i];
     if (m.kind === 'in') running -= m.qty;
     else if (m.kind === 'out') running += m.qty;
     points.unshift(Math.max(0, running));
-  }
-
-  if (points[0] === 0 && points.length > 1 && sorted.length > 1) {
-    points = points.slice(1);
   }
 
   return points.length === 1 ? [points[0], points[0]] : points;

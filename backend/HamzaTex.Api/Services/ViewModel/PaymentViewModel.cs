@@ -16,7 +16,7 @@ public class PaymentCreateViewModel
     /// <summary>Omit or set null to use the current UTC date.</summary>
     public DateOnly? PaymentDate { get; set; }
     public string? Notes { get; set; }
-    public List<AllocationItemViewModel> Allocations { get; set; } = new();
+    public List<AllocationItemViewModel>? Allocations { get; set; } = new();
 }
 
 public class PaymentUpdateViewModel

@@ -5,6 +5,9 @@ import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { AppAmount } from '@components/common/AppAmount';
 import { AppCard } from '@components/common/AppCard';
 import { AppInputField } from '@components/common/AppInputField';
+import { FieldLabel } from '@components/common/FieldLabel';
+
+import { sanitizeDecimalInput } from '@utils/helpers/sanitizeInput';
 
 import { colors } from '@theme/colors';
 
@@ -31,6 +34,7 @@ export const LineItemFormCard = ({
   return (
     <AppCard padding={14}>
       <View style={styles.cardInner}>
+        <FieldLabel label={labels.product} required />
         <View style={styles.productRow}>
           <TouchableOpacity
             style={styles.productTile}
@@ -59,7 +63,7 @@ export const LineItemFormCard = ({
               label={labels.qty}
               required
               value={line.qty}
-              onChangeText={(v) => onChange(index, 'qty', v, line.productId)}
+              onChangeText={(v) => onChange(index, 'qty', sanitizeDecimalInput(v), line.productId)}
               onBlur={() => {}}
               placeholder="0"
               error={qtyError}
@@ -77,7 +81,7 @@ export const LineItemFormCard = ({
               label={labels.unitPrice}
               required
               value={line.unitPrice}
-              onChangeText={(v) => onChange(index, 'unitPrice', v)}
+              onChangeText={(v) => onChange(index, 'unitPrice', sanitizeDecimalInput(v))}
               onBlur={() => {}}
               placeholder="0.00"
               keyboardType="decimal-pad"

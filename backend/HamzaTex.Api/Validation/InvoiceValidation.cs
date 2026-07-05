@@ -11,6 +11,12 @@ public class InvoiceCreateViewModelValidation : AbstractValidator<InvoiceCreateV
         RuleFor(x => x.TotalAmount).GreaterThan(0).WithMessage("TotalAmount must be greater than 0.");
         RuleFor(x => x).Must(x => x.OrderId is null || x.PurchaseId is null)
             .WithMessage("An invoice cannot be linked to both an Order and a Purchase.");
+
+        RuleForEach(x => x.Lines).ChildRules(line =>
+        {
+            line.RuleFor(l => l.Qty).GreaterThan(0).WithMessage("Line Qty must be greater than 0.");
+            line.RuleFor(l => l.UnitPrice).GreaterThan(0).WithMessage("Line UnitPrice must be greater than 0.");
+        });
     }
 }
 
@@ -20,5 +26,11 @@ public class InvoiceUpdateViewModelValidation : AbstractValidator<InvoiceUpdateV
     {
         When(x => x.TotalAmount.HasValue, () =>
             RuleFor(x => x.TotalAmount!.Value).GreaterThan(0).WithMessage("TotalAmount must be greater than 0."));
+
+        RuleForEach(x => x.Lines).ChildRules(line =>
+        {
+            line.RuleFor(l => l.Qty).GreaterThan(0).WithMessage("Line Qty must be greater than 0.");
+            line.RuleFor(l => l.UnitPrice).GreaterThan(0).WithMessage("Line UnitPrice must be greater than 0.");
+        });
     }
 }

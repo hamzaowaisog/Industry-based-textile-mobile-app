@@ -48,19 +48,29 @@ export type PurchaseStackParamList = {
 };
 
 export type PaymentStackParamList = {
-  PaymentList: undefined;
-  RecordPayment: { clientId?: number; clientName?: string };
+  PaymentList: { clientId?: number } | undefined;
+  PaymentDetail: { paymentId: number };
+  RecordPayment: {
+    clientId?: number;
+    clientName?: string;
+    orderId?: number;
+    purchaseId?: number;
+  };
+  EditPayment: { paymentId: number };
 };
 
 export type InvoiceStackParamList = {
   InvoiceList: undefined;
   InvoiceDetail: { invoiceId: number };
-  InvoiceForm: { invoiceId?: number };
+  CreateInvoice: undefined;
+  EditInvoice: { invoiceId: number };
 };
 
 export type ExpenseStackParamList = {
   ExpenseList: undefined;
+  ExpenseDetail: { expenseId: number };
   AddExpense: undefined;
+  EditExpense: { expenseId: number };
 };
 
 export type StockStackParamList = {
@@ -171,4 +181,45 @@ export type OrderDetailScreenProps = NativeStackScreenProps<
 export type EditOrderScreenProps = NativeStackScreenProps<
   OrderStackParamList,
   typeof SM.EDIT_ORDER
+>;
+
+// ── Payment screen props ────────────────────────────────────────────────────────
+
+export type PaymentDetailScreenProps = NativeStackScreenProps<
+  PaymentStackParamList,
+  typeof SM.PAYMENT_DETAIL
+>;
+export type RecordPaymentScreenProps = NativeStackScreenProps<
+  PaymentStackParamList,
+  typeof SM.RECORD_PAYMENT
+>;
+export type EditPaymentScreenProps = NativeStackScreenProps<
+  PaymentStackParamList,
+  typeof SM.EDIT_PAYMENT
+>;
+
+// ── Invoice screen props ─────────────────────────────────────────────────────
+
+export type InvoiceDetailScreenProps = NativeStackScreenProps<
+  InvoiceStackParamList,
+  typeof SM.INVOICE_DETAIL
+>;
+export type CreateInvoiceScreenProps = NativeStackScreenProps<
+  InvoiceStackParamList,
+  typeof SM.CREATE_INVOICE
+>;
+export type EditInvoiceScreenProps = NativeStackScreenProps<
+  InvoiceStackParamList,
+  typeof SM.EDIT_INVOICE
+>;
+
+// ── Expense screen props ─────────────────────────────────────────────────────
+
+export type ExpenseDetailScreenProps = NativeStackScreenProps<
+  ExpenseStackParamList,
+  typeof SM.EXPENSE_DETAIL
+>;
+export type EditExpenseScreenProps = NativeStackScreenProps<
+  ExpenseStackParamList,
+  typeof SM.EDIT_EXPENSE
 >;

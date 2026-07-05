@@ -20,7 +20,7 @@ public interface IReportService
     Task<Response<List<ClientBalanceViewModel>>> GetClientBalancesAsync();
 
     /// <summary>Single client balance by ID.</summary>
-    Task<Response<ClientBalanceViewModel>> GetClientBalanceByIdAsync(int clientId);
+    Task<Response<ClientBalanceViewModel>> GetClientBalanceByIdAsync(int clientId, int userId, bool isAdmin);
 
     /// <summary>Monthly credit/debit report. Optionally filter by year and/or month.</summary>
     Task<Response<List<CreditDebitViewModel>>> GetMonthlyCreditDebitAsync(int? year, int? month);
@@ -32,7 +32,7 @@ public interface IReportService
     Task<Response<List<ClientDetailViewModel>>> GetClientDetailsAsync();
 
     /// <summary>Full detail for a single client — orders, purchases, payments, recent transactions, and balance.</summary>
-    Task<Response<ClientDetailViewModel>> GetClientDetailByIdAsync(int clientId);
+    Task<Response<ClientDetailViewModel>> GetClientDetailByIdAsync(int clientId, int userId, bool isAdmin);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -55,26 +55,30 @@ public class ReportService : IReportService
 
     public async Task<Response<List<ProfitLossViewModel>>> GetMonthlyProfitLossAsync(int? year, int? month)
     {
-        var query = _db.VMonthlyProfitLosses.AsNoTracking().AsEnumerable();
+        var query = _db.VMonthlyProfitLosses.AsNoTracking();
 
         if (year.HasValue)
-            query = query.Where(r => r.Month.HasValue && r.Month.Value.Year == year.Value);
-
-        if (month.HasValue)
+        {
+            var from = new DateTime(year.Value, month ?? 1, 1);
+            var to   = month.HasValue ? from.AddMonths(1) : new DateTime(year.Value + 1, 1, 1);
+            query = query.Where(r => r.Month.HasValue && r.Month.Value >= from && r.Month.Value < to);
+        }
+        else if (month.HasValue)
+        {
             query = query.Where(r => r.Month.HasValue && r.Month.Value.Month == month.Value);
+        }
 
-        var result = query
-            .OrderBy(r => r.Month)
-            .Select(r => new ProfitLossViewModel
-            {
-                Month = r.Month?.ToString("MMM yyyy") ?? "N/A",
-                TotalSales = r.TotalSales ?? 0,
-                TotalPurchases = r.TotalPurchases ?? 0,
-                TotalExpenses = r.TotalExpenses ?? 0,
-                GrossProfit = r.GrossProfit ?? 0,
-                NetProfit = r.NetProfit ?? 0,
-            })
-            .ToList();
+        var rows = await query.OrderBy(r => r.Month).ToListAsync();
+
+        var result = rows.Select(r => new ProfitLossViewModel
+        {
+            Month = r.Month?.ToString("MMM yyyy") ?? "N/A",
+            TotalSales = r.TotalSales ?? 0,
+            TotalPurchases = r.TotalPurchases ?? 0,
+            TotalExpenses = r.TotalExpenses ?? 0,
+            GrossProfit = r.GrossProfit ?? 0,
+            NetProfit = r.NetProfit ?? 0,
+        }).ToList();
 
         return Response<List<ProfitLossViewModel>>.SuccessResponse(result, "P&L report fetched.");
     }
@@ -100,13 +104,13 @@ public class ReportService : IReportService
         return Response<List<ClientBalanceViewModel>>.SuccessResponse(result, "Client balances fetched.");
     }
 
-    public async Task<Response<ClientBalanceViewModel>> GetClientBalanceByIdAsync(int clientId)
+    public async Task<Response<ClientBalanceViewModel>> GetClientBalanceByIdAsync(int clientId, int userId, bool isAdmin)
     {
         var entity = await (
             from v in _db.VClientBalances.AsNoTracking()
             join c in _db.Clients.AsNoTracking() on v.ClientId equals c.Id
             join ct in _db.ClientTypes.AsNoTracking() on c.ClientTypeId equals ct.Id
-            where v.ClientId == clientId
+            where v.ClientId == clientId && (isAdmin || c.UserId == userId)
             select new ClientBalanceViewModel
             {
                 ClientId = v.ClientId ?? 0,
@@ -126,24 +130,27 @@ public class ReportService : IReportService
 
     public async Task<Response<List<CreditDebitViewModel>>> GetMonthlyCreditDebitAsync(int? year, int? month)
     {
-        var query = _db.VMonthlyCreditDebits.AsNoTracking().AsEnumerable();
+        var query = _db.VMonthlyCreditDebits.AsNoTracking();
 
         if (year.HasValue)
-            query = query.Where(r => r.Month.HasValue && r.Month.Value.Year == year.Value);
-
-        if (month.HasValue)
+        {
+            var from = new DateTime(year.Value, month ?? 1, 1);
+            var to   = month.HasValue ? from.AddMonths(1) : new DateTime(year.Value + 1, 1, 1);
+            query = query.Where(r => r.Month.HasValue && r.Month.Value >= from && r.Month.Value < to);
+        }
+        else if (month.HasValue)
+        {
             query = query.Where(r => r.Month.HasValue && r.Month.Value.Month == month.Value);
+        }
 
-        var result = query
-            .OrderBy(r => r.Month)
-            .Select(r => new CreditDebitViewModel
-            {
-                Month = r.Month?.ToString("MMM yyyy") ?? "N/A",
-                TotalCredit = r.TotalCredit ?? 0,
-                TotalDebit = r.TotalDebit ?? 0,
-                Balance = r.Balance ?? 0,
-            })
-            .ToList();
+        var rows = await query.OrderBy(r => r.Month).ToListAsync();
+        var result = rows.Select(r => new CreditDebitViewModel
+        {
+            Month = r.Month?.ToString("MMM yyyy") ?? "N/A",
+            TotalCredit = r.TotalCredit ?? 0,
+            TotalDebit = r.TotalDebit ?? 0,
+            Balance = r.Balance ?? 0,
+        }).ToList();
 
         return Response<List<CreditDebitViewModel>>.SuccessResponse(result, "Credit/debit report fetched.");
     }
@@ -275,11 +282,11 @@ public class ReportService : IReportService
             .ToDictionaryAsync(g => g.Key ?? 0, g => g.Sum(a => a.AllocatedAmount));
     }
 
-    public async Task<Response<ClientDetailViewModel>> GetClientDetailByIdAsync(int clientId)
+    public async Task<Response<ClientDetailViewModel>> GetClientDetailByIdAsync(int clientId, int userId, bool isAdmin)
     {
         var client = await _db.Clients.AsNoTracking()
             .Include(c => c.ClientType)
-            .FirstOrDefaultAsync(c => c.Id == clientId);
+            .FirstOrDefaultAsync(c => c.Id == clientId && (isAdmin || c.UserId == userId));
 
         if (client is null)
             return Response<ClientDetailViewModel>.ErrorResponse("Not found", $"Client '{clientId}' was not found.");

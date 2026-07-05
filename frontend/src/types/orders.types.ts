@@ -152,6 +152,7 @@ export type EditOrderComponentProps = {
 };
 
 export type LineItemFormCardLabels = {
+  product: string;
   qty: string;
   unitPrice: string;
   addProduct: string;
@@ -193,6 +194,7 @@ export type OrderLineItemProps = {
 
 export type CreateOrderComponentProps = {
   step: number;
+  isClientLocked: boolean;
   submitting: boolean;
   values: CreateOrderFormValues;
   errors: Partial<Record<keyof CreateOrderFormValues, string>>;

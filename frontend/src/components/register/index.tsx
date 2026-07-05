@@ -2,9 +2,6 @@ import React, { useRef } from 'react';
 
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -13,7 +10,10 @@ import {
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
+import { AppKeyboardAwareScrollView } from '@components/common/AppKeyboardAwareScrollView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { AppInputField } from '@components/common/AppInputField';
 
 import { colors } from '@theme/colors';
 
@@ -84,184 +84,92 @@ export const RegisterComponent = ({
         </View>
       </LinearGradient>
 
-      <KeyboardAvoidingView
-        style={styles.formCardWrapper}
-        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
-      >
-        <ScrollView
+      <View style={styles.formCardWrapper}>
+        <AppKeyboardAwareScrollView
           style={styles.formCard}
           contentContainerStyle={[styles.formContent, { paddingBottom: insets.bottom + 32 }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          bottomOffset={24}
         >
           {/* Full Name */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>
-              {t('register.nameLabel')}
-              <Text style={styles.requiredStar}> *</Text>
-            </Text>
-            <View
-              style={[
-                styles.inputRow,
-                formik.touched.name && formik.errors.name ? styles.inputRowError : null,
-              ]}
-            >
-              <View style={styles.inputLeading}>
-                <MailIcon size={18} color={colors.textTertiary} />
-              </View>
-              <TextInput
-                style={styles.input}
-                value={formik.values.name}
-                onChangeText={formik.handleChange('name')}
-                onBlur={formik.handleBlur('name')}
-                autoCapitalize="words"
-                autoCorrect={false}
-                placeholder={t('register.namePlaceholder')}
-                placeholderTextColor={colors.textTertiary}
-                returnKeyType="next"
-                onSubmitEditing={() => emailRef.current?.focus()}
-              />
-            </View>
-            {formik.touched.name && formik.errors.name ? (
-              <Text style={styles.fieldError}>{formik.errors.name}</Text>
-            ) : null}
-          </View>
+          <AppInputField
+            label={t('register.nameLabel')}
+            required
+            leading={<MailIcon size={18} color={colors.textTertiary} />}
+            value={formik.values.name}
+            onChangeText={(v) => void formik.setFieldValue('name', v)}
+            onBlur={() => formik.setFieldTouched('name', true)}
+            placeholder={t('register.namePlaceholder')}
+            error={formik.touched.name ? formik.errors.name : undefined}
+            autoCapitalize="words"
+            autoCorrect={false}
+            returnKeyType="next"
+            onSubmitEditing={() => emailRef.current?.focus()}
+          />
 
           {/* Email */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>
-              {t('register.emailLabel')}
-              <Text style={styles.requiredStar}> *</Text>
-            </Text>
-            <View
-              style={[
-                styles.inputRow,
-                formik.touched.email && formik.errors.email ? styles.inputRowError : null,
-              ]}
-            >
-              <View style={styles.inputLeading}>
-                <MailIcon size={18} color={colors.textTertiary} />
-              </View>
-              <TextInput
-                ref={emailRef}
-                style={styles.input}
-                value={formik.values.email}
-                onChangeText={formik.handleChange('email')}
-                onBlur={formik.handleBlur('email')}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoCorrect={false}
-                placeholder={t('register.emailPlaceholder')}
-                placeholderTextColor={colors.textTertiary}
-                returnKeyType="next"
-                onSubmitEditing={() => usernameRef.current?.focus()}
-              />
-            </View>
-            {formik.touched.email && formik.errors.email ? (
-              <Text style={styles.fieldError}>{formik.errors.email}</Text>
-            ) : null}
-          </View>
+          <AppInputField
+            ref={emailRef}
+            label={t('register.emailLabel')}
+            required
+            leading={<MailIcon size={18} color={colors.textTertiary} />}
+            value={formik.values.email}
+            onChangeText={(v) => void formik.setFieldValue('email', v)}
+            onBlur={() => formik.setFieldTouched('email', true)}
+            placeholder={t('register.emailPlaceholder')}
+            error={formik.touched.email ? formik.errors.email : undefined}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="next"
+            onSubmitEditing={() => usernameRef.current?.focus()}
+          />
 
           {/* Username */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>
-              {t('register.usernameLabel')}
-              <Text style={styles.requiredStar}> *</Text>
-            </Text>
-            <View
-              style={[
-                styles.inputRow,
-                formik.touched.userName && formik.errors.userName ? styles.inputRowError : null,
-              ]}
-            >
-              <View style={styles.inputLeading}>
-                <MailIcon size={18} color={colors.textTertiary} />
-              </View>
-              <TextInput
-                ref={usernameRef}
-                style={styles.input}
-                value={formik.values.userName}
-                onChangeText={formik.handleChange('userName')}
-                onBlur={formik.handleBlur('userName')}
-                autoCapitalize="none"
-                autoCorrect={false}
-                placeholder={t('register.usernamePlaceholder')}
-                placeholderTextColor={colors.textTertiary}
-                returnKeyType="next"
-                onSubmitEditing={() => phoneRef.current?.focus()}
-              />
-            </View>
-            {formik.touched.userName && formik.errors.userName ? (
-              <Text style={styles.fieldError}>{formik.errors.userName}</Text>
-            ) : null}
-          </View>
+          <AppInputField
+            ref={usernameRef}
+            label={t('register.usernameLabel')}
+            required
+            leading={<MailIcon size={18} color={colors.textTertiary} />}
+            value={formik.values.userName}
+            onChangeText={(v) => void formik.setFieldValue('userName', v)}
+            onBlur={() => formik.setFieldTouched('userName', true)}
+            placeholder={t('register.usernamePlaceholder')}
+            error={formik.touched.userName ? formik.errors.userName : undefined}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="next"
+            onSubmitEditing={() => phoneRef.current?.focus()}
+          />
 
           {/* Phone Number */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>
-              {t('register.phoneLabel')}
-              <Text style={styles.requiredStar}> *</Text>
-            </Text>
-            <View
-              style={[
-                styles.inputRow,
-                formik.touched.phoneNumber && formik.errors.phoneNumber
-                  ? styles.inputRowError
-                  : null,
-              ]}
-            >
-              <View style={styles.inputLeading}>
-                <MailIcon size={18} color={colors.textTertiary} />
-              </View>
-              <TextInput
-                ref={phoneRef}
-                style={styles.input}
-                value={formik.values.phoneNumber}
-                onChangeText={formik.handleChange('phoneNumber')}
-                onBlur={formik.handleBlur('phoneNumber')}
-                keyboardType="numeric"
-                placeholder={t('register.phonePlaceholder')}
-                placeholderTextColor={colors.textTertiary}
-                returnKeyType="next"
-                onSubmitEditing={() => passwordRef.current?.focus()}
-              />
-            </View>
-            {formik.touched.phoneNumber && formik.errors.phoneNumber ? (
-              <Text style={styles.fieldError}>{formik.errors.phoneNumber}</Text>
-            ) : null}
-          </View>
+          <AppInputField
+            ref={phoneRef}
+            label={t('register.phoneLabel')}
+            required
+            leading={<MailIcon size={18} color={colors.textTertiary} />}
+            value={formik.values.phoneNumber}
+            onChangeText={(v) => void formik.setFieldValue('phoneNumber', v)}
+            onBlur={() => formik.setFieldTouched('phoneNumber', true)}
+            placeholder={t('register.phonePlaceholder')}
+            error={formik.touched.phoneNumber ? formik.errors.phoneNumber : undefined}
+            keyboardType="numeric"
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
+          />
 
           {/* Password */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>
-              {t('register.passwordLabel')}
-              <Text style={styles.requiredStar}> *</Text>
-            </Text>
-            <View
-              style={[
-                styles.inputRow,
-                formik.touched.password && formik.errors.password ? styles.inputRowError : null,
-              ]}
-            >
-              <View style={styles.inputLeading}>
-                <LockIcon size={18} color={colors.textTertiary} />
-              </View>
-              <TextInput
-                ref={passwordRef}
-                style={[styles.input, styles.inputWithTrailing]}
-                value={formik.values.password}
-                onChangeText={formik.handleChange('password')}
-                onBlur={formik.handleBlur('password')}
-                secureTextEntry={!showPassword}
-                placeholder="••••••••"
-                placeholderTextColor={colors.textTertiary}
-                returnKeyType="next"
-                onSubmitEditing={() => confirmPasswordRef.current?.focus()}
-              />
+          <AppInputField
+            ref={passwordRef}
+            label={t('register.passwordLabel')}
+            required
+            leading={<LockIcon size={18} color={colors.textTertiary} />}
+            trailing={
               <TouchableOpacity
-                style={styles.inputTrailing}
                 onPress={onTogglePassword}
                 activeOpacity={0.7}
+                hitSlop={{ top: 12, bottom: 12, left: 8, right: 4 }}
               >
                 {showPassword ? (
                   <EyeOffIcon size={18} color={colors.textTertiary} />
@@ -269,45 +177,28 @@ export const RegisterComponent = ({
                   <EyeIcon size={18} color={colors.textTertiary} />
                 )}
               </TouchableOpacity>
-            </View>
-            {formik.touched.password && formik.errors.password ? (
-              <Text style={styles.fieldError}>{formik.errors.password}</Text>
-            ) : null}
-          </View>
+            }
+            secureTextEntry={!showPassword}
+            value={formik.values.password}
+            onChangeText={(v) => void formik.setFieldValue('password', v)}
+            onBlur={() => formik.setFieldTouched('password', true)}
+            placeholder="••••••••"
+            error={formik.touched.password ? formik.errors.password : undefined}
+            returnKeyType="next"
+            onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+          />
 
           {/* Confirm Password */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>
-              {t('register.confirmPasswordLabel')}
-              <Text style={styles.requiredStar}> *</Text>
-            </Text>
-            <View
-              style={[
-                styles.inputRow,
-                formik.touched.confirmPassword && formik.errors.confirmPassword
-                  ? styles.inputRowError
-                  : null,
-              ]}
-            >
-              <View style={styles.inputLeading}>
-                <LockIcon size={18} color={colors.textTertiary} />
-              </View>
-              <TextInput
-                ref={confirmPasswordRef}
-                style={[styles.input, styles.inputWithTrailing]}
-                value={formik.values.confirmPassword}
-                onChangeText={formik.handleChange('confirmPassword')}
-                onBlur={formik.handleBlur('confirmPassword')}
-                secureTextEntry={!showConfirmPassword}
-                placeholder={t('register.confirmPasswordPlaceholder')}
-                placeholderTextColor={colors.textTertiary}
-                returnKeyType="done"
-                onSubmitEditing={() => formik.handleSubmit()}
-              />
+          <AppInputField
+            ref={confirmPasswordRef}
+            label={t('register.confirmPasswordLabel')}
+            required
+            leading={<LockIcon size={18} color={colors.textTertiary} />}
+            trailing={
               <TouchableOpacity
-                style={styles.inputTrailing}
                 onPress={onToggleConfirmPassword}
                 activeOpacity={0.7}
+                hitSlop={{ top: 12, bottom: 12, left: 8, right: 4 }}
               >
                 {showConfirmPassword ? (
                   <EyeOffIcon size={18} color={colors.textTertiary} />
@@ -315,11 +206,16 @@ export const RegisterComponent = ({
                   <EyeIcon size={18} color={colors.textTertiary} />
                 )}
               </TouchableOpacity>
-            </View>
-            {formik.touched.confirmPassword && formik.errors.confirmPassword ? (
-              <Text style={styles.fieldError}>{formik.errors.confirmPassword}</Text>
-            ) : null}
-          </View>
+            }
+            secureTextEntry={!showConfirmPassword}
+            value={formik.values.confirmPassword}
+            onChangeText={(v) => void formik.setFieldValue('confirmPassword', v)}
+            onBlur={() => formik.setFieldTouched('confirmPassword', true)}
+            placeholder={t('register.confirmPasswordPlaceholder')}
+            error={formik.touched.confirmPassword ? formik.errors.confirmPassword : undefined}
+            returnKeyType="done"
+            onSubmitEditing={() => formik.handleSubmit()}
+          />
 
           {/* Submit */}
           <TouchableOpacity
@@ -342,8 +238,8 @@ export const RegisterComponent = ({
               <Text style={styles.signInLink}>{t('register.signIn')}</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </AppKeyboardAwareScrollView>
+      </View>
     </View>
   );
 };

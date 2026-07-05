@@ -115,6 +115,8 @@ public class TransactionService : ITransactionService
             return (true, "This transaction was posted by an Expense. Edit the Expense instead.");
         if (t.TransCategoryId is 5 or 6)
             return (true, "This transaction was posted by a Payment. Use the Payment reversal flow instead.");
+        if (t.TransCategoryId is 9)
+            return (true, "This transaction was posted as a Client opening balance. Edit the Client's opening balance instead.");
         return (false, string.Empty);
     }
 

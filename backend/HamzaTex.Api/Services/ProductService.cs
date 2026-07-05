@@ -113,6 +113,7 @@ public class ProductService : IProductService
             await _dbContext.SaveChangesAsync();
 
             await transaction.CommitAsync();
+            await _dbContext.Entry(entity).Reference(p => p.Unit).LoadAsync();
             return Response<ProductDto>.SuccessResponse(ToDto(entity, committed: 0), "Product created successfully.");
         }
         catch (Exception ex)
@@ -125,9 +126,10 @@ public class ProductService : IProductService
    public async Task<Response<ProductDto>> GetByIdAsync(int id, int userId)
    {
         var product = await _dbContext.Products
+                      .Include(p => p.Unit)
                       .Include(p => p.ProductUsers)
                       .FirstOrDefaultAsync(
-                        p => p.Id == id && 
+                        p => p.Id == id &&
                         p.ProductUsers.Any(pu => pu.UserId == userId));
 
         if (product is null)
@@ -144,6 +146,7 @@ public class ProductService : IProductService
    public async Task<Response<List<ProductDto>>> GetAllAsync(int userId)
    {
         var products = await _dbContext.Products
+                       .Include(p => p.Unit)
                        .Include(p => p.ProductUsers)
                        .Where(p => p.ProductUsers.Any(pu => pu.UserId == userId))
                        .ToListAsync();
@@ -161,11 +164,12 @@ public class ProductService : IProductService
    public async Task<Response<ProductDto>> UpdateByIdAsync(int id , UpdateProductByIdDto model , int userId)
    {
         var product = await _dbContext.Products
+                     .Include(p => p.Unit)
                      .Include(p => p.ProductUsers)
                      .FirstOrDefaultAsync(
                         p => p.Id == id &&
                         p.ProductUsers.Any(pu => pu.UserId == userId));
-        
+
         if (product is null)
         {
             return Response<ProductDto>.ErrorResponse("Not found", "Product not found.");
@@ -176,7 +180,7 @@ public class ProductService : IProductService
         {
             product.Sku = model.Sku.Trim();
         }
-        product.Unit = model.Unit.Trim();
+        product.UnitId = model.UnitId;
         if (model.Quantity.HasValue) product.Quantity = model.Quantity;
         product.ReorderLevel = model.ReorderLevel;
         if (model.IsActive.HasValue) product.IsActive = model.IsActive;
@@ -223,6 +227,7 @@ public class ProductService : IProductService
         }
 
         await _dbContext.SaveChangesAsync();
+        await _dbContext.Entry(product).Reference(p => p.Unit).LoadAsync();
         var committed = await GetCommittedQuantitiesAsync(new[] { product.Id });
         return Response<ProductDto>.SuccessResponse(ToDto(product, committed.GetValueOrDefault(product.Id, 0)), "Product updated successfully.");
    }
@@ -248,6 +253,7 @@ public class ProductService : IProductService
    public async Task<Response<PagedList<ProductDto>>> GetAllPaginatedAsync (int page, int pageSize, int userId)
    {
         var query = _dbContext.Products
+                    .Include(p => p.Unit)
                     .Include(p => p.ProductUsers)
                     .Where(p => p.ProductUsers.Any(pu => pu.UserId == userId));
 
@@ -265,7 +271,8 @@ public class ProductService : IProductService
         Id = entity.Id,
         Name = entity.Name,
         Sku = entity.Sku,
-        Unit = entity.Unit,
+        UnitId = entity.UnitId,
+        UnitName = entity.Unit?.Name ?? string.Empty,
         DefaultCost = entity.DefaultCost,
         DefaultPrice = entity.DefaultPrice,
         Quantity = entity.Quantity,
@@ -286,7 +293,7 @@ public class ProductService : IProductService
     {
         Name = model.Name.Trim(),
         Sku = model.Sku.Trim(),
-        Unit = model.Unit.Trim(),
+        UnitId = model.UnitId,
         DefaultCost = model.DefaultCost,
         DefaultPrice = model.DefaultPrice,
         Quantity = model.Quantity,

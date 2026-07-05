@@ -27,7 +27,7 @@ import type { ProductFormValues } from '../types/products.types';
 const DEFAULT_VALUES: ProductFormValues = {
   name: '',
   sku: '',
-  unit: '',
+  unitId: 0,
   defaultCost: '',
   defaultPrice: '',
   quantity: '0',
@@ -45,7 +45,7 @@ export const useProductForm = () => {
   const metaUnits = useMetaStore((s) => s.getList)(AppConstants.META.UNITS);
   const unitItems = useMemo(() => {
     if (metaUnits.length > 0) {
-      return metaUnits.map((u) => ({ id: u.id, name: u.name }));
+      return metaUnits.map((u) => ({ id: u.id ?? 0, name: u.name ?? '' }));
     }
     return PRODUCT_UNIT_OPTIONS.map((u, i) => ({ id: i + 1, name: u }));
   }, [metaUnits]);
@@ -61,7 +61,7 @@ export const useProductForm = () => {
       return {
         name: existingProduct.name,
         sku: existingProduct.sku,
-        unit: existingProduct.unit,
+        unitId: existingProduct.unitId,
         defaultCost: String(existingProduct.defaultCost),
         defaultPrice: String(existingProduct.defaultPrice),
         quantity: '0',

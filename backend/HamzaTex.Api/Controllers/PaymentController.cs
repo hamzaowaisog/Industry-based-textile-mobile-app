@@ -45,7 +45,7 @@ public class PaymentController : BaseController
             Amount = model.Amount,
             PaymentDate = model.PaymentDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
             Notes = model.Notes,
-            Allocations = model.Allocations.Select(a => new AllocationItemDto
+            Allocations = (model.Allocations ?? []).Select(a => new AllocationItemDto
             {
                 OrderId = a.OrderId,
                 PurchaseId = a.PurchaseId,
@@ -196,7 +196,24 @@ public class PaymentController : BaseController
             return BadRequest(result.Message);
 
         var payments = result.Data ?? new List<PaymentDto>();
-        var pdf = _pdfService.CreatePdf("Payments", "Payment records. All amounts in PKR.", payments, EntityPdfConfigs.Payment, new PdfOptions { ShowRowNumbers = true });
+        var active = payments.Where(p => !p.IsReversed).ToList();
+        var totalReceived = active.Where(p => p.PaymentDirectionId == 1).Sum(p => p.Amount);
+        var totalPaid = active.Where(p => p.PaymentDirectionId == 2).Sum(p => p.Amount);
+
+        var pdf = _pdfService.CreatePdf(
+            "Payments",
+            "Payment records. All amounts in PKR.",
+            payments,
+            EntityPdfConfigs.Payment,
+            new PdfOptions
+            {
+                ShowRowNumbers = true,
+                Stats =
+                [
+                    new Stat("Total Received", PdfFormat.Rs(totalReceived)),
+                    new Stat("Total Paid", PdfFormat.Rs(totalPaid)),
+                ],
+            });
         return File(pdf, "application/pdf", "payments.pdf");
     }
 
