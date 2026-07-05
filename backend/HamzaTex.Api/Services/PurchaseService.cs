@@ -574,7 +574,8 @@ public class PurchaseService : IPurchaseService
             .Include(p => p.Status)
             .Include(p => p.PaymentType)
             .Include(p => p.PurchaseLines).ThenInclude(pl => pl.Product)
-            .Include(p => p.PaymentAllocations).ThenInclude(a => a.Payment);
+            .Include(p => p.PaymentAllocations).ThenInclude(a => a.Payment)
+            .AsSplitQuery(); 
 
     private async Task<Purchase?> LoadPurchaseWithIncludes(int purchaseId) =>
         await PurchaseQueryWithIncludes().FirstOrDefaultAsync(p => p.Id == purchaseId);

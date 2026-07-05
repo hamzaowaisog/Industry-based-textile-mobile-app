@@ -622,7 +622,8 @@ public class OrderService : IOrderService
             .Include(o => o.Status)
             .Include(o => o.PaymentType)
             .Include(o => o.OrderLines).ThenInclude(ol => ol.Product)
-            .Include(o => o.PaymentAllocations).ThenInclude(a => a.Payment);
+            .Include(o => o.PaymentAllocations).ThenInclude(a => a.Payment)
+            .AsSplitQuery(); 
 
     private async Task<Order?> LoadOrderWithIncludes(int orderId) =>
         await OrderQueryWithIncludes().FirstOrDefaultAsync(o => o.Id == orderId);

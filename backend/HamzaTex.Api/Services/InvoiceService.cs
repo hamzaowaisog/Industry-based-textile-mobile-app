@@ -425,8 +425,8 @@ public class InvoiceService : IInvoiceService
             .Include(i => i.Client).ThenInclude(c => c!.ClientType)
             .Include(i => i.InvoiceStatus)
             .Include(i => i.InvoiceLines)
-            .Include(i => i.PaymentAllocations).ThenInclude(a => a.Payment);
-
+            .Include(i => i.PaymentAllocations).ThenInclude(a => a.Payment)
+            .AsSplitQuery(); 
     private async Task<Invoice?> LoadInvoiceWithIncludes(int id) =>
         await _db.Invoices
             .Include(i => i.Client).ThenInclude(c => c!.ClientType)
@@ -435,6 +435,7 @@ public class InvoiceService : IInvoiceService
             .Include(i => i.PaymentAllocations).ThenInclude(a => a.Payment)
             .Include(i => i.Transactions).ThenInclude(t => t.TransCategory)
             .Include(i => i.Transactions).ThenInclude(t => t.TransType)
+            .AsSplitQuery() 
             .FirstOrDefaultAsync(i => i.Id == id);
 
     private static decimal ComputeAmountPaid(Invoice i) =>
