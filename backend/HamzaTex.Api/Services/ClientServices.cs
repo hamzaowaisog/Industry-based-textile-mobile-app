@@ -25,6 +25,12 @@ public interface IClientService
 
 public class ClientService : IClientService
 {
+    private const int ClientTypeCustomer = 1;
+    private const int TransCategoryOpeningBalance = 9;
+    private const int TransTypeDebit = 1;
+    private const int TransTypeCredit = 2;
+    private const int TransModeCredit = 3;
+
     private readonly ApplicationDbContext _dbContext;
     private readonly INotificationService _notificationService;
 
@@ -53,8 +59,21 @@ public class ClientService : IClientService
     public async Task<Response<ClientDto>> CreateAsync(CreateClientDto model)
     {
         var entity = ToEntity(model);
+
+        using var dbTransaction = await _dbContext.Database.BeginTransactionAsync();
+
         await _dbContext.Clients.AddAsync(entity);
         await _dbContext.SaveChangesAsync();
+
+        if (model.OpeningBalance is { } openingBalance && openingBalance != 0)
+        {
+            await _dbContext.Transactions.AddAsync(BuildOpeningBalanceTransaction(
+                entity, openingBalance, entity.CreatedAt ?? DateOnly.FromDateTime(DateTime.UtcNow),
+                $"Opening balance — Client #{entity.Id}"));
+            await _dbContext.SaveChangesAsync();
+        }
+
+        await dbTransaction.CommitAsync();
 
         if (model.UserId.HasValue)
         {
@@ -114,6 +133,12 @@ public class ClientService : IClientService
         if (entity is null)
             return Response<ClientDto>.ErrorResponse("Not found", $"Client with id '{id}' was not found.");
 
+        using var dbTransaction = await _dbContext.Database.BeginTransactionAsync();
+
+        var previousOpeningBalance = entity.OpeningBalance ?? 0;
+        var newOpeningBalance = model.OpeningBalance ?? 0;
+        var delta = newOpeningBalance - previousOpeningBalance;
+
         entity.Name = model.Name.Trim();
         entity.ClientTypeId = model.ClientTypeId;
         entity.Phone = model.Phone?.Trim();
@@ -123,6 +148,16 @@ public class ClientService : IClientService
         entity.Notes = model.Notes?.Trim();
         entity.IsActive = model.IsActive;
         await _dbContext.SaveChangesAsync();
+
+        if (delta != 0)
+        {
+            await _dbContext.Transactions.AddAsync(BuildOpeningBalanceTransaction(
+                entity, delta, DateOnly.FromDateTime(DateTime.UtcNow),
+                $"Opening balance adjustment — Client #{entity.Id}: {previousOpeningBalance} → {newOpeningBalance}"));
+            await _dbContext.SaveChangesAsync();
+        }
+
+        await dbTransaction.CommitAsync();
 
         var balance = await _dbContext.VClientBalances.AsNoTracking()
             .Where(v => v.ClientId == id)
@@ -164,6 +199,19 @@ public class ClientService : IClientService
             .Where(v => v.ClientId != null && clientIds.Contains(v.ClientId.Value))
             .ToDictionaryAsync(v => v.ClientId!.Value, v => v.Balance);
     }
+
+    private static Transaction BuildOpeningBalanceTransaction(Client client, decimal amount, DateOnly transDate, string notes) =>
+        new()
+        {
+            ClientId = client.Id,
+            TransTypeId = client.ClientTypeId == ClientTypeCustomer ? TransTypeCredit : TransTypeDebit,
+            TransModeId = TransModeCredit,
+            TransCategoryId = TransCategoryOpeningBalance,
+            Amount = amount,
+            TransDate = transDate,
+            Notes = notes,
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+        };
 
     private static ClientDto ToDto(Client entity, decimal? outstandingBalance) =>
         new()

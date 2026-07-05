@@ -57,7 +57,7 @@ public sealed class OrderLinesUpdateViewModelValidation : AbstractValidator<Orde
             line.RuleFor(l => l.Qty)
                 .GreaterThan(0).WithMessage("Qty must be greater than 0");
             line.RuleFor(l => l.UnitPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("UnitPrice must be 0 or greater");
+                .GreaterThan(0).WithMessage("UnitPrice must be greater than 0");
         });
     }
 }

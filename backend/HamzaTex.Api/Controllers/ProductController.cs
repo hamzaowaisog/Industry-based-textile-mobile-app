@@ -169,7 +169,23 @@ public class ProductController : BaseController
             return BadRequest(response.Message);
         }
         var products = response.Data ?? new List<ProductDto>();
-        var pdfBytes = _pdfService.CreatePdf("Products", "Cost and price are per meter. Quantity is in meters.", products, EntityPdfConfigs.Product, new PdfOptions { ShowRowNumbers = true, SummaryProperty = "DefaultPrice", SummaryMultiplierProperty = "Quantity", SummaryLabel = "Total Value (Qty × Price)" });
+        var totalCost = products.Sum(p => (p.DefaultCost ?? 0) * (p.Quantity ?? 0));
+        var totalValue = products.Sum(p => (p.DefaultPrice ?? 0) * (p.Quantity ?? 0));
+        var pdfBytes = _pdfService.CreatePdf(
+            "Products",
+            "Cost and price are per meter. Quantity is in meters.",
+            products,
+            EntityPdfConfigs.Product,
+            new PdfOptions {
+                ShowRowNumbers = true,
+                SummaryProperty = "DefaultPrice",
+                SummaryMultiplierProperty = "Quantity",
+                SummaryLabel = "Total Value (Qty × Price)",
+                Stats = new List<Stat> {
+                    new("Total Cost (Qty × Cost)", PdfFormat.Rs(totalCost)),
+                    new("Total Value (Qty × Price)", PdfFormat.Rs(totalValue), Highlight: true)
+                }
+            });
         return File(pdfBytes, "application/pdf", "products.pdf");
     }
 

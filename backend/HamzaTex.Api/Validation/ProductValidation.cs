@@ -71,6 +71,10 @@ public sealed class ProductUpdateViewModelValidation : AbstractValidator<Product
             .WithMessage("Default price is required")
             .GreaterThan(0)
             .WithMessage("Default price must be greater than 0");
+        RuleFor(x => x.Quantity)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Quantity cannot be negative.")
+            .When(x => x.Quantity.HasValue);
         RuleFor(x => x.ReorderLevel)
             .NotEmpty()
             .WithMessage("Reorder level is required")

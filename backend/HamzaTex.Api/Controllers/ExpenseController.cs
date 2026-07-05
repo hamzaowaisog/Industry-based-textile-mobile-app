@@ -138,7 +138,16 @@ public class ExpenseController : BaseController
             return BadRequest(result.Message);
 
         var expenses = result.Data ?? new List<ExpenseDto>();
-        var pdf = _pdfService.CreatePdf("Expenses", "Expense records. All amounts in PKR.", expenses, EntityPdfConfigs.Expense, new PdfOptions { ShowRowNumbers = true });
+        var pdf = _pdfService.CreatePdf(
+            "Expenses",
+            "Expense records. All amounts in PKR.",
+            expenses,
+            EntityPdfConfigs.Expense,
+            new PdfOptions {
+                ShowRowNumbers = true,
+                SummaryProperty = "Amount",
+                SummaryLabel = "Grand Total (PKR)"
+            });
         return File(pdf, "application/pdf", "expenses.pdf");
     }
 

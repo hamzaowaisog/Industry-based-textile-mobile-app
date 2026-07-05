@@ -39,7 +39,7 @@ public class PurchaseLinesUpdateViewModelValidation : AbstractValidator<Purchase
         {
             line.RuleFor(l => l.ProductId).GreaterThan(0).WithMessage("ProductId is required.");
             line.RuleFor(l => l.Qty).GreaterThan(0).WithMessage("Qty must be greater than 0.");
-            line.RuleFor(l => l.UnitCost).GreaterThanOrEqualTo(0).WithMessage("UnitCost must be 0 or greater.");
+            line.RuleFor(l => l.UnitCost).GreaterThan(0).WithMessage("UnitCost must be greater than 0.");
         });
     }
 }
