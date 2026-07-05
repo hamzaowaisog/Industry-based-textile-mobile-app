@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Text, TouchableOpacity, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 import { AppKeyboardAwareScrollView } from '@components/common/AppKeyboardAwareScrollView';
@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppInputField } from '@components/common/AppInputField';
 
-import { sanitizeDecimalInput } from '@utils/helpers/sanitizeInput';
+import { sanitizeDecimalInput, sanitizeSignedDecimalInput } from '@utils/helpers/sanitizeInput';
 
 import { colors } from '@theme/colors';
 
@@ -149,12 +149,14 @@ export const ClientFormComponent = ({
               ref={openingBalanceRef}
               label={t('clients.fieldOpeningBalance')}
               value={values.openingBalance}
-              onChangeText={(v) => setFieldValue('openingBalance', v)}
+              onChangeText={(v) => setFieldValue('openingBalance', sanitizeSignedDecimalInput(v))}
               onBlur={() => setFieldTouched('openingBalance', true)}
               placeholder="0"
               error={err('openingBalance')}
               helper={t('clients.openingBalanceHelper')}
-              keyboardType="numeric"
+              keyboardType={
+                Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'numbers-and-punctuation' : 'numeric'
+              }
               returnKeyType="next"
               onSubmitEditing={() => notesRef.current?.focus()}
               editable={!isEdit}

@@ -85,6 +85,7 @@
     "validationNameTooShort": "Name must be at least 2 characters",
     "validationPhoneInvalid": "Invalid phone format",
     "validationCreditLimitNegative": "Credit limit cannot be negative",
+    "validationOpeningBalanceInvalid": "Opening balance must be a valid number",
     "validationPhoneTooShort": "Phone number must be at least 10 digits",
     "validationPhoneTooLong": "Phone number must be at most 15 digits",
     "tabOrders": "Orders",
@@ -416,7 +417,7 @@
     "validationUnitRequired": "Unit is required",
     "validationCostInvalid": "Enter a valid cost (greater than zero)",
     "validationPriceInvalid": "Enter a valid price (greater than zero)",
-    "validationQtyInvalid": "Enter a valid opening quantity (greater than zero)",
+    "validationQtyInvalid": "Enter a valid opening quantity (0 or more)",
     "validationReorderInvalid": "Enter a valid reorder level (greater than zero)"
   },
   "orders": {

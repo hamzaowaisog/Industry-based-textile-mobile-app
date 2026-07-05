@@ -2,7 +2,7 @@ import * as Yup from 'yup';
 
 import i18n from '@utils/i18n';
 
-import { positiveDecimalString } from './validators';
+import { nonNegativeDecimalString, positiveDecimalString } from './validators';
 
 export const productCreateValidationSchema = Yup.object({
   name: Yup.string()
@@ -20,7 +20,7 @@ export const productCreateValidationSchema = Yup.object({
     'products.validationPriceInvalid',
     'products.validationPriceInvalid',
   ),
-  quantity: positiveDecimalString(
+  quantity: nonNegativeDecimalString(
     'products.validationQtyInvalid',
     'products.validationQtyInvalid',
   ),
@@ -42,10 +42,6 @@ export const productEditValidationSchema = Yup.object({
   defaultPrice: positiveDecimalString(
     'products.validationPriceInvalid',
     'products.validationPriceInvalid',
-  ),
-  quantity: positiveDecimalString(
-    'products.validationQtyInvalid',
-    'products.validationQtyInvalid',
   ),
   reorderLevel: positiveDecimalString(
     'products.validationReorderInvalid',

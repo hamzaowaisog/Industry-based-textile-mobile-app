@@ -195,7 +195,8 @@ export type InputFieldProps = {
     | 'numeric'
     | 'phone-pad'
     | 'decimal-pad'
-    | 'email-address';
+    | 'email-address'
+    | 'numbers-and-punctuation';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   autoCorrect?: boolean;
   secureTextEntry?: boolean;

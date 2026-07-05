@@ -2,7 +2,7 @@ import * as Yup from 'yup';
 
 import i18n from '@utils/i18n';
 
-import { optionalNonNegativeDecimalString } from './validators';
+import { optionalNonNegativeDecimalString, optionalSignedDecimalString } from './validators';
 
 export const clientValidationSchema = Yup.object({
   name: Yup.string()
@@ -16,6 +16,6 @@ export const clientValidationSchema = Yup.object({
     .nullable(),
   address: Yup.string().nullable(),
   creditLimit: optionalNonNegativeDecimalString('clients.validationCreditLimitNegative'),
-  openingBalance: Yup.string().nullable(),
+  openingBalance: optionalSignedDecimalString('clients.validationOpeningBalanceInvalid'),
   notes: Yup.string().nullable(),
 });
