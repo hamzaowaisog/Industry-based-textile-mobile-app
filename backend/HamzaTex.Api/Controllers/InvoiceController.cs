@@ -54,12 +54,17 @@ public class InvoiceController : BaseController
         return ToActionResult(await _invoiceService.CreateAsync(dto, userId.Value));
     }
 
-    /// <summary>Get all invoices paginated. Admin only.</summary>
+    /// <summary>Get all invoices paginated. Admin sees all; staff see invoices they created.</summary>
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(typeof(Response<PagedList<InvoiceDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
-        => ToActionResult(await _invoiceService.GetAllPaginatedAsync(page, pageSize));
+    {
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        return ToActionResult(await _invoiceService.GetAllPaginatedAsync(page, pageSize, userId, IsAdmin()));
+    }
 
     /// <summary>Get a single invoice with lines and linked transactions.</summary>
     [HttpGet("{id:int}")]
@@ -128,7 +133,8 @@ public class InvoiceController : BaseController
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllPdf([FromQuery] int page = 1, [FromQuery] int pageSize = 10000)
     {
-        var result = await _invoiceService.GetAllPaginatedAsync(page, pageSize);
+        var userId = GetUserId() ?? 0;
+        var result = await _invoiceService.GetAllPaginatedAsync(page, pageSize, userId, true);
         if (!result.Success || result.Data is null) return BadRequest(result.Message);
 
         var data        = result.Data.Items;

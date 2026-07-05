@@ -1,15 +1,9 @@
 import React from 'react';
 
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
+import { AppKeyboardAwareScrollView } from '@components/common/AppKeyboardAwareScrollView';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppBottomBar } from '@components/common/AppBottomBar';
@@ -34,6 +28,7 @@ const STEPS = ['orders.create.stepDetails', 'orders.create.stepLines', 'orders.c
 
 export const CreateOrderComponent = ({
   step,
+  isClientLocked,
   submitting,
   values,
   errors,
@@ -71,24 +66,37 @@ export const CreateOrderComponent = ({
       return (
         <View style={styles.stepContent}>
           {/* Customer selector */}
-          <View style={styles.fieldGroup}>
-            <FieldLabel label={t('orders.create.customer')} required />
-            <TouchableOpacity
-              style={[
-                styles.selectRow,
-                errors.clientId && touched.clientId && styles.selectRowError,
-              ]}
-              onPress={onSelectClient}
-              activeOpacity={0.7}
-            >
-              <Text style={values.clientName ? styles.selectValue : styles.selectPlaceholder}>
-                {values.clientName || t('orders.create.customerPlaceholder')}
-              </Text>
-            </TouchableOpacity>
-            {touched.clientId && errors.clientId ? (
-              <Text style={styles.fieldError}>{errors.clientId}</Text>
-            ) : null}
-          </View>
+          {isClientLocked ? (
+            <AppInputField
+              label={t('orders.create.customer')}
+              required
+              value={values.clientName}
+              onChangeText={() => {}}
+              onBlur={() => {}}
+              placeholder={t('orders.create.customerPlaceholder')}
+              helper={t('orders.create.customerLocked')}
+              editable={false}
+            />
+          ) : (
+            <View style={styles.fieldGroup}>
+              <FieldLabel label={t('orders.create.customer')} required />
+              <TouchableOpacity
+                style={[
+                  styles.selectRow,
+                  errors.clientId && touched.clientId && styles.selectRowError,
+                ]}
+                onPress={onSelectClient}
+                activeOpacity={0.7}
+              >
+                <Text style={values.clientName ? styles.selectValue : styles.selectPlaceholder}>
+                  {values.clientName || t('orders.create.customerPlaceholder')}
+                </Text>
+              </TouchableOpacity>
+              {touched.clientId && errors.clientId ? (
+                <Text style={styles.fieldError}>{errors.clientId}</Text>
+              ) : null}
+            </View>
+          )}
 
           {/* Payment type */}
           <View style={styles.fieldGroup}>
@@ -142,6 +150,7 @@ export const CreateOrderComponent = ({
               qtyError={lineErrors[i]?.qty}
               availableLabel={lineAvailability[i]}
               labels={{
+                product: t('orders.create.product'),
                 qty: t('orders.create.qty'),
                 unitPrice: t('orders.create.unitPrice'),
                 addProduct: t('orders.create.addProduct'),
@@ -239,20 +248,15 @@ export const CreateOrderComponent = ({
         <AppStepIndicator steps={STEPS.map((key) => t(key as any))} current={step} />
       </View>
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
+      <AppKeyboardAwareScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={24}
       >
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {renderStep()}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        {renderStep()}
+      </AppKeyboardAwareScrollView>
 
       <AppSelectModal
         visible={clientPickerVisible}

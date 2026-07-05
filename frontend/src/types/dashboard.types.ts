@@ -127,6 +127,7 @@ export type DashboardComponentProps = {
   onOpenDrawer: () => void;
   onNewOrder: () => void;
   onViewAllOrders: () => void;
+  onViewAllPurchases: () => void;
   unreadCount: number;
   onBell: () => void;
   onSeeAll: () => void;

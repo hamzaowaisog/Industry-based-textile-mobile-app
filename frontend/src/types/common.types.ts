@@ -185,16 +185,38 @@ export type InputFieldProps = {
   value: string;
   onChangeText: (v: string) => void;
   onBlur: () => void;
-  placeholder: string;
+  placeholder?: string;
   error?: string;
   helper?: string;
   leading?: import('react').ReactNode;
-  keyboardType?: 'default' | 'numeric' | 'phone-pad' | 'decimal-pad';
+  trailing?: import('react').ReactNode;
+  keyboardType?:
+    | 'default'
+    | 'numeric'
+    | 'phone-pad'
+    | 'decimal-pad'
+    | 'email-address'
+    | 'numbers-and-punctuation';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  autoCorrect?: boolean;
+  secureTextEntry?: boolean;
   returnKeyType?: 'next' | 'done' | 'default';
   submitBehavior?: 'submit' | 'blurAndSubmit' | 'newline';
   multiline?: boolean;
   numberOfLines?: number;
   onSubmitEditing?: () => void;
   editable?: boolean;
+  onFocus?: () => void;
+};
+
+export type AppDatePickerProps = {
+  label?: string;
+  required?: boolean;
+  value: string;
+  onChange: (isoDate: string) => void;
+  placeholder?: string;
+  error?: string;
+  helper?: string;
+  maximumDate?: Date;
+  minimumDate?: Date;
 };

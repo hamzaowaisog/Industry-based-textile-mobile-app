@@ -13,8 +13,8 @@ public interface IInvoiceService
     Task<Response<InvoiceDto>> CreateAsync(CreateInvoiceDto model, int userId);
     /// <summary>Get full invoice detail by ID including lines and linked transactions.</summary>
     Task<Response<InvoiceDetailDto>> GetByIdAsync(int id);
-    /// <summary>Get all invoices paginated with rich data.</summary>
-    Task<Response<PagedList<InvoiceDto>>> GetAllPaginatedAsync(int page, int pageSize);
+    /// <summary>Get all invoices paginated with rich data. Admin sees all; staff see invoices they created.</summary>
+    Task<Response<PagedList<InvoiceDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
     /// <summary>Get all invoices for a client with aggregate stats.</summary>
     Task<Response<InvoiceByClientDto>> GetAllByClientIdAsync(int clientId);
     /// <summary>Filter invoices by statusId, clientId, dateFrom, dateTo.</summary>
@@ -218,7 +218,6 @@ public class InvoiceService : IInvoiceService
 
         invoice.InvoiceStatusId = StatusIssued;
         invoice.IssueDate       = DateOnly.FromDateTime(DateTime.UtcNow);
-        await _db.SaveChangesAsync();
 
         // Link all related transactions to this invoice
         if (orderId.HasValue)
@@ -282,9 +281,13 @@ public class InvoiceService : IInvoiceService
         return Response<InvoiceDetailDto>.SuccessResponse(ToDetailDto(invoice), "Invoice fetched.");
     }
 
-    public async Task<Response<PagedList<InvoiceDto>>> GetAllPaginatedAsync(int page, int pageSize)
+    public async Task<Response<PagedList<InvoiceDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
-        var query = InvoiceQueryWithIncludes().OrderByDescending(i => i.CreatedAt);
+        var query = InvoiceQueryWithIncludes().AsQueryable();
+        if (!isAdmin)
+            query = query.Where(i => i.CreatedByUserId == userId);
+
+        query = query.OrderByDescending(i => i.CreatedAt);
         var paged = await PagedList<Invoice>.CreateAsync(query, page, pageSize);
         var pagedList = new PagedList<InvoiceDto>(paged.Items.Select(i => ToDto(i)).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
         return Response<PagedList<InvoiceDto>>.SuccessResponse(pagedList, "Invoices fetched.");
@@ -422,8 +425,8 @@ public class InvoiceService : IInvoiceService
             .Include(i => i.Client).ThenInclude(c => c!.ClientType)
             .Include(i => i.InvoiceStatus)
             .Include(i => i.InvoiceLines)
-            .Include(i => i.PaymentAllocations).ThenInclude(a => a.Payment);
-
+            .Include(i => i.PaymentAllocations).ThenInclude(a => a.Payment)
+            .AsSplitQuery(); 
     private async Task<Invoice?> LoadInvoiceWithIncludes(int id) =>
         await _db.Invoices
             .Include(i => i.Client).ThenInclude(c => c!.ClientType)
@@ -432,6 +435,7 @@ public class InvoiceService : IInvoiceService
             .Include(i => i.PaymentAllocations).ThenInclude(a => a.Payment)
             .Include(i => i.Transactions).ThenInclude(t => t.TransCategory)
             .Include(i => i.Transactions).ThenInclude(t => t.TransType)
+            .AsSplitQuery() 
             .FirstOrDefaultAsync(i => i.Id == id);
 
     private static decimal ComputeAmountPaid(Invoice i) =>

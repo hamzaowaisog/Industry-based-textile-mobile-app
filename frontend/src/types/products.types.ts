@@ -5,6 +5,7 @@ export type ProductPickerItem = {
   name: string;
   sku: string;
   defaultPrice: number;
+  defaultCost: number;
   quantity: number;
   availableQuantity: number;
 };
@@ -35,7 +36,7 @@ export type ProductRow = {
   id: number;
   name: string;
   sku: string;
-  unit: string;
+  unitName: string;
   stock: number;
   availableQuantity: number;
   reorderLevel: number;
@@ -48,7 +49,8 @@ export type ProductDetailData = {
   id: number;
   name: string;
   sku: string;
-  unit: string;
+  unitId: number;
+  unitName: string;
   stock: number;
   availableQuantity: number;
   averageCost: number;
@@ -71,7 +73,7 @@ export type ProductMovementRow = {
 export type ProductFormValues = {
   name: string;
   sku: string;
-  unit: string;
+  unitId: number;
   defaultCost: string;
   defaultPrice: string;
   quantity: string;

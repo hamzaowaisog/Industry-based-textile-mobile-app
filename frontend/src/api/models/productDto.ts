@@ -12,8 +12,9 @@ export interface ProductDto {
   name?: string | null;
   /** @nullable */
   sku?: string | null;
+  unitId?: number;
   /** @nullable */
-  unit?: string | null;
+  unitName?: string | null;
   /** @nullable */
   defaultCost?: number | null;
   /** @nullable */

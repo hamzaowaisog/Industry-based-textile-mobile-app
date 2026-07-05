@@ -2,20 +2,20 @@ import React, { useRef } from 'react';
 
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
+import { AppKeyboardAwareScrollView } from '@components/common/AppKeyboardAwareScrollView';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppInputField } from '@components/common/AppInputField';
 import { AppSelectModal } from '@components/common/AppSelectModal';
 import { FieldLabel } from '@components/common/FieldLabel';
+
+import { sanitizeDecimalInput } from '@utils/helpers/sanitizeInput';
 
 import { colors } from '@theme/colors';
 
@@ -52,11 +52,12 @@ export const ProductFormComponent = ({
 
   const err = (field: string) => (touched[field] ? errors[field] : undefined);
 
-  const selectedUnitId = unitItems.find((u) => u.name === values.unit)?.id;
+  const selectedUnitId = values.unitId || undefined;
+  const selectedUnitName = unitItems.find((u) => u.id === values.unitId)?.name ?? '';
 
-  const onUnitSelect = (_id: number, name: string) => {
-    void setFieldValue('unit', name);
-    setFieldTouched('unit', true);
+  const onUnitSelect = (id: number, _name: string) => {
+    void setFieldValue('unitId', id);
+    setFieldTouched('unitId', true);
     onCloseUnitPicker();
   };
 
@@ -72,10 +73,7 @@ export const ProductFormComponent = ({
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
-      >
+      <View style={styles.flex}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.iconBtn} onPress={onCancel} activeOpacity={0.7}>
             <ArrowLeftIcon size={22} color={colors.text} />
@@ -85,10 +83,11 @@ export const ProductFormComponent = ({
           </Text>
         </View>
 
-        <ScrollView
+        <AppKeyboardAwareScrollView
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          bottomOffset={24}
         >
           <AppInputField
             label={t('products.fields.name')}
@@ -123,16 +122,16 @@ export const ProductFormComponent = ({
           <View style={styles.fieldWrap}>
             <FieldLabel label={t('products.fields.unit')} required />
             <TouchableOpacity
-              style={[styles.pickerRow, touched.unit && errors.unit ? styles.pickerError : null]}
+              style={[styles.pickerRow, touched.unitId && errors.unitId ? styles.pickerError : null]}
               onPress={onOpenUnitPicker}
               activeOpacity={0.7}
             >
-              <Text style={values.unit ? styles.pickerValue : styles.pickerPlaceholder}>
-                {values.unit || t('products.fields.unitPlaceholder')}
+              <Text style={selectedUnitName ? styles.pickerValue : styles.pickerPlaceholder}>
+                {selectedUnitName || t('products.fields.unitPlaceholder')}
               </Text>
               <ArrowRightIcon size={16} color={colors.textTertiary} />
             </TouchableOpacity>
-            <FieldError msg={err('unit')} />
+            <FieldError msg={err('unitId')} />
           </View>
 
           <View style={styles.rowFields}>
@@ -142,7 +141,7 @@ export const ProductFormComponent = ({
                 label={t('products.fields.defaultCost')}
                 required
                 value={values.defaultCost}
-                onChangeText={(v) => void setFieldValue('defaultCost', v)}
+                onChangeText={(v) => void setFieldValue('defaultCost', sanitizeDecimalInput(v))}
                 onBlur={() => setFieldTouched('defaultCost', true)}
                 placeholder="0"
                 error={err('defaultCost')}
@@ -157,7 +156,7 @@ export const ProductFormComponent = ({
                 label={t('products.fields.defaultPrice')}
                 required
                 value={values.defaultPrice}
-                onChangeText={(v) => void setFieldValue('defaultPrice', v)}
+                onChangeText={(v) => void setFieldValue('defaultPrice', sanitizeDecimalInput(v))}
                 onBlur={() => setFieldTouched('defaultPrice', true)}
                 placeholder="0"
                 error={err('defaultPrice')}
@@ -178,7 +177,7 @@ export const ProductFormComponent = ({
                   label={t('products.fields.quantity')}
                   required
                   value={values.quantity}
-                  onChangeText={(v) => void setFieldValue('quantity', v)}
+                  onChangeText={(v) => void setFieldValue('quantity', sanitizeDecimalInput(v))}
                   onBlur={() => setFieldTouched('quantity', true)}
                   placeholder="0"
                   error={err('quantity')}
@@ -193,7 +192,7 @@ export const ProductFormComponent = ({
                   label={t('products.fields.reorderLevel')}
                   required
                   value={values.reorderLevel}
-                  onChangeText={(v) => void setFieldValue('reorderLevel', v)}
+                  onChangeText={(v) => void setFieldValue('reorderLevel', sanitizeDecimalInput(v))}
                   onBlur={() => setFieldTouched('reorderLevel', true)}
                   placeholder="0"
                   error={err('reorderLevel')}
@@ -211,7 +210,7 @@ export const ProductFormComponent = ({
               label={t('products.fields.reorderLevel')}
               required
               value={values.reorderLevel}
-              onChangeText={(v) => void setFieldValue('reorderLevel', v)}
+              onChangeText={(v) => void setFieldValue('reorderLevel', sanitizeDecimalInput(v))}
               onBlur={() => setFieldTouched('reorderLevel', true)}
               placeholder="0"
               error={err('reorderLevel')}
@@ -220,7 +219,7 @@ export const ProductFormComponent = ({
               onSubmitEditing={() => handleSubmit()}
             />
           )}
-        </ScrollView>
+        </AppKeyboardAwareScrollView>
 
         <View style={styles.bottomBar}>
           <TouchableOpacity style={styles.cancelBtn} onPress={onCancel} activeOpacity={0.7}>
@@ -241,7 +240,7 @@ export const ProductFormComponent = ({
             )}
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </View>
 
       <AppSelectModal
         visible={unitPickerVisible}

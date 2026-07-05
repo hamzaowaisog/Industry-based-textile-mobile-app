@@ -23,11 +23,9 @@ public sealed class ProductCreateViewModelValidation : AbstractValidator<Product
             .WithMessage("SKU is required")
             .MaximumLength(255)
             .WithMessage("SKU is SKU must be less than 255 characters");
-        RuleFor(x => x.Unit)
-            .NotEmpty()
-            .WithMessage("Unit is required")
-            .MaximumLength(255)
-            .WithMessage("Unit is Unit must be less than 255 characters");
+        RuleFor(x => x.UnitId)
+            .GreaterThan(0)
+            .WithMessage("Unit is required");
         RuleFor(x => x.DefaultCost)
             .NotEmpty()
             .WithMessage("Default cost is required")
@@ -60,11 +58,9 @@ public sealed class ProductUpdateViewModelValidation : AbstractValidator<Product
             .WithMessage("SKU is required")
             .MaximumLength(255)
             .WithMessage("SKU is SKU must be less than 255 characters");
-        RuleFor(x => x.Unit)
-            .NotEmpty()
-            .WithMessage("Unit is required")
-            .MaximumLength(255)
-            .WithMessage("Unit is Unit must be less than 255 characters");
+        RuleFor(x => x.UnitId)
+            .GreaterThan(0)
+            .WithMessage("Unit is required");
         RuleFor(x => x.DefaultCost)
             .NotEmpty()
             .WithMessage("Default cost is required")
@@ -75,11 +71,14 @@ public sealed class ProductUpdateViewModelValidation : AbstractValidator<Product
             .WithMessage("Default price is required")
             .GreaterThan(0)
             .WithMessage("Default price must be greater than 0");
+        RuleFor(x => x.Quantity)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Quantity cannot be negative.")
+            .When(x => x.Quantity.HasValue);
         RuleFor(x => x.ReorderLevel)
             .NotEmpty()
             .WithMessage("Reorder level is required")
             .GreaterThan(0)
             .WithMessage("Reorder level must be greater than 0");
-        
     }
 }

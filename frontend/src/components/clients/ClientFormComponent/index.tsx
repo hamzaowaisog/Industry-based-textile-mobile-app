@@ -1,18 +1,14 @@
 import React from 'react';
 
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Platform, Text, TouchableOpacity, View } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
+import { AppKeyboardAwareScrollView } from '@components/common/AppKeyboardAwareScrollView';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppInputField } from '@components/common/AppInputField';
+
+import { sanitizeDecimalInput, sanitizeSignedDecimalInput } from '@utils/helpers/sanitizeInput';
 
 import { colors } from '@theme/colors';
 
@@ -45,11 +41,7 @@ export const ClientFormComponent = ({
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
-      >
+      <View style={styles.flex}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backBtn} onPress={onCancel} activeOpacity={0.7}>
@@ -65,10 +57,11 @@ export const ClientFormComponent = ({
           </View>
         </View>
 
-        <ScrollView
+        <AppKeyboardAwareScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
+          bottomOffset={24}
         >
           {/* Client type */}
           <View style={styles.section}>
@@ -142,7 +135,7 @@ export const ClientFormComponent = ({
               ref={creditLimitRef}
               label={t('clients.fieldCreditLimit')}
               value={values.creditLimit}
-              onChangeText={(v) => setFieldValue('creditLimit', v)}
+              onChangeText={(v) => setFieldValue('creditLimit', sanitizeDecimalInput(v))}
               onBlur={() => setFieldTouched('creditLimit', true)}
               placeholder="0"
               error={err('creditLimit')}
@@ -156,12 +149,14 @@ export const ClientFormComponent = ({
               ref={openingBalanceRef}
               label={t('clients.fieldOpeningBalance')}
               value={values.openingBalance}
-              onChangeText={(v) => setFieldValue('openingBalance', v)}
+              onChangeText={(v) => setFieldValue('openingBalance', sanitizeSignedDecimalInput(v))}
               onBlur={() => setFieldTouched('openingBalance', true)}
               placeholder="0"
               error={err('openingBalance')}
               helper={t('clients.openingBalanceHelper')}
-              keyboardType="numeric"
+              keyboardType={
+                Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'numbers-and-punctuation' : 'numeric'
+              }
               returnKeyType="next"
               onSubmitEditing={() => notesRef.current?.focus()}
               editable={!isEdit}
@@ -183,7 +178,7 @@ export const ClientFormComponent = ({
               onSubmitEditing={handleSubmit}
             />
           </View>
-        </ScrollView>
+        </AppKeyboardAwareScrollView>
 
         {/* Bottom bar */}
         <View style={styles.bottomBar}>
@@ -201,7 +196,7 @@ export const ClientFormComponent = ({
             </Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 };

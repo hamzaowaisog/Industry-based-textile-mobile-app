@@ -31,6 +31,7 @@ export const DashboardComponent = ({
   onOpenDrawer,
   onNewOrder,
   onViewAllOrders,
+  onViewAllPurchases,
   unreadCount,
   onBell,
   onSeeAll,
@@ -251,7 +252,7 @@ export const DashboardComponent = ({
           <View style={styles.section}>
             <View style={styles.sectionRow}>
               <Text style={styles.sectionTitle}>{t('dashboard.recentPurchases')}</Text>
-              <TouchableOpacity activeOpacity={0.7} hitSlop={10}>
+              <TouchableOpacity onPress={onViewAllPurchases} activeOpacity={0.7} hitSlop={10}>
                 <Text style={styles.sectionAction}>{t('dashboard.viewAllPurchases')}</Text>
               </TouchableOpacity>
             </View>

@@ -54,6 +54,8 @@ export const useCreatePurchase = (initialSupplierId?: number, initialSupplierNam
   const [currentPickerLineIndex, setCurrentPickerLineIndex] = useState(-1);
   const [products, setProducts] = useState<ProductPickerItem[]>([]);
 
+  const isSupplierLocked = !!initialSupplierId;
+
   const { data: clients } = useQuery({
     queryKey: queryKeys.clients.options(),
     queryFn: fetchClientsAsync,
@@ -150,7 +152,7 @@ export const useCreatePurchase = (initialSupplierId?: number, initialSupplierNam
         await createPurchaseStep1Schema.validate(formik.values, { abortEarly: false });
         setStep((s) => s + 1);
       } catch {
-        void formik.setFieldTouched('supplierId', true, true);
+        void formik.setFieldTouched('supplierId', true, false);
         void formik.setFieldError(
           'supplierId',
           i18n.t('purchases.create.selectSupplierError'),
@@ -222,7 +224,7 @@ export const useCreatePurchase = (initialSupplierId?: number, initialSupplierNam
 
   const onFieldBlur = useCallback(
     (field: keyof CreatePurchaseFormValues) => {
-      void formik.setFieldTouched(field, true, true);
+      void formik.setFieldTouched(field, true, false);
     },
     [formik.setFieldTouched],
   );
@@ -273,7 +275,13 @@ export const useCreatePurchase = (initialSupplierId?: number, initialSupplierNam
       const idx = productPickerIndex.current;
       const product = products.find((p) => p.id === id);
       const lines = [...formik.values.lines];
-      lines[idx] = { ...lines[idx], productId: id, productName: name, sku: product?.sku ?? '' };
+      lines[idx] = {
+        ...lines[idx],
+        productId: id,
+        productName: name,
+        sku: product?.sku ?? '',
+        unitCost: product?.defaultCost ? String(product.defaultCost) : lines[idx].unitCost,
+      };
       void formik.setFieldValue('lines', lines);
       setProductPickerVisible(false);
     },
@@ -282,6 +290,7 @@ export const useCreatePurchase = (initialSupplierId?: number, initialSupplierNam
 
   return {
     step,
+    isSupplierLocked,
     values: formik.values,
     errors: formik.errors as Partial<Record<keyof CreatePurchaseFormValues, string>>,
     touched: formik.touched as Partial<Record<keyof CreatePurchaseFormValues, boolean>>,

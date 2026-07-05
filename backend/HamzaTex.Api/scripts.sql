@@ -1568,6 +1568,129 @@ VALUES ('20260628215908_AddStockMovementDimensionOverride', '9.0.10');
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260628220600_BackfillStockMovementDimensionOverride', '9.0.10');
 
+ALTER TABLE `products` ADD `unit_id` int NULL;
+
+UPDATE products SET unit_id = 1 WHERE LOWER(unit) IN ('m','metre','meter','metres','meters')
+
+UPDATE products SET unit_id = 2 WHERE LOWER(unit) IN ('kg','kilogram','kilograms','kgs')
+
+UPDATE products SET unit_id = 3 WHERE LOWER(unit) IN ('pcs','piece','pieces','pc')
+
+UPDATE products SET unit_id = 4 WHERE LOWER(unit) IN ('yard','yards','yd','yds')
+
+UPDATE products SET unit_id = 5 WHERE LOWER(unit) IN ('roll','rolls')
+
+UPDATE products SET unit_id = 6 WHERE LOWER(unit) IN ('bale','bales')
+
+UPDATE products SET unit_id = 7 WHERE LOWER(unit) IN ('cone','cones')
+
+UPDATE products SET unit_id = 1 WHERE unit_id IS NULL
+
+ALTER TABLE `products` MODIFY COLUMN `unit_id` int NOT NULL;
+
+CREATE INDEX `IX_products_unit_id` ON `products` (`unit_id`);
+
+ALTER TABLE `products` ADD CONSTRAINT `FK_products_units_unit_id` FOREIGN KEY (`unit_id`) REFERENCES `units` (`id`) ON DELETE RESTRICT;
+
+ALTER TABLE `products` DROP COLUMN `unit`;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260630132000_WireProductUnitForeignKey', '9.0.10');
+
+
+INSERT INTO trans_categories (id, name, created_at)
+VALUES (9, 'Opening Balance', CURDATE())
+ON DUPLICATE KEY UPDATE name = name;
+
+
+
+INSERT INTO transactions (client_id, trans_type_id, trans_mode_id, trans_category_id, amount, trans_date, notes, created_at)
+SELECT
+    c.id,
+    CASE WHEN c.client_type_id = 1 THEN 2 ELSE 1 END,
+    3,
+    9,
+    c.opening_balance,
+    COALESCE(c.created_at, CURDATE()),
+    CONCAT('Backfilled opening balance — Client #', c.id),
+    CURDATE()
+FROM clients c
+WHERE c.opening_balance IS NOT NULL
+  AND c.opening_balance <> 0
+  AND NOT EXISTS (
+      SELECT 1 FROM transactions t
+      WHERE t.client_id = c.id AND t.trans_category_id = 9
+  );
+
+
+DROP VIEW IF EXISTS v_client_balance;
+
+
+CREATE VIEW v_client_balance AS
+SELECT
+    c.id AS client_id,
+    c.name,
+    COALESCE(ob.opening_balance_total, 0)
+    + COALESCE(t.order_total, 0)
+    - COALESCE(p.paid_total, 0) AS balance
+FROM clients c
+LEFT JOIN (
+    SELECT client_id, SUM(amount) AS opening_balance_total
+    FROM transactions
+    WHERE trans_category_id = 9
+    GROUP BY client_id
+) ob ON ob.client_id = c.id
+LEFT JOIN (
+    SELECT client_id, SUM(amount) AS order_total
+    FROM transactions
+    WHERE trans_category_id = 1
+    GROUP BY client_id
+) t ON t.client_id = c.id
+LEFT JOIN (
+    SELECT party_client_id, SUM(amount) AS paid_total
+    FROM payments
+    WHERE payment_direction_id = 1
+      AND is_reversed = 0
+      AND original_payment_id IS NULL
+    GROUP BY party_client_id
+) p ON p.party_client_id = c.id
+WHERE c.client_type_id = 1
+
+UNION ALL
+
+SELECT
+    c.id,
+    c.name,
+    COALESCE(ob.opening_balance_total, 0)
+    + COALESCE(t.purchase_total, 0)
+    - COALESCE(p.paid_total, 0) AS balance
+FROM clients c
+LEFT JOIN (
+    SELECT client_id, SUM(amount) AS opening_balance_total
+    FROM transactions
+    WHERE trans_category_id = 9
+    GROUP BY client_id
+) ob ON ob.client_id = c.id
+LEFT JOIN (
+    SELECT client_id, SUM(amount) AS purchase_total
+    FROM transactions
+    WHERE trans_category_id = 2
+    GROUP BY client_id
+) t ON t.client_id = c.id
+LEFT JOIN (
+    SELECT party_client_id, SUM(amount) AS paid_total
+    FROM payments
+    WHERE payment_direction_id = 2
+      AND is_reversed = 0
+      AND original_payment_id IS NULL
+    GROUP BY party_client_id
+) p ON p.party_client_id = c.id
+WHERE c.client_type_id = 2;
+
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260705030846_AddOpeningBalanceLedgerCategory', '9.0.10');
+
 COMMIT;
 
 

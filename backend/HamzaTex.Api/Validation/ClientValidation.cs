@@ -15,6 +15,10 @@ public sealed class ClientCreateViewModelValidation : AbstractValidator<ClientCr
         RuleFor(x => x.ClientTypeId)
             .NotEmpty().WithMessage("Client type is required")
             .GreaterThan(0).WithMessage("Client type must be greater than 0");
+
+        RuleFor(x => x.CreditLimit)
+            .GreaterThanOrEqualTo(0).WithMessage("Credit limit cannot be negative.")
+            .When(x => x.CreditLimit.HasValue);
     }
 }
 
@@ -29,6 +33,10 @@ public sealed class ClientUpdateViewModelValidation : AbstractValidator<ClientUp
         RuleFor(x => x.ClientTypeId)
             .NotEmpty().WithMessage("Client type is required")
             .GreaterThan(0).WithMessage("Client type must be greater than 0");
+
+        RuleFor(x => x.CreditLimit)
+            .GreaterThanOrEqualTo(0).WithMessage("Credit limit cannot be negative.")
+            .When(x => x.CreditLimit.HasValue);
     }
 }
 

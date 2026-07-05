@@ -11,8 +11,7 @@ export interface ProductCreateViewModel {
   name?: string | null;
   /** @nullable */
   sku?: string | null;
-  /** @nullable */
-  unit?: string | null;
+  unitId?: number;
   /** @nullable */
   defaultCost?: number | null;
   /** @nullable */

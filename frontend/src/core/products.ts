@@ -35,6 +35,7 @@ export const fetchProductsAsync = async (): Promise<ProductPickerItem[]> => {
       name: p.name ?? '',
       sku: p.sku ?? '',
       defaultPrice: p.defaultPrice ?? p.averagePrice ?? 0,
+      defaultCost: p.defaultCost ?? p.averageCost ?? 0,
       quantity: p.quantity ?? 0,
       availableQuantity: p.availableQuantity ?? p.quantity ?? 0,
     }));
@@ -93,7 +94,7 @@ export const createProductAsync = async (
     const res = await productCreateProduct({
       name: values.name.trim(),
       sku: values.sku.trim(),
-      unit: values.unit.trim(),
+      unitId: values.unitId,
       defaultCost: parseFloat(values.defaultCost) || 0,
       defaultPrice: parseFloat(values.defaultPrice) || 0,
       quantity: parseFloat(values.quantity) || 0,
@@ -115,7 +116,7 @@ export const updateProductAsync = async (
     const res = await productUpdateProductById(id, {
       name: values.name.trim(),
       sku: values.sku.trim(),
-      unit: values.unit.trim(),
+      unitId: values.unitId,
       defaultCost: parseFloat(values.defaultCost) || 0,
       defaultPrice: parseFloat(values.defaultPrice) || 0,
       reorderLevel: parseFloat(values.reorderLevel) || 0,

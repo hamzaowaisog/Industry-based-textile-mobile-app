@@ -7,6 +7,9 @@ import { useTranslation } from 'react-i18next';
 import { AppAmount } from '@components/common/AppAmount';
 import { AppCard } from '@components/common/AppCard';
 import { AppInputField } from '@components/common/AppInputField';
+import { FieldLabel } from '@components/common/FieldLabel';
+
+import { sanitizeDecimalInput } from '@utils/helpers/sanitizeInput';
 
 import { colors } from '@theme/colors';
 
@@ -33,6 +36,7 @@ export const LineItemFormCard = ({
   return (
     <AppCard padding={14}>
       <View style={styles.cardInner}>
+        <FieldLabel label={t('purchases.create.product')} required />
         <View style={styles.productRow}>
           <TouchableOpacity
             style={styles.productTile}
@@ -61,7 +65,7 @@ export const LineItemFormCard = ({
               label={t('purchases.create.qty')}
               required
               value={line.qty}
-              onChangeText={(v) => onChange(index, 'qty', v)}
+              onChangeText={(v) => onChange(index, 'qty', sanitizeDecimalInput(v))}
               onBlur={() => {}}
               placeholder="0"
               error={qtyError}
@@ -76,7 +80,7 @@ export const LineItemFormCard = ({
               label={t('purchases.create.unitCost')}
               required
               value={line.unitCost}
-              onChangeText={(v) => onChange(index, 'unitCost', v)}
+              onChangeText={(v) => onChange(index, 'unitCost', sanitizeDecimalInput(v))}
               onBlur={() => {}}
               placeholder="0.00"
               keyboardType="decimal-pad"

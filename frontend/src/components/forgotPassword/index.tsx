@@ -1,19 +1,13 @@
 import React from 'react';
 
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
+import { AppKeyboardAwareScrollView } from '@components/common/AppKeyboardAwareScrollView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { AppInputField } from '@components/common/AppInputField';
 
 import { FORGOT_PASSWORD_STEPS } from '@utils/helpers/forgotPasswordContent';
 
@@ -71,49 +65,30 @@ export const ForgotPasswordComponent = ({
       </LinearGradient>
 
       {/* Form card */}
-      <KeyboardAvoidingView
-        style={styles.formCardWrapper}
-        behavior={Platform.OS === AppConstants.PLATFORM.OS.IOS ? 'padding' : 'height'}
-      >
-        <ScrollView
+      <View style={styles.formCardWrapper}>
+        <AppKeyboardAwareScrollView
           style={styles.formCard}
           contentContainerStyle={[styles.formContent, { paddingBottom: insets.bottom + 32 }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          bottomOffset={24}
         >
           {/* Email input */}
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>
-              {t('forgotPassword.emailLabel')}
-              <Text style={styles.requiredStar}> *</Text>
-            </Text>
-            <View
-              style={[
-                styles.inputRow,
-                formik.touched.email && formik.errors.email ? styles.inputRowError : null,
-              ]}
-            >
-              <View style={styles.inputLeading}>
-                <MailIcon size={18} color={colors.textTertiary} />
-              </View>
-              <TextInput
-                style={styles.input}
-                value={formik.values.email}
-                onChangeText={formik.handleChange('email')}
-                onBlur={formik.handleBlur('email')}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoCorrect={false}
-                placeholder={t('forgotPassword.emailPlaceholder')}
-                placeholderTextColor={colors.textTertiary}
-                returnKeyType="done"
-                onSubmitEditing={() => formik.handleSubmit()}
-              />
-            </View>
-            {formik.touched.email && formik.errors.email ? (
-              <Text style={styles.fieldError}>{formik.errors.email}</Text>
-            ) : null}
-          </View>
+          <AppInputField
+            label={t('forgotPassword.emailLabel')}
+            required
+            leading={<MailIcon size={18} color={colors.textTertiary} />}
+            value={formik.values.email}
+            onChangeText={(v) => void formik.setFieldValue('email', v)}
+            onBlur={() => formik.setFieldTouched('email', true)}
+            placeholder={t('forgotPassword.emailPlaceholder')}
+            error={formik.touched.email ? formik.errors.email : undefined}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="done"
+            onSubmitEditing={() => formik.handleSubmit()}
+          />
 
           {/* Step strip */}
           <View style={styles.stepStrip}>
@@ -151,8 +126,8 @@ export const ForgotPasswordComponent = ({
               <Text style={styles.signInLink}>{t('forgotPassword.signIn')}</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </AppKeyboardAwareScrollView>
+      </View>
     </View>
   );
 };

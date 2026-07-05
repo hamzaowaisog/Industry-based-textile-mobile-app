@@ -153,6 +153,12 @@ export const styles = StyleSheet.create({
     color: colors.text,
     textAlign: 'center',
   },
+  requiredStar: {
+    fontFamily: typography.fontFamily.semibold,
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.danger,
+  },
   otpRow: {
     flexDirection: 'row',
     justifyContent: 'center',

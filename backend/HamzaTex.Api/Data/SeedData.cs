@@ -177,6 +177,12 @@ public static class SeedData
             Id = 8,
             Name = "Bank Out",
             CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+        },
+        new TransCategory
+        {
+            Id = 9,
+            Name = "Opening Balance",
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         }
     ];
 

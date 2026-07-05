@@ -89,7 +89,10 @@ public class ClientController : BaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetClientById(int id)
     {
-        var response = await _clientService.GetByIdAsync(id);
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        var response = await _clientService.GetByIdAsync(id, userId, IsAdmin());
         return ToActionResult(response);
     }
 
@@ -120,7 +123,7 @@ public class ClientController : BaseController
             IsActive = model.IsActive
         };
 
-        var response = await _clientService.UpdateByIdAsync(id, dto);
+        var response = await _clientService.UpdateByIdAsync(id, dto, IsAdmin());
         return ToActionResult(response);
     }
 
@@ -161,7 +164,10 @@ public class ClientController : BaseController
     [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetClientDossierPdf([FromRoute] int id)
     {
-        var result = await _reportService.GetClientDetailByIdAsync(id);
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        var result = await _reportService.GetClientDetailByIdAsync(id, userId, IsAdmin());
         if (!result.Success || result.Data is null)
             return ToActionResult(result);
 

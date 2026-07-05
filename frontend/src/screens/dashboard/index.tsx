@@ -23,6 +23,7 @@ export const DashboardScreen = () => {
       onOpenDrawer={() => navigation.openDrawer()}
       onNewOrder={() => (navigation as any).navigate(S.ORDERS_STACK)}
       onViewAllOrders={() => (navigation as any).navigate(S.ORDERS_STACK)}
+      onViewAllPurchases={() => (navigation as any).navigate(S.PURCHASES_STACK)}
       unreadCount={dash.unreadCount}
       onBell={dash.onBell}
       onSeeAll={dash.onSeeAll}

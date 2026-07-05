@@ -11,12 +11,12 @@ public interface IClientService
 {
     /// <summary>Create a new client linked to a user.</summary>
     Task<Response<ClientDto>> CreateAsync(CreateClientDto model);
-    /// <summary>Get a client by ID.</summary>
-    Task<Response<ClientDto>> GetByIdAsync(int id);
+    /// <summary>Get a client by ID. Admin sees any client; non-admins see only their own.</summary>
+    Task<Response<ClientDto>> GetByIdAsync(int id, int userId, bool isAdmin);
     /// <summary>Get all clients. Admin sees all; non-admins see only their own. Used for PDF export + admin list.</summary>
     Task<Response<List<ClientDto>>> GetAllAsync(int userId, bool isAdmin);
-    /// <summary>Update a client by ID.</summary>
-    Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model);
+    /// <summary>Update a client by ID. Admin can update any client; non-admins only their own.</summary>
+    Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model, bool isAdmin);
     /// <summary>Delete a client by ID.</summary>
     Task<Response> DeleteByIdAsync(int id);
     /// <summary>Get paginated clients. Scoped to the user unless isAdmin, in which case all clients are returned.</summary>
@@ -25,6 +25,12 @@ public interface IClientService
 
 public class ClientService : IClientService
 {
+    private const int ClientTypeCustomer = 1;
+    private const int TransCategoryOpeningBalance = 9;
+    private const int TransTypeDebit = 1;
+    private const int TransTypeCredit = 2;
+    private const int TransModeCredit = 3;
+
     private readonly ApplicationDbContext _dbContext;
     private readonly INotificationService _notificationService;
 
@@ -53,29 +59,42 @@ public class ClientService : IClientService
     public async Task<Response<ClientDto>> CreateAsync(CreateClientDto model)
     {
         var entity = ToEntity(model);
+
+        using var dbTransaction = await _dbContext.Database.BeginTransactionAsync();
+
         await _dbContext.Clients.AddAsync(entity);
         await _dbContext.SaveChangesAsync();
 
+        if (model.OpeningBalance is { } openingBalance && openingBalance != 0)
+        {
+            await _dbContext.Transactions.AddAsync(BuildOpeningBalanceTransaction(
+                entity, openingBalance, entity.CreatedAt ?? DateOnly.FromDateTime(DateTime.UtcNow),
+                $"Opening balance — Client #{entity.Id}"));
+            await _dbContext.SaveChangesAsync();
+        }
+
+        await dbTransaction.CommitAsync();
+
         if (model.UserId.HasValue)
         {
-            await _notificationService.CreateAsync(new CreateNotificationDto
+            try { await _notificationService.CreateAsync(new CreateNotificationDto
             {
                 UserId = model.UserId.Value,
                 Type = "client_added",
                 Title = "New Client Added",
                 Body = $"{entity.Name} has been added as a client",
                 EntityId = entity.Id,
-            });
+            }); } catch { }
         }
 
         return Response<ClientDto>.SuccessResponse(ToDto(entity, null), "Client created.");
     }
 
-    public async Task<Response<ClientDto>> GetByIdAsync(int id)
+    public async Task<Response<ClientDto>> GetByIdAsync(int id, int userId, bool isAdmin)
     {
         var client = await _dbContext.Clients
             .Include(client => client.ClientType)
-            .Where(client => client.Id == id && client.UserId != null && _dbContext.Users.Any(user => user.Id == client.UserId))
+            .Where(client => client.Id == id && (isAdmin || client.UserId == userId))
             .FirstOrDefaultAsync();
 
         if (client is null)
@@ -104,15 +123,20 @@ public class ClientService : IClientService
         return Response<List<ClientDto>>.SuccessResponse(dtos, "Clients fetched successfully.");
     }
 
-    public async Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model)
+    public async Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model, bool isAdmin)
     {
-        var entity = await _dbContext.Clients.Where(client => client.Id == id).FirstOrDefaultAsync();
-        var user = await _dbContext.Users.Where(user => user.Id == model.UserId).FirstOrDefaultAsync();
-        if (user is null)
-            return Response<ClientDto>.ErrorResponse("Not found", $"User with id '{model.UserId}' was not found.");
+        var entity = await _dbContext.Clients
+            .Where(client => client.Id == id && (isAdmin || client.UserId == model.UserId))
+            .FirstOrDefaultAsync();
 
         if (entity is null)
             return Response<ClientDto>.ErrorResponse("Not found", $"Client with id '{id}' was not found.");
+
+        using var dbTransaction = await _dbContext.Database.BeginTransactionAsync();
+
+        var previousOpeningBalance = entity.OpeningBalance ?? 0;
+        var newOpeningBalance = model.OpeningBalance ?? 0;
+        var delta = newOpeningBalance - previousOpeningBalance;
 
         entity.Name = model.Name.Trim();
         entity.ClientTypeId = model.ClientTypeId;
@@ -123,6 +147,16 @@ public class ClientService : IClientService
         entity.Notes = model.Notes?.Trim();
         entity.IsActive = model.IsActive;
         await _dbContext.SaveChangesAsync();
+
+        if (delta != 0)
+        {
+            await _dbContext.Transactions.AddAsync(BuildOpeningBalanceTransaction(
+                entity, delta, DateOnly.FromDateTime(DateTime.UtcNow),
+                $"Opening balance adjustment — Client #{entity.Id}: {previousOpeningBalance} → {newOpeningBalance}"));
+            await _dbContext.SaveChangesAsync();
+        }
+
+        await dbTransaction.CommitAsync();
 
         var balance = await _dbContext.VClientBalances.AsNoTracking()
             .Where(v => v.ClientId == id)
@@ -164,6 +198,19 @@ public class ClientService : IClientService
             .Where(v => v.ClientId != null && clientIds.Contains(v.ClientId.Value))
             .ToDictionaryAsync(v => v.ClientId!.Value, v => v.Balance);
     }
+
+    private static Transaction BuildOpeningBalanceTransaction(Client client, decimal amount, DateOnly transDate, string notes) =>
+        new()
+        {
+            ClientId = client.Id,
+            TransTypeId = client.ClientTypeId == ClientTypeCustomer ? TransTypeCredit : TransTypeDebit,
+            TransModeId = TransModeCredit,
+            TransCategoryId = TransCategoryOpeningBalance,
+            Amount = amount,
+            TransDate = transDate,
+            Notes = notes,
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+        };
 
     private static ClientDto ToDto(Client entity, decimal? outstandingBalance) =>
         new()

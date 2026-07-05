@@ -79,42 +79,57 @@ public class PurchaseService : IPurchaseService
         if (missingProductId != default)
             return Response<PurchaseDto>.ErrorResponse("Not found", $"Product with ID {missingProductId} does not exist.");
 
-        var purchase = new Purchase
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
         {
-            SupplierId = model.SupplierId,
-            UserId = userId,
-            StatusId = StatusPending,
-            PaymentTypeId = model.PaymentTypeId,
-            PurchaseDate = model.PurchaseDate,
-            Notes = model.Notes,
-            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
-        };
-
-        foreach (var line in model.Lines)
-        {
-            purchase.PurchaseLines.Add(new PurchaseLine
+            var purchase = new Purchase
             {
-                ProductId = line.ProductId,
-                Qty = line.Qty,
-                UnitCost = line.UnitCost
-            });
+                SupplierId = model.SupplierId,
+                UserId = userId,
+                StatusId = StatusPending,
+                PaymentTypeId = model.PaymentTypeId,
+                PurchaseDate = model.PurchaseDate,
+                Notes = model.Notes,
+                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+            };
+
+            foreach (var line in model.Lines)
+            {
+                purchase.PurchaseLines.Add(new PurchaseLine
+                {
+                    ProductId = line.ProductId,
+                    Qty = line.Qty,
+                    UnitCost = line.UnitCost
+                });
+            }
+
+            await _dbContext.Purchases.AddAsync(purchase);
+            await _dbContext.SaveChangesAsync();
+
+            // Auto-create the linked Draft invoice INSIDE the transaction. The invoice
+            // service shares this scoped DbContext, so its SaveChanges enlists here and a
+            // failure rolls the purchase back too — otherwise a 500 mid-invoice leaves a
+            // committed purchase and a client retry would duplicate it.
+            await _invoiceService.CreateFromPurchaseAsync(purchase.Id, userId);
+
+            await transaction.CommitAsync();
+
+            var saved = await LoadPurchaseWithIncludes(purchase.Id);
+            try { await _notification.CreateAsync(new CreateNotificationDto
+            {
+                UserId = userId,
+                Type = "purchase_created",
+                Title = "New Purchase",
+                Body = $"Purchase #{purchase.Id} created from {supplier.Name ?? "Supplier"}",
+                EntityId = purchase.Id
+            }); } catch { }
+            return Response<PurchaseDto>.SuccessResponse(ToDto(saved!), "Purchase created successfully.");
         }
-
-        await _dbContext.Purchases.AddAsync(purchase);
-        await _dbContext.SaveChangesAsync();
-
-        await _invoiceService.CreateFromPurchaseAsync(purchase.Id, userId);
-
-        var saved = await LoadPurchaseWithIncludes(purchase.Id);
-        try { await _notification.CreateAsync(new CreateNotificationDto
+        catch (Exception ex)
         {
-            UserId = userId,
-            Type = "purchase_created",
-            Title = "New Purchase",
-            Body = $"Purchase #{purchase.Id} created from {supplier.Name ?? "Supplier"}",
-            EntityId = purchase.Id
-        }); } catch { }
-        return Response<PurchaseDto>.SuccessResponse(ToDto(saved!), "Purchase created successfully.");
+            await transaction.RollbackAsync();
+            return Response<PurchaseDto>.ErrorResponse("Internal server error", ex.Message);
+        }
     }
 
     public async Task<Response<PurchaseDto>> GetByIdAsync(int id, int userId, bool isAdmin)
@@ -131,7 +146,7 @@ public class PurchaseService : IPurchaseService
 
     public async Task<Response<List<PurchaseDto>>> GetAllAsync(int userId, bool isAdmin)
     {
-        var query = PurchaseQueryWithIncludes().AsQueryable();
+        var query = PurchaseQueryWithIncludes().AsNoTracking();
         if (!isAdmin)
             query = query.Where(p => p.UserId == userId);
 
@@ -142,7 +157,7 @@ public class PurchaseService : IPurchaseService
 
     public async Task<Response<PagedList<PurchaseDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
-        var query = PurchaseQueryWithIncludes().AsQueryable();
+        var query = PurchaseQueryWithIncludes().AsNoTracking();
         if (!isAdmin)
             query = query.Where(p => p.UserId == userId);
 
@@ -155,7 +170,7 @@ public class PurchaseService : IPurchaseService
     public async Task<Response<List<PurchaseDto>>> GetFilteredAsync(
         int? supplierId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin)
     {
-        var query = PurchaseQueryWithIncludes();
+        var query = PurchaseQueryWithIncludes().AsNoTracking();
 
         if (!isAdmin)
             query = query.Where(p => p.UserId == userId);
@@ -455,7 +470,9 @@ public class PurchaseService : IPurchaseService
                 foreach (var line in purchase.PurchaseLines)
                 {
                     if (line.ProductId is null) continue;
-                    var product = await _dbContext.Products.FindAsync(line.ProductId.Value);
+                    var product = await _dbContext.Products
+                        .Include(p => p.Unit)
+                        .FirstOrDefaultAsync(p => p.Id == line.ProductId.Value);
                     if (product is null)
                     {
                         await transaction.RollbackAsync();
@@ -466,7 +483,7 @@ public class PurchaseService : IPurchaseService
                         await transaction.RollbackAsync();
                         return Response<PurchaseDto>.ErrorResponse("Cannot cancel purchase",
                             $"Product '{product.Name}' has insufficient stock to reverse this purchase " +
-                            $"(available: {product.Quantity ?? 0} {product.Unit}, required: {line.Qty} {product.Unit}). " +
+                            $"(available: {product.Quantity ?? 0} {product.Unit?.Name}, required: {line.Qty} {product.Unit?.Name}). " +
                             "The received goods have already been fully consumed — record a manual adjustment instead.");
                     }
                 }
@@ -557,7 +574,8 @@ public class PurchaseService : IPurchaseService
             .Include(p => p.Status)
             .Include(p => p.PaymentType)
             .Include(p => p.PurchaseLines).ThenInclude(pl => pl.Product)
-            .Include(p => p.PaymentAllocations).ThenInclude(a => a.Payment);
+            .Include(p => p.PaymentAllocations).ThenInclude(a => a.Payment)
+            .AsSplitQuery(); 
 
     private async Task<Purchase?> LoadPurchaseWithIncludes(int purchaseId) =>
         await PurchaseQueryWithIncludes().FirstOrDefaultAsync(p => p.Id == purchaseId);

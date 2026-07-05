@@ -26,6 +26,16 @@ public sealed class StockMovementsCreateViewModelValidation : AbstractValidator<
         RuleFor(x => x.Qty)
             .GreaterThan(0)
             .WithMessage("Quantity must be greater than 0.");
+
+        RuleFor(x => x.UnitCost)
+            .GreaterThan(0)
+            .WithMessage("Unit cost must be greater than 0.")
+            .When(x => x.UnitCost.HasValue);
+
+        RuleFor(x => x.UnitPrice)
+            .GreaterThan(0)
+            .WithMessage("Unit price must be greater than 0.")
+            .When(x => x.UnitPrice.HasValue);
     }
 }
 
@@ -52,5 +62,15 @@ public sealed class StockMovementsUpdateViewModelValidation : AbstractValidator<
         RuleFor(x => x.Qty)
             .GreaterThan(0)
             .WithMessage("Quantity must be greater than 0.");
+
+        RuleFor(x => x.UnitCost)
+            .GreaterThan(0)
+            .WithMessage("Unit cost must be greater than 0.")
+            .When(x => x.UnitCost.HasValue);
+
+        RuleFor(x => x.UnitPrice)
+            .GreaterThan(0)
+            .WithMessage("Unit price must be greater than 0.")
+            .When(x => x.UnitPrice.HasValue);
     }
 }
