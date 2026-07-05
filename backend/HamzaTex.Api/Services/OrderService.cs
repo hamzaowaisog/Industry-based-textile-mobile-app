@@ -84,43 +84,58 @@ public class OrderService : IOrderService
         if (stockError is not null)
             return Response<OrderDto>.ErrorResponse("Insufficient stock", stockError);
 
-        var order = new Order
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
         {
-            ClientId = model.ClientId,
-            UserId = userId,
-            StatusId = StatusPending,
-            PaymentTypeId = model.PaymentTypeId,
-            OrderDate = model.OrderDate,
-            Notes = model.Notes,
-            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
-        };
-
-        foreach (var line in model.Lines)
-        {
-            order.OrderLines.Add(new OrderLine
+            var order = new Order
             {
-                ProductId = line.ProductId,
-                Qty = line.Qty,
-                UnitPrice = line.UnitPrice
-            });
+                ClientId = model.ClientId,
+                UserId = userId,
+                StatusId = StatusPending,
+                PaymentTypeId = model.PaymentTypeId,
+                OrderDate = model.OrderDate,
+                Notes = model.Notes,
+                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+            };
+
+            foreach (var line in model.Lines)
+            {
+                order.OrderLines.Add(new OrderLine
+                {
+                    ProductId = line.ProductId,
+                    Qty = line.Qty,
+                    UnitPrice = line.UnitPrice
+                });
+            }
+
+            await _dbContext.Orders.AddAsync(order);
+            await _dbContext.SaveChangesAsync();
+
+            // Auto-create the linked Draft invoice INSIDE the transaction. The invoice
+            // service shares this scoped DbContext, so its SaveChanges enlists here and a
+            // failure rolls the order back too — otherwise a 500 mid-invoice leaves a
+            // committed order and a client retry would duplicate it.
+            await _invoiceService.CreateFromOrderAsync(order.Id, userId);
+
+            await transaction.CommitAsync();
+
+            // Reload with navigation properties
+            var saved = await LoadOrderWithIncludes(order.Id);
+            try { await _notification.CreateAsync(new CreateNotificationDto
+            {
+                UserId = userId,
+                Type = "order_created",
+                Title = "New Order",
+                Body = $"Order #{order.Id} created for {client.Name ?? "Client"}",
+                EntityId = order.Id
+            }); } catch { }
+            return Response<OrderDto>.SuccessResponse(ToDto(saved!), "Order created successfully.");
         }
-
-        await _dbContext.Orders.AddAsync(order);
-        await _dbContext.SaveChangesAsync();
-
-        await _invoiceService.CreateFromOrderAsync(order.Id, userId);
-
-        // Reload with navigation properties
-        var saved = await LoadOrderWithIncludes(order.Id);
-        try { await _notification.CreateAsync(new CreateNotificationDto
+        catch (Exception ex)
         {
-            UserId = userId,
-            Type = "order_created",
-            Title = "New Order",
-            Body = $"Order #{order.Id} created for {client.Name ?? "Client"}",
-            EntityId = order.Id
-        }); } catch { }
-        return Response<OrderDto>.SuccessResponse(ToDto(saved!), "Order created successfully.");
+            await transaction.RollbackAsync();
+            return Response<OrderDto>.ErrorResponse("Internal server error", ex.Message);
+        }
     }
 
     public async Task<Response<OrderDto>> GetByIdAsync(int id, int userId, bool isAdmin)
@@ -137,7 +152,7 @@ public class OrderService : IOrderService
 
     public async Task<Response<List<OrderDto>>> GetAllAsync(int userId, bool isAdmin)
     {
-        var query = OrderQueryWithIncludes().AsQueryable();
+        var query = OrderQueryWithIncludes().AsNoTracking();
         if (!isAdmin)
             query = query.Where(o => o.UserId == userId);
 
@@ -148,7 +163,7 @@ public class OrderService : IOrderService
 
     public async Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
-        var query = OrderQueryWithIncludes().AsQueryable();
+        var query = OrderQueryWithIncludes().AsNoTracking();
         if (!isAdmin)
             query = query.Where(o => o.UserId == userId);
 
@@ -161,7 +176,7 @@ public class OrderService : IOrderService
     public async Task<Response<List<OrderDto>>> GetFilteredAsync(
         int? clientId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin)
     {
-        var query = OrderQueryWithIncludes();
+        var query = OrderQueryWithIncludes().AsNoTracking();
 
         if (!isAdmin)
             query = query.Where(o => o.UserId == userId);

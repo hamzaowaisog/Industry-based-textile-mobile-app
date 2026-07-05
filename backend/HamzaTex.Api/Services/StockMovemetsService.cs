@@ -235,6 +235,7 @@ public class StockMovementsService : IStockMovementsService
     public async Task<Response<StockMovementsDto>> GetByIdAsync(int id, int userId)
     {
         var movement = await _dbContext.StockMovements
+            .AsNoTracking()
             .Include(sm => sm.Product)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
@@ -252,6 +253,7 @@ public class StockMovementsService : IStockMovementsService
     public async Task<Response<List<StockMovementsDto>>> GetAllAsync(int userId)
     {
         var movements = await _dbContext.StockMovements
+            .AsNoTracking()
             .Include(sm => sm.Product)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
@@ -266,6 +268,7 @@ public class StockMovementsService : IStockMovementsService
     public async Task<Response<PagedList<StockMovementsDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
         var query = _dbContext.StockMovements
+            .AsNoTracking()
             .Include(sm => sm.Product)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
@@ -288,6 +291,7 @@ public class StockMovementsService : IStockMovementsService
         int userId)
     {
         var query = _dbContext.StockMovements
+            .AsNoTracking()
             .Include(sm => sm.Product)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
@@ -320,6 +324,7 @@ public class StockMovementsService : IStockMovementsService
     public async Task<Response<List<StockMovementsDto>>> GetByProductIdAsync(int productId, int userId, bool isAdmin)
     {
         var query = _dbContext.StockMovements
+            .AsNoTracking()
             .Include(sm => sm.Product)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)

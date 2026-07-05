@@ -248,6 +248,7 @@ public class PaymentService : IPaymentService
     public async Task<Response<PaymentDto>> GetByIdAsync(int id)
     {
         var payment = await _db.Payments
+            .AsNoTracking()
             .Include(p => p.PartyClient)
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
@@ -264,6 +265,7 @@ public class PaymentService : IPaymentService
     public async Task<Response<PagedList<PaymentDto>>> GetAllPaginatedAsync(int page, int pageSize, bool includeReversed, int userId, bool isAdmin)
     {
         var query = _db.Payments
+            .AsNoTracking()
             .Include(p => p.PartyClient)
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
@@ -288,6 +290,7 @@ public class PaymentService : IPaymentService
     public async Task<Response<List<PaymentDto>>> GetAllByClientIdAsync(int clientId)
     {
         var payments = await _db.Payments
+            .AsNoTracking()
             .Include(p => p.PartyClient)
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
@@ -306,6 +309,7 @@ public class PaymentService : IPaymentService
         DateOnly? dateFrom, DateOnly? dateTo, bool includeReversed, int userId, bool isAdmin)
     {
         var query = _db.Payments
+            .AsNoTracking()
             .Include(p => p.PartyClient)
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)

@@ -218,7 +218,6 @@ public class InvoiceService : IInvoiceService
 
         invoice.InvoiceStatusId = StatusIssued;
         invoice.IssueDate       = DateOnly.FromDateTime(DateTime.UtcNow);
-        await _db.SaveChangesAsync();
 
         // Link all related transactions to this invoice
         if (orderId.HasValue)

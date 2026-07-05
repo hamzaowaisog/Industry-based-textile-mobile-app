@@ -79,42 +79,57 @@ public class PurchaseService : IPurchaseService
         if (missingProductId != default)
             return Response<PurchaseDto>.ErrorResponse("Not found", $"Product with ID {missingProductId} does not exist.");
 
-        var purchase = new Purchase
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
         {
-            SupplierId = model.SupplierId,
-            UserId = userId,
-            StatusId = StatusPending,
-            PaymentTypeId = model.PaymentTypeId,
-            PurchaseDate = model.PurchaseDate,
-            Notes = model.Notes,
-            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
-        };
-
-        foreach (var line in model.Lines)
-        {
-            purchase.PurchaseLines.Add(new PurchaseLine
+            var purchase = new Purchase
             {
-                ProductId = line.ProductId,
-                Qty = line.Qty,
-                UnitCost = line.UnitCost
-            });
+                SupplierId = model.SupplierId,
+                UserId = userId,
+                StatusId = StatusPending,
+                PaymentTypeId = model.PaymentTypeId,
+                PurchaseDate = model.PurchaseDate,
+                Notes = model.Notes,
+                CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+            };
+
+            foreach (var line in model.Lines)
+            {
+                purchase.PurchaseLines.Add(new PurchaseLine
+                {
+                    ProductId = line.ProductId,
+                    Qty = line.Qty,
+                    UnitCost = line.UnitCost
+                });
+            }
+
+            await _dbContext.Purchases.AddAsync(purchase);
+            await _dbContext.SaveChangesAsync();
+
+            // Auto-create the linked Draft invoice INSIDE the transaction. The invoice
+            // service shares this scoped DbContext, so its SaveChanges enlists here and a
+            // failure rolls the purchase back too — otherwise a 500 mid-invoice leaves a
+            // committed purchase and a client retry would duplicate it.
+            await _invoiceService.CreateFromPurchaseAsync(purchase.Id, userId);
+
+            await transaction.CommitAsync();
+
+            var saved = await LoadPurchaseWithIncludes(purchase.Id);
+            try { await _notification.CreateAsync(new CreateNotificationDto
+            {
+                UserId = userId,
+                Type = "purchase_created",
+                Title = "New Purchase",
+                Body = $"Purchase #{purchase.Id} created from {supplier.Name ?? "Supplier"}",
+                EntityId = purchase.Id
+            }); } catch { }
+            return Response<PurchaseDto>.SuccessResponse(ToDto(saved!), "Purchase created successfully.");
         }
-
-        await _dbContext.Purchases.AddAsync(purchase);
-        await _dbContext.SaveChangesAsync();
-
-        await _invoiceService.CreateFromPurchaseAsync(purchase.Id, userId);
-
-        var saved = await LoadPurchaseWithIncludes(purchase.Id);
-        try { await _notification.CreateAsync(new CreateNotificationDto
+        catch (Exception ex)
         {
-            UserId = userId,
-            Type = "purchase_created",
-            Title = "New Purchase",
-            Body = $"Purchase #{purchase.Id} created from {supplier.Name ?? "Supplier"}",
-            EntityId = purchase.Id
-        }); } catch { }
-        return Response<PurchaseDto>.SuccessResponse(ToDto(saved!), "Purchase created successfully.");
+            await transaction.RollbackAsync();
+            return Response<PurchaseDto>.ErrorResponse("Internal server error", ex.Message);
+        }
     }
 
     public async Task<Response<PurchaseDto>> GetByIdAsync(int id, int userId, bool isAdmin)
@@ -131,7 +146,7 @@ public class PurchaseService : IPurchaseService
 
     public async Task<Response<List<PurchaseDto>>> GetAllAsync(int userId, bool isAdmin)
     {
-        var query = PurchaseQueryWithIncludes().AsQueryable();
+        var query = PurchaseQueryWithIncludes().AsNoTracking();
         if (!isAdmin)
             query = query.Where(p => p.UserId == userId);
 
@@ -142,7 +157,7 @@ public class PurchaseService : IPurchaseService
 
     public async Task<Response<PagedList<PurchaseDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
-        var query = PurchaseQueryWithIncludes().AsQueryable();
+        var query = PurchaseQueryWithIncludes().AsNoTracking();
         if (!isAdmin)
             query = query.Where(p => p.UserId == userId);
 
@@ -155,7 +170,7 @@ public class PurchaseService : IPurchaseService
     public async Task<Response<List<PurchaseDto>>> GetFilteredAsync(
         int? supplierId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin)
     {
-        var query = PurchaseQueryWithIncludes();
+        var query = PurchaseQueryWithIncludes().AsNoTracking();
 
         if (!isAdmin)
             query = query.Where(p => p.UserId == userId);
