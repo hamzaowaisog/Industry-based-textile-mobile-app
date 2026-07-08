@@ -289,7 +289,7 @@ export function useStockMovementsGetStockMovementById<TData = Awaited<ReturnType
 
 
 /**
- * @summary Update a stock movement record. Does not recalculate product averages — use a new Manual movement for stock corrections.
+ * @summary Update a Manual stock movement record and recalculate product quantity/averages from full history. Purchase and Sale movements cannot be edited directly — they are controlled by their parent Purchase/Order document.
  */
 export const stockMovementsUpdateStockMovement = (
     id: number,
@@ -340,7 +340,7 @@ const {mutation: mutationOptions} = options ?
     export type StockMovementsUpdateStockMovementMutationError = StockMovementsDtoResponse
 
     /**
- * @summary Update a stock movement record. Does not recalculate product averages — use a new Manual movement for stock corrections.
+ * @summary Update a Manual stock movement record and recalculate product quantity/averages from full history. Purchase and Sale movements cannot be edited directly — they are controlled by their parent Purchase/Order document.
  */
 export const useStockMovementsUpdateStockMovement = <TError = StockMovementsDtoResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockMovementsUpdateStockMovement>>, TError,{id: number;data?: StockMovementsUpdateViewModel}, TContext>, }
@@ -353,7 +353,7 @@ export const useStockMovementsUpdateStockMovement = <TError = StockMovementsDtoR
       return useMutation(getStockMovementsUpdateStockMovementMutationOptions(options), queryClient);
     }
     /**
- * @summary Delete a stock movement record. Admin only.
+ * @summary Delete a Manual stock movement record and recalculate product quantity/averages from the remaining history. Admin only. Purchase and Sale movements cannot be deleted directly — they are controlled by their parent Purchase/Order document.
  */
 export const stockMovementsDeleteStockMovement = (
     id: number,
@@ -401,7 +401,7 @@ const {mutation: mutationOptions} = options ?
     export type StockMovementsDeleteStockMovementMutationError = Response
 
     /**
- * @summary Delete a stock movement record. Admin only.
+ * @summary Delete a Manual stock movement record and recalculate product quantity/averages from the remaining history. Admin only. Purchase and Sale movements cannot be deleted directly — they are controlled by their parent Purchase/Order document.
  */
 export const useStockMovementsDeleteStockMovement = <TError = Response,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockMovementsDeleteStockMovement>>, TError,{id: number}, TContext>, }
@@ -507,7 +507,7 @@ export function useStockMovementsGetFilteredStockMovements<TData = Awaited<Retur
 
 
 /**
- * @summary Get all stock movements for a specific product ordered chronologically. Admin sees all; Staff scoped to their own products.
+ * @summary Get all stock movements for a specific product, ordered by date descending (most recent first). Admin sees all; Staff scoped to their own products.
  */
 export const stockMovementsGetByProductId = (
     productId: number,
@@ -578,7 +578,7 @@ export function useStockMovementsGetByProductId<TData = Awaited<ReturnType<typeo
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get all stock movements for a specific product ordered chronologically. Admin sees all; Staff scoped to their own products.
+ * @summary Get all stock movements for a specific product, ordered by date descending (most recent first). Admin sees all; Staff scoped to their own products.
  */
 
 export function useStockMovementsGetByProductId<TData = Awaited<ReturnType<typeof stockMovementsGetByProductId>>, TError = unknown>(

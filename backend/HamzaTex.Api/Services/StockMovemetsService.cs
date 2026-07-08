@@ -30,16 +30,18 @@ public interface IStockMovementsService
         DateOnly? dateFrom,
         DateOnly? dateTo,
         int userId);
-    /// <summary>Get all stock movements for a specific product, ordered by date ascending (for chart/history). Admin sees all; Staff scoped to their products.</summary>
+    /// <summary>Get all stock movements for a specific product, ordered by date descending (most recent first). Admin sees all; Staff scoped to their products.</summary>
     Task<Response<List<StockMovementsDto>>> GetByProductIdAsync(int productId, int userId, bool isAdmin);
-    /// <summary>Update a movement record and replay all movements for the product to keep stock qty and weighted averages consistent.</summary>
+    /// <summary>Update a Manual movement and replay all movements for the product to keep stock qty and weighted averages consistent. Purchase/Sale-originated movements cannot be edited directly.</summary>
     Task<Response<StockMovementsDto>> UpdateByIdAsync(int id, UpdateStockMovementsDto model, int userId);
-    /// <summary>Delete a stock movement by ID. Does not reverse product stats — create a compensating Manual movement if needed.</summary>
+    /// <summary>Delete a Manual movement and replay remaining movements to keep stock qty and weighted averages consistent. Purchase/Sale-originated movements cannot be deleted directly.</summary>
     Task<Response> DeleteByIdAsync(int id, int userId);
 }
 
 public class StockMovementsService : IStockMovementsService
 {
+    private const int MovementSourceManual = 3;
+
     private readonly ApplicationDbContext _dbContext;
     private readonly IProductService _productService;
     private readonly INotificationService _notification;
@@ -195,6 +197,36 @@ public class StockMovementsService : IStockMovementsService
             await _dbContext.SaveChangesAsync();
             if (ownTransaction) await transaction!.CommitAsync();
 
+            // Reload with navigation properties so names are populated in the response
+            var saved = await _dbContext.StockMovements
+                .Include(sm => sm.Product)
+                    .ThenInclude(p => p!.Unit)
+                .Include(sm => sm.MovementType)
+                .Include(sm => sm.MovementSource)
+                .FirstAsync(sm => sm.Id == entity.Id);
+
+            var sourceLabel = model.MovementSource == 1 ? "Purchase" : model.MovementSource == 2 ? "Sale" : "Manual";
+            var typeLabel   = resolvedMovementType == 1 ? "In" : resolvedMovementType == 2 ? "Out" : "Adjustment";
+
+            if (!model.SuppressNotification)
+            {
+                var unitName = saved.Product?.Unit?.Name ?? "";
+                var (notifType, notifTitle) = model.MovementSource switch
+                {
+                    1 => ("stock_movement_in", "Stock In (Purchase)"),
+                    2 => ("stock_movement_out", "Stock Out (Sale)"),
+                    _ => ("stock_movement_created", "Stock Movement Recorded"),
+                };
+                try { await _notification.CreateAsync(new CreateNotificationDto
+                {
+                    UserId = userId,
+                    Type = notifType,
+                    Title = notifTitle,
+                    Body = $"{saved.Product?.Name ?? "Product"} — {model.Qty} {unitName} ({typeLabel})",
+                    EntityId = saved.Id
+                }); } catch { }
+            }
+
             // Low stock alert — only for Out movements after commit
             if (resolvedMovementType == 2 && productData.ReorderLevel.HasValue && productData.ReorderLevel > 0)
             {
@@ -211,16 +243,6 @@ public class StockMovementsService : IStockMovementsService
                     }); } catch { }
                 }
             }
-
-            // Reload with navigation properties so names are populated in the response
-            var saved = await _dbContext.StockMovements
-                .Include(sm => sm.Product)
-                .Include(sm => sm.MovementType)
-                .Include(sm => sm.MovementSource)
-                .FirstAsync(sm => sm.Id == entity.Id);
-
-            var sourceLabel = model.MovementSource == 1 ? "Purchase" : model.MovementSource == 2 ? "Sale" : "Manual";
-            var typeLabel   = resolvedMovementType == 1 ? "In" : resolvedMovementType == 2 ? "Out" : "Adjustment";
             return Response<StockMovementsDto>.SuccessResponse(
                 ToDto(saved),
                 $"Stock movement recorded: {sourceLabel} → {typeLabel}.");
@@ -237,6 +259,7 @@ public class StockMovementsService : IStockMovementsService
         var movement = await _dbContext.StockMovements
             .AsNoTracking()
             .Include(sm => sm.Product)
+                .ThenInclude(p => p!.Unit)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
             .FirstOrDefaultAsync(sm =>
@@ -255,6 +278,7 @@ public class StockMovementsService : IStockMovementsService
         var movements = await _dbContext.StockMovements
             .AsNoTracking()
             .Include(sm => sm.Product)
+                .ThenInclude(p => p!.Unit)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
             .Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId))
@@ -270,6 +294,7 @@ public class StockMovementsService : IStockMovementsService
         var query = _dbContext.StockMovements
             .AsNoTracking()
             .Include(sm => sm.Product)
+                .ThenInclude(p => p!.Unit)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
             .AsQueryable();
@@ -293,6 +318,7 @@ public class StockMovementsService : IStockMovementsService
         var query = _dbContext.StockMovements
             .AsNoTracking()
             .Include(sm => sm.Product)
+                .ThenInclude(p => p!.Unit)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
             .Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId))
@@ -326,6 +352,7 @@ public class StockMovementsService : IStockMovementsService
         var query = _dbContext.StockMovements
             .AsNoTracking()
             .Include(sm => sm.Product)
+                .ThenInclude(p => p!.Unit)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
             .Where(sm => sm.ProductId == productId)
@@ -366,6 +393,7 @@ public class StockMovementsService : IStockMovementsService
 
             var movement = await _dbContext.StockMovements
                 .Include(sm => sm.Product).ThenInclude(p => p!.ProductUsers)
+                .Include(sm => sm.Product).ThenInclude(p => p!.Unit)
                 .Include(sm => sm.MovementType)
                 .Include(sm => sm.MovementSource)
                 .FirstOrDefaultAsync(sm =>
@@ -375,6 +403,13 @@ public class StockMovementsService : IStockMovementsService
 
             if (movement is null)
                 return Response<StockMovementsDto>.ErrorResponse("Not found", "Stock movement not found.");
+
+            if (movement.MovementSourceId != MovementSourceManual || model.MovementSource != MovementSourceManual)
+            {
+                await transaction.RollbackAsync();
+                return Response<StockMovementsDto>.ErrorResponse("Cannot modify this movement",
+                    "Only Manual movements can be edited directly. Purchase and Sale movements are controlled by their parent document.");
+            }
 
             var effectiveMovementDate = model.MovementDate ?? movement.MovementDate;
             var productId = movement.ProductId!.Value;
@@ -411,55 +446,7 @@ public class StockMovementsService : IStockMovementsService
             movement.UnitPrice        = model.UnitPrice;
             movement.MovementDate     = effectiveMovementDate;
 
-            decimal currentQty    = 0;
-            decimal avgCost       = 0;
-            decimal avgPrice      = 0;
-            decimal totalPurchased = 0;
-            decimal totalSold     = 0;
-            int     costChanges   = 0;
-            int     priceChanges  = 0;
-
-            foreach (var sm in allMovements)
-            {
-                var qty       = sm.Qty ?? 0;
-                var unitCost  = sm.UnitCost ?? 0;
-                var unitPrice = sm.UnitPrice ?? 0;
-
-                decimal stockDelta = sm.MovementTypeId == 1 ? qty
-                                   : sm.MovementTypeId == 2 ? -qty
-                                   : 0m;
-                currentQty += stockDelta;
-                decimal contribution = stockDelta;
-
-                int? dim = sm.AverageDimensionOverride
-                        ?? (sm.MovementTypeId == 1 ? StockAverageDimension.Cost
-                          : sm.MovementTypeId == 2 ? StockAverageDimension.Price
-                          : (int?)null);
-
-                if (dim == StockAverageDimension.Cost)
-                {
-                    var purchasedBefore = totalPurchased;
-                    totalPurchased += contribution;
-                    avgCost = totalPurchased > 0
-                        ? (purchasedBefore * avgCost + contribution * unitCost) / totalPurchased
-                        : 0m;
-                    if (qty != 0) costChanges += contribution > 0 ? 1 : -1;
-                    sm.AverageCostAtMovement  = avgCost;
-                    sm.AveragePriceAtMovement = avgPrice > 0 ? avgPrice : null;
-                }
-                else if (dim == StockAverageDimension.Price)
-                {
-                    decimal soldDelta       = -contribution;
-                    var totalSoldBefore     = totalSold;
-                    totalSold              += soldDelta;
-                    avgPrice = totalSold > 0
-                        ? (totalSoldBefore * avgPrice + soldDelta * unitPrice) / totalSold
-                        : 0m;
-                    if (qty != 0) priceChanges += soldDelta > 0 ? 1 : -1;
-                    sm.AverageCostAtMovement  = avgCost > 0 ? avgCost : null;
-                    sm.AveragePriceAtMovement = avgPrice;
-                }
-            }
+            var replay = RecalculateProductFromMovements(allMovements);
 
             // Copy snapshot values from the replay copy back to the tracked movement
             var replayedMovement = allMovements.FirstOrDefault(sm => sm.Id == id);
@@ -471,13 +458,7 @@ public class StockMovementsService : IStockMovementsService
 
             // Update the product with replayed totals
             var product = await _dbContext.Products.FirstAsync(p => p.Id == productId);
-            product.Quantity              = currentQty;
-            product.AverageCost           = avgCost > 0 ? avgCost : null;
-            product.AveragePrice          = avgPrice > 0 ? avgPrice : null;
-            product.TotalQuantityPurchased = totalPurchased;
-            product.TotalQuantitySold     = totalSold;
-            product.CostChangeCount       = Math.Max(0, costChanges);
-            product.PriceChangeCount      = Math.Max(0, priceChanges);
+            ApplyReplayToProduct(product, replay);
 
             await _dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -485,6 +466,8 @@ public class StockMovementsService : IStockMovementsService
             await _dbContext.Entry(movement).Reference(sm => sm.MovementType).LoadAsync();
             await _dbContext.Entry(movement).Reference(sm => sm.MovementSource).LoadAsync();
             await _dbContext.Entry(movement).Reference(sm => sm.Product).LoadAsync();
+            if (movement.Product is not null)
+                await _dbContext.Entry(movement.Product).Reference(p => p.Unit).LoadAsync();
 
             return Response<StockMovementsDto>.SuccessResponse(ToDto(movement), "Stock movement updated and product stats recalculated.");
         }
@@ -497,20 +480,137 @@ public class StockMovementsService : IStockMovementsService
 
     public async Task<Response> DeleteByIdAsync(int id, int userId)
     {
-        var movement = await _dbContext.StockMovements
-            .Include(sm => sm.Product)
-            .FirstOrDefaultAsync(sm =>
-                sm.Id == id &&
-                sm.Product != null &&
-                sm.Product.ProductUsers.Any(pu => pu.UserId == userId));
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            var movement = await _dbContext.StockMovements
+                .Include(sm => sm.Product)
+                .FirstOrDefaultAsync(sm =>
+                    sm.Id == id &&
+                    sm.Product != null &&
+                    sm.Product.ProductUsers.Any(pu => pu.UserId == userId));
 
-        if (movement is null)
-            return Response.ErrorResponse("Not found", "Stock movement not found.");
+            if (movement is null)
+                return Response.ErrorResponse("Not found", "Stock movement not found.");
 
-        _dbContext.StockMovements.Remove(movement);
-        await _dbContext.SaveChangesAsync();
-        return Response.SuccessResponse("Stock movement deleted successfully.");
+            if (movement.MovementSourceId != MovementSourceManual)
+            {
+                await transaction.RollbackAsync();
+                return Response.ErrorResponse("Cannot delete this movement",
+                    "Only Manual movements can be deleted directly. Purchase and Sale movements are controlled by their parent document.");
+            }
+
+            var productId = movement.ProductId!.Value;
+
+            _dbContext.StockMovements.Remove(movement);
+            await _dbContext.SaveChangesAsync();
+
+            var remainingMovements = await _dbContext.StockMovements
+                .AsNoTracking()
+                .Where(sm => sm.ProductId == productId)
+                .OrderBy(sm => sm.MovementDate)
+                .ThenBy(sm => sm.Id)
+                .ToListAsync();
+
+            var replay = RecalculateProductFromMovements(remainingMovements);
+
+            var product = await _dbContext.Products.FirstAsync(p => p.Id == productId);
+            ApplyReplayToProduct(product, replay);
+
+            await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return Response.SuccessResponse("Stock movement deleted and product stats recalculated.");
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return Response.ErrorResponse("Internal server error", ex.Message);
+        }
     }
+
+    // ── Replay helper ────────────────────────────────────────────────────────
+    // Recomputes Quantity, weighted averages, lifetime totals, and change counts
+    // from a chronologically ordered movement history. Also stamps each movement's
+    // AverageCostAtMovement/AveragePriceAtMovement snapshot in place. Shared by
+    // UpdateByIdAsync (edited movement injected into the set) and DeleteByIdAsync
+    // (removed movement excluded from the set) so both stay consistent.
+    private static ProductReplayTotals RecalculateProductFromMovements(List<StockMovement> movements)
+    {
+        decimal currentQty     = 0;
+        decimal avgCost        = 0;
+        decimal avgPrice       = 0;
+        decimal totalPurchased = 0;
+        decimal totalSold      = 0;
+        int     costChanges    = 0;
+        int     priceChanges   = 0;
+
+        foreach (var sm in movements)
+        {
+            var qty       = sm.Qty ?? 0;
+            var unitCost  = sm.UnitCost ?? 0;
+            var unitPrice = sm.UnitPrice ?? 0;
+
+            decimal stockDelta = sm.MovementTypeId == 1 ? qty
+                               : sm.MovementTypeId == 2 ? -qty
+                               : 0m;
+            currentQty += stockDelta;
+            decimal contribution = stockDelta;
+
+            int? dim = sm.AverageDimensionOverride
+                    ?? (sm.MovementTypeId == 1 ? StockAverageDimension.Cost
+                      : sm.MovementTypeId == 2 ? StockAverageDimension.Price
+                      : (int?)null);
+
+            if (dim == StockAverageDimension.Cost)
+            {
+                var purchasedBefore = totalPurchased;
+                totalPurchased += contribution;
+                avgCost = totalPurchased > 0
+                    ? (purchasedBefore * avgCost + contribution * unitCost) / totalPurchased
+                    : 0m;
+                if (qty != 0) costChanges += contribution > 0 ? 1 : -1;
+                sm.AverageCostAtMovement  = avgCost;
+                sm.AveragePriceAtMovement = avgPrice > 0 ? avgPrice : null;
+            }
+            else if (dim == StockAverageDimension.Price)
+            {
+                decimal soldDelta       = -contribution;
+                var totalSoldBefore     = totalSold;
+                totalSold              += soldDelta;
+                avgPrice = totalSold > 0
+                    ? (totalSoldBefore * avgPrice + soldDelta * unitPrice) / totalSold
+                    : 0m;
+                if (qty != 0) priceChanges += soldDelta > 0 ? 1 : -1;
+                sm.AverageCostAtMovement  = avgCost > 0 ? avgCost : null;
+                sm.AveragePriceAtMovement = avgPrice;
+            }
+        }
+
+        return new ProductReplayTotals(
+            currentQty, avgCost, avgPrice, totalPurchased, totalSold,
+            Math.Max(0, costChanges), Math.Max(0, priceChanges));
+    }
+
+    private static void ApplyReplayToProduct(Product product, ProductReplayTotals replay)
+    {
+        product.Quantity               = replay.Quantity;
+        product.AverageCost            = replay.AverageCost > 0 ? replay.AverageCost : null;
+        product.AveragePrice           = replay.AveragePrice > 0 ? replay.AveragePrice : null;
+        product.TotalQuantityPurchased = replay.TotalPurchased;
+        product.TotalQuantitySold      = replay.TotalSold;
+        product.CostChangeCount        = replay.CostChangeCount;
+        product.PriceChangeCount       = replay.PriceChangeCount;
+    }
+
+    private readonly record struct ProductReplayTotals(
+        decimal Quantity,
+        decimal AverageCost,
+        decimal AveragePrice,
+        decimal TotalPurchased,
+        decimal TotalSold,
+        int CostChangeCount,
+        int PriceChangeCount);
 
     // ── Mapping helpers ──────────────────────────────────────────────────────
 
@@ -519,6 +619,8 @@ public class StockMovementsService : IStockMovementsService
         Id = entity.Id,
         ProductId = entity.ProductId ?? 0,
         ProductName = entity.Product?.Name,
+        UnitId = entity.Product?.UnitId ?? 0,
+        UnitName = entity.Product?.Unit?.Name,
         MovementSource = entity.MovementSourceId ?? 0,
         MovementSourceName = entity.MovementSource?.Name,
         MovementType = entity.MovementTypeId ?? 0,
@@ -528,6 +630,8 @@ public class StockMovementsService : IStockMovementsService
         UnitPrice = entity.UnitPrice,
         AverageCostAtMovement = entity.AverageCostAtMovement,
         AveragePriceAtMovement = entity.AveragePriceAtMovement,
+        CurrentAverageCost = entity.Product?.AverageCost,
+        CurrentAveragePrice = entity.Product?.AveragePrice,
         MovementDate = entity.MovementDate
     };
 

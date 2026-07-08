@@ -414,7 +414,8 @@ public class OrderService : IOrderService
                     MovementSource = MovementSourceSale,
                     Qty = line.Qty,
                     UnitPrice = line.UnitPrice,
-                    MovementDate = order.OrderDate
+                    MovementDate = order.OrderDate,
+                    SuppressNotification = true,
                 }, userId);
 
                 if (!movResult.Success)
@@ -508,7 +509,8 @@ public class OrderService : IOrderService
                         Qty = line.Qty,
                         UnitPrice = line.UnitPrice,
                         AverageDimensionOverride = StockAverageDimension.Price,
-                        MovementDate = DateOnly.FromDateTime(DateTime.UtcNow)
+                        MovementDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                        SuppressNotification = true,
                     }, userId);
 
                     if (!movResult.Success)

@@ -94,7 +94,7 @@ public class StockMovementsController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Get all stock movements for a specific product ordered chronologically. Admin sees all; Staff scoped to their own products.</summary>
+    /// <summary>Get all stock movements for a specific product, ordered by date descending (most recent first). Admin sees all; Staff scoped to their own products.</summary>
     [HttpGet("by-product/{productId}")]
     [ProducesResponseType(typeof(Response<List<StockMovementsDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByProductId(int productId)
@@ -107,7 +107,7 @@ public class StockMovementsController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Update a stock movement record. Does not recalculate product averages — use a new Manual movement for stock corrections.</summary>
+    /// <summary>Update a Manual stock movement record and recalculate product quantity/averages from full history. Purchase and Sale movements cannot be edited directly — they are controlled by their parent Purchase/Order document.</summary>
     [HttpPut("{id}")]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(typeof(Response<StockMovementsDto>), StatusCodes.Status200OK)]
@@ -136,7 +136,7 @@ public class StockMovementsController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Delete a stock movement record. Admin only.</summary>
+    /// <summary>Delete a Manual stock movement record and recalculate product quantity/averages from the remaining history. Admin only. Purchase and Sale movements cannot be deleted directly — they are controlled by their parent Purchase/Order document.</summary>
     [HttpDelete("{id}")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(typeof(Response), StatusCodes.Status200OK)]
@@ -163,12 +163,22 @@ public class StockMovementsController : BaseController
             return BadRequest(response.Message);
 
         var movements = response.Data ?? new List<StockMovementsDto>();
+        var totalIn = movements.Where(m => m.MovementType == 1).Sum(m => m.Qty);
+        var totalOut = movements.Where(m => m.MovementType == 2).Sum(m => m.Qty);
         var pdfBytes = _pdfService.CreatePdf(
             "Stock Movements",
             "All stock movements — In (purchases) and Out (sales).",
             movements,
             EntityPdfConfigs.StockMovement,
-            new PdfOptions { ShowRowNumbers = true });
+            new PdfOptions
+            {
+                ShowRowNumbers = true,
+                Stats = new()
+                {
+                    new Stat("Total Stock In", $"{totalIn:0.##}", Highlight: true),
+                    new Stat("Total Stock Out", $"{totalOut:0.##}"),
+                },
+            });
 
         return File(pdfBytes, "application/pdf", "stock-movements.pdf");
     }
@@ -214,6 +224,8 @@ public class StockMovementsController : BaseController
                         new[] { "Date", m.MovementDate.ToString("dd MMM yyyy") },
                         new[] { "Avg Cost Snapshot", m.AverageCostAtMovement.HasValue ? PdfFormat.Rs(m.AverageCostAtMovement.Value) : "—" },
                         new[] { "Avg Price Snapshot", m.AveragePriceAtMovement.HasValue ? PdfFormat.Rs(m.AveragePriceAtMovement.Value) : "—" },
+                        new[] { "Current Avg Cost", m.CurrentAverageCost.HasValue ? PdfFormat.Rs(m.CurrentAverageCost.Value) : "—" },
+                        new[] { "Current Avg Price", m.CurrentAveragePrice.HasValue ? PdfFormat.Rs(m.CurrentAveragePrice.Value) : "—" },
                     }),
             },
             Closing = new ClosingSummary(

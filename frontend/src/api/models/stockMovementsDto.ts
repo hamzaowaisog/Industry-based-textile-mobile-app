@@ -11,6 +11,9 @@ export interface StockMovementsDto {
   productId?: number;
   /** @nullable */
   productName?: string | null;
+  unitId?: number;
+  /** @nullable */
+  unitName?: string | null;
   movementSource?: number;
   /** @nullable */
   movementSourceName?: string | null;
@@ -26,5 +29,9 @@ export interface StockMovementsDto {
   averageCostAtMovement?: number | null;
   /** @nullable */
   averagePriceAtMovement?: number | null;
+  /** @nullable */
+  currentAverageCost?: number | null;
+  /** @nullable */
+  currentAveragePrice?: number | null;
   movementDate?: string;
 }
