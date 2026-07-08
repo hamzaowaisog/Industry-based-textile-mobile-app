@@ -923,6 +923,81 @@
     "deleteMessage": "Permanently delete expense {{id}}? Its ledger transaction will also be removed. This cannot be undone.",
     "deleteSuccess": "Expense deleted"
   },
+  "stockMovements": {
+    "title": "Stock Movements",
+    "subtitle": "In, out, adjustments",
+    "addStockMove": "Add Stock Move",
+    "searchPlaceholder": "Search by product or source…",
+    "stockIn": "Stock In",
+    "stockOut": "Stock Out",
+    "product": "Product",
+    "productPlaceholder": "Select a product",
+    "selectProduct": "Select Product",
+    "searchProductPlaceholder": "Search products…",
+    "currentStock": "Current stock: {{qty}}",
+    "source": "Movement source",
+    "type": "Movement type",
+    "qty": "Quantity",
+    "unitCost": "Unit cost",
+    "unitPrice": "Unit price",
+    "movementDate": "Movement Date",
+    "filters": {
+      "in": "In",
+      "out": "Out",
+      "adjustments": "Adjustments"
+    },
+    "empty": {
+      "title": "No stock movements yet",
+      "subtitle": "Record your first stock movement to start tracking inventory."
+    },
+    "validation": {
+      "productRequired": "Please select a product",
+      "sourceRequired": "Please select a movement source",
+      "typeRequired": "Please select a movement type",
+      "qtyRequired": "Quantity is required",
+      "qtyPositive": "Quantity must be greater than zero",
+      "unitCostPositive": "Unit cost must be greater than zero",
+      "unitPricePositive": "Unit price must be greater than zero"
+    },
+    "add": {
+      "title": "Record Movement",
+      "errorTitle": "Stock Movement Failed",
+      "successTitle": "Movement Recorded",
+      "successSubtitle": "The stock movement has been saved successfully.",
+      "dateHint": "Defaults to today if not selected",
+      "datePlaceholder": "Select a date",
+      "discardTitle": "Discard movement?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
+    "edit": {
+      "title": "Edit Stock Movement",
+      "errorTitle": "Update Failed",
+      "successTitle": "Movement Updated",
+      "successSubtitle": "Changes have been saved and stock recalculated.",
+      "dateHint": "Tap to change the movement date",
+      "datePlaceholder": "Select a date",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
+    "detail": {
+      "reference": "HT-MOVEMENT-{{id}}",
+      "unitCost": "Unit cost",
+      "unitPrice": "Unit price",
+      "source": "Source",
+      "details": "Details",
+      "avgCostSnapshot": "Avg cost snapshot",
+      "avgPriceSnapshot": "Avg price snapshot",
+      "currentAvgCost": "Current avg cost",
+      "currentAvgPrice": "Current avg price"
+    },
+    "deleteTitle": "Delete Stock Movement",
+    "deleteMessage": "Permanently delete movement {{id}}? Product stock and averages will be recalculated. This cannot be undone.",
+    "deleteSuccess": "Stock movement deleted"
+  },
   "reports": {
     "title": "Reports",
     "profitLoss": "Profit & Loss",

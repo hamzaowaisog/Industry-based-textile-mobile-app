@@ -75,7 +75,9 @@ export type ExpenseStackParamList = {
 
 export type StockStackParamList = {
   StockMoveList: undefined;
+  StockMoveDetail: { movementId: number };
   AddStockMove: undefined;
+  EditStockMove: { movementId: number };
 };
 
 export type LedgerStackParamList = {
@@ -222,4 +224,15 @@ export type ExpenseDetailScreenProps = NativeStackScreenProps<
 export type EditExpenseScreenProps = NativeStackScreenProps<
   ExpenseStackParamList,
   typeof SM.EDIT_EXPENSE
+>;
+
+// ── Stock movement screen props ─────────────────────────────────────────────
+
+export type StockMoveDetailScreenProps = NativeStackScreenProps<
+  StockStackParamList,
+  typeof SM.STOCK_MOVE_DETAIL
+>;
+export type EditStockMoveScreenProps = NativeStackScreenProps<
+  StockStackParamList,
+  typeof SM.EDIT_STOCK_MOVE
 >;

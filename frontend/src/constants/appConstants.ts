@@ -61,6 +61,13 @@ export const AppConstants = {
     ADJUSTMENT: 3,
   },
 
+  // Movement source IDs (matches backend MovementSource: 1=Purchase, 2=Sale, 3=Manual)
+  MOVEMENT_SOURCE: {
+    PURCHASE: 1,
+    SALE: 2,
+    MANUAL: 3,
+  },
+
   // Payment type IDs (matches backend seeded PaymentType table)
   PAYMENT_TYPE: {
     CASH: 1,
@@ -330,7 +337,9 @@ export const AppConstants = {
       EDIT_EXPENSE: 'EditExpense',
       // Stock stack
       STOCK_MOVE_LIST: 'StockMoveList',
+      STOCK_MOVE_DETAIL: 'StockMoveDetail',
       ADD_STOCK_MOVE: 'AddStockMove',
+      EDIT_STOCK_MOVE: 'EditStockMove',
       // Ledger stack
       TRANSACTION_LIST: 'TransactionList',
       // Report stack
@@ -374,6 +383,7 @@ export const AppConstants = {
       PAYMENT_LIST: 'Payment/pdf',
       INVOICE_LIST: 'Invoice/pdf',
       EXPENSE_LIST: 'Expense/pdf',
+      STOCK_MOVEMENT_LIST: 'StockMovements/pdf',
       clientDossier: (id: number) => `Client/${id}/pdf`,
       orderDossier: (id: number) => `Order/${id}/pdf`,
       productDossier: (id: number) => `Product/${id}/pdf`,
@@ -381,6 +391,7 @@ export const AppConstants = {
       paymentDossier: (id: number) => `Payment/${id}/pdf`,
       invoiceDossier: (id: number) => `Invoice/${id}/pdf`,
       expenseDossier: (id: number) => `Expense/${id}/pdf`,
+      stockMovementDossier: (id: number) => `StockMovements/${id}/pdf`,
     },
     FILENAMES: {
       CLIENT_LIST: 'clients.pdf',
@@ -390,6 +401,7 @@ export const AppConstants = {
       PAYMENT_LIST: 'payments.pdf',
       INVOICE_LIST: 'invoices.pdf',
       EXPENSE_LIST: 'expenses.pdf',
+      STOCK_MOVEMENT_LIST: 'stock-movements.pdf',
       clientDossier: (id: number) => `client-${id}.pdf`,
       orderDossier: (id: number) => `order-${id}.pdf`,
       productDossier: (id: number) => `product-${id}.pdf`,
@@ -397,6 +409,7 @@ export const AppConstants = {
       paymentDossier: (id: number) => `payment-${id}.pdf`,
       invoiceDossier: (id: number) => `invoice-${id}.pdf`,
       expenseDossier: (id: number) => `expense-${id}.pdf`,
+      stockMovementDossier: (id: number) => `stock-movement-${id}.pdf`,
     },
   },
 
