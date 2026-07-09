@@ -3,18 +3,21 @@ import {
   stockMovementsDeleteStockMovement,
   stockMovementsGetAllStockMovementsPaginated,
   stockMovementsGetStockMovementById,
+  stockMovementsGetStockMovementsSummary,
   stockMovementsUpdateStockMovement,
 } from '@api/generated/stock-movements/stock-movements';
 import type {
   StockMovementsCreateViewModel,
   StockMovementsDto,
   StockMovementsDtoPagedList,
+  StockMovementsSummaryDto,
   StockMovementsUpdateViewModel,
 } from '@api/models';
 
 import { parseApiError, parseApiResponse } from '@utils/helpers/apiResponse';
 import {
   mapApiStockMovementDetail,
+  mapApiStockMovementSummary,
   mapApiStockMovementToRow,
 } from '@utils/helpers/stockMovementsMappers';
 import i18n from '@utils/i18n';
@@ -24,6 +27,7 @@ import type {
   EditStockMoveFormValues,
   StockMoveDetail,
   StockMoveRow,
+  StockMoveSummary,
 } from '../types/stockMovements.types';
 
 export const fetchStockMovementsPageAsync = async (
@@ -40,6 +44,19 @@ export const fetchStockMovementsPageAsync = async (
     };
   } catch {
     return { items: [], hasNextPage: false };
+  }
+};
+
+export const fetchStockMovementsSummaryAsync = async (): Promise<StockMoveSummary> => {
+  try {
+    const res = await stockMovementsGetStockMovementsSummary();
+    const r = parseApiResponse<StockMovementsSummaryDto>(res, '');
+    if (!r.success || !r.data) {
+      return { totalIn: 0, totalOut: 0, totalInUnitLabel: '', totalOutUnitLabel: '' };
+    }
+    return mapApiStockMovementSummary(r.data);
+  } catch {
+    return { totalIn: 0, totalOut: 0, totalInUnitLabel: '', totalOutUnitLabel: '' };
   }
 };
 

@@ -2,17 +2,19 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { DrawerActions, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
+import { InfiniteData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import { useStockMovementStore } from '@stores/stockMovementStore';
 
 import { AppConstants } from '@constants/appConstants';
 import { queryKeys } from '@constants/queryKeys';
 
-import { fetchStockMovementsPageAsync } from '../core/stockMovements';
+import {
+  fetchStockMovementsPageAsync,
+  fetchStockMovementsSummaryAsync,
+} from '../core/stockMovements';
 import type { StockStackParamList } from '../types/navigation.types';
 import type { StockMoveListFilter, StockMoveRow } from '../types/stockMovements.types';
-import { getCommonUnitLabel } from '../utils/helpers/stockMovementsMappers';
 import { usePdfDownload } from './usePdfDownload';
 
 const { IN, OUT } = AppConstants.MOVEMENT_TYPE;
@@ -42,31 +44,25 @@ export const useStockMoveList = () => {
       staleTime: 0,
     });
 
+  const { data: summary, refetch: refetchSummary } = useQuery({
+    queryKey: queryKeys.stockMovements.summary(),
+    queryFn: fetchStockMovementsSummaryAsync,
+    staleTime: 0,
+  });
+
   useFocusEffect(
     useCallback(() => {
       void refetch();
-    }, [refetch]),
+      void refetchSummary();
+    }, [refetch, refetchSummary]),
   );
 
   const allMovements = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
 
-  const totalIn = useMemo(
-    () => allMovements.filter((m) => m.movementTypeId === IN).reduce((s, m) => s + m.qty, 0),
-    [allMovements],
-  );
-  const totalOut = useMemo(
-    () => allMovements.filter((m) => m.movementTypeId === OUT).reduce((s, m) => s + m.qty, 0),
-    [allMovements],
-  );
-
-  const totalInUnitLabel = useMemo(
-    () => getCommonUnitLabel(allMovements.filter((m) => m.movementTypeId === IN)),
-    [allMovements],
-  );
-  const totalOutUnitLabel = useMemo(
-    () => getCommonUnitLabel(allMovements.filter((m) => m.movementTypeId === OUT)),
-    [allMovements],
-  );
+  const totalIn = summary?.totalIn ?? 0;
+  const totalOut = summary?.totalOut ?? 0;
+  const totalInUnitLabel = summary?.totalInUnitLabel ?? '';
+  const totalOutUnitLabel = summary?.totalOutUnitLabel ?? '';
 
   const filtered = useMemo(() => {
     let result = allMovements;

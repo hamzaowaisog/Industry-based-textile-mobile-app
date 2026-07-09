@@ -153,6 +153,8 @@ export * from './stockMovementsDtoPagedListResponse';
 export * from './stockMovementsDtoResponse';
 export * from './stockMovementsGetAllStockMovementsPaginatedParams';
 export * from './stockMovementsGetFilteredStockMovementsParams';
+export * from './stockMovementsSummaryDto';
+export * from './stockMovementsSummaryDtoResponse';
 export * from './stockMovementsUpdateViewModel';
 export * from './summaryTotalsViewModel';
 export * from './summaryTotalsViewModelResponse';

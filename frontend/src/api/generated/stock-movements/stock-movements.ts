@@ -32,6 +32,7 @@ import type {
   StockMovementsDtoResponse,
   StockMovementsGetAllStockMovementsPaginatedParams,
   StockMovementsGetFilteredStockMovementsParams,
+  StockMovementsSummaryDtoResponse,
   StockMovementsUpdateViewModel
 } from '../../models';
 
@@ -185,6 +186,98 @@ export function useStockMovementsGetAllStockMovementsPaginated<TData = Awaited<R
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getStockMovementsGetAllStockMovementsPaginatedQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+/**
+ * @summary Get aggregate in/out quantity totals across the full matching stock movement history (not just one page). Non-admins see only movements for their own products; Admin sees all.
+ */
+export const stockMovementsGetStockMovementsSummary = (
+
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<StockMovementsSummaryDtoResponse>(
+      {url: `/api/StockMovements/summary`, method: 'GET', signal
+    },
+      );
+    }
+
+
+
+
+export const getStockMovementsGetStockMovementsSummaryQueryKey = () => {
+    return [
+    `/api/StockMovements/summary`
+    ] as const;
+    }
+
+
+export const getStockMovementsGetStockMovementsSummaryQueryOptions = <TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockMovementsGetStockMovementsSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>> = ({ signal }) => stockMovementsGetStockMovementsSummary(signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockMovementsGetStockMovementsSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>>
+export type StockMovementsGetStockMovementsSummaryQueryError = unknown
+
+
+export function useStockMovementsGetStockMovementsSummary<TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>,
+          TError,
+          Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockMovementsGetStockMovementsSummary<TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>,
+          TError,
+          Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockMovementsGetStockMovementsSummary<TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get aggregate in/out quantity totals across the full matching stock movement history (not just one page). Non-admins see only movements for their own products; Admin sees all.
+ */
+
+export function useStockMovementsGetStockMovementsSummary<TData = Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockMovementsGetStockMovementsSummary>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockMovementsGetStockMovementsSummaryQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -63,6 +63,18 @@ public class StockMovementsController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Get aggregate in/out quantity totals across the full matching stock movement history (not just one page). Non-admins see only movements for their own products; Admin sees all.</summary>
+    [HttpGet("summary")]
+    [ProducesResponseType(typeof(Response<StockMovementsSummaryDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetStockMovementsSummary()
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        var response = await _stockMovementsService.GetSummaryAsync(userId.Value, IsAdmin());
+        return ToActionResult(response);
+    }
+
     /// <summary>Get a single stock movement by ID.</summary>
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(Response<StockMovementsDto>), StatusCodes.Status200OK)]

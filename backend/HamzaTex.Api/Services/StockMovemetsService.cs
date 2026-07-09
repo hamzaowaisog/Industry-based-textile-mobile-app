@@ -22,6 +22,8 @@ public interface IStockMovementsService
     /// <summary>Get paginated stock movements for the user's products.</summary>
     /// <summary>Get paginated stock movements. Admin sees all; non-admins see only movements for their own products.</summary>
     Task<Response<PagedList<StockMovementsDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
+    /// <summary>Get aggregate in/out quantity totals across the full matching stock movement history. Admin sees all; non-admins see only movements for their own products.</summary>
+    Task<Response<StockMovementsSummaryDto>> GetSummaryAsync(int userId, bool isAdmin);
     /// <summary>Filter stock movements by product, type, source, and/or date range.</summary>
     Task<Response<List<StockMovementsDto>>> GetFilteredAsync(
         int? productId,
@@ -305,6 +307,40 @@ public class StockMovementsService : IStockMovementsService
         query = query.OrderByDescending(sm => sm.MovementDate);
         var pagedList = await PagedList<StockMovementsDto>.CreateAsync(query.Select(sm => ToDto(sm)), page, pageSize);
         return Response<PagedList<StockMovementsDto>>.SuccessResponse(pagedList, "Stock movements fetched successfully.");
+    }
+
+    public async Task<Response<StockMovementsSummaryDto>> GetSummaryAsync(int userId, bool isAdmin)
+    {
+        var query = _dbContext.StockMovements
+            .AsNoTracking()
+            .Include(sm => sm.Product)
+                .ThenInclude(p => p!.Unit)
+            .AsQueryable();
+
+        if (!isAdmin)
+            query = query.Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId));
+
+        var inGroups = await query
+            .Where(sm => sm.MovementTypeId == 1)
+            .GroupBy(sm => sm.Product!.Unit!.Name)
+            .Select(g => new { UnitName = g.Key, Total = g.Sum(sm => sm.Qty ?? 0) })
+            .ToListAsync();
+
+        var outGroups = await query
+            .Where(sm => sm.MovementTypeId == 2)
+            .GroupBy(sm => sm.Product!.Unit!.Name)
+            .Select(g => new { UnitName = g.Key, Total = g.Sum(sm => sm.Qty ?? 0) })
+            .ToListAsync();
+
+        var summary = new StockMovementsSummaryDto
+        {
+            TotalIn = inGroups.Sum(g => g.Total),
+            TotalOut = outGroups.Sum(g => g.Total),
+            TotalInUnitLabel = inGroups.Count == 1 ? inGroups[0].UnitName : null,
+            TotalOutUnitLabel = outGroups.Count == 1 ? outGroups[0].UnitName : null,
+        };
+
+        return Response<StockMovementsSummaryDto>.SuccessResponse(summary, "Stock movement summary fetched successfully.");
     }
 
     public async Task<Response<List<StockMovementsDto>>> GetFilteredAsync(

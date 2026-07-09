@@ -13,6 +13,13 @@ export type StockMoveRow = {
   movementDate: string;
 };
 
+export type StockMoveSummary = {
+  totalIn: number;
+  totalOut: number;
+  totalInUnitLabel: string;
+  totalOutUnitLabel: string;
+};
+
 export type StockMoveDetail = {
   id: number;
   productId: number;

@@ -1,6 +1,10 @@
-import type { StockMovementsDto } from '@api/models';
+import type { StockMovementsDto, StockMovementsSummaryDto } from '@api/models';
 
-import type { StockMoveDetail, StockMoveRow } from '../../types/stockMovements.types';
+import type {
+  StockMoveDetail,
+  StockMoveRow,
+  StockMoveSummary,
+} from '../../types/stockMovements.types';
 
 export const mapApiStockMovementToRow = (m: StockMovementsDto): StockMoveRow => ({
   id: m.id ?? 0,
@@ -21,6 +25,13 @@ export const getCommonUnitLabel = (rows: StockMoveRow[]): string => {
   const units = new Set(rows.map((r) => r.unitName).filter(Boolean));
   return units.size === 1 ? [...units][0] : '';
 };
+
+export const mapApiStockMovementSummary = (s: StockMovementsSummaryDto): StockMoveSummary => ({
+  totalIn: s.totalIn ?? 0,
+  totalOut: s.totalOut ?? 0,
+  totalInUnitLabel: s.totalInUnitLabel ?? '',
+  totalOutUnitLabel: s.totalOutUnitLabel ?? '',
+});
 
 export const mapApiStockMovementDetail = (m: StockMovementsDto): StockMoveDetail => ({
   id: m.id ?? 0,

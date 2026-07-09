@@ -21,6 +21,15 @@ public class StockMovementsDto
     public DateOnly MovementDate { get; set; }
 }
 
+/// <summary>Aggregate in/out quantity totals across the full matching stock movement history (not just one page).</summary>
+public class StockMovementsSummaryDto
+{
+    public decimal TotalIn { get; set; }
+    public decimal TotalOut { get; set; }
+    public string? TotalInUnitLabel { get; set; }
+    public string? TotalOutUnitLabel { get; set; }
+}
+
 public class CreateStockMovementsDto
 {
     public int ProductId { get; set; }
