@@ -5183,7 +5183,7 @@
       },
       "get": {
         "tags": ["Transaction"],
-        "summary": "Get all transactions paginated. Staff see only their own; Admin sees all.",
+        "summary": "Get cash-movement transactions paginated (Expenses + Cash/Bank In & Out — excludes accrual Sales/Purchases rows, which are already represented by their matching Payment row). Staff see only their own; Admin sees all.",
         "operationId": "transaction_getAll",
         "parameters": [
           {
@@ -5367,6 +5367,25 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Transaction/summary": {
+      "get": {
+        "tags": ["Transaction"],
+        "summary": "Get aggregate Credit/Debit cash-flow totals (Expenses + Cash/Bank In & Out categories — excludes accrual Sales/Purchases postings, which would double-count the same amount at delivery and again at payment). Admin sees all; non-admins see only their own transactions.",
+        "operationId": "transaction_getSummary",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionSummaryDtoResponse"
                 }
               }
             }
@@ -10438,6 +10457,44 @@
           },
           "data": {
             "$ref": "#/components/schemas/TransactionDto"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TransactionSummaryDto": {
+        "type": "object",
+        "properties": {
+          "totalCredit": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalDebit": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TransactionSummaryDtoResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/TransactionSummaryDto"
           },
           "errors": {
             "type": "array",

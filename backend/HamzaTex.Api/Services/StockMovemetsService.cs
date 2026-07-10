@@ -332,12 +332,15 @@ public class StockMovementsService : IStockMovementsService
             .Select(g => new { UnitName = g.Key, Total = g.Sum(sm => sm.Qty ?? 0) })
             .ToListAsync();
 
+        var inNamedUnits = inGroups.Where(g => g.UnitName != null).ToList();
+        var outNamedUnits = outGroups.Where(g => g.UnitName != null).ToList();
+
         var summary = new StockMovementsSummaryDto
         {
             TotalIn = inGroups.Sum(g => g.Total),
             TotalOut = outGroups.Sum(g => g.Total),
-            TotalInUnitLabel = inGroups.Count == 1 ? inGroups[0].UnitName : null,
-            TotalOutUnitLabel = outGroups.Count == 1 ? outGroups[0].UnitName : null,
+            TotalInUnitLabel = inNamedUnits.Count == 1 ? inNamedUnits[0].UnitName : null,
+            TotalOutUnitLabel = outNamedUnits.Count == 1 ? outNamedUnits[0].UnitName : null,
         };
 
         return Response<StockMovementsSummaryDto>.SuccessResponse(summary, "Stock movement summary fetched successfully.");

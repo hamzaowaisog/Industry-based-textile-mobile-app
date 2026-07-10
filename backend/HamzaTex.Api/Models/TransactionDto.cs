@@ -48,6 +48,12 @@ public class CreateTransactionDto
     public int? TransModeId { get; set; }
 }
 
+public class TransactionSummaryDto
+{
+    public decimal TotalCredit { get; set; }
+    public decimal TotalDebit { get; set; }
+}
+
 public class UpdateTransactionDto
 {
     public decimal Amount { get; set; }

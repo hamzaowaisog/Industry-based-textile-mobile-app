@@ -19,17 +19,20 @@ public interface ITransactionService
     /// <summary>Get a transaction by ID. Staff can only access their own records.</summary>
     Task<Response<TransactionDto>> GetByIdAsync(int id, int userId, bool isAdmin);
 
-    /// <summary>Get all transactions paginated. Admin sees all; non-admins see only their own transactions.</summary>
+    /// <summary>Get cash-movement transactions paginated (excludes accrual Sales/Purchases rows already represented by their matching Payment row). Admin sees all; non-admins see only their own transactions.</summary>
     Task<Response<PagedList<TransactionDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
 
-    /// <summary>Get all transactions for a client. Staff: ownership check applied.</summary>
+    /// <summary>Get all transactions for a client, including accrual Sales/Purchases rows (full ledger — used by the client detail screen, not the Transaction list). Staff: ownership check applied.</summary>
     Task<Response<List<TransactionDto>>> GetAllByClientIdAsync(int clientId, int userId, bool isAdmin);
 
-    /// <summary>Filter transactions by any combination of typeId, categoryId, modeId, clientId, dateFrom, dateTo. Admin sees all matches; non-admins see only their own.</summary>
+    /// <summary>Filter transactions by any combination of typeId, categoryId, modeId, clientId, dateFrom, dateTo, including accrual Sales/Purchases rows (full ledger). Admin sees all matches; non-admins see only their own.</summary>
     Task<Response<List<TransactionDto>>> GetFilteredAsync(int? typeId, int? categoryId, int? modeId, int? clientId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
 
-    /// <summary>Get all transactions (non-paginated). Admin sees all; non-admins see only their own. Used for PDF export.</summary>
+    /// <summary>Get cash-movement transactions (non-paginated), same scope as <see cref="GetAllPaginatedAsync"/>. Admin sees all; non-admins see only their own. Used for PDF export, so the export mirrors the in-app list.</summary>
     Task<Response<List<TransactionDto>>> GetAllAsync(int userId, bool isAdmin);
+
+    /// <summary>Get aggregate Credit/Debit cash-flow totals (Expenses + Cash/Bank In &amp; Out categories — excludes accrual Sales/Purchases postings, which would double-count the same amount at delivery and again at payment). Admin sees all; non-admins see only their own transactions.</summary>
+    Task<Response<TransactionSummaryDto>> GetSummaryAsync(int userId, bool isAdmin);
 
     /// <summary>Update a manual transaction. Returns an error if the transaction was auto-posted.</summary>
     Task<Response<TransactionDto>> UpdateByIdAsync(int id, UpdateTransactionDto model);
@@ -44,6 +47,10 @@ public interface ITransactionService
 
 public class TransactionService : ITransactionService
 {
+    private static readonly int[] CashFlowCategories = { 3, 4, 5, 6, 7, 8 };
+    private const int TransTypeDebit = 1;
+    private const int TransTypeCredit = 2;
+
     private readonly ApplicationDbContext _db;
 
     public TransactionService(ApplicationDbContext db)
@@ -159,7 +166,8 @@ public class TransactionService : ITransactionService
 
     public async Task<Response<PagedList<TransactionDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
     {
-        var query = WithIncludes(_db.Transactions.AsNoTracking()).AsQueryable();
+        var query = WithIncludes(_db.Transactions.AsNoTracking())
+            .Where(t => t.TransCategoryId.HasValue && CashFlowCategories.Contains(t.TransCategoryId.Value));
         if (!isAdmin)
             query = query.Where(t => t.UserId == userId);
 
@@ -173,7 +181,8 @@ public class TransactionService : ITransactionService
 
     public async Task<Response<List<TransactionDto>>> GetAllAsync(int userId, bool isAdmin)
     {
-        var query = WithIncludes(_db.Transactions.AsNoTracking()).AsQueryable();
+        var query = WithIncludes(_db.Transactions.AsNoTracking())
+            .Where(t => t.TransCategoryId.HasValue && CashFlowCategories.Contains(t.TransCategoryId.Value));
         if (!isAdmin)
             query = query.Where(t => t.UserId == userId);
 
@@ -184,6 +193,20 @@ public class TransactionService : ITransactionService
 
         return Response<List<TransactionDto>>.SuccessResponse(
             list.Select(ToDto).ToList(), "Transactions fetched.");
+    }
+
+    public async Task<Response<TransactionSummaryDto>> GetSummaryAsync(int userId, bool isAdmin)
+    {
+        var query = _db.Transactions.AsNoTracking()
+            .Where(t => t.TransCategoryId.HasValue && CashFlowCategories.Contains(t.TransCategoryId.Value));
+        if (!isAdmin)
+            query = query.Where(t => t.UserId == userId);
+
+        var totalCredit = await query.Where(t => t.TransTypeId == TransTypeCredit).SumAsync(t => t.Amount);
+        var totalDebit = await query.Where(t => t.TransTypeId == TransTypeDebit).SumAsync(t => t.Amount);
+
+        var summary = new TransactionSummaryDto { TotalCredit = totalCredit, TotalDebit = totalDebit };
+        return Response<TransactionSummaryDto>.SuccessResponse(summary, "Transaction summary fetched.");
     }
 
     public async Task<Response<List<TransactionDto>>> GetAllByClientIdAsync(int clientId, int userId, bool isAdmin)

@@ -32,6 +32,7 @@ import type {
   TransactionDtoResponse,
   TransactionGetAllParams,
   TransactionGetFilteredParams,
+  TransactionSummaryDtoResponse,
   TransactionUpdateViewModel
 } from '../../models';
 
@@ -104,7 +105,7 @@ export const useTransactionCreate = <TError = Response,
       return useMutation(getTransactionCreateMutationOptions(options), queryClient);
     }
     /**
- * @summary Get all transactions paginated. Staff see only their own; Admin sees all.
+ * @summary Get cash-movement transactions paginated (Expenses + Cash/Bank In & Out — excludes accrual Sales/Purchases rows, which are already represented by their matching Payment row). Staff see only their own; Admin sees all.
  */
 export const transactionGetAll = (
     params?: TransactionGetAllParams,
@@ -176,7 +177,7 @@ export function useTransactionGetAll<TData = Awaited<ReturnType<typeof transacti
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get all transactions paginated. Staff see only their own; Admin sees all.
+ * @summary Get cash-movement transactions paginated (Expenses + Cash/Bank In & Out — excludes accrual Sales/Purchases rows, which are already represented by their matching Payment row). Staff see only their own; Admin sees all.
  */
 
 export function useTransactionGetAll<TData = Awaited<ReturnType<typeof transactionGetAll>>, TError = unknown>(
@@ -402,6 +403,98 @@ export function useTransactionGetById<TData = Awaited<ReturnType<typeof transact
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getTransactionGetByIdQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+/**
+ * @summary Get aggregate Credit/Debit cash-flow totals (Expenses + Cash/Bank In & Out categories — excludes accrual Sales/Purchases postings, which would double-count the same amount at delivery and again at payment). Admin sees all; non-admins see only their own transactions.
+ */
+export const transactionGetSummary = (
+
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<TransactionSummaryDtoResponse>(
+      {url: `/api/Transaction/summary`, method: 'GET', signal
+    },
+      );
+    }
+
+
+
+
+export const getTransactionGetSummaryQueryKey = () => {
+    return [
+    `/api/Transaction/summary`
+    ] as const;
+    }
+
+
+export const getTransactionGetSummaryQueryOptions = <TData = Awaited<ReturnType<typeof transactionGetSummary>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetSummary>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTransactionGetSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof transactionGetSummary>>> = ({ signal }) => transactionGetSummary(signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof transactionGetSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type TransactionGetSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof transactionGetSummary>>>
+export type TransactionGetSummaryQueryError = unknown
+
+
+export function useTransactionGetSummary<TData = Awaited<ReturnType<typeof transactionGetSummary>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof transactionGetSummary>>,
+          TError,
+          Awaited<ReturnType<typeof transactionGetSummary>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTransactionGetSummary<TData = Awaited<ReturnType<typeof transactionGetSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof transactionGetSummary>>,
+          TError,
+          Awaited<ReturnType<typeof transactionGetSummary>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTransactionGetSummary<TData = Awaited<ReturnType<typeof transactionGetSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetSummary>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get aggregate Credit/Debit cash-flow totals (Expenses + Cash/Bank In & Out categories — excludes accrual Sales/Purchases postings, which would double-count the same amount at delivery and again at payment). Admin sees all; non-admins see only their own transactions.
+ */
+
+export function useTransactionGetSummary<TData = Awaited<ReturnType<typeof transactionGetSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transactionGetSummary>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTransactionGetSummaryQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

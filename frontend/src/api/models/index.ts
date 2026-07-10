@@ -168,6 +168,8 @@ export * from './transactionDtoPagedListResponse';
 export * from './transactionDtoResponse';
 export * from './transactionGetAllParams';
 export * from './transactionGetFilteredParams';
+export * from './transactionSummaryDto';
+export * from './transactionSummaryDtoResponse';
 export * from './transactionUpdateViewModel';
 export * from './unallocatedCreditDto';
 export * from './unallocatedCreditDtoResponse';
