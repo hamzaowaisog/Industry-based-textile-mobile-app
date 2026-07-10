@@ -88,6 +88,24 @@ export const AppConstants = {
     CREDIT: 3,
   },
 
+  // Transaction type IDs (matches backend seeded TransType table)
+  TRANS_TYPE: {
+    DEBIT: 1,
+    CREDIT: 2,
+  },
+
+  // Transaction category IDs (matches backend seeded TransCategory table)
+  TRANS_CATEGORY: {
+    SALES: 1,
+    PURCHASES: 2,
+    OFFICE_EXPENSES: 3,
+    HOME_EXPENSES: 4,
+    CASH_IN: 5,
+    CASH_OUT: 6,
+    BANK_IN: 7,
+    BANK_OUT: 8,
+  },
+
   // Order status IDs (matches backend seeded OrderStatus table)
   ORDER_STATUS: {
     PENDING: 1,
@@ -342,6 +360,7 @@ export const AppConstants = {
       EDIT_STOCK_MOVE: 'EditStockMove',
       // Ledger stack
       TRANSACTION_LIST: 'TransactionList',
+      TRANSACTION_DETAIL: 'TransactionDetail',
       // Report stack
       REPORTS_HUB: 'ReportsHub',
       PROFIT_LOSS: 'ProfitLoss',
@@ -384,6 +403,7 @@ export const AppConstants = {
       INVOICE_LIST: 'Invoice/pdf',
       EXPENSE_LIST: 'Expense/pdf',
       STOCK_MOVEMENT_LIST: 'StockMovements/pdf',
+      TRANSACTION_LIST: 'Transaction/pdf',
       clientDossier: (id: number) => `Client/${id}/pdf`,
       orderDossier: (id: number) => `Order/${id}/pdf`,
       productDossier: (id: number) => `Product/${id}/pdf`,
@@ -392,6 +412,7 @@ export const AppConstants = {
       invoiceDossier: (id: number) => `Invoice/${id}/pdf`,
       expenseDossier: (id: number) => `Expense/${id}/pdf`,
       stockMovementDossier: (id: number) => `StockMovements/${id}/pdf`,
+      transactionDossier: (id: number) => `Transaction/${id}/pdf`,
     },
     FILENAMES: {
       CLIENT_LIST: 'clients.pdf',
@@ -402,6 +423,7 @@ export const AppConstants = {
       INVOICE_LIST: 'invoices.pdf',
       EXPENSE_LIST: 'expenses.pdf',
       STOCK_MOVEMENT_LIST: 'stock-movements.pdf',
+      TRANSACTION_LIST: 'transactions.pdf',
       clientDossier: (id: number) => `client-${id}.pdf`,
       orderDossier: (id: number) => `order-${id}.pdf`,
       productDossier: (id: number) => `product-${id}.pdf`,
@@ -410,6 +432,7 @@ export const AppConstants = {
       invoiceDossier: (id: number) => `invoice-${id}.pdf`,
       expenseDossier: (id: number) => `expense-${id}.pdf`,
       stockMovementDossier: (id: number) => `stock-movement-${id}.pdf`,
+      transactionDossier: (id: number) => `transaction-${id}.pdf`,
     },
   },
 

@@ -23,8 +23,8 @@
   },
   "clients": {
     "title": "Clients",
-    "activeCount": "{{count}} active",
-    "noActive": "0 active",
+    "totalCount": "{{count}} clients",
+    "matchCount": "{{count}} matches",
     "searchPlaceholder": "Search clients",
     "filterAll": "All",
     "filterCustomers": "Customers",
@@ -997,6 +997,40 @@
     "deleteTitle": "Delete Stock Movement",
     "deleteMessage": "Permanently delete movement {{id}}? Product stock and averages will be recalculated. This cannot be undone.",
     "deleteSuccess": "Stock movement deleted"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "subtitle": "System ledger · read-only",
+    "searchPlaceholder": "Search by client or category…",
+    "netForPeriod": "Net for the period",
+    "filters": {
+      "credit": "Credit",
+      "debit": "Debit"
+    },
+    "categories": {
+      "sales": "Sales",
+      "purchases": "Purchases",
+      "officeExpenses": "Office Expenses",
+      "homeExpenses": "Home Expenses",
+      "cashIn": "Cash In",
+      "cashOut": "Cash Out",
+      "bankIn": "Bank In",
+      "bankOut": "Bank Out"
+    },
+    "empty": {
+      "title": "No transactions yet",
+      "subtitle": "Ledger entries are posted automatically from orders, purchases, payments, and expenses."
+    },
+    "detail": {
+      "reference": "HT-TXN-{{id}}",
+      "category": "Category",
+      "mode": "Mode",
+      "source": "Source",
+      "details": "Details",
+      "client": "Client",
+      "recordedBy": "Recorded by",
+      "notes": "Notes"
+    }
   },
   "reports": {
     "title": "Reports",

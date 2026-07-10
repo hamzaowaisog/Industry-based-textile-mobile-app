@@ -82,6 +82,7 @@ export type StockStackParamList = {
 
 export type LedgerStackParamList = {
   TransactionList: undefined;
+  TransactionDetail: { transactionId: number };
 };
 
 export type ReportStackParamList = {
@@ -235,4 +236,11 @@ export type StockMoveDetailScreenProps = NativeStackScreenProps<
 export type EditStockMoveScreenProps = NativeStackScreenProps<
   StockStackParamList,
   typeof SM.EDIT_STOCK_MOVE
+>;
+
+// ── Transaction screen props ────────────────────────────────────────────────
+
+export type TransactionDetailScreenProps = NativeStackScreenProps<
+  LedgerStackParamList,
+  typeof SM.TRANSACTION_DETAIL
 >;

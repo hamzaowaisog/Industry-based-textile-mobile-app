@@ -63,4 +63,10 @@ export const queryKeys = {
     detail: (id: number) => [...queryKeys.stockMovements.all, 'detail', id],
     summary: () => [...queryKeys.stockMovements.all, 'summary'],
   },
+  transactions: {
+    all: ['transactions'],
+    list: () => [...queryKeys.transactions.all, 'list'],
+    detail: (id: number) => [...queryKeys.transactions.all, 'detail', id],
+    summary: () => [...queryKeys.transactions.all, 'summary'],
+  },
 };

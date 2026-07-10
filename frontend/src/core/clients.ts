@@ -39,11 +39,11 @@ export const fetchClientsAsync = async (): Promise<ApiClientItem[]> => {
 export const fetchClientsPageAsync = async (
   page: number,
   pageSize: number,
-): Promise<{ items: ClientRow[]; hasNextPage: boolean }> => {
+): Promise<{ items: ClientRow[]; hasNextPage: boolean; totalCount: number }> => {
   try {
     const res = await clientGetAllClientsFiltered({ page, pageSize });
     const r = parseApiResponse<ClientDtoPagedList>(res, '');
-    if (!r.success || !r.data) return { items: [], hasNextPage: false };
+    if (!r.success || !r.data) return { items: [], hasNextPage: false, totalCount: 0 };
     const items = (r.data.items ?? []).map((item) =>
       mapApiClientToRow({
         id: item.id ?? 0,
@@ -54,9 +54,9 @@ export const fetchClientsPageAsync = async (
         openingBalance: item.openingBalance ?? null,
       }),
     );
-    return { items, hasNextPage: !!r.data.hasNextPage };
+    return { items, hasNextPage: !!r.data.hasNextPage, totalCount: r.data.totalCount ?? 0 };
   } catch {
-    return { items: [], hasNextPage: false };
+    return { items: [], hasNextPage: false, totalCount: 0 };
   }
 };
 

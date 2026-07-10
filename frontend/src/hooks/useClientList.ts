@@ -25,9 +25,9 @@ export const useClientList = () => {
 
   const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
     useInfiniteQuery<
-      { items: ClientRow[]; hasNextPage: boolean },
+      { items: ClientRow[]; hasNextPage: boolean; totalCount: number },
       Error,
-      InfiniteData<{ items: ClientRow[]; hasNextPage: boolean }>,
+      InfiniteData<{ items: ClientRow[]; hasNextPage: boolean; totalCount: number }>,
       string[],
       number
     >({
@@ -46,6 +46,7 @@ export const useClientList = () => {
   );
 
   const allClients = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
 
   const rows: ClientRow[] = useMemo(() => {
     const byType = allClients.filter((c) => {
@@ -97,6 +98,7 @@ export const useClientList = () => {
 
   return {
     rows,
+    totalCount,
     search,
     filter,
     loading: isFetching && !refreshing && !isFetchingNextPage,

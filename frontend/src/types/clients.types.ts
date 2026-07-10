@@ -106,6 +106,7 @@ export type ClientStore = {
 
 export type ClientListComponentProps = {
   clients: ClientRow[];
+  totalCount: number;
   filter: ClientFilter;
   search: string;
   loading: boolean;
