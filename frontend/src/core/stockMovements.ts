@@ -33,17 +33,18 @@ import type {
 export const fetchStockMovementsPageAsync = async (
   page: number,
   pageSize: number,
-): Promise<{ items: StockMoveRow[]; hasNextPage: boolean }> => {
+): Promise<{ items: StockMoveRow[]; hasNextPage: boolean; totalCount: number }> => {
   try {
     const res = await stockMovementsGetAllStockMovementsPaginated({ page, pageSize });
     const r = parseApiResponse<StockMovementsDtoPagedList>(res, '');
-    if (!r.success || !r.data) return { items: [], hasNextPage: false };
+    if (!r.success || !r.data) return { items: [], hasNextPage: false, totalCount: 0 };
     return {
       items: (r.data.items ?? []).map(mapApiStockMovementToRow),
       hasNextPage: !!r.data.hasNextPage,
+      totalCount: r.data.totalCount ?? 0,
     };
   } catch {
-    return { items: [], hasNextPage: false };
+    return { items: [], hasNextPage: false, totalCount: 0 };
   }
 };
 

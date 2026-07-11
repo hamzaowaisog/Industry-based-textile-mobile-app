@@ -423,7 +423,7 @@
   "orders": {
     "title": "Orders",
     "newOrder": "New Order",
-    "thisWeek": "{{count}} this week",
+    "totalCount": "{{count}} orders",
     "tabs": {
       "all": "All",
       "pending": "Pending",
@@ -566,7 +566,7 @@
   "purchases": {
     "title": "Purchases",
     "newPurchase": "New Purchase",
-    "thisMonth": "{{count}} this month",
+    "totalCount": "{{count}} purchases",
     "tabs": {
       "all": "All",
       "pending": "Pending",
@@ -712,7 +712,7 @@
     "amountHelperPaid": "Money going out of your account",
     "overpayHelperReceived": "{{allocated}} will be applied to this order. The remaining {{excess}} will be applied to this client's other outstanding orders, then held as unallocated credit.",
     "overpayHelperPaid": "{{allocated}} will be applied to this purchase. The remaining {{excess}} will be applied to this supplier's other outstanding purchases, then held as unallocated credit.",
-    "thisMonth": "{{count}} this month",
+    "totalCount": "{{count}} payments",
     "tabs": {
       "all": "All",
       "received": "Received",
@@ -776,7 +776,7 @@
     "createInvoice": "Create Invoice",
     "viewPdf": "View PDF",
     "share": "Share",
-    "thisMonth": "{{count}} this month",
+    "totalCount": "{{count}} invoices",
     "received": "Receivable",
     "paidOut": "Payable",
     "overdue": "Overdue",
@@ -874,7 +874,7 @@
     "recent": "Recent",
     "thisMonth": "This month",
     "summaryMeta": "{{entries}} entries · {{categories}} categories",
-    "entriesCount": "{{count}} this month",
+    "totalCount": "{{count}} expenses",
     "empty": {
       "title": "No expenses yet",
       "subtitle": "Add your first expense to start tracking spending."
@@ -926,6 +926,7 @@
   "stockMovements": {
     "title": "Stock Movements",
     "subtitle": "In, out, adjustments",
+    "totalCount": "{{count}} movements",
     "addStockMove": "Add Stock Move",
     "searchPlaceholder": "Search by product or source…",
     "stockIn": "Stock In",
@@ -1001,6 +1002,7 @@
   "transactions": {
     "title": "Transactions",
     "subtitle": "System ledger · read-only",
+    "totalCount": "{{count}} transactions",
     "searchPlaceholder": "Search by client or category…",
     "netForPeriod": "Net for the period",
     "filters": {

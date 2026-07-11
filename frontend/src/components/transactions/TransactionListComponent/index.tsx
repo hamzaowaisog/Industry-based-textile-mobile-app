@@ -54,6 +54,7 @@ const EmptyState = () => {
 
 export const TransactionListComponent = ({
   transactions,
+  totalCount,
   totalCredit,
   totalDebit,
   loading,
@@ -103,7 +104,9 @@ export const TransactionListComponent = ({
           />
         </View>
         <Text style={styles.headerTitle}>{t('transactions.title')}</Text>
-        <Text style={styles.headerSub}>{t('transactions.subtitle')}</Text>
+        <Text style={styles.headerSub}>
+          {totalCount > 0 ? t('transactions.totalCount', { count: totalCount }) : t('transactions.subtitle')}
+        </Text>
       </View>
 
       {!loading && (

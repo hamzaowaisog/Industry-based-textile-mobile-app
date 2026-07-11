@@ -27,9 +27,9 @@ export const usePurchaseList = () => {
 
   const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
     useInfiniteQuery<
-      { items: PurchaseRow[]; hasNextPage: boolean },
+      { items: PurchaseRow[]; hasNextPage: boolean; totalCount: number },
       Error,
-      InfiniteData<{ items: PurchaseRow[]; hasNextPage: boolean }>,
+      InfiniteData<{ items: PurchaseRow[]; hasNextPage: boolean; totalCount: number }>,
       string[],
       number
     >({
@@ -48,6 +48,7 @@ export const usePurchaseList = () => {
   );
 
   const allPurchases = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
 
   const filtered = useMemo(() => {
     let result = allPurchases;
@@ -92,7 +93,7 @@ export const usePurchaseList = () => {
 
   return {
     purchases: filtered,
-    totalCount: allPurchases.length,
+    totalCount,
     search,
     activeTab,
     loading: isFetching && !refreshing && !isFetchingNextPage,

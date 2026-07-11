@@ -94,7 +94,7 @@ export const PurchaseListComponent = ({
         <Text style={styles.headerTitle}>{t('purchases.title')}</Text>
         <Text style={styles.headerSub}>
           {totalCount > 0
-            ? t('purchases.thisMonth', { count: totalCount })
+            ? t('purchases.totalCount', { count: totalCount })
             : t('purchases.empty.title')}
         </Text>
       </View>

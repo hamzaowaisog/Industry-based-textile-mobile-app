@@ -44,6 +44,7 @@ export type TransactionRowCardProps = {
 
 export type TransactionListComponentProps = {
   transactions: TransactionRow[];
+  totalCount: number;
   totalCredit: number;
   totalDebit: number;
   loading: boolean;

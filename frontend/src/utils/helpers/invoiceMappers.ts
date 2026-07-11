@@ -1,8 +1,8 @@
-import type { InvoiceDetailDto, InvoiceDto } from '@api/models';
+import type { InvoiceDetailDto, InvoiceDto, InvoiceSummaryDto } from '@api/models';
 
 import { isInvoiceOverdue } from '@utils/helpers/invoiceContent';
 
-import type { InvoiceDetail, InvoiceRow } from '../../types/invoices.types';
+import type { InvoiceDetail, InvoiceRow, InvoiceSummary } from '../../types/invoices.types';
 
 export const mapApiInvoiceToRow = (i: InvoiceDto): InvoiceRow => ({
   id: i.id ?? 0,
@@ -21,6 +21,12 @@ export const mapApiInvoiceToRow = (i: InvoiceDto): InvoiceRow => ({
   outstanding: i.outstanding ?? 0,
   isOverdue: isInvoiceOverdue(i.invoiceStatusId ?? 0, i.dueDate ?? null, i.outstanding ?? 0),
   createdAt: i.createdAt ?? null,
+});
+
+export const mapApiInvoiceSummary = (s: InvoiceSummaryDto): InvoiceSummary => ({
+  totalReceivable: s.totalReceivable ?? 0,
+  totalPayable: s.totalPayable ?? 0,
+  totalCount: s.totalCount ?? 0,
 });
 
 export const mapApiInvoiceDetail = (i: InvoiceDetailDto): InvoiceDetail => ({

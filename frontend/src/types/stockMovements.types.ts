@@ -89,6 +89,7 @@ export type StockMoveRowCardProps = {
 
 export type StockMoveListComponentProps = {
   movements: StockMoveRow[];
+  totalCount: number;
   totalIn: number;
   totalOut: number;
   totalInUnitLabel: string;

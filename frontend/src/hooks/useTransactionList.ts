@@ -25,9 +25,9 @@ export const useTransactionList = () => {
 
   const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
     useInfiniteQuery<
-      { items: TransactionRow[]; hasNextPage: boolean },
+      { items: TransactionRow[]; hasNextPage: boolean; totalCount: number },
       Error,
-      InfiniteData<{ items: TransactionRow[]; hasNextPage: boolean }>,
+      InfiniteData<{ items: TransactionRow[]; hasNextPage: boolean; totalCount: number }>,
       string[],
       number
     >({
@@ -53,6 +53,7 @@ export const useTransactionList = () => {
   );
 
   const allTransactions = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
 
   const totalCredit = summary?.totalCredit ?? 0;
   const totalDebit = summary?.totalDebit ?? 0;
@@ -106,6 +107,7 @@ export const useTransactionList = () => {
 
   return {
     transactions: filtered,
+    totalCount,
     totalCredit,
     totalDebit,
     loading: isFetching && !refreshing && !isFetchingNextPage,

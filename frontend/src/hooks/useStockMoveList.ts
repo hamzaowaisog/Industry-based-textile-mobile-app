@@ -30,9 +30,9 @@ export const useStockMoveList = () => {
 
   const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
     useInfiniteQuery<
-      { items: StockMoveRow[]; hasNextPage: boolean },
+      { items: StockMoveRow[]; hasNextPage: boolean; totalCount: number },
       Error,
-      InfiniteData<{ items: StockMoveRow[]; hasNextPage: boolean }>,
+      InfiniteData<{ items: StockMoveRow[]; hasNextPage: boolean; totalCount: number }>,
       string[],
       number
     >({
@@ -58,6 +58,7 @@ export const useStockMoveList = () => {
   );
 
   const allMovements = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
 
   const totalIn = summary?.totalIn ?? 0;
   const totalOut = summary?.totalOut ?? 0;
@@ -116,6 +117,7 @@ export const useStockMoveList = () => {
 
   return {
     movements: filtered,
+    totalCount,
     totalIn,
     totalOut,
     totalInUnitLabel,

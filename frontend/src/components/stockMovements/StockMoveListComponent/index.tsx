@@ -61,6 +61,7 @@ const EmptyState = ({ onAddStockMove }: { onAddStockMove: () => void }) => {
 
 export const StockMoveListComponent = ({
   movements,
+  totalCount,
   totalIn,
   totalOut,
   totalInUnitLabel,
@@ -109,7 +110,9 @@ export const StockMoveListComponent = ({
           />
         </View>
         <Text style={styles.headerTitle}>{t('stockMovements.title')}</Text>
-        <Text style={styles.headerSub}>{t('stockMovements.subtitle')}</Text>
+        <Text style={styles.headerSub}>
+          {totalCount > 0 ? t('stockMovements.totalCount', { count: totalCount }) : t('stockMovements.subtitle')}
+        </Text>
       </View>
 
       {!loading && (

@@ -17,6 +17,12 @@ export type PaymentRow = {
 
 export type PaymentAllocation = PaymentAllocationDto;
 
+export type PaymentSummary = {
+  totalReceived: number;
+  totalPaid: number;
+  totalCount: number;
+};
+
 export type PaymentDetail = {
   id: number;
   partyClientId: number;

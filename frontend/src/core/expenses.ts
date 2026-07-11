@@ -33,17 +33,18 @@ import type {
 export const fetchExpensesPageAsync = async (
   page: number,
   pageSize: number,
-): Promise<{ items: ExpenseRow[]; hasNextPage: boolean }> => {
+): Promise<{ items: ExpenseRow[]; hasNextPage: boolean; totalCount: number }> => {
   try {
     const res = await expenseGetAll({ page, pageSize });
     const r = parseApiResponse<ExpenseDtoPagedList>(res, '');
-    if (!r.success || !r.data) return { items: [], hasNextPage: false };
+    if (!r.success || !r.data) return { items: [], hasNextPage: false, totalCount: 0 };
     return {
       items: (r.data.items ?? []).map(mapApiExpenseToRow),
       hasNextPage: !!r.data.hasNextPage,
+      totalCount: r.data.totalCount ?? 0,
     };
   } catch {
-    return { items: [], hasNextPage: false };
+    return { items: [], hasNextPage: false, totalCount: 0 };
   }
 };
 
