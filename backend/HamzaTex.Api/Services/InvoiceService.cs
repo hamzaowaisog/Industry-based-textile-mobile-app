@@ -15,6 +15,8 @@ public interface IInvoiceService
     Task<Response<InvoiceDetailDto>> GetByIdAsync(int id);
     /// <summary>Get all invoices paginated with rich data. Admin sees all; staff see invoices they created.</summary>
     Task<Response<PagedList<InvoiceDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
+    /// <summary>Get aggregate receivable/payable totals (excluding cancelled invoices) and total count across the full invoice set. Admin sees all; staff see invoices they created.</summary>
+    Task<Response<InvoiceSummaryDto>> GetSummaryAsync(int userId, bool isAdmin);
     /// <summary>Get all invoices for a client with aggregate stats.</summary>
     Task<Response<InvoiceByClientDto>> GetAllByClientIdAsync(int clientId);
     /// <summary>Filter invoices by statusId, clientId, dateFrom, dateTo.</summary>
@@ -291,6 +293,31 @@ public class InvoiceService : IInvoiceService
         var paged = await PagedList<Invoice>.CreateAsync(query, page, pageSize);
         var pagedList = new PagedList<InvoiceDto>(paged.Items.Select(i => ToDto(i)).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
         return Response<PagedList<InvoiceDto>>.SuccessResponse(pagedList, "Invoices fetched.");
+    }
+
+    public async Task<Response<InvoiceSummaryDto>> GetSummaryAsync(int userId, bool isAdmin)
+    {
+        var query = InvoiceQueryWithIncludes().AsQueryable();
+        if (!isAdmin)
+            query = query.Where(i => i.CreatedByUserId == userId);
+
+        var invoices = await query.ToListAsync();
+        var dtos = invoices.Select(i => ToDto(i)).ToList();
+
+        var totalReceivable = dtos
+            .Where(d => d.Direction == "Receivable" && d.InvoiceStatusId != StatusCancelled)
+            .Sum(d => d.Outstanding);
+        var totalPayable = dtos
+            .Where(d => d.Direction == "Payable" && d.InvoiceStatusId != StatusCancelled)
+            .Sum(d => d.Outstanding);
+
+        var summary = new InvoiceSummaryDto
+        {
+            TotalReceivable = totalReceivable,
+            TotalPayable = totalPayable,
+            TotalCount = dtos.Count,
+        };
+        return Response<InvoiceSummaryDto>.SuccessResponse(summary, "Invoice summary fetched.");
     }
 
     public async Task<Response<InvoiceByClientDto>> GetAllByClientIdAsync(int clientId)

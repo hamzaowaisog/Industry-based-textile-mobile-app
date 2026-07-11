@@ -2006,6 +2006,25 @@
         }
       }
     },
+    "/api/Invoice/summary": {
+      "get": {
+        "tags": ["Invoice"],
+        "summary": "Get aggregate receivable/payable totals (excluding cancelled invoices) and total count across the full invoice set, independent of pagination. Admin sees all; staff see invoices they created.",
+        "operationId": "invoice_getSummary",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceSummaryDtoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Invoice/{id}": {
       "get": {
         "tags": ["Invoice"],
@@ -3142,6 +3161,35 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PaymentDtoPagedListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Payment/summary": {
+      "get": {
+        "tags": ["Payment"],
+        "summary": "Get aggregate received/paid totals and total count across the full payment set (independent of pagination). Staff see only their own; Admin sees all.",
+        "operationId": "payment_getSummary",
+        "parameters": [
+          {
+            "name": "includeReversed",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentSummaryDtoResponse"
                 }
               }
             }
@@ -7736,6 +7784,49 @@
         },
         "additionalProperties": false
       },
+      "InvoiceSummaryDto": {
+        "type": "object",
+        "properties": {
+          "totalReceivable": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalPayable": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Aggregate receivable/payable totals and total count across the full (non-paginated) invoice set, excluding cancelled invoices from the amount totals."
+      },
+      "InvoiceSummaryDtoResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/InvoiceSummaryDto"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "InvoiceTransactionSummary": {
         "type": "object",
         "properties": {
@@ -8776,6 +8867,49 @@
           },
           "data": {
             "$ref": "#/components/schemas/PaymentDto"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PaymentSummaryDto": {
+        "type": "object",
+        "properties": {
+          "totalReceived": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalPaid": {
+            "type": "number",
+            "format": "double",
+            "example": 1
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PaymentSummaryDtoResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaymentSummaryDto"
           },
           "errors": {
             "type": "array",
