@@ -5,12 +5,14 @@ import type {
   ClientPaymentSummary,
   ClientPurchaseSummary,
   CreditDebitViewModel,
+  MonthlyBalancePoint,
   ProfitLossViewModel,
   SummaryTotalsViewModel,
 } from '@api/models';
 
 import type { SelectItem } from '../../types/common.types';
 import type {
+  BalanceHistoryPoint,
   ClientBalanceRow,
   ClientDetailReportData,
   ClientOrderRow,
@@ -71,6 +73,16 @@ export const mapApiSummaryTotals = (v: SummaryTotalsViewModel): SummaryTotals =>
   totalOrderCount: v.totalOrderCount ?? 0,
   totalPurchaseCount: v.totalPurchaseCount ?? 0,
   totalClientsCount: v.totalClientsCount ?? 0,
+  salesGrowthPercent: v.salesGrowthPercent ?? null,
+  avgOrderValue: v.avgOrderValue ?? 0,
+  activeClientsCount: v.activeClientsCount ?? 0,
+  activeClientsChange: v.activeClientsChange ?? 0,
+  overdueInvoicesCount: v.overdueInvoicesCount ?? 0,
+});
+
+const mapApiBalanceHistoryPoint = (v: MonthlyBalancePoint): BalanceHistoryPoint => ({
+  month: v.month ?? '',
+  balance: v.balance ?? 0,
 });
 
 const mapApiClientOrderRow = (v: ClientOrderSummary): ClientOrderRow => ({
@@ -117,6 +129,7 @@ export const mapApiClientDetail = (v: ClientDetailViewModel): ClientDetailReport
   orders: (v.orders ?? []).map(mapApiClientOrderRow),
   purchases: (v.purchases ?? []).map(mapApiClientPurchaseRow),
   payments: (v.payments ?? []).map(mapApiClientPaymentRow),
+  balanceHistory: (v.balanceHistory ?? []).map(mapApiBalanceHistoryPoint),
 });
 
 export const mapClientDetailListToSelectItems = (list: ClientDetailViewModel[]): SelectItem[] =>

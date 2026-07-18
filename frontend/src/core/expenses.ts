@@ -60,6 +60,17 @@ export const fetchExpenseMonthSummaryAsync = async (): Promise<ExpenseMonthSumma
   }
 };
 
+export const fetchExpenseCategoryBreakdownAsync = async (): Promise<ExpenseMonthSummary | null> => {
+  try {
+    const res = await expenseGetFiltered({});
+    const r = parseApiResponse<ExpenseDto[]>(res, '');
+    if (!r.success || !r.data) return null;
+    return buildExpenseMonthSummary(r.data.map(mapApiExpenseToRow));
+  } catch {
+    return null;
+  }
+};
+
 export const fetchExpenseDetailAsync = async (expenseId: number): Promise<ExpenseDetail | null> => {
   try {
     const res = await expenseGetById(expenseId);

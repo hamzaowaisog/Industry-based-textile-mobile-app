@@ -377,6 +377,7 @@ export const AppConstants = {
       CLIENT_DETAIL_REPORT: 'ClientDetailReport',
       // User stack
       USER_LIST: 'UserList',
+      USER_DETAIL: 'UserDetail',
       CREATE_USER: 'CreateUser',
     },
   } as const,
@@ -411,6 +412,7 @@ export const AppConstants = {
       EXPENSE_LIST: 'Expense/pdf',
       STOCK_MOVEMENT_LIST: 'StockMovements/pdf',
       TRANSACTION_LIST: 'Transaction/pdf',
+      USER_LIST: 'Users/pdf',
       clientDossier: (id: number) => `Client/${id}/pdf`,
       orderDossier: (id: number) => `Order/${id}/pdf`,
       productDossier: (id: number) => `Product/${id}/pdf`,
@@ -439,6 +441,7 @@ export const AppConstants = {
       EXPENSE_LIST: 'expenses.pdf',
       STOCK_MOVEMENT_LIST: 'stock-movements.pdf',
       TRANSACTION_LIST: 'transactions.pdf',
+      USER_LIST: 'users.pdf',
       clientDossier: (id: number) => `client-${id}.pdf`,
       orderDossier: (id: number) => `order-${id}.pdf`,
       productDossier: (id: number) => `product-${id}.pdf`,

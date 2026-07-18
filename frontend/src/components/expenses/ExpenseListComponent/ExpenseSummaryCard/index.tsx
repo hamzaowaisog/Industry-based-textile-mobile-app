@@ -5,6 +5,7 @@ import { Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { AppCard } from '@components/common/AppCard';
+import { AppDonutChart } from '@components/common/AppDonutChart';
 
 import { formatAmount, formatPKR } from '@utils/helpers/formatCurrency';
 import { getExpenseCategoryColor } from '@utils/helpers/expenseContent';
@@ -12,7 +13,6 @@ import { getExpenseCategoryColor } from '@utils/helpers/expenseContent';
 import { AppConstants } from '@constants/appConstants';
 
 import type { ExpenseSummaryCardProps } from '../../../../types/expenses.types';
-import { ExpenseDonut } from '../ExpenseDonut';
 import { styles } from './styles';
 
 export const ExpenseSummaryCard = ({ summary, loading }: ExpenseSummaryCardProps) => {
@@ -29,7 +29,7 @@ export const ExpenseSummaryCard = ({ summary, loading }: ExpenseSummaryCardProps
     <View style={styles.wrap}>
       <AppCard padding={18}>
         <View style={styles.topRow}>
-          <ExpenseDonut slices={slices} size={AppConstants.DONUT.SIZE} />
+          <AppDonutChart slices={slices} size={AppConstants.DONUT.SIZE} />
           <View style={styles.info}>
             <Text style={styles.label}>{t('expenses.thisMonth').toUpperCase()}</Text>
             <Text style={styles.total}>{formatPKR(summary.total)}</Text>

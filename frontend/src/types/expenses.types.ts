@@ -72,16 +72,6 @@ export type ExpenseStore = {
   prepareDetailLoad: () => void;
 };
 
-export type ExpenseDonutSlice = {
-  value: number;
-  color: string;
-};
-
-export type ExpenseDonutProps = {
-  slices: ExpenseDonutSlice[];
-  size: number;
-};
-
 export type ExpenseSummaryCardProps = {
   summary: ExpenseMonthSummary | null;
   loading: boolean;

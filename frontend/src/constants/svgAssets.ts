@@ -49,3 +49,5 @@ export { ArrowUpIcon } from '../../assets/svg/icons/ArrowUpIcon';
 export { PdfIcon } from '../../assets/svg/icons/PdfIcon';
 export { ShareIcon } from '../../assets/svg/icons/ShareIcon';
 export { CalendarIcon } from '../../assets/svg/icons/CalendarIcon';
+export { StarIcon } from '../../assets/svg/icons/StarIcon';
+export { InfoIcon } from '../../assets/svg/icons/InfoIcon';

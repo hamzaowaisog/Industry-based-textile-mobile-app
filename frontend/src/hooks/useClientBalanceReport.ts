@@ -34,18 +34,32 @@ export const useClientBalanceReport = () => {
 
   const allRows = data ?? [];
 
+  const customerRows = useMemo(
+    () => allRows.filter((r) => r.clientTypeName === CLIENT_TYPE_CUSTOMER),
+    [allRows],
+  );
+  const supplierRows = useMemo(
+    () => allRows.filter((r) => r.clientTypeName !== CLIENT_TYPE_CUSTOMER),
+    [allRows],
+  );
+
+  const totalCustomerBalance = useMemo(
+    () => customerRows.reduce((s, r) => s + r.balance, 0),
+    [customerRows],
+  );
+  const totalSupplierBalance = useMemo(
+    () => supplierRows.reduce((s, r) => s + r.balance, 0),
+    [supplierRows],
+  );
+
   const rows = useMemo(() => {
-    let result = allRows.filter((r) =>
-      tab === 'customers'
-        ? r.clientTypeName === CLIENT_TYPE_CUSTOMER
-        : r.clientTypeName !== CLIENT_TYPE_CUSTOMER,
-    );
+    let result = tab === 'customers' ? customerRows : supplierRows;
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       result = result.filter((r) => r.name.toLowerCase().includes(q));
     }
     return result.sort((a, b) => b.balance - a.balance);
-  }, [allRows, tab, search]);
+  }, [customerRows, supplierRows, tab, search]);
 
   const onBack = useCallback(() => navigation.goBack(), [navigation]);
 
@@ -65,6 +79,10 @@ export const useClientBalanceReport = () => {
 
   return {
     rows,
+    totalCustomerBalance,
+    totalSupplierBalance,
+    customerCount: customerRows.length,
+    supplierCount: supplierRows.length,
     loading: isFetching,
     tab,
     onTabChange: setTab,

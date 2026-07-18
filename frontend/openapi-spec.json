@@ -6280,6 +6280,13 @@
               "$ref": "#/components/schemas/ClientTransactionSummary"
             },
             "nullable": true
+          },
+          "balanceHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonthlyBalancePoint"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -8095,6 +8102,21 @@
               "type": "string"
             },
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MonthlyBalancePoint": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -10277,6 +10299,27 @@
             "format": "int32"
           },
           "totalClientsCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "salesGrowthPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "avgOrderValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "activeClientsCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeClientsChange": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "overdueInvoicesCount": {
             "type": "integer",
             "format": "int32"
           }

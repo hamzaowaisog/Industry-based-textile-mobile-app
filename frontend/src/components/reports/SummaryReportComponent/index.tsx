@@ -18,11 +18,15 @@ import { colors } from '@theme/colors';
 import { ReceiptIcon, TrendIcon, TruckIcon, UsersIcon } from '@constants/svgAssets';
 
 import type { SummaryReportComponentProps } from '../../../types/reports.types';
+import { ExpenseBreakdownCard } from './ExpenseBreakdownCard';
 import { Skeleton } from './Skeleton';
 import { styles } from './styles';
+import { TrendsList } from './TrendsList';
 
 export const SummaryReportComponent = ({
   totals,
+  expenseCategories,
+  trends,
   loading,
   onBack,
   onPdfPress,
@@ -119,6 +123,10 @@ export const SummaryReportComponent = ({
                 </View>
               </AppCard>
             </View>
+
+            <ExpenseBreakdownCard categories={expenseCategories} />
+
+            <TrendsList trends={trends} />
           </>
         )}
       </ScrollView>

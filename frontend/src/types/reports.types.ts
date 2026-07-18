@@ -1,3 +1,4 @@
+import type { ExpenseCategorySlice } from './expenses.types';
 import type { SelectItem } from './common.types';
 
 // ── Domain rows ──────────────────────────────────────────────────────────────
@@ -46,6 +47,23 @@ export type SummaryTotals = {
   totalOrderCount: number;
   totalPurchaseCount: number;
   totalClientsCount: number;
+  salesGrowthPercent: number | null;
+  avgOrderValue: number;
+  activeClientsCount: number;
+  activeClientsChange: number;
+  overdueInvoicesCount: number;
+};
+
+export type SummaryTrendRow = {
+  key: string;
+  labelKey: string;
+  value: string;
+  positive: boolean;
+};
+
+export type BalanceHistoryPoint = {
+  month: string;
+  balance: number;
 };
 
 export type ClientOrderRow = {
@@ -92,6 +110,7 @@ export type ClientDetailReportData = {
   orders: ClientOrderRow[];
   purchases: ClientPurchaseRow[];
   payments: ClientPaymentRow[];
+  balanceHistory: BalanceHistoryPoint[];
 };
 
 // ── UI state ─────────────────────────────────────────────────────────────────
@@ -149,6 +168,10 @@ export type ProfitLossComponentProps = {
 
 export type ClientBalanceComponentProps = {
   rows: ClientBalanceRow[];
+  totalCustomerBalance: number;
+  totalSupplierBalance: number;
+  customerCount: number;
+  supplierCount: number;
   loading: boolean;
   tab: ClientBalanceTab;
   onTabChange: (tab: ClientBalanceTab) => void;
@@ -179,10 +202,20 @@ export type CreditDebitComponentProps = {
 
 export type SummaryReportComponentProps = {
   totals: SummaryTotals | null;
+  expenseCategories: ExpenseCategorySlice[];
+  trends: SummaryTrendRow[];
   loading: boolean;
   onBack: () => void;
   onPdfPress: () => void;
   isPdfDownloading: boolean;
+};
+
+export type ExpenseBreakdownCardProps = {
+  categories: ExpenseCategorySlice[];
+};
+
+export type TrendsListProps = {
+  trends: SummaryTrendRow[];
 };
 
 export type TopBalanceBarsProps = {
@@ -198,6 +231,10 @@ export type ClientBalanceRowCardProps = {
 export type ClientDetailTabContentProps = {
   tab: ClientDetailTab;
   detail: ClientDetailReportData;
+};
+
+export type BalanceTrendChartProps = {
+  points: BalanceHistoryPoint[];
 };
 
 export type ClientDetailReportComponentProps = {

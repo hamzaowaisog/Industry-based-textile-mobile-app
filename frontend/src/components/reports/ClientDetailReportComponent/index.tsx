@@ -22,6 +22,7 @@ import { colors } from '@theme/colors';
 import { CreditCardIcon, ShoppingBagIcon, TruckIcon, UsersIcon } from '@constants/svgAssets';
 
 import type { ClientDetailReportComponentProps } from '../../../types/reports.types';
+import { BalanceTrendChart } from './BalanceTrendChart';
 import { ClientDetailTabContent } from './ClientDetailTabContent';
 import { Skeleton } from './Skeleton';
 import { styles } from './styles';
@@ -103,6 +104,8 @@ export const ClientDetailReportComponent = ({
                 </Text>
               </AppCard>
             </View>
+
+            <BalanceTrendChart points={detail.balanceHistory} />
 
             <View style={styles.statsGrid}>
               <AppStatCard

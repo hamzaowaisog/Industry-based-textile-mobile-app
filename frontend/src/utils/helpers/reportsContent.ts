@@ -10,7 +10,8 @@ import {
   UsersIcon,
 } from '../../constants/svgAssets';
 import type { IconProps } from '../../types/icon.types';
-import type { ClientDetailTab, ReportKey } from '../../types/reports.types';
+import type { ClientDetailTab, ReportKey, SummaryTotals, SummaryTrendRow } from '../../types/reports.types';
+import { formatPKR } from './formatCurrency';
 
 export type ReportCardConfig = {
   key: ReportKey;
@@ -63,3 +64,37 @@ export const CLIENT_DETAIL_TABS: { id: ClientDetailTab; labelKey: string }[] = [
   { id: 'purchases', labelKey: 'reports.clientDetail.tabs.purchases' },
   { id: 'payments', labelKey: 'reports.clientDetail.tabs.payments' },
 ];
+
+export const buildSummaryTrends = (totals: SummaryTotals): SummaryTrendRow[] => {
+  const growth = totals.salesGrowthPercent;
+  const growthValue = growth === null ? '—' : `${growth >= 0 ? '+' : ''}${growth}%`;
+  const clientsChange = totals.activeClientsChange;
+  const clientsValue = `${clientsChange >= 0 ? '+' : ''}${clientsChange}`;
+
+  return [
+    {
+      key: 'salesGrowth',
+      labelKey: 'reports.summary.trends.salesGrowth',
+      value: growthValue,
+      positive: growth === null ? true : growth >= 0,
+    },
+    {
+      key: 'avgOrderValue',
+      labelKey: 'reports.summary.trends.avgOrderValue',
+      value: formatPKR(totals.avgOrderValue),
+      positive: true,
+    },
+    {
+      key: 'activeClients',
+      labelKey: 'reports.summary.trends.activeClients',
+      value: clientsValue,
+      positive: clientsChange >= 0,
+    },
+    {
+      key: 'overdueInvoices',
+      labelKey: 'reports.summary.trends.overdueInvoices',
+      value: String(totals.overdueInvoicesCount),
+      positive: totals.overdueInvoicesCount === 0,
+    },
+  ];
+};

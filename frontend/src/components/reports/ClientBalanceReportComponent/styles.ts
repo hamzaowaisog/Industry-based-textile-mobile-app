@@ -6,7 +6,13 @@ import { typography } from '@theme/typography';
 export const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
 
-  summaryWrap: { paddingHorizontal: 24, paddingBottom: 12 },
+  summaryWrap: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingBottom: 12,
+    gap: 10,
+  },
+  summaryCard: { flex: 1 },
   summaryLabel: {
     fontFamily: typography.fontFamily.semibold,
     fontSize: 13,

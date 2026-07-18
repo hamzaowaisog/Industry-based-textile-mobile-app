@@ -96,6 +96,7 @@ export type ReportStackParamList = {
 
 export type UserStackParamList = {
   UserList: undefined;
+  UserDetail: { userId: number };
   CreateUser: undefined;
 };
 
@@ -250,4 +251,11 @@ export type TransactionDetailScreenProps = NativeStackScreenProps<
 export type ClientDetailReportScreenProps = NativeStackScreenProps<
   ReportStackParamList,
   typeof SM.CLIENT_DETAIL_REPORT
+>;
+
+// ── User screen props ───────────────────────────────────────────────────────
+
+export type UserDetailScreenProps = NativeStackScreenProps<
+  UserStackParamList,
+  typeof SM.USER_DETAIL
 >;

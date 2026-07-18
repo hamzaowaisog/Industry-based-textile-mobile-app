@@ -210,6 +210,16 @@ export type InputFieldProps = {
   onFocus?: () => void;
 };
 
+export type AppDonutSlice = {
+  value: number;
+  color: string;
+};
+
+export type AppDonutChartProps = {
+  slices: AppDonutSlice[];
+  size: number;
+};
+
 export type AppDatePickerProps = {
   label?: string;
   required?: boolean;

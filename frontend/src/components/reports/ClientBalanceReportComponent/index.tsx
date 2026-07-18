@@ -31,6 +31,10 @@ const TABS: { id: ClientBalanceTab; labelKey: string }[] = [
 
 export const ClientBalanceReportComponent = ({
   rows,
+  totalCustomerBalance,
+  totalSupplierBalance,
+  customerCount,
+  supplierCount,
   loading,
   tab,
   onTabChange,
@@ -42,8 +46,6 @@ export const ClientBalanceReportComponent = ({
   isPdfDownloading,
 }: ClientBalanceComponentProps) => {
   const { t } = useTranslation();
-  const total = rows.reduce((s, r) => s + r.balance, 0);
-  const tone = tab === 'customers' ? 'credit' : 'debit';
   const chartColor = tab === 'customers' ? colors.success : colors.warning;
 
   const renderItem = useCallback(
@@ -65,17 +67,24 @@ export const ClientBalanceReportComponent = ({
       />
 
       <View style={styles.summaryWrap}>
-        <AppCard padding={14}>
-          <Text style={styles.summaryLabel}>
-            {tab === 'customers'
-              ? t('reports.clientBalance.customersOweYou')
-              : t('reports.clientBalance.youOweSuppliers')}
-          </Text>
-          <AppAmount value={total} tone={tone} size={22} />
-          <Text style={styles.summarySub}>
-            {t('reports.clientBalance.clientCount', { count: rows.length })}
-          </Text>
-        </AppCard>
+        <View style={styles.summaryCard}>
+          <AppCard padding={14} tone="successLight">
+            <Text style={styles.summaryLabel}>{t('reports.clientBalance.customersOweYou')}</Text>
+            <AppAmount value={totalCustomerBalance} tone="credit" size={20} />
+            <Text style={styles.summarySub}>
+              {t('reports.clientBalance.clientCount', { count: customerCount })}
+            </Text>
+          </AppCard>
+        </View>
+        <View style={styles.summaryCard}>
+          <AppCard padding={14} tone="warningLight">
+            <Text style={styles.summaryLabel}>{t('reports.clientBalance.youOweSuppliers')}</Text>
+            <AppAmount value={totalSupplierBalance} tone="debit" size={20} />
+            <Text style={styles.summarySub}>
+              {t('reports.clientBalance.supplierCount', { count: supplierCount })}
+            </Text>
+          </AppCard>
+        </View>
       </View>
 
       <View style={styles.tabsWrap}>

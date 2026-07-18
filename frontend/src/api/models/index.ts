@@ -79,6 +79,7 @@ export * from './lookupDto';
 export * from './lookupDtoListResponse';
 export * from './lookupsAllDto';
 export * from './lookupsAllDtoResponse';
+export * from './monthlyBalancePoint';
 export * from './monthlyOverviewDto';
 export * from './monthlyOverviewDtoResponse';
 export * from './monthlyOverviewItemDto';

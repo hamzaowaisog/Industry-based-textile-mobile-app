@@ -87,7 +87,13 @@ export const queryKeys = {
       month ?? null,
     ],
     summary: () => [...queryKeys.reports.all, 'summary'],
+    summaryExpenseBreakdown: () => [...queryKeys.reports.all, 'summaryExpenseBreakdown'],
     clientDetails: () => [...queryKeys.reports.all, 'clientDetails'],
     clientDetail: (id: number) => [...queryKeys.reports.all, 'clientDetail', id],
+  },
+  users: {
+    all: ['users'],
+    list: () => [...queryKeys.users.all, 'list'],
+    detail: (id: number) => [...queryKeys.users.all, 'detail', id],
   },
 };
