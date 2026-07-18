@@ -71,4 +71,23 @@ export const queryKeys = {
     detail: (id: number) => [...queryKeys.transactions.all, 'detail', id],
     summary: () => [...queryKeys.transactions.all, 'summary'],
   },
+  reports: {
+    all: ['reports'],
+    profitLoss: (year?: number, month?: number) => [
+      ...queryKeys.reports.all,
+      'profitLoss',
+      year ?? null,
+      month ?? null,
+    ],
+    clientBalances: () => [...queryKeys.reports.all, 'clientBalances'],
+    creditDebit: (year?: number, month?: number) => [
+      ...queryKeys.reports.all,
+      'creditDebit',
+      year ?? null,
+      month ?? null,
+    ],
+    summary: () => [...queryKeys.reports.all, 'summary'],
+    clientDetails: () => [...queryKeys.reports.all, 'clientDetails'],
+    clientDetail: (id: number) => [...queryKeys.reports.all, 'clientDetail', id],
+  },
 };

@@ -145,6 +145,10 @@ export const AppConstants = {
     DEFAULT_PAGE_SIZE: 20,
   },
 
+  REPORTS: {
+    FILTER_YEARS_COUNT: 6,
+  },
+
   // Currency display
   CURRENCY: {
     PREFIX: 'Rs ',
@@ -252,6 +256,9 @@ export const AppConstants = {
     ORDER_STAT_CARDS: 3,
     ORDER_PROGRESS_NODES: 3,
     ORDER_LINE_ITEMS: 3,
+    REPORT_STAT_CARDS: 4,
+    REPORT_TABLE_ROWS: 5,
+    REPORT_BALANCE_ROWS: 5,
   },
 
   // Client detail tab content layout
@@ -365,9 +372,9 @@ export const AppConstants = {
       REPORTS_HUB: 'ReportsHub',
       PROFIT_LOSS: 'ProfitLoss',
       CLIENT_BALANCE: 'ClientBalance',
-      CLIENT_BALANCE_DETAIL: 'ClientBalanceDetail',
       CREDIT_DEBIT: 'CreditDebit',
       SUMMARY_REPORT: 'SummaryReport',
+      CLIENT_DETAIL_REPORT: 'ClientDetailReport',
       // User stack
       USER_LIST: 'UserList',
       CREATE_USER: 'CreateUser',
@@ -413,6 +420,14 @@ export const AppConstants = {
       expenseDossier: (id: number) => `Expense/${id}/pdf`,
       stockMovementDossier: (id: number) => `StockMovements/${id}/pdf`,
       transactionDossier: (id: number) => `Transaction/${id}/pdf`,
+      CLIENT_BALANCE_LIST: 'Report/client-balance/pdf',
+      SUMMARY_REPORT: 'Report/summary/pdf',
+      CLIENT_DETAIL_LIST: 'Report/client-detail/pdf',
+      profitLoss: (year?: number, month?: number) =>
+        `Report/profit-loss/pdf${year ? `?year=${year}${month ? `&month=${month}` : ''}` : ''}`,
+      creditDebit: (year?: number, month?: number) =>
+        `Report/credit-debit/pdf${year ? `?year=${year}${month ? `&month=${month}` : ''}` : ''}`,
+      clientDetailReportDossier: (id: number) => `Report/client-detail/${id}/pdf`,
     },
     FILENAMES: {
       CLIENT_LIST: 'clients.pdf',
@@ -433,6 +448,14 @@ export const AppConstants = {
       expenseDossier: (id: number) => `expense-${id}.pdf`,
       stockMovementDossier: (id: number) => `stock-movement-${id}.pdf`,
       transactionDossier: (id: number) => `transaction-${id}.pdf`,
+      CLIENT_BALANCE_LIST: 'client-balances.pdf',
+      SUMMARY_REPORT: 'business-summary.pdf',
+      CLIENT_DETAIL_LIST: 'client-detail.pdf',
+      profitLoss: (year?: number, month?: number) =>
+        year ? `profit-loss-${month ? `${month}-` : ''}${year}.pdf` : 'profit-loss.pdf',
+      creditDebit: (year?: number, month?: number) =>
+        year ? `credit-debit-${month ? `${month}-` : ''}${year}.pdf` : 'credit-debit.pdf',
+      clientDetailReportDossier: (id: number) => `client-detail-${id}.pdf`,
     },
   },
 

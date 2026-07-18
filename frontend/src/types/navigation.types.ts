@@ -89,9 +89,9 @@ export type ReportStackParamList = {
   ReportsHub: undefined;
   ProfitLoss: undefined;
   ClientBalance: undefined;
-  ClientBalanceDetail: { clientId: number };
   CreditDebit: undefined;
   SummaryReport: undefined;
+  ClientDetailReport: { clientId?: number } | undefined;
 };
 
 export type UserStackParamList = {
@@ -243,4 +243,11 @@ export type EditStockMoveScreenProps = NativeStackScreenProps<
 export type TransactionDetailScreenProps = NativeStackScreenProps<
   LedgerStackParamList,
   typeof SM.TRANSACTION_DETAIL
+>;
+
+// ── Report screen props ─────────────────────────────────────────────────────
+
+export type ClientDetailReportScreenProps = NativeStackScreenProps<
+  ReportStackParamList,
+  typeof SM.CLIENT_DETAIL_REPORT
 >;

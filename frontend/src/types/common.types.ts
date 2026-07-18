@@ -155,6 +155,7 @@ export type AppStatCardProps = {
   value: string;
   sub?: string;
   trend?: number;
+  style?: import('react-native').StyleProp<import('react-native').ViewStyle>;
 };
 
 export type AppBottomBarProps = {
