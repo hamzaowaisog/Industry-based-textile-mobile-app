@@ -23,6 +23,7 @@ const DRAWER_STACK_LIST_SCREEN: Partial<Record<string, string>> = {
   [S.LEDGER_STACK]: S.TRANSACTION_LIST,
   [S.REPORTS_STACK]: S.REPORTS_HUB,
   [S.USERS_STACK]: S.USER_LIST,
+  [S.SETTINGS_STACK]: S.SETTINGS,
 };
 
 export const DrawerContent = ({ state, navigation }: DrawerContentComponentProps) => {
@@ -40,7 +41,7 @@ export const DrawerContent = ({ state, navigation }: DrawerContentComponentProps
     }
   };
   const handleSettings = () => {
-    navigation.navigate(AppConstants.SCREENS.MAIN.SETTINGS);
+    handleNav(AppConstants.SCREENS.MAIN.SETTINGS_STACK);
   };
   const handleSignOut = async () => {
     navigation.closeDrawer();

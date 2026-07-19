@@ -27,17 +27,18 @@ import type {
 export const fetchOrdersPageAsync = async (
   page: number,
   pageSize: number,
-): Promise<{ items: OrderRow[]; hasNextPage: boolean }> => {
+): Promise<{ items: OrderRow[]; hasNextPage: boolean; totalCount: number }> => {
   try {
-     const res = await orderGetAllOrdersPaginated({ page, pageSize });
+    const res = await orderGetAllOrdersPaginated({ page, pageSize });
     const r = parseApiResponse<OrderDtoPagedList>(res, '');
-    if (!r.success || !r.data) return { items: [], hasNextPage: false };
+    if (!r.success || !r.data) return { items: [], hasNextPage: false, totalCount: 0 };
     return {
       items: (r.data.items ?? []).map(mapApiOrderToRow),
       hasNextPage: !!r.data.hasNextPage,
+      totalCount: r.data.totalCount ?? 0,
     };
   } catch {
-    return { items: [], hasNextPage: false };
+    return { items: [], hasNextPage: false, totalCount: 0 };
   }
 };
 

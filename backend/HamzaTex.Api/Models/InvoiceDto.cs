@@ -48,6 +48,14 @@ public class InvoiceTransactionSummary
     public decimal Amount { get; set; }
 }
 
+/// <summary>Aggregate receivable/payable totals and total count across the full (non-paginated) invoice set, excluding cancelled invoices from the amount totals.</summary>
+public class InvoiceSummaryDto
+{
+    public decimal TotalReceivable { get; set; }
+    public decimal TotalPayable { get; set; }
+    public int TotalCount { get; set; }
+}
+
 /// <summary>Client invoice summary: aggregate stats + per-invoice list.</summary>
 public class InvoiceByClientDto
 {

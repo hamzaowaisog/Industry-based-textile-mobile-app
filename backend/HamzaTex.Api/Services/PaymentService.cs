@@ -18,6 +18,8 @@ public interface IPaymentService
     Task<Response<PaymentDto>> GetByIdAsync(int id);
     /// <summary>Get all payments paginated. Admin sees all; non-admins see only their own payments.</summary>
     Task<Response<PagedList<PaymentDto>>> GetAllPaginatedAsync(int page, int pageSize, bool includeReversed, int userId, bool isAdmin);
+    /// <summary>Get aggregate received/paid totals and total count across the full (non-paginated) payment set, excluding reversed payments. Admin sees all; non-admins see only their own payments.</summary>
+    Task<Response<PaymentSummaryDto>> GetSummaryAsync(bool includeReversed, int userId, bool isAdmin);
     /// <summary>Get all payments for a specific client.</summary>
     Task<Response<List<PaymentDto>>> GetAllByClientIdAsync(int clientId);
     /// <summary>Filter payments by clientId, directionId, modeId, date range, and reversed flag. Admin sees all matches; non-admins see only their own.</summary>
@@ -285,6 +287,24 @@ public class PaymentService : IPaymentService
             query.Select(p => MapToDto(p)), page, pageSize);
 
         return Response<PagedList<PaymentDto>>.SuccessResponse(paged, "Payments retrieved.");
+    }
+
+    public async Task<Response<PaymentSummaryDto>> GetSummaryAsync(bool includeReversed, int userId, bool isAdmin)
+    {
+        var query = _db.Payments.AsNoTracking().Where(p => !p.IsReversed).AsQueryable();
+
+        if (!isAdmin)
+            query = query.Where(p => p.UserId == userId);
+
+        if (!includeReversed)
+            query = query.Where(p => p.OriginalPaymentId == null);
+
+        var totalReceived = await query.Where(p => p.PaymentDirectionId == DirectionReceived).SumAsync(p => p.Amount);
+        var totalPaid = await query.Where(p => p.PaymentDirectionId == DirectionPaid).SumAsync(p => p.Amount);
+        var totalCount = await query.CountAsync();
+
+        var summary = new PaymentSummaryDto { TotalReceived = totalReceived, TotalPaid = totalPaid, TotalCount = totalCount };
+        return Response<PaymentSummaryDto>.SuccessResponse(summary, "Payment summary fetched.");
     }
 
     public async Task<Response<List<PaymentDto>>> GetAllByClientIdAsync(int clientId)

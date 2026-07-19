@@ -60,6 +60,7 @@ export const mapApiClientDetail = (d: ClientDetailViewModel): ClientDetail => ({
   creditLimit: d.creditLimit ?? null,
   openingBalance: d.openingBalance ?? null,
   notes: d.notes ?? null,
+  isActive: d.isActive ?? false,
   orders: d.orders ?? [],
   purchases: d.purchases ?? [],
   payments: d.payments ?? [],

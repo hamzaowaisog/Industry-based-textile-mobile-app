@@ -8,12 +8,12 @@ import { colors } from '@theme/colors';
 
 import { AppConstants } from '@constants/appConstants';
 
-import type { ExpenseDonutProps } from '../../../../types/expenses.types';
+import type { AppDonutChartProps } from '../../../types/common.types';
 import { styles } from './styles';
 
 const { STROKE_WIDTH, START_ROTATION_DEGREES } = AppConstants.DONUT;
 
-export const ExpenseDonut = ({ slices, size }: ExpenseDonutProps) => {
+export const AppDonutChart = ({ slices, size }: AppDonutChartProps) => {
   const radius = (size - STROKE_WIDTH) / 2;
   const circumference = 2 * Math.PI * radius;
   const total = slices.reduce((sum, s) => sum + s.value, 0);

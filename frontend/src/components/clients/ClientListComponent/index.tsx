@@ -22,6 +22,7 @@ import { styles } from './styles';
 
 export const ClientListComponent = ({
   clients,
+  totalCount,
   filter,
   search,
   loading,
@@ -68,9 +69,9 @@ export const ClientListComponent = ({
         </View>
         <Text style={styles.headerTitle}>{t('clients.title')}</Text>
         <Text style={styles.headerSub}>
-          {clients.length > 0
-            ? t('clients.activeCount', { count: clients.length })
-            : t('clients.noActive')}
+          {filter !== 'all' || search.trim().length > 0
+            ? t('clients.matchCount', { count: clients.length })
+            : t('clients.totalCount', { count: totalCount })}
         </Text>
       </View>
 

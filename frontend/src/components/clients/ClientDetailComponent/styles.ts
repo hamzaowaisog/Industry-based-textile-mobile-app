@@ -207,6 +207,12 @@ export const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 16,
+  },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -14,13 +14,14 @@ export const AppStatCard = ({
   value,
   sub,
   trend,
+  style,
 }: AppStatCardProps) => {
   const trendPositive = (trend ?? 0) >= 0;
   const trendColor = trendPositive ? colors.success : colors.danger;
   const trendBg = trendPositive ? colors.successLight : colors.dangerLight;
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, style]}>
       <View style={[styles.tintBar, { backgroundColor: tint }]} />
       <View style={styles.body}>
         <View style={[styles.iconTile, { backgroundColor: `${tint}22` }]}>

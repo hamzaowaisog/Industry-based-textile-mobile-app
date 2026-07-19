@@ -8,10 +8,10 @@ export const parseApiError = (err: unknown, fallback: string): string => {
 export const parseApiResponse = <T>(
   res: unknown,
   fallback: string,
-): { success: boolean; data?: T; error?: string } => {
+): { success: boolean; data?: T; message?: string; error?: string } => {
   const r = res as ApiResponse<T>;
   if (!r?.success) {
     return { success: false, error: r?.errors?.[0] ?? r?.message ?? fallback };
   }
-  return { success: true, data: r.data };
+  return { success: true, data: r.data, message: r.message };
 };

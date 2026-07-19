@@ -33,3 +33,8 @@ public class UpdateUserByIdDto
     public bool IsActive { get; set; }
     public string? PhoneNumber { get; set; } = string.Empty;
 }
+
+public class SetUserActiveDto
+{
+    public bool IsActive { get; set; }
+}

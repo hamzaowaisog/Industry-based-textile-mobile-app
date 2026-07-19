@@ -61,6 +61,13 @@ export const AppConstants = {
     ADJUSTMENT: 3,
   },
 
+  // Movement source IDs (matches backend MovementSource: 1=Purchase, 2=Sale, 3=Manual)
+  MOVEMENT_SOURCE: {
+    PURCHASE: 1,
+    SALE: 2,
+    MANUAL: 3,
+  },
+
   // Payment type IDs (matches backend seeded PaymentType table)
   PAYMENT_TYPE: {
     CASH: 1,
@@ -79,6 +86,24 @@ export const AppConstants = {
     CASH: 1,
     BANK: 2,
     CREDIT: 3,
+  },
+
+  // Transaction type IDs (matches backend seeded TransType table)
+  TRANS_TYPE: {
+    DEBIT: 1,
+    CREDIT: 2,
+  },
+
+  // Transaction category IDs (matches backend seeded TransCategory table)
+  TRANS_CATEGORY: {
+    SALES: 1,
+    PURCHASES: 2,
+    OFFICE_EXPENSES: 3,
+    HOME_EXPENSES: 4,
+    CASH_IN: 5,
+    CASH_OUT: 6,
+    BANK_IN: 7,
+    BANK_OUT: 8,
   },
 
   // Order status IDs (matches backend seeded OrderStatus table)
@@ -118,6 +143,10 @@ export const AppConstants = {
   PAGINATION: {
     DEFAULT_PAGE: 1,
     DEFAULT_PAGE_SIZE: 20,
+  },
+
+  REPORTS: {
+    FILTER_YEARS_COUNT: 6,
   },
 
   // Currency display
@@ -227,6 +256,9 @@ export const AppConstants = {
     ORDER_STAT_CARDS: 3,
     ORDER_PROGRESS_NODES: 3,
     ORDER_LINE_ITEMS: 3,
+    REPORT_STAT_CARDS: 4,
+    REPORT_TABLE_ROWS: 5,
+    REPORT_BALANCE_ROWS: 5,
   },
 
   // Client detail tab content layout
@@ -292,7 +324,9 @@ export const AppConstants = {
       LEDGER_STACK: 'LedgerStack',
       REPORTS_STACK: 'ReportsStack',
       USERS_STACK: 'UsersStack',
+      SETTINGS_STACK: 'SettingsStack',
       SETTINGS: 'Settings',
+      CHANGE_PASSWORD: 'ChangePassword',
       MORE: 'More',
       NOTIFICATION_CENTER: 'NotificationCenter',
       // Client stack
@@ -330,18 +364,22 @@ export const AppConstants = {
       EDIT_EXPENSE: 'EditExpense',
       // Stock stack
       STOCK_MOVE_LIST: 'StockMoveList',
+      STOCK_MOVE_DETAIL: 'StockMoveDetail',
       ADD_STOCK_MOVE: 'AddStockMove',
+      EDIT_STOCK_MOVE: 'EditStockMove',
       // Ledger stack
       TRANSACTION_LIST: 'TransactionList',
+      TRANSACTION_DETAIL: 'TransactionDetail',
       // Report stack
       REPORTS_HUB: 'ReportsHub',
       PROFIT_LOSS: 'ProfitLoss',
       CLIENT_BALANCE: 'ClientBalance',
-      CLIENT_BALANCE_DETAIL: 'ClientBalanceDetail',
       CREDIT_DEBIT: 'CreditDebit',
       SUMMARY_REPORT: 'SummaryReport',
+      CLIENT_DETAIL_REPORT: 'ClientDetailReport',
       // User stack
       USER_LIST: 'UserList',
+      USER_DETAIL: 'UserDetail',
       CREATE_USER: 'CreateUser',
     },
   } as const,
@@ -374,6 +412,9 @@ export const AppConstants = {
       PAYMENT_LIST: 'Payment/pdf',
       INVOICE_LIST: 'Invoice/pdf',
       EXPENSE_LIST: 'Expense/pdf',
+      STOCK_MOVEMENT_LIST: 'StockMovements/pdf',
+      TRANSACTION_LIST: 'Transaction/pdf',
+      USER_LIST: 'Users/pdf',
       clientDossier: (id: number) => `Client/${id}/pdf`,
       orderDossier: (id: number) => `Order/${id}/pdf`,
       productDossier: (id: number) => `Product/${id}/pdf`,
@@ -381,6 +422,16 @@ export const AppConstants = {
       paymentDossier: (id: number) => `Payment/${id}/pdf`,
       invoiceDossier: (id: number) => `Invoice/${id}/pdf`,
       expenseDossier: (id: number) => `Expense/${id}/pdf`,
+      stockMovementDossier: (id: number) => `StockMovements/${id}/pdf`,
+      transactionDossier: (id: number) => `Transaction/${id}/pdf`,
+      CLIENT_BALANCE_LIST: 'Report/client-balance/pdf',
+      SUMMARY_REPORT: 'Report/summary/pdf',
+      CLIENT_DETAIL_LIST: 'Report/client-detail/pdf',
+      profitLoss: (year?: number, month?: number) =>
+        `Report/profit-loss/pdf${year ? `?year=${year}${month ? `&month=${month}` : ''}` : ''}`,
+      creditDebit: (year?: number, month?: number) =>
+        `Report/credit-debit/pdf${year ? `?year=${year}${month ? `&month=${month}` : ''}` : ''}`,
+      clientDetailReportDossier: (id: number) => `Report/client-detail/${id}/pdf`,
     },
     FILENAMES: {
       CLIENT_LIST: 'clients.pdf',
@@ -390,6 +441,9 @@ export const AppConstants = {
       PAYMENT_LIST: 'payments.pdf',
       INVOICE_LIST: 'invoices.pdf',
       EXPENSE_LIST: 'expenses.pdf',
+      STOCK_MOVEMENT_LIST: 'stock-movements.pdf',
+      TRANSACTION_LIST: 'transactions.pdf',
+      USER_LIST: 'users.pdf',
       clientDossier: (id: number) => `client-${id}.pdf`,
       orderDossier: (id: number) => `order-${id}.pdf`,
       productDossier: (id: number) => `product-${id}.pdf`,
@@ -397,6 +451,16 @@ export const AppConstants = {
       paymentDossier: (id: number) => `payment-${id}.pdf`,
       invoiceDossier: (id: number) => `invoice-${id}.pdf`,
       expenseDossier: (id: number) => `expense-${id}.pdf`,
+      stockMovementDossier: (id: number) => `stock-movement-${id}.pdf`,
+      transactionDossier: (id: number) => `transaction-${id}.pdf`,
+      CLIENT_BALANCE_LIST: 'client-balances.pdf',
+      SUMMARY_REPORT: 'business-summary.pdf',
+      CLIENT_DETAIL_LIST: 'client-detail.pdf',
+      profitLoss: (year?: number, month?: number) =>
+        year ? `profit-loss-${month ? `${month}-` : ''}${year}.pdf` : 'profit-loss.pdf',
+      creditDebit: (year?: number, month?: number) =>
+        year ? `credit-debit-${month ? `${month}-` : ''}${year}.pdf` : 'credit-debit.pdf',
+      clientDetailReportDossier: (id: number) => `client-detail-${id}.pdf`,
     },
   },
 
@@ -412,5 +476,6 @@ export const AppConstants = {
     INVOICE_OVERDUE: 'invoice_overdue',
     LOW_STOCK: 'low_stock',
     EXPENSE_APPROVED: 'expense_approved',
+    ACCOUNT_DEACTIVATED: 'account_deactivated',
   },
 } as const;

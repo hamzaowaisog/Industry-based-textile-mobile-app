@@ -22,9 +22,9 @@ export const useProductList = () => {
 
   const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
     useInfiniteQuery<
-      { items: ProductRow[]; hasNextPage: boolean },
+      { items: ProductRow[]; hasNextPage: boolean; totalCount: number },
       Error,
-      InfiniteData<{ items: ProductRow[]; hasNextPage: boolean }>,
+      InfiniteData<{ items: ProductRow[]; hasNextPage: boolean; totalCount: number }>,
       string[],
       number
     >({
@@ -43,6 +43,7 @@ export const useProductList = () => {
   );
 
   const allProducts = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
 
   const filtered = useMemo(() => {
     let result = allProducts;
@@ -59,11 +60,11 @@ export const useProductList = () => {
 
   const tabCounts = useMemo(
     () => ({
-      all: allProducts.length,
+      all: totalCount,
       low: allProducts.filter((p) => p.isLow).length,
       out: allProducts.filter((p) => p.isOut).length,
     }),
-    [allProducts],
+    [allProducts, totalCount],
   );
 
   const onRefresh = useCallback(async () => {
@@ -97,7 +98,7 @@ export const useProductList = () => {
 
   return {
     products: filtered,
-    totalCount: allProducts.length,
+    totalCount,
     tabCounts,
     search,
     activeTab,

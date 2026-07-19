@@ -1,5 +1,8 @@
 using HamzaTex.Api.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Linq;
 
 namespace HamzaTex.Api.Data;
@@ -290,6 +293,54 @@ public static class SeedData
     public static async Task EnsureSeedDataAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
     {
         await SeedStatusesAsync(context, cancellationToken);
+    }
+
+    /// <summary>
+    /// Creates the single seed admin user if no admin (RoleId = 1) exists yet. Safe to call on every
+    /// startup — a no-op once an admin exists. Credentials come from configuration
+    /// (Admin:Email / Admin:Username / Admin:Password, e.g. Railway env vars
+    /// Admin__Email / Admin__Username / Admin__Password) so nothing is hardcoded in source.
+    /// </summary>
+    public static async Task EnsureAdminUserAsync(
+        UserManager<ApplicationUser> userManager,
+        IConfiguration configuration,
+        ILogger logger,
+        CancellationToken cancellationToken = default)
+    {
+        if (userManager.Users.Any(u => u.RoleId == 1))
+        {
+            return;
+        }
+
+        var email = configuration["Admin:Email"];
+        var username = configuration["Admin:Username"] ?? email;
+        var password = configuration["Admin:Password"];
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            logger.LogWarning("No admin user exists and Admin:Email/Admin:Password are not configured — skipping admin seed.");
+            return;
+        }
+
+        var admin = new ApplicationUser
+        {
+            UserName = username,
+            Email = email,
+            Name = "Admin",
+            RoleId = 1,
+            IsActive = true,
+            EmailConfirmed = true,
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+        };
+
+        var result = await userManager.CreateAsync(admin, password);
+        if (!result.Succeeded)
+        {
+            logger.LogError("Failed to seed admin user: {Errors}", string.Join("; ", result.Errors.Select(e => e.Description)));
+            return;
+        }
+
+        logger.LogInformation("Seeded admin user {Email}.", email);
     }
 
     private static async Task SeedStatusesAsync(ApplicationDbContext context, CancellationToken cancellationToken)

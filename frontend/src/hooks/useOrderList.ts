@@ -27,9 +27,9 @@ export const useOrderList = () => {
 
   const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
     useInfiniteQuery<
-      { items: OrderRow[]; hasNextPage: boolean },
+      { items: OrderRow[]; hasNextPage: boolean; totalCount: number },
       Error,
-      InfiniteData<{ items: OrderRow[]; hasNextPage: boolean }>,
+      InfiniteData<{ items: OrderRow[]; hasNextPage: boolean; totalCount: number }>,
       string[],
       number
     >({
@@ -48,6 +48,7 @@ export const useOrderList = () => {
   );
 
   const allOrders = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
 
   const filtered = useMemo(() => {
     let result = allOrders;
@@ -92,7 +93,7 @@ export const useOrderList = () => {
 
   return {
     orders: filtered,
-    totalCount: allOrders.length,
+    totalCount,
     search,
     activeTab,
     loading: isFetching && !refreshing && !isFetchingNextPage,

@@ -23,6 +23,8 @@ export const handleDeepLink = (type: string, entityId?: number): void => {
     navigateToDrawer(S.EXPENSES_STACK);
   } else if (type === 'low_stock') {
     navigateToDrawer(S.PRODUCTS_STACK);
+  } else if (type.startsWith('stock_movement_')) {
+    navigateToDrawer(S.STOCK_STACK);
   } else if (type.startsWith('client_')) {
     navigateToDrawer(S.CLIENTS_STACK);
   }

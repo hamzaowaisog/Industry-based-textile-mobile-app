@@ -69,7 +69,7 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Get all clients (unpaginated). Admin sees all; non-admins see only their own. Prefer the paginated <c>GET /Filtered</c> for list UIs; this powers exports and pickers.</summary>
+    /// <summary>Get all active clients (unpaginated). Admin sees all; non-admins see only their own. Powers client pickers on Order/Purchase/Payment/Invoice creation — inactive clients are excluded since new business documents should not be created against them. Prefer the paginated <c>GET /Filtered</c> for list UIs, which includes inactive clients.</summary>
     [HttpGet]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -78,7 +78,7 @@ public class ClientController : BaseController
         if (GetUserIdOrUnauthorized(out var userId) is { } authError)
             return authError;
 
-        var response = await _clientService.GetAllAsync(userId, IsAdmin());
+        var response = await _clientService.GetAllAsync(userId, IsAdmin(), activeOnly: true);
         return ToActionResult(response);
     }
 
@@ -127,6 +127,22 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
+
+    /// <summary>Activate or deactivate a client by ID. Admin can toggle any client; non-admins only their own.</summary>
+    [HttpPatch("{id}/active")]
+    [Authorize(Policy = "AdminOrStaff")]
+    [ProducesResponseType(typeof(Response<ClientDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetClientActive(int id, [FromBody] SetClientActiveViewModel model)
+    {
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        var dto = new SetClientActiveDto { IsActive = model.IsActive };
+        var response = await _clientService.SetActiveAsync(id, dto, userId, IsAdmin());
+        return ToActionResult(response);
+    }
 
     /// <summary>Delete a client by ID. Admin only.</summary>
     [HttpDelete("{id}")]

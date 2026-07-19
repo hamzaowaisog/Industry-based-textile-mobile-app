@@ -34,6 +34,11 @@ public class SummaryTotalsViewModel
     public int TotalOrderCount { get; set; }
     public int TotalPurchaseCount { get; set; }
     public int TotalClientsCount { get; set; }
+    public decimal? SalesGrowthPercent { get; set; }
+    public decimal AvgOrderValue { get; set; }
+    public int ActiveClientsCount { get; set; }
+    public int ActiveClientsChange { get; set; }
+    public int OverdueInvoicesCount { get; set; }
 }
 
 public class ClientDetailViewModel
@@ -47,6 +52,7 @@ public class ClientDetailViewModel
     public decimal? CreditLimit { get; set; }
     public decimal? OpeningBalance { get; set; }
     public string? Notes { get; set; }
+    public bool IsActive { get; set; }
     public int TotalOrderCount { get; set; }
     public decimal TotalOrderAmount { get; set; }
     public int TotalPurchaseCount { get; set; }
@@ -60,6 +66,13 @@ public class ClientDetailViewModel
     public List<ClientPaymentSummary> Payments { get; set; } = [];
     public List<ClientInvoiceSummary> Invoices { get; set; } = [];
     public List<ClientTransactionSummary> RecentTransactions { get; set; } = [];
+    public List<MonthlyBalancePoint> BalanceHistory { get; set; } = [];
+}
+
+public class MonthlyBalancePoint
+{
+    public string Month { get; set; } = string.Empty;
+    public decimal Balance { get; set; }
 }
 
 public class ClientOrderSummary

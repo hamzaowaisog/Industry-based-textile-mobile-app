@@ -148,6 +148,12 @@ export type AppIconTileProps = {
   soft?: boolean;
 };
 
+export type AppToggleProps = {
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+  disabled?: boolean;
+};
+
 export type AppStatCardProps = {
   tint?: string;
   Icon: ComponentType<IconProps>;
@@ -155,6 +161,7 @@ export type AppStatCardProps = {
   value: string;
   sub?: string;
   trend?: number;
+  style?: import('react-native').StyleProp<import('react-native').ViewStyle>;
 };
 
 export type AppBottomBarProps = {
@@ -207,6 +214,16 @@ export type InputFieldProps = {
   onSubmitEditing?: () => void;
   editable?: boolean;
   onFocus?: () => void;
+};
+
+export type AppDonutSlice = {
+  value: number;
+  color: string;
+};
+
+export type AppDonutChartProps = {
+  slices: AppDonutSlice[];
+  size: number;
 };
 
 export type AppDatePickerProps = {

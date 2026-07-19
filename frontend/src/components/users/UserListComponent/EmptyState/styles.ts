@@ -1,0 +1,73 @@
+import { StyleSheet } from 'react-native';
+
+import { colors } from '@theme/colors';
+import { typography } from '@theme/typography';
+
+export const styles = StyleSheet.create({
+  wrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+    paddingHorizontal: 32,
+    paddingVertical: 20,
+  },
+  iconBubble: {
+    width: 132,
+    height: 132,
+    borderRadius: 66,
+    backgroundColor: `${colors.primary}18`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    right: -6,
+    bottom: -6,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 4,
+    borderColor: colors.surface,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  textWrap: { alignItems: 'center', gap: 8 },
+  title: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  sub: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    textAlign: 'center',
+    maxWidth: 280,
+    lineHeight: 21,
+  },
+  cta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+  },
+  ctaText: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.surface,
+  },
+});

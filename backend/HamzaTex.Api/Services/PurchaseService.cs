@@ -399,7 +399,8 @@ public class PurchaseService : IPurchaseService
                     MovementSource = MovementSourcePurchase,
                     Qty = line.Qty,
                     UnitCost = line.UnitCost,
-                    MovementDate = purchase.PurchaseDate
+                    MovementDate = purchase.PurchaseDate,
+                    SuppressNotification = true,
                 }, userId);
 
                 if (!movResult.Success)
@@ -501,7 +502,8 @@ public class PurchaseService : IPurchaseService
                         Qty = line.Qty,
                         UnitCost = line.UnitCost,
                         AverageDimensionOverride = StockAverageDimension.Cost,
-                        MovementDate = DateOnly.FromDateTime(DateTime.UtcNow)
+                        MovementDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                        SuppressNotification = true,
                     }, userId);
 
                     if (!movResult.Success)

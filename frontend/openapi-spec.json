@@ -851,6 +851,75 @@
         }
       }
     },
+    "/api/Client/{id}/active": {
+      "patch": {
+        "tags": ["Client"],
+        "summary": "Activate or deactivate a client by ID. Admin can toggle any client; non-admins only their own.",
+        "operationId": "client_setClientActive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetClientActiveViewModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetClientActiveViewModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetClientActiveViewModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientDtoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Client/pdf": {
       "get": {
         "tags": ["Client"],
@@ -2006,6 +2075,25 @@
         }
       }
     },
+    "/api/Invoice/summary": {
+      "get": {
+        "tags": ["Invoice"],
+        "summary": "Get aggregate receivable/payable totals (excluding cancelled invoices) and total count across the full invoice set, independent of pagination. Admin sees all; staff see invoices they created.",
+        "operationId": "invoice_getSummary",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceSummaryDtoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Invoice/{id}": {
       "get": {
         "tags": ["Invoice"],
@@ -3142,6 +3230,35 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PaymentDtoPagedListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Payment/summary": {
+      "get": {
+        "tags": ["Payment"],
+        "summary": "Get aggregate received/paid totals and total count across the full payment set (independent of pagination). Staff see only their own; Admin sees all.",
+        "operationId": "payment_getSummary",
+        "parameters": [
+          {
+            "name": "includeReversed",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentSummaryDtoResponse"
                 }
               }
             }
@@ -4818,6 +4935,25 @@
         }
       }
     },
+    "/api/StockMovements/summary": {
+      "get": {
+        "tags": ["StockMovements"],
+        "summary": "Get aggregate in/out quantity totals across the full matching stock movement history (not just one page). Non-admins see only movements for their own products; Admin sees all.",
+        "operationId": "stockMovements_getStockMovementsSummary",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockMovementsSummaryDtoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/StockMovements/{id}": {
       "get": {
         "tags": ["StockMovements"],
@@ -4859,7 +4995,7 @@
       },
       "put": {
         "tags": ["StockMovements"],
-        "summary": "Update a stock movement record. Does not recalculate product averages — use a new Manual movement for stock corrections.",
+        "summary": "Update a Manual stock movement record and recalculate product quantity/averages from full history. Purchase and Sale movements cannot be edited directly — they are controlled by their parent Purchase/Order document.",
         "operationId": "stockMovements_updateStockMovement",
         "parameters": [
           {
@@ -4926,7 +5062,7 @@
       },
       "delete": {
         "tags": ["StockMovements"],
-        "summary": "Delete a stock movement record. Admin only.",
+        "summary": "Delete a Manual stock movement record and recalculate product quantity/averages from the remaining history. Admin only. Purchase and Sale movements cannot be deleted directly — they are controlled by their parent Purchase/Order document.",
         "operationId": "stockMovements_deleteStockMovement",
         "parameters": [
           {
@@ -5027,7 +5163,7 @@
     "/api/StockMovements/by-product/{productId}": {
       "get": {
         "tags": ["StockMovements"],
-        "summary": "Get all stock movements for a specific product ordered chronologically. Admin sees all; Staff scoped to their own products.",
+        "summary": "Get all stock movements for a specific product, ordered by date descending (most recent first). Admin sees all; Staff scoped to their own products.",
         "operationId": "stockMovements_getByProductId",
         "parameters": [
           {
@@ -5164,7 +5300,7 @@
       },
       "get": {
         "tags": ["Transaction"],
-        "summary": "Get all transactions paginated. Staff see only their own; Admin sees all.",
+        "summary": "Get cash-movement transactions paginated (Expenses + Cash/Bank In & Out — excludes accrual Sales/Purchases rows, which are already represented by their matching Payment row). Staff see only their own; Admin sees all.",
         "operationId": "transaction_getAll",
         "parameters": [
           {
@@ -5348,6 +5484,25 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Transaction/summary": {
+      "get": {
+        "tags": ["Transaction"],
+        "summary": "Get aggregate Credit/Debit cash-flow totals (Expenses + Cash/Bank In & Out categories — excludes accrual Sales/Purchases postings, which would double-count the same amount at delivery and again at payment). Admin sees all; non-admins see only their own transactions.",
+        "operationId": "transaction_getSummary",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionSummaryDtoResponse"
                 }
               }
             }
@@ -5885,6 +6040,75 @@
         }
       }
     },
+    "/api/Users/{id}/active": {
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Admin activates or deactivates a user by ID. An admin cannot deactivate their own account.",
+        "operationId": "users_setUserActive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetUserActiveViewModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetUserActiveViewModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetUserActiveViewModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDtoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Users/pdf": {
       "get": {
         "tags": ["Users"],
@@ -6128,6 +6352,9 @@
             "nullable": true,
             "example": "Optional notes here"
           },
+          "isActive": {
+            "type": "boolean"
+          },
           "totalOrderCount": {
             "type": "integer",
             "format": "int32"
@@ -6192,6 +6419,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ClientTransactionSummary"
+            },
+            "nullable": true
+          },
+          "balanceHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonthlyBalancePoint"
             },
             "nullable": true
           }
@@ -6369,6 +6603,30 @@
           },
           "data": {
             "$ref": "#/components/schemas/ClientDtoPagedList"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClientDtoResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ClientDto"
           },
           "errors": {
             "type": "array",
@@ -7698,6 +7956,49 @@
         },
         "additionalProperties": false
       },
+      "InvoiceSummaryDto": {
+        "type": "object",
+        "properties": {
+          "totalReceivable": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalPayable": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Aggregate receivable/payable totals and total count across the full (non-paginated) invoice set, excluding cancelled invoices from the amount totals."
+      },
+      "InvoiceSummaryDtoResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/InvoiceSummaryDto"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "InvoiceTransactionSummary": {
         "type": "object",
         "properties": {
@@ -7966,6 +8267,21 @@
               "type": "string"
             },
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MonthlyBalancePoint": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -8738,6 +9054,49 @@
           },
           "data": {
             "$ref": "#/components/schemas/PaymentDto"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PaymentSummaryDto": {
+        "type": "object",
+        "properties": {
+          "totalReceived": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalPaid": {
+            "type": "number",
+            "format": "double",
+            "example": 1
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PaymentSummaryDtoResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaymentSummaryDto"
           },
           "errors": {
             "type": "array",
@@ -9734,6 +10093,24 @@
         },
         "additionalProperties": false
       },
+      "SetClientActiveViewModel": {
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SetUserActiveViewModel": {
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "StockMovementsCreateViewModel": {
         "type": "object",
         "properties": {
@@ -9800,6 +10177,16 @@
             "nullable": true,
             "example": "string"
           },
+          "unitId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "unitName": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
           "movementSource": {
             "type": "integer",
             "format": "int32",
@@ -9843,6 +10230,16 @@
             "nullable": true
           },
           "averagePriceAtMovement": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "currentAverageCost": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "currentAveragePrice": {
             "type": "number",
             "format": "double",
             "nullable": true
@@ -9964,6 +10361,55 @@
         },
         "additionalProperties": false
       },
+      "StockMovementsSummaryDto": {
+        "type": "object",
+        "properties": {
+          "totalIn": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalOut": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalInUnitLabel": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "totalOutUnitLabel": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Aggregate in/out quantity totals across the full matching stock movement history (not just one page)."
+      },
+      "StockMovementsSummaryDtoResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/StockMovementsSummaryDto"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "StockMovementsUpdateViewModel": {
         "type": "object",
         "properties": {
@@ -10036,6 +10482,27 @@
             "format": "int32"
           },
           "totalClientsCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "salesGrowthPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "avgOrderValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "activeClientsCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeClientsChange": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "overdueInvoicesCount": {
             "type": "integer",
             "format": "int32"
           }
@@ -10350,6 +10817,44 @@
           },
           "data": {
             "$ref": "#/components/schemas/TransactionDto"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TransactionSummaryDto": {
+        "type": "object",
+        "properties": {
+          "totalCredit": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalDebit": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TransactionSummaryDtoResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/TransactionSummaryDto"
           },
           "errors": {
             "type": "array",

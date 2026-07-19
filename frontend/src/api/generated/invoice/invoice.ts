@@ -35,6 +35,7 @@ import type {
   InvoiceGetAllPdfParams,
   InvoiceGetFilteredParams,
   InvoiceGetFilteredPdfParams,
+  InvoiceSummaryDtoResponse,
   InvoiceUpdateViewModel,
   Response
 } from '../../models';
@@ -189,6 +190,98 @@ export function useInvoiceGetAll<TData = Awaited<ReturnType<typeof invoiceGetAll
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getInvoiceGetAllQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+/**
+ * @summary Get aggregate receivable/payable totals (excluding cancelled invoices) and total count across the full invoice set, independent of pagination. Admin sees all; staff see invoices they created.
+ */
+export const invoiceGetSummary = (
+
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<InvoiceSummaryDtoResponse>(
+      {url: `/api/Invoice/summary`, method: 'GET', signal
+    },
+      );
+    }
+
+
+
+
+export const getInvoiceGetSummaryQueryKey = () => {
+    return [
+    `/api/Invoice/summary`
+    ] as const;
+    }
+
+
+export const getInvoiceGetSummaryQueryOptions = <TData = Awaited<ReturnType<typeof invoiceGetSummary>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoiceGetSummary>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getInvoiceGetSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof invoiceGetSummary>>> = ({ signal }) => invoiceGetSummary(signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof invoiceGetSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type InvoiceGetSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof invoiceGetSummary>>>
+export type InvoiceGetSummaryQueryError = unknown
+
+
+export function useInvoiceGetSummary<TData = Awaited<ReturnType<typeof invoiceGetSummary>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoiceGetSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof invoiceGetSummary>>,
+          TError,
+          Awaited<ReturnType<typeof invoiceGetSummary>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useInvoiceGetSummary<TData = Awaited<ReturnType<typeof invoiceGetSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoiceGetSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof invoiceGetSummary>>,
+          TError,
+          Awaited<ReturnType<typeof invoiceGetSummary>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useInvoiceGetSummary<TData = Awaited<ReturnType<typeof invoiceGetSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoiceGetSummary>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get aggregate receivable/payable totals (excluding cancelled invoices) and total count across the full invoice set, independent of pagination. Admin sees all; staff see invoices they created.
+ */
+
+export function useInvoiceGetSummary<TData = Awaited<ReturnType<typeof invoiceGetSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoiceGetSummary>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getInvoiceGetSummaryQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

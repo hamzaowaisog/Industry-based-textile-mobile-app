@@ -113,6 +113,7 @@ public static class EntityPdfConfigs
         PdfColumnConfig.Create("MovementTypeName", "Type", weight: 0.85f),
         PdfColumnConfig.Create("MovementSourceName", "Source", weight: 0.9f),
         PdfColumnConfig.Create("Qty", "Quantity", weight: 0.8f),
+        PdfColumnConfig.Create("UnitName", "Unit", weight: 0.7f),
         PdfColumnConfig.Create("UnitCost", "Unit Cost (PKR)", PdfColumnFormat.Currency, 1.05f),
         PdfColumnConfig.Create("UnitPrice", "Unit Price (PKR)", PdfColumnFormat.Currency, 1.05f),
         PdfColumnConfig.Create("AverageCostAtMovement", "Avg Cost (PKR)", PdfColumnFormat.Currency, 1.05f),

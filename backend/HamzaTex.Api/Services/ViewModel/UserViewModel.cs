@@ -31,3 +31,8 @@ public class UserUpdateViewModel
     public bool IsActive { get; set; }
     public string? PhoneNumber { get; set; } = string.Empty;
 }
+
+public class SetUserActiveViewModel
+{
+    public bool IsActive { get; set; }
+}

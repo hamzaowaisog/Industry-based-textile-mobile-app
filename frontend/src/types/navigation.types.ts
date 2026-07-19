@@ -75,25 +75,34 @@ export type ExpenseStackParamList = {
 
 export type StockStackParamList = {
   StockMoveList: undefined;
+  StockMoveDetail: { movementId: number };
   AddStockMove: undefined;
+  EditStockMove: { movementId: number };
 };
 
 export type LedgerStackParamList = {
   TransactionList: undefined;
+  TransactionDetail: { transactionId: number };
 };
 
 export type ReportStackParamList = {
   ReportsHub: undefined;
   ProfitLoss: undefined;
   ClientBalance: undefined;
-  ClientBalanceDetail: { clientId: number };
   CreditDebit: undefined;
   SummaryReport: undefined;
+  ClientDetailReport: { clientId?: number } | undefined;
 };
 
 export type UserStackParamList = {
   UserList: undefined;
+  UserDetail: { userId: number };
   CreateUser: undefined;
+};
+
+export type SettingsStackParamList = {
+  Settings: undefined;
+  ChangePassword: undefined;
 };
 
 // ── Main stack (wraps drawer + modal screens) ──────────────────────────────────
@@ -121,7 +130,7 @@ export type MainDrawerParamList = {
   LedgerStack: NavigatorScreenParams<LedgerStackParamList>;
   ReportsStack: NavigatorScreenParams<ReportStackParamList>;
   UsersStack: NavigatorScreenParams<UserStackParamList>;
-  Settings: undefined;
+  SettingsStack: NavigatorScreenParams<SettingsStackParamList>;
 };
 
 // ── Auth nav/route prop helpers ────────────────────────────────────────────────
@@ -222,4 +231,44 @@ export type ExpenseDetailScreenProps = NativeStackScreenProps<
 export type EditExpenseScreenProps = NativeStackScreenProps<
   ExpenseStackParamList,
   typeof SM.EDIT_EXPENSE
+>;
+
+// ── Stock movement screen props ─────────────────────────────────────────────
+
+export type StockMoveDetailScreenProps = NativeStackScreenProps<
+  StockStackParamList,
+  typeof SM.STOCK_MOVE_DETAIL
+>;
+export type EditStockMoveScreenProps = NativeStackScreenProps<
+  StockStackParamList,
+  typeof SM.EDIT_STOCK_MOVE
+>;
+
+// ── Transaction screen props ────────────────────────────────────────────────
+
+export type TransactionDetailScreenProps = NativeStackScreenProps<
+  LedgerStackParamList,
+  typeof SM.TRANSACTION_DETAIL
+>;
+
+// ── Report screen props ─────────────────────────────────────────────────────
+
+export type ClientDetailReportScreenProps = NativeStackScreenProps<
+  ReportStackParamList,
+  typeof SM.CLIENT_DETAIL_REPORT
+>;
+
+// ── User screen props ───────────────────────────────────────────────────────
+
+export type UserDetailScreenProps = NativeStackScreenProps<
+  UserStackParamList,
+  typeof SM.USER_DETAIL
+>;
+
+// ── Settings screen props ───────────────────────────────────────────────────
+
+export type SettingsNavProp = NativeStackNavigationProp<SettingsStackParamList, typeof SM.SETTINGS>;
+export type ChangePasswordNavProp = NativeStackNavigationProp<
+  SettingsStackParamList,
+  typeof SM.CHANGE_PASSWORD
 >;

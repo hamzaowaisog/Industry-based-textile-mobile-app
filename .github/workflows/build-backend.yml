@@ -30,10 +30,13 @@ jobs:
         working-directory: backend/HamzaTex.Api
 
       # ──────────────────────────────────────────────────────────────────────
-      # DEPLOY — ADD WHEN BACKEND HOST IS CHOSEN
-      # Options: Railway, Fly.io, Azure App Service, DigitalOcean
-      # Note: EF migrations run automatically on startup — already coded.
-      #       No extra migration step needed in this workflow.
+      # DEPLOY — Railway, on push to hamzaTex/Qa (same branch as other CI).
+      # EF migrations + admin seed run automatically on container startup
+      # (Program.cs → dbContext.Database.Migrate() / SeedData.EnsureAdminUserAsync).
+      # No extra migration step needed here.
       # ──────────────────────────────────────────────────────────────────────
-      # - name: Deploy to <host>
-      #   ...
+      - name: Deploy to Railway
+        uses: bervProject/railway-deploy@v1.4.0
+        with:
+          railway_token: ${{ secrets.RAILWAY_TOKEN }}
+          service: hamzatex-api

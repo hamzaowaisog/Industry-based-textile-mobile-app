@@ -22,8 +22,14 @@ export const useClientDetail = () => {
   const route = useRoute<RouteProp<ClientStackParamList, 'ClientDetail'>>();
   const { clientId } = route.params;
 
-  const { currentClient, detailLoading, fetchClientDetail, prepareDetailLoad, deleteClient } =
-    useClientStore();
+  const {
+    currentClient,
+    detailLoading,
+    fetchClientDetail,
+    prepareDetailLoad,
+    deleteClient,
+    setClientActive,
+  } = useClientStore();
   const [tab, setTab] = useState<ClientTab>(AppConstants.CLIENT_TABS.ORDERS);
   const [refreshing, setRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -124,6 +130,38 @@ export const useClientDetail = () => {
     }
   }, [navigation, clientId, currentClient]);
 
+  const onToggleActive = useCallback(
+    (nextIsActive: boolean) => {
+      if (!currentClient) return;
+      Alert.alert(
+        nextIsActive ? i18n.t('clients.activateTitle') : i18n.t('clients.deactivateTitle'),
+        i18n.t(nextIsActive ? 'clients.activateMessage' : 'clients.deactivateMessage', {
+          name: currentClient.clientName,
+        }),
+        [
+          { text: i18n.t('common.cancel'), style: 'cancel' },
+          {
+            text: i18n.t('common.confirm'),
+            onPress: async () => {
+              setSubmitting(true);
+              const result = await setClientActive(clientId, nextIsActive);
+              setSubmitting(false);
+              if (result.success) {
+                showSuccess(
+                  nextIsActive ? i18n.t('clients.activateSuccess') : i18n.t('clients.deactivateSuccess'),
+                  '',
+                );
+              } else {
+                Alert.alert(i18n.t('common.error'), result.error ?? i18n.t('common.errorGeneric'));
+              }
+            },
+          },
+        ],
+      );
+    },
+    [currentClient, clientId, setClientActive],
+  );
+
   const onDossierPdfPress = useCallback(() => {
     void downloadPdf(
       AppConstants.PDF.PATHS.clientDossier(clientId),
@@ -146,5 +184,6 @@ export const useClientDetail = () => {
     submitting,
     onDossierPdfPress,
     isDossierPdfDownloading,
+    onToggleActive,
   };
 };

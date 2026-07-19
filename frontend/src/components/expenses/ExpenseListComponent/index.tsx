@@ -103,7 +103,7 @@ export const ExpenseListComponent = ({
         <Text style={styles.headerTitle}>{t('expenses.title')}</Text>
         <Text style={styles.headerSub}>
           {totalCount > 0
-            ? t('expenses.entriesCount', { count: totalCount })
+            ? t('expenses.totalCount', { count: totalCount })
             : t('expenses.subtitle')}
         </Text>
       </View>

@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { DrawerActions, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
+import { InfiniteData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import { useInvoiceStore } from '@stores/invoiceStore';
 
@@ -11,9 +11,9 @@ import { INVOICE_STATUS_TAB_ID_MAP } from '@utils/helpers/invoiceContent';
 import { AppConstants } from '@constants/appConstants';
 import { queryKeys } from '@constants/queryKeys';
 
-import { fetchInvoicesPageAsync } from '../core/invoices';
-import type { InvoiceStackParamList } from '../types/navigation.types';
+import { fetchInvoicesPageAsync, fetchInvoicesSummaryAsync } from '../core/invoices';
 import type { InvoiceRow, InvoiceStatusTab } from '../types/invoices.types';
+import type { InvoiceStackParamList } from '../types/navigation.types';
 import { usePdfDownload } from './usePdfDownload';
 
 export const useInvoiceList = () => {
@@ -41,10 +41,17 @@ export const useInvoiceList = () => {
       staleTime: 0,
     });
 
+  const { data: summary, refetch: refetchSummary } = useQuery({
+    queryKey: queryKeys.invoices.summary(),
+    queryFn: fetchInvoicesSummaryAsync,
+    staleTime: 0,
+  });
+
   useFocusEffect(
     useCallback(() => {
       void refetch();
-    }, [refetch]),
+      void refetchSummary();
+    }, [refetch, refetchSummary]),
   );
 
   const allInvoices = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
@@ -58,43 +65,21 @@ export const useInvoiceList = () => {
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
-        (i) =>
-          i.invoiceNumber.toLowerCase().includes(q) ||
-          i.clientName.toLowerCase().includes(q),
+        (i) => i.invoiceNumber.toLowerCase().includes(q) || i.clientName.toLowerCase().includes(q),
       );
     }
     return result;
   }, [allInvoices, activeTab, search]);
 
-  const totalReceivable = useMemo(
-    () =>
-      allInvoices
-        .filter(
-          (i) =>
-            i.direction === 'Receivable' &&
-            i.invoiceStatusId !== AppConstants.INVOICE_STATUS.CANCELLED,
-        )
-        .reduce((sum, i) => sum + i.outstanding, 0),
-    [allInvoices],
-  );
-
-  const totalPayable = useMemo(
-    () =>
-      allInvoices
-        .filter(
-          (i) =>
-            i.direction === 'Payable' &&
-            i.invoiceStatusId !== AppConstants.INVOICE_STATUS.CANCELLED,
-        )
-        .reduce((sum, i) => sum + i.outstanding, 0),
-    [allInvoices],
-  );
+  const totalReceivable = summary?.totalReceivable ?? 0;
+  const totalPayable = summary?.totalPayable ?? 0;
+  const totalCount = summary?.totalCount ?? 0;
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await refetch();
+    await Promise.all([refetch(), refetchSummary()]);
     setRefreshing(false);
-  }, [refetch]);
+  }, [refetch, refetchSummary]);
 
   const onEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
@@ -117,15 +102,12 @@ export const useInvoiceList = () => {
   }, [navigation]);
 
   const onListPdfPress = useCallback(() => {
-    void downloadPdf(
-      AppConstants.PDF.PATHS.INVOICE_LIST,
-      AppConstants.PDF.FILENAMES.INVOICE_LIST,
-    );
+    void downloadPdf(AppConstants.PDF.PATHS.INVOICE_LIST, AppConstants.PDF.FILENAMES.INVOICE_LIST);
   }, [downloadPdf]);
 
   return {
     invoices: filtered,
-    totalCount: allInvoices.length,
+    totalCount,
     totalReceivable,
     totalPayable,
     search,

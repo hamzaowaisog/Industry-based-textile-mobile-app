@@ -4,6 +4,8 @@ import * as SecureStore from 'expo-secure-store';
 
 import { AppConstants } from '@constants/appConstants';
 
+import { forceLogout } from './forceLogout';
+
 const API_URL: string = Constants.expoConfig?.extra?.apiUrl;
 console.log('[axiosInstance] API_URL =', API_URL);
 
@@ -45,8 +47,7 @@ client.interceptors.response.use(
         original.headers = { ...original.headers, Authorization: `Bearer ${token}` };
         return client(original as AxiosRequestConfig);
       } catch {
-        await SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN);
-        await SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.REFRESH_TOKEN);
+        await forceLogout();
       }
     }
     return Promise.reject(error);

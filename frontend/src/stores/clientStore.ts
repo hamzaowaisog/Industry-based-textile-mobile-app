@@ -8,11 +8,12 @@ import {
   createClientAsync,
   deleteClientAsync,
   fetchClientDetailAsync,
+  setClientActiveAsync,
   updateClientAsync,
 } from '../core/clients';
 import type { ClientStore } from '../types/clients.types';
 
-export const useClientStore = create<ClientStore>((set) => ({
+export const useClientStore = create<ClientStore>((set, get) => ({
   currentClient: null,
   detailLoading: false,
   submitting: false,
@@ -65,6 +66,18 @@ export const useClientStore = create<ClientStore>((set) => ({
   deleteClient: async (serverId) => {
     const result = await deleteClientAsync(serverId);
     if (result.success) {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.clients.all });
+    }
+    return result;
+  },
+
+  setClientActive: async (serverId, isActive) => {
+    const result = await setClientActiveAsync(serverId, isActive);
+    if (result.success) {
+      const current = get().currentClient;
+      if (current && current.clientId === serverId) {
+        set({ currentClient: { ...current, isActive } });
+      }
       void queryClient.invalidateQueries({ queryKey: queryKeys.clients.all });
     }
     return result;

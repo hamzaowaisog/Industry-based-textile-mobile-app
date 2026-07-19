@@ -66,6 +66,18 @@ public class InvoiceController : BaseController
         return ToActionResult(await _invoiceService.GetAllPaginatedAsync(page, pageSize, userId, IsAdmin()));
     }
 
+    /// <summary>Get aggregate receivable/payable totals (excluding cancelled invoices) and total count across the full invoice set, independent of pagination. Admin sees all; staff see invoices they created.</summary>
+    [HttpGet("summary")]
+    [Authorize(Policy = "AdminOrStaff")]
+    [ProducesResponseType(typeof(Response<InvoiceSummaryDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSummary()
+    {
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        return ToActionResult(await _invoiceService.GetSummaryAsync(userId, IsAdmin()));
+    }
+
     /// <summary>Get a single invoice with lines and linked transactions.</summary>
     [HttpGet("{id:int}")]
     [Authorize(Policy = "Authenticated")]

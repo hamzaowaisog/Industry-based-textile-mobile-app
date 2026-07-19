@@ -27,10 +27,12 @@ import type {
 import type {
   ClientCreateViewModel,
   ClientDtoPagedListResponse,
+  ClientDtoResponse,
   ClientGetAllClientsFilteredParams,
   ClientUpdateViewModel,
   ProblemDetails,
-  Response
+  Response,
+  SetClientActiveViewModel
 } from '../../models';
 
 import { axiosInstance } from '../../../utils/axiosInstance';
@@ -502,6 +504,70 @@ export const useClientDeleteClientById = <TError = ProblemDetails,
         TContext
       > => {
       return useMutation(getClientDeleteClientByIdMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Activate or deactivate a client by ID. Admin can toggle any client; non-admins only their own.
+ */
+export const clientSetClientActive = (
+    id: number,
+    setClientActiveViewModel?: SetClientActiveViewModel,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<ClientDtoResponse>(
+      {url: `/api/Client/${id}/active`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: setClientActiveViewModel, signal
+    },
+      );
+    }
+
+
+
+export const getClientSetClientActiveMutationOptions = <TError = Response | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clientSetClientActive>>, TError,{id: number;data?: SetClientActiveViewModel}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof clientSetClientActive>>, TError,{id: number;data?: SetClientActiveViewModel}, TContext> => {
+
+const mutationKey = ['clientSetClientActive'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof clientSetClientActive>>, {id: number;data?: SetClientActiveViewModel}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  clientSetClientActive(id,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClientSetClientActiveMutationResult = NonNullable<Awaited<ReturnType<typeof clientSetClientActive>>>
+    export type ClientSetClientActiveMutationBody = SetClientActiveViewModel | undefined
+    export type ClientSetClientActiveMutationError = Response | ProblemDetails
+
+    /**
+ * @summary Activate or deactivate a client by ID. Admin can toggle any client; non-admins only their own.
+ */
+export const useClientSetClientActive = <TError = Response | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clientSetClientActive>>, TError,{id: number;data?: SetClientActiveViewModel}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof clientSetClientActive>>,
+        TError,
+        {id: number;data?: SetClientActiveViewModel},
+        TContext
+      > => {
+      return useMutation(getClientSetClientActiveMutationOptions(options), queryClient);
     }
     /**
  * @summary Download a client list as a PDF report. Admin sees all clients; non-admins see only their own.
