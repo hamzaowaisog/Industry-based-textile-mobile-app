@@ -36,6 +36,12 @@ export const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
 
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+
   sectionPad: { paddingTop: 24 },
   sectionLabel: {
     fontFamily: typography.fontFamily.semibold,

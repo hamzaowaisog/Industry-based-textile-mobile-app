@@ -72,8 +72,10 @@ export type UserDetailComponentProps = {
   user: UserDetail | null;
   loading: boolean;
   submitting: boolean;
+  isSelf: boolean;
   onBack: () => void;
   onDelete: () => void;
+  onToggleActive: (isActive: boolean) => void;
 };
 
 export type CreateUserComponentProps = {

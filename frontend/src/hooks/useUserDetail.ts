@@ -14,9 +14,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import i18n from '@utils/i18n';
 import { showSuccess } from '@utils/toast';
 
+import { useAuthStore } from '@stores/authStore';
+
 import { queryKeys } from '@constants/queryKeys';
 
-import { deleteUserAsync, fetchUserByIdAsync } from '../core/users';
+import { deleteUserAsync, fetchUserByIdAsync, setUserActiveAsync } from '../core/users';
 import type { UserStackParamList } from '../types/navigation.types';
 
 export const useUserDetail = () => {
@@ -24,6 +26,7 @@ export const useUserDetail = () => {
   const route = useRoute<RouteProp<UserStackParamList, 'UserDetail'>>();
   const { userId } = route.params;
   const queryClient = useQueryClient();
+  const currentUserId = useAuthStore((state) => state.userId);
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -73,11 +76,47 @@ export const useUserDetail = () => {
     );
   }, [user, userId, navigation, queryClient]);
 
+  const onToggleActive = useCallback(
+    (nextIsActive: boolean) => {
+      if (!user) return;
+      Alert.alert(
+        nextIsActive ? i18n.t('users.activateTitle') : i18n.t('users.deactivateTitle'),
+        i18n.t(nextIsActive ? 'users.activateMessage' : 'users.deactivateMessage', {
+          name: user.name,
+        }),
+        [
+          { text: i18n.t('common.cancel'), style: 'cancel' },
+          {
+            text: i18n.t('common.confirm'),
+            onPress: async () => {
+              setSubmitting(true);
+              const result = await setUserActiveAsync(userId, nextIsActive);
+              setSubmitting(false);
+              if (result.success) {
+                showSuccess(
+                  nextIsActive ? i18n.t('users.activateSuccess') : i18n.t('users.deactivateSuccess'),
+                  '',
+                );
+                void queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(userId) });
+                void queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
+              } else {
+                Alert.alert(i18n.t('common.error'), result.error ?? i18n.t('common.errorGeneric'));
+              }
+            },
+          },
+        ],
+      );
+    },
+    [user, userId, queryClient],
+  );
+
   return {
     user: user ?? null,
     loading: isFetching,
     submitting,
+    isSelf: !!currentUserId && currentUserId === userId,
     onBack,
     onDelete,
+    onToggleActive,
   };
 };

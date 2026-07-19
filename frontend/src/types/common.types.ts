@@ -148,6 +148,12 @@ export type AppIconTileProps = {
   soft?: boolean;
 };
 
+export type AppToggleProps = {
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+  disabled?: boolean;
+};
+
 export type AppStatCardProps = {
   tint?: string;
   Icon: ComponentType<IconProps>;

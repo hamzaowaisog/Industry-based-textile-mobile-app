@@ -144,6 +144,26 @@ builder.Services.AddAuthentication(options =>
     };
     
     options.MapInboundClaims = true;
+
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
+                context.Fail("Invalid token.");
+                return;
+            }
+
+            var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+            var user = await userManager.FindByIdAsync(userId.ToString());
+            if (user is null || !user.IsActive)
+            {
+                context.Fail("User account is inactive.");
+            }
+        }
+    };
 });
 
 builder.Services.AddAuthorization(options =>

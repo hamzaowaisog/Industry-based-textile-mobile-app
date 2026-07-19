@@ -1,12 +1,10 @@
 import React from 'react';
-import { View } from 'react-native';
 
 import { createDrawerNavigator } from '@react-navigation/drawer';
 
 import { AppConstants } from '@constants/appConstants';
 import { DashboardScreen } from '@screens/dashboard';
 import { useAuthStore } from '@stores/authStore';
-import { colors } from '@theme/colors';
 import { MainDrawerParamList } from '@types/navigation.types';
 
 import { DrawerContent } from './DrawerContent';
@@ -19,13 +17,12 @@ import { PaymentsStack } from './stacks/PaymentsStack';
 import { ProductsStack } from './stacks/ProductsStack';
 import { PurchasesStack } from './stacks/PurchasesStack';
 import { ReportsStack } from './stacks/ReportsStack';
+import { SettingsStack } from './stacks/SettingsStack';
 import { StockStack } from './stacks/StockStack';
 import { UsersStack } from './stacks/UsersStack';
 
 const Drawer = createDrawerNavigator<MainDrawerParamList>();
 const S = AppConstants.SCREENS.MAIN;
-
-const SettingsPlaceholder = () => <View style={{ flex: 1, backgroundColor: colors.background }} />;
 
 export const MainNavigator = () => {
   const roleId = useAuthStore((s) => s.roleId);
@@ -98,7 +95,11 @@ export const MainNavigator = () => {
           options={{ unmountOnBlur: true }}
         />
       )}
-      <Drawer.Screen name={S.SETTINGS} component={SettingsPlaceholder} />
+      <Drawer.Screen
+        name={S.SETTINGS_STACK}
+        component={SettingsStack}
+        options={{ unmountOnBlur: true }}
+      />
     </Drawer.Navigator>
   );
 };

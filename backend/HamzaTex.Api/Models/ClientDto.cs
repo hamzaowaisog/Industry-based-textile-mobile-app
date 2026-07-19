@@ -32,6 +32,11 @@ public class CreateClientDto
     public DateOnly? CreatedAt { get; set; }
 }
 
+public class SetClientActiveDto
+{
+    public bool IsActive { get; set; }
+}
+
 public class UpdateClientByIdDto
 {
     public string Name { get; set; } = string.Empty;

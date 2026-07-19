@@ -20,6 +20,8 @@ public interface IUserService
     Task<Response<List<UserDto>>> GetAllAsync();
     /// <summary>Update a user's profile fields by ID.</summary>
     Task<Response<UserDto>> UpdateByIdAsync(int id, UpdateUserByIdDto model);
+    /// <summary>Admin-only: activate or deactivate a user by ID. Rejects deactivating the requesting admin's own account.</summary>
+    Task<Response<UserDto>> SetActiveAsync(int id, SetUserActiveDto model, int requestingUserId);
     /// <summary>Delete a user by ID.</summary>
     Task<Response> DeleteByIdAsync(int id);
     /// <summary>Resend the email confirmation link to the given address.</summary>
@@ -38,8 +40,11 @@ public class UserService : IUserService
     private readonly IEmailSender _emailSender;
     private readonly IEmailVerificationService _emailVerificationService;
     private readonly ILogger<UserService> _logger;
+    private readonly IRefreshTokenService _refreshTokenService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IPushNotificationService _pushNotificationService;
 
-    public UserService(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IConfiguration configuration, IEmailSender emailSender, IEmailVerificationService emailVerificationService, ILogger<UserService> logger)
+    public UserService(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IConfiguration configuration, IEmailSender emailSender, IEmailVerificationService emailVerificationService, ILogger<UserService> logger, IRefreshTokenService refreshTokenService, IHttpContextAccessor httpContextAccessor, IPushNotificationService pushNotificationService)
     {
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
@@ -47,6 +52,9 @@ public class UserService : IUserService
         _emailSender = emailSender ?? throw new ArgumentNullException(nameof(emailSender));
         _emailVerificationService = emailVerificationService ?? throw new ArgumentNullException(nameof(emailVerificationService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _refreshTokenService = refreshTokenService ?? throw new ArgumentNullException(nameof(refreshTokenService));
+        _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+        _pushNotificationService = pushNotificationService ?? throw new ArgumentNullException(nameof(pushNotificationService));
     }
 
     public async Task<Response<UserDto>> GetByIdAsync(int id)
@@ -115,6 +123,41 @@ public class UserService : IUserService
         }
 
         return Response<UserDto>.SuccessResponse(ToDto(user), "User updated successfully.");
+    }
+
+    public async Task<Response<UserDto>> SetActiveAsync(int id, SetUserActiveDto model, int requestingUserId)
+    {
+        if (id == requestingUserId && !model.IsActive)
+        {
+            return Response<UserDto>.ErrorResponse("Validation failed", "You cannot deactivate your own account.");
+        }
+
+        var user = await _userManager.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
+        if (user is null)
+        {
+            return Response<UserDto>.ErrorResponse("Not found", $"User with id '{id}' was not found.");
+        }
+
+        user.IsActive = model.IsActive;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            return Response<UserDto>.ErrorResponse("Update failed", errors);
+        }
+
+        if (!model.IsActive)
+        {
+            var ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            await _refreshTokenService.RevokeAllUserTokensAsync(user.Id, ipAddress);
+            await _pushNotificationService.SendTypedAsync(user.Id, "account_deactivated", new Dictionary<string, string>());
+        }
+
+        return Response<UserDto>.SuccessResponse(ToDto(user), model.IsActive ? "User activated successfully." : "User deactivated successfully.");
     }
 
     public async Task<Response> DeleteByIdAsync(int id)

@@ -324,7 +324,9 @@ export const AppConstants = {
       LEDGER_STACK: 'LedgerStack',
       REPORTS_STACK: 'ReportsStack',
       USERS_STACK: 'UsersStack',
+      SETTINGS_STACK: 'SettingsStack',
       SETTINGS: 'Settings',
+      CHANGE_PASSWORD: 'ChangePassword',
       MORE: 'More',
       NOTIFICATION_CENTER: 'NotificationCenter',
       // Client stack
@@ -474,5 +476,6 @@ export const AppConstants = {
     INVOICE_OVERDUE: 'invoice_overdue',
     LOW_STOCK: 'low_stock',
     EXPENSE_APPROVED: 'expense_approved',
+    ACCOUNT_DEACTIVATED: 'account_deactivated',
   },
 } as const;

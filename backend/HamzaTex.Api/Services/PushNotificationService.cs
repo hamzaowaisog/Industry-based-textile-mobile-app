@@ -42,6 +42,7 @@ public class PushNotificationService : IPushNotificationService
         ["low_stock"]          = ("Low Stock Alert",     "{productName} is below reorder level ({qty} remaining)"),
         ["expense_approved"]   = ("Expense Recorded",    "PKR {amount} expense recorded ({category})"),
         ["client_added"]       = ("New Client Added",    "{clientName} has been added as a client"),
+        ["account_deactivated"] = ("Account Deactivated", "Your account has been deactivated by an administrator."),
     };
 
     public PushNotificationService(

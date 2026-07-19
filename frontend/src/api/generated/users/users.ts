@@ -27,6 +27,7 @@ import type {
 import type {
   ProblemDetails,
   Response,
+  SetUserActiveViewModel,
   UserCreateViewModel,
   UserDtoResponse,
   UserUpdateViewModel
@@ -407,6 +408,70 @@ export const useUsersUpdateUserById = <TError = ProblemDetails,
         TContext
       > => {
       return useMutation(getUsersUpdateUserByIdMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Admin activates or deactivates a user by ID. An admin cannot deactivate their own account.
+ */
+export const usersSetUserActive = (
+    id: number,
+    setUserActiveViewModel?: SetUserActiveViewModel,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<UserDtoResponse>(
+      {url: `/api/Users/${id}/active`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: setUserActiveViewModel, signal
+    },
+      );
+    }
+
+
+
+export const getUsersSetUserActiveMutationOptions = <TError = Response | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersSetUserActive>>, TError,{id: number;data?: SetUserActiveViewModel}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof usersSetUserActive>>, TError,{id: number;data?: SetUserActiveViewModel}, TContext> => {
+
+const mutationKey = ['usersSetUserActive'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof usersSetUserActive>>, {id: number;data?: SetUserActiveViewModel}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  usersSetUserActive(id,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UsersSetUserActiveMutationResult = NonNullable<Awaited<ReturnType<typeof usersSetUserActive>>>
+    export type UsersSetUserActiveMutationBody = SetUserActiveViewModel | undefined
+    export type UsersSetUserActiveMutationError = Response | ProblemDetails
+
+    /**
+ * @summary Admin activates or deactivates a user by ID. An admin cannot deactivate their own account.
+ */
+export const useUsersSetUserActive = <TError = Response | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersSetUserActive>>, TError,{id: number;data?: SetUserActiveViewModel}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof usersSetUserActive>>,
+        TError,
+        {id: number;data?: SetUserActiveViewModel},
+        TContext
+      > => {
+      return useMutation(getUsersSetUserActiveMutationOptions(options), queryClient);
     }
     /**
  * @summary Download all users as a PDF report.

@@ -13,10 +13,12 @@ public interface IClientService
     Task<Response<ClientDto>> CreateAsync(CreateClientDto model);
     /// <summary>Get a client by ID. Admin sees any client; non-admins see only their own.</summary>
     Task<Response<ClientDto>> GetByIdAsync(int id, int userId, bool isAdmin);
-    /// <summary>Get all clients. Admin sees all; non-admins see only their own. Used for PDF export + admin list.</summary>
-    Task<Response<List<ClientDto>>> GetAllAsync(int userId, bool isAdmin);
+    /// <summary>Get all clients. Admin sees all; non-admins see only their own. Used for PDF export + admin list. Pass <paramref name="activeOnly"/> = true to exclude inactive clients (used by document-creation pickers).</summary>
+    Task<Response<List<ClientDto>>> GetAllAsync(int userId, bool isAdmin, bool activeOnly = false);
     /// <summary>Update a client by ID. Admin can update any client; non-admins only their own.</summary>
     Task<Response<ClientDto>> UpdateByIdAsync(int id, UpdateClientByIdDto model, bool isAdmin);
+    /// <summary>Activate or deactivate a client by ID. Admin can toggle any client; non-admins only their own.</summary>
+    Task<Response<ClientDto>> SetActiveAsync(int id, SetClientActiveDto model, int userId, bool isAdmin);
     /// <summary>Delete a client by ID.</summary>
     Task<Response> DeleteByIdAsync(int id);
     /// <summary>Get paginated clients. Scoped to the user unless isAdmin, in which case all clients are returned.</summary>
@@ -108,11 +110,13 @@ public class ClientService : IClientService
         return Response<ClientDto>.SuccessResponse(ToDto(client, balance), "Client fetched successfully.");
     }
 
-    public async Task<Response<List<ClientDto>>> GetAllAsync(int userId, bool isAdmin)
+    public async Task<Response<List<ClientDto>>> GetAllAsync(int userId, bool isAdmin, bool activeOnly = false)
     {
         var query = _dbContext.Clients.AsNoTracking().AsQueryable();
         if (!isAdmin)
             query = query.Where(c => c.UserId == userId);
+        if (activeOnly)
+            query = query.Where(c => c.IsActive);
 
         var clients = await query.Include(c => c.ClientType).OrderBy(c => c.Name).ToListAsync();
 
@@ -188,6 +192,27 @@ public class ClientService : IClientService
         await _dbContext.SaveChangesAsync();
 
         return Response.SuccessResponse("Client deleted.");
+    }
+
+    public async Task<Response<ClientDto>> SetActiveAsync(int id, SetClientActiveDto model, int userId, bool isAdmin)
+    {
+        var entity = await _dbContext.Clients
+            .Include(client => client.ClientType)
+            .Where(client => client.Id == id && (isAdmin || client.UserId == userId))
+            .FirstOrDefaultAsync();
+
+        if (entity is null)
+            return Response<ClientDto>.ErrorResponse("Not found", $"Client with id '{id}' was not found.");
+
+        entity.IsActive = model.IsActive;
+        await _dbContext.SaveChangesAsync();
+
+        var balance = await _dbContext.VClientBalances.AsNoTracking()
+            .Where(v => v.ClientId == id)
+            .Select(v => v.Balance)
+            .FirstOrDefaultAsync();
+
+        return Response<ClientDto>.SuccessResponse(ToDto(entity, balance), model.IsActive ? "Client activated successfully." : "Client deactivated successfully.");
     }
 
     private async Task<Dictionary<int, decimal?>> GetBalancesAsync(List<int> clientIds)

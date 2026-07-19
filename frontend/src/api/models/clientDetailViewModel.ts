@@ -29,6 +29,7 @@ export interface ClientDetailViewModel {
   openingBalance?: number | null;
   /** @nullable */
   notes?: string | null;
+  isActive?: boolean;
   totalOrderCount?: number;
   totalOrderAmount?: number;
   totalPurchaseCount?: number;

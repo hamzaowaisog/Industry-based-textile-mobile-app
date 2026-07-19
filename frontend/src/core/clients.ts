@@ -3,6 +3,7 @@ import {
   clientDeleteClientById,
   clientGetAllClients,
   clientGetAllClientsFiltered,
+  clientSetClientActive,
   clientUpdateClientById,
 } from '@api/generated/client/client';
 import { reportGetClientDetailById } from '@api/generated/report/report';
@@ -90,6 +91,20 @@ export const updateClientAsync = async (
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     const res = await clientUpdateClientById(id, values);
+    const r = parseApiResponse(res, i18n.t('common.errorGeneric'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('common.errorGeneric')) };
+  }
+};
+
+export const setClientActiveAsync = async (
+  id: number,
+  isActive: boolean,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const res = await clientSetClientActive(id, { isActive });
     const r = parseApiResponse(res, i18n.t('common.errorGeneric'));
     if (!r.success) return { success: false, error: r.error };
     return { success: true };

@@ -52,6 +52,7 @@ public class ClientDetailViewModel
     public decimal? CreditLimit { get; set; }
     public decimal? OpeningBalance { get; set; }
     public string? Notes { get; set; }
+    public bool IsActive { get; set; }
     public int TotalOrderCount { get; set; }
     public decimal TotalOrderAmount { get; set; }
     public int TotalPurchaseCount { get; set; }

@@ -38,6 +38,15 @@
     "deleteTitle": "Delete Client",
     "deleteMessage": "Delete {{name}}? This cannot be undone.",
     "deleteSuccess": "Client deleted",
+    "inactive": "Inactive",
+    "accountStatus": "Account Status",
+    "accountStatusHint": "Toggle to mark this client active or inactive.",
+    "activateTitle": "Activate client?",
+    "activateMessage": "{{name}} will be marked active again.",
+    "deactivateTitle": "Deactivate client?",
+    "deactivateMessage": "{{name}} will be marked inactive.",
+    "activateSuccess": "Client activated",
+    "deactivateSuccess": "Client deactivated",
     "emptyTitle": "Build your client list",
     "emptySubtext": "Add customers and suppliers to record orders, track balances, and issue invoices in one place.",
     "emptyCtaLabel": "Add First Client",
@@ -173,7 +182,9 @@
     "resetFailed": "Password reset failed.",
     "resetFailedRetry": "Password reset failed. Please try again.",
     "registerFailed": "Registration failed. Please try again.",
-    "logoutSuccess": "You have been signed out."
+    "logoutSuccess": "You have been signed out.",
+    "accountDeactivatedTitle": "Account Deactivated",
+    "accountDeactivatedMessage": "Your account has been deactivated by an administrator. You have been signed out."
   },
   "login": {
     "welcomeBack": "Welcome back",
@@ -745,13 +756,13 @@
       "successSubtitle": "Changes have been saved.",
       "immutableAmount": "Amount cannot be changed after recording",
       "immutableClient": "Client cannot be changed after recording",
-    "immutableDirection": "Direction cannot be changed after recording",
-    "dateHint": "Leave unchanged or enter a new date (yyyy-MM-dd)",
-    "discardTitle": "Discard changes?",
-    "discardMessage": "Any unsaved changes will be lost.",
-    "discard": "Discard",
-    "keepEditing": "Keep editing"
-  },
+      "immutableDirection": "Direction cannot be changed after recording",
+      "dateHint": "Leave unchanged or enter a new date (yyyy-MM-dd)",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
     "detail": {
       "reference": "HT-PAYMENT-{{id}}",
       "allocations": "Allocations",
@@ -1039,11 +1050,26 @@
       "title": "Reports",
       "subtitle": "Insights and exports",
       "view": "View",
-      "profitLoss": { "title": "Profit & Loss", "desc": "Sales vs purchases vs expenses" },
-      "clientBalance": { "title": "Client Balances", "desc": "Who owes you, who you owe" },
-      "creditDebit": { "title": "Credit / Debit", "desc": "Monthly money flow trend" },
-      "summary": { "title": "Overall Summary", "desc": "Cross-business KPIs" },
-      "clientDetail": { "title": "Client Detail", "desc": "Drill-down per customer" }
+      "profitLoss": {
+        "title": "Profit & Loss",
+        "desc": "Sales vs purchases vs expenses"
+      },
+      "clientBalance": {
+        "title": "Client Balances",
+        "desc": "Who owes you, who you owe"
+      },
+      "creditDebit": {
+        "title": "Credit / Debit",
+        "desc": "Monthly money flow trend"
+      },
+      "summary": {
+        "title": "Overall Summary",
+        "desc": "Cross-business KPIs"
+      },
+      "clientDetail": {
+        "title": "Client Detail",
+        "desc": "Drill-down per customer"
+      }
     },
     "filter": {
       "allTime": "All time",
@@ -1080,7 +1106,10 @@
     "clientBalance": {
       "title": "Client Balances",
       "subtitle": "Outstanding by party",
-      "tabs": { "customers": "Customers", "suppliers": "Suppliers" },
+      "tabs": {
+        "customers": "Customers",
+        "suppliers": "Suppliers"
+      },
       "customersOweYou": "Customers owe you",
       "youOweSuppliers": "You owe suppliers",
       "clientCount": "{{count}} clients",
@@ -1138,7 +1167,11 @@
       "totalPurchases": "Total purchases",
       "paymentsIn": "Payments in",
       "paymentsOut": "Payments out",
-      "tabs": { "orders": "Orders", "purchases": "Purchases", "payments": "Payments" },
+      "tabs": {
+        "orders": "Orders",
+        "purchases": "Purchases",
+        "payments": "Payments"
+      },
       "noOrders": "No orders for this client.",
       "noPurchases": "No purchases for this client.",
       "noPayments": "No payments for this client.",
@@ -1170,6 +1203,15 @@
     "deleteTitle": "Delete user?",
     "deleteMessage": "This will permanently remove {{name}}'s account. This cannot be undone.",
     "deleteSuccess": "User deleted",
+    "accountStatus": "Account Status",
+    "accountStatusHint": "Inactive users cannot sign in.",
+    "selfStatusHint": "You cannot change your own account status.",
+    "activateTitle": "Activate user?",
+    "activateMessage": "{{name}} will be able to sign in again.",
+    "deactivateTitle": "Deactivate user?",
+    "deactivateMessage": "{{name}} will no longer be able to sign in.",
+    "activateSuccess": "User activated",
+    "deactivateSuccess": "User deactivated",
     "createTitle": "New User",
     "createSubtitle": "Admin creates an account",
     "createSuccessTitle": "Account created",
@@ -1213,8 +1255,24 @@
   },
   "settings": {
     "title": "Settings",
-    "changePassword": "Change Password",
-    "logout": "Logout"
+    "changePassword": "Change password",
+    "logout": "Logout",
+    "accountSection": "Account",
+    "changePasswordSub": "Update your account password",
+    "resendConfirmation": "Resend confirmation",
+    "resendConfirmationSub": "Verify your email address",
+    "resendConfirmationSuccessTitle": "Confirmation email sent",
+    "resendConfirmationSuccessSubtitle": "Check your inbox for the verification link",
+    "resendConfirmationFailed": "Failed to resend confirmation email",
+    "securitySection": "Security",
+    "biometricLogin": "Biometric login",
+    "biometricLoginSub": "Sign in with Face ID or fingerprint",
+    "notificationsSection": "Notifications",
+    "pushNotifications": "Push notifications",
+    "pushNotificationsSub": "Order updates, payments, and alerts",
+    "aboutSection": "About",
+    "appVersion": "App version",
+    "signOut": "Sign out"
   },
   "welcome": {
     "brandSubtitle": "TEXTILE ERP · MOBILE",
@@ -1376,5 +1434,19 @@
     "errorNoPdfApp": "No PDF viewer installed. Please install a PDF reader app and try again.",
     "errorCannotPreview": "This file could not be previewed. The PDF may be corrupted or unsupported.",
     "errorShare": "Could not share the PDF. Please try again."
+  },
+  "changePassword": {
+    "title": "Change Password",
+    "oldPasswordLabel": "Current password",
+    "oldPasswordPlaceholder": "Enter current password",
+    "newPasswordLabel": "New password",
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmPasswordLabel": "Confirm new password",
+    "confirmPasswordPlaceholder": "Re-enter new password",
+    "submit": "Update Password",
+    "successTitle": "Password updated",
+    "successSubtitle": "Your password has been changed successfully",
+    "errorTitle": "Could not update password",
+    "failed": "Failed to update password"
   }
 }

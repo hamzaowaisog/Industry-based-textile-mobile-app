@@ -51,3 +51,4 @@ export { ShareIcon } from '../../assets/svg/icons/ShareIcon';
 export { CalendarIcon } from '../../assets/svg/icons/CalendarIcon';
 export { StarIcon } from '../../assets/svg/icons/StarIcon';
 export { InfoIcon } from '../../assets/svg/icons/InfoIcon';
+export { ChevronRightIcon } from '../../assets/svg/icons/ChevronRightIcon';

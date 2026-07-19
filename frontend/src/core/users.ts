@@ -3,6 +3,7 @@ import {
   usersDeleteUserById,
   usersGetAllUsers,
   usersGetUserById,
+  usersSetUserActive,
 } from '@api/generated/users/users';
 import type { UserCreateViewModel, UserDto } from '@api/models';
 
@@ -39,6 +40,20 @@ export const createUserAsync = async (
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     const res = await usersAdminCreateUser(values);
+    const r = parseApiResponse(res, i18n.t('common.errorGeneric'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('common.errorGeneric')) };
+  }
+};
+
+export const setUserActiveAsync = async (
+  id: number,
+  isActive: boolean,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const res = await usersSetUserActive(id, { isActive });
     const r = parseApiResponse(res, i18n.t('common.errorGeneric'));
     if (!r.success) return { success: false, error: r.error };
     return { success: true };

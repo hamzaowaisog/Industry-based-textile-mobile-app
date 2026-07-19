@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppAvatar } from '@components/common/AppAvatar';
 import { AppBadge } from '@components/common/AppBadge';
 import { AppCard } from '@components/common/AppCard';
+import { AppToggle } from '@components/common/AppToggle';
 import { ReportScreenHeader } from '@components/common/ReportScreenHeader';
 
 import { getInitials } from '@utils/helpers/textHelpers';
@@ -25,8 +26,10 @@ export const UserDetailComponent = ({
   user,
   loading,
   submitting,
+  isSelf,
   onBack,
   onDelete,
+  onToggleActive,
 }: UserDetailComponentProps) => {
   const { t } = useTranslation();
 
@@ -92,6 +95,24 @@ export const UserDetailComponent = ({
             </View>
           </View>
         </AppCard>
+
+        <View style={styles.sectionPad}>
+          <AppCard padding={16}>
+            <View style={styles.statusRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.infoVal}>{t('users.accountStatus')}</Text>
+                <Text style={styles.infoKey}>
+                  {t(isSelf ? 'users.selfStatusHint' : 'users.accountStatusHint')}
+                </Text>
+              </View>
+              <AppToggle
+                value={user.isActive}
+                onValueChange={onToggleActive}
+                disabled={submitting || isSelf}
+              />
+            </View>
+          </AppCard>
+        </View>
 
         <View style={styles.sectionPad}>
           <Text style={styles.sectionLabel}>{t('users.detailSection')}</Text>

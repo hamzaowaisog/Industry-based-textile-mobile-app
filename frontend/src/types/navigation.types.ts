@@ -100,6 +100,11 @@ export type UserStackParamList = {
   CreateUser: undefined;
 };
 
+export type SettingsStackParamList = {
+  Settings: undefined;
+  ChangePassword: undefined;
+};
+
 // ── Main stack (wraps drawer + modal screens) ──────────────────────────────────
 
 export type MainStackParamList = {
@@ -125,7 +130,7 @@ export type MainDrawerParamList = {
   LedgerStack: NavigatorScreenParams<LedgerStackParamList>;
   ReportsStack: NavigatorScreenParams<ReportStackParamList>;
   UsersStack: NavigatorScreenParams<UserStackParamList>;
-  Settings: undefined;
+  SettingsStack: NavigatorScreenParams<SettingsStackParamList>;
 };
 
 // ── Auth nav/route prop helpers ────────────────────────────────────────────────
@@ -258,4 +263,12 @@ export type ClientDetailReportScreenProps = NativeStackScreenProps<
 export type UserDetailScreenProps = NativeStackScreenProps<
   UserStackParamList,
   typeof SM.USER_DETAIL
+>;
+
+// ── Settings screen props ───────────────────────────────────────────────────
+
+export type SettingsNavProp = NativeStackNavigationProp<SettingsStackParamList, typeof SM.SETTINGS>;
+export type ChangePasswordNavProp = NativeStackNavigationProp<
+  SettingsStackParamList,
+  typeof SM.CHANGE_PASSWORD
 >;

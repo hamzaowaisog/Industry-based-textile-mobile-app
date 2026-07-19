@@ -453,6 +453,7 @@ public class ReportService : IReportService
             CreditLimit = client.CreditLimit,
             OpeningBalance = client.OpeningBalance,
             Notes = client.Notes,
+            IsActive = client.IsActive,
             TotalOrderCount = deliveredOrders.Count,
             TotalOrderAmount = totalOrderAmount,
             TotalPurchaseCount = deliveredPurchases.Count,

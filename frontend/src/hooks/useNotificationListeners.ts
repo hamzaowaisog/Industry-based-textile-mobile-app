@@ -12,7 +12,12 @@ import {
 import { useDeviceStore } from '@stores/deviceStore';
 import { useNotificationStore } from '@stores/notificationStore';
 
+import { forceLogout } from '@utils/forceLogout';
 import { handleDeepLink } from '@utils/helpers/notificationDeepLink';
+import i18n from '@utils/i18n';
+import { showError } from '@utils/toast';
+
+import { AppConstants } from '@constants/appConstants';
 
 import type { BannerPayload } from '../types/notifications.types';
 
@@ -26,6 +31,12 @@ export const useNotificationListeners = () => {
     const unsubFg = onMessage(fcm, async (remoteMessage) => {
       const data = remoteMessage.data as Record<string, string>;
       if (!data?.type) return;
+
+      if (data.type === AppConstants.NOTIFICATION_TYPES.ACCOUNT_DEACTIVATED) {
+        await forceLogout();
+        showError(i18n.t('auth.accountDeactivatedTitle'), i18n.t('auth.accountDeactivatedMessage'));
+        return;
+      }
 
       incrementUnread();
 
@@ -42,6 +53,10 @@ export const useNotificationListeners = () => {
     const unsubBgTap = onNotificationOpenedApp(fcm, async (remoteMessage) => {
       const data = remoteMessage.data as Record<string, string>;
       if (!data?.type) return;
+      if (data.type === AppConstants.NOTIFICATION_TYPES.ACCOUNT_DEACTIVATED) {
+        await forceLogout();
+        return;
+      }
       incrementUnread();
       handleDeepLink(data.type, data.entityId ? Number(data.entityId) : undefined);
     });
@@ -49,6 +64,10 @@ export const useNotificationListeners = () => {
     getInitialNotification(fcm).then(async (remoteMessage) => {
       if (!remoteMessage?.data?.type) return;
       const data = remoteMessage.data as Record<string, string>;
+      if (data.type === AppConstants.NOTIFICATION_TYPES.ACCOUNT_DEACTIVATED) {
+        await forceLogout();
+        return;
+      }
       incrementUnread();
       handleDeepLink(data.type, data.entityId ? Number(data.entityId) : undefined);
     });
