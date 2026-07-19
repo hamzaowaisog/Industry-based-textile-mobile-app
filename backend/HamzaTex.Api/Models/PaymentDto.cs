@@ -68,3 +68,10 @@ public class UnallocatedCreditDto
     public string? ClientName { get; set; }
     public decimal UnallocatedAmount { get; set; }
 }
+
+public class PaymentSummaryDto
+{
+    public decimal TotalReceived { get; set; }
+    public decimal TotalPaid { get; set; }
+    public int TotalCount { get; set; }
+}

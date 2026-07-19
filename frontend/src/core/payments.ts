@@ -3,6 +3,7 @@ import {
   paymentDelete,
   paymentGetAll,
   paymentGetById,
+  paymentGetSummary,
   paymentGetUnallocated,
   paymentReverse,
   paymentUpdate,
@@ -11,18 +12,24 @@ import type {
   PaymentCreateViewModel,
   PaymentDto,
   PaymentDtoPagedList,
+  PaymentSummaryDto,
   PaymentUpdateViewModel,
   UnallocatedCreditDto,
 } from '@api/models';
 
 import { parseApiError, parseApiResponse } from '@utils/helpers/apiResponse';
-import { mapApiPaymentDetail, mapApiPaymentToRow } from '@utils/helpers/paymentMappers';
+import {
+  mapApiPaymentDetail,
+  mapApiPaymentSummary,
+  mapApiPaymentToRow,
+} from '@utils/helpers/paymentMappers';
 import i18n from '@utils/i18n';
 
 import type {
   EditPaymentFormValues,
   PaymentDetail,
   PaymentRow,
+  PaymentSummary,
   RecordPaymentFormValues,
 } from '../types/payments.types';
 
@@ -41,6 +48,17 @@ export const fetchPaymentsPageAsync = async (
     };
   } catch {
     return { items: [], hasNextPage: false };
+  }
+};
+
+export const fetchPaymentsSummaryAsync = async (): Promise<PaymentSummary> => {
+  try {
+    const res = await paymentGetSummary();
+    const r = parseApiResponse<PaymentSummaryDto>(res, '');
+    if (!r.success || !r.data) return { totalReceived: 0, totalPaid: 0, totalCount: 0 };
+    return mapApiPaymentSummary(r.data);
+  } catch {
+    return { totalReceived: 0, totalPaid: 0, totalCount: 0 };
   }
 };
 

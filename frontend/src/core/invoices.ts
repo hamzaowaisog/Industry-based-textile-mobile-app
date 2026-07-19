@@ -3,6 +3,7 @@ import {
   invoiceDelete,
   invoiceGetAll,
   invoiceGetById,
+  invoiceGetSummary,
   invoiceUpdate,
 } from '@api/generated/invoice/invoice';
 import type {
@@ -10,12 +11,17 @@ import type {
   InvoiceDetailDto,
   InvoiceDto,
   InvoiceDtoPagedList,
+  InvoiceSummaryDto,
   InvoiceUpdateViewModel,
 } from '@api/models';
 
 import { parseApiError, parseApiResponse } from '@utils/helpers/apiResponse';
 import { sumInvoiceLines } from '@utils/helpers/invoiceContent';
-import { mapApiInvoiceDetail, mapApiInvoiceToRow } from '@utils/helpers/invoiceMappers';
+import {
+  mapApiInvoiceDetail,
+  mapApiInvoiceSummary,
+  mapApiInvoiceToRow,
+} from '@utils/helpers/invoiceMappers';
 import i18n from '@utils/i18n';
 
 import type {
@@ -23,6 +29,7 @@ import type {
   EditInvoiceFormValues,
   InvoiceDetail,
   InvoiceRow,
+  InvoiceSummary,
 } from '../types/invoices.types';
 
 export const fetchInvoicesPageAsync = async (
@@ -39,6 +46,17 @@ export const fetchInvoicesPageAsync = async (
     };
   } catch {
     return { items: [], hasNextPage: false };
+  }
+};
+
+export const fetchInvoicesSummaryAsync = async (): Promise<InvoiceSummary> => {
+  try {
+    const res = await invoiceGetSummary();
+    const r = parseApiResponse<InvoiceSummaryDto>(res, '');
+    if (!r.success || !r.data) return { totalReceivable: 0, totalPayable: 0, totalCount: 0 };
+    return mapApiInvoiceSummary(r.data);
+  } catch {
+    return { totalReceivable: 0, totalPayable: 0, totalCount: 0 };
   }
 };
 

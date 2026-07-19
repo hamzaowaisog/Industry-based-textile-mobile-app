@@ -43,6 +43,8 @@ public class ReportService : IReportService
 {
     private const int StatusDelivered = 3;
     private const int StatusCancelled = 4;
+    private const int StatusPaid = 3;
+    private const int StatusInvoiceCancelled = 4;
 
     private readonly ApplicationDbContext _db;
 
@@ -175,6 +177,42 @@ public class ReportService : IReportService
         var purchaseCount = await _db.Purchases.CountAsync();
         var clientCount = await _db.Clients.CountAsync();
 
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var currentMonthStartD = new DateOnly(today.Year, today.Month, 1);
+        var prevMonthStartD = currentMonthStartD.AddMonths(-1);
+        var prevMonthDayCount = DateTime.DaysInMonth(prevMonthStartD.Year, prevMonthStartD.Month);
+        var prevMonthCutoffD = prevMonthStartD.AddDays(Math.Min(today.Day, prevMonthDayCount) - 1);
+
+        var currentMonthSales = await _db.Transactions.AsNoTracking()
+            .Where(t => t.TransCategoryId == 1 && t.TransDate >= currentMonthStartD && t.TransDate <= today)
+            .SumAsync(t => t.Amount);
+
+        var prevMonthSales = await _db.Transactions.AsNoTracking()
+            .Where(t => t.TransCategoryId == 1 && t.TransDate >= prevMonthStartD && t.TransDate <= prevMonthCutoffD)
+            .SumAsync(t => t.Amount);
+
+        decimal? salesGrowthPercent = prevMonthSales > 0
+            ? Math.Round((currentMonthSales - prevMonthSales) / prevMonthSales * 100, 1)
+            : null;
+
+        var avgOrderValue = orderCount > 0 ? Math.Round(salesAmount / orderCount, 2) : 0;
+
+        var activeClientsCurrent = await _db.Transactions.AsNoTracking()
+            .Where(t => t.ClientId != null && t.TransDate >= currentMonthStartD && t.TransDate <= today)
+            .Select(t => t.ClientId)
+            .Distinct()
+            .CountAsync();
+
+        var activeClientsPrev = await _db.Transactions.AsNoTracking()
+            .Where(t => t.ClientId != null && t.TransDate >= prevMonthStartD && t.TransDate <= prevMonthCutoffD)
+            .Select(t => t.ClientId)
+            .Distinct()
+            .CountAsync();
+
+        var overdueInvoicesCount = await _db.Invoices.AsNoTracking()
+            .Where(i => i.DueDate != null && i.DueDate < today && i.InvoiceStatusId != StatusPaid && i.InvoiceStatusId != StatusInvoiceCancelled)
+            .CountAsync();
+
         return Response<SummaryTotalsViewModel>.SuccessResponse(new SummaryTotalsViewModel
         {
             TotalSalesAmount = salesAmount,
@@ -183,6 +221,11 @@ public class ReportService : IReportService
             TotalOrderCount = orderCount,
             TotalPurchaseCount = purchaseCount,
             TotalClientsCount = clientCount,
+            SalesGrowthPercent = salesGrowthPercent,
+            AvgOrderValue = avgOrderValue,
+            ActiveClientsCount = activeClientsCurrent,
+            ActiveClientsChange = activeClientsCurrent - activeClientsPrev,
+            OverdueInvoicesCount = overdueInvoicesCount,
         }, "Summary totals fetched.");
     }
 
@@ -250,8 +293,7 @@ public class ReportService : IReportService
             purchasesByClient.GetValueOrDefault(client.Id, new List<Purchase>()),
             paymentsByClient.GetValueOrDefault(client.Id, new List<Payment>()),
             invoicesByClient.GetValueOrDefault(client.Id, new List<Invoice>()),
-            transactionsByClient.GetValueOrDefault(client.Id, new List<Transaction>())
-                .OrderByDescending(t => t.TransDate).ThenByDescending(t => t.Id).Take(20).ToList(),
+            transactionsByClient.GetValueOrDefault(client.Id, new List<Transaction>()),
             balances.GetValueOrDefault(client.Id, 0),
             orderAllocations,
             purchaseAllocations
@@ -330,13 +372,11 @@ public class ReportService : IReportService
             .OrderByDescending(i => i.IssueDate).ThenByDescending(i => i.Id)
             .ToListAsync();
 
-        // Recent transactions for this client
+        // All transactions for this client — used for both recent-activity and balance history
         var transactions = await _db.Transactions.AsNoTracking()
             .Include(t => t.TransCategory)
             .Include(t => t.TransType)
             .Where(t => t.ClientId == clientId)
-            .OrderByDescending(t => t.TransDate).ThenByDescending(t => t.Id)
-            .Take(20)
             .ToListAsync();
 
         // Balance from view
@@ -413,6 +453,7 @@ public class ReportService : IReportService
             CreditLimit = client.CreditLimit,
             OpeningBalance = client.OpeningBalance,
             Notes = client.Notes,
+            IsActive = client.IsActive,
             TotalOrderCount = deliveredOrders.Count,
             TotalOrderAmount = totalOrderAmount,
             TotalPurchaseCount = deliveredPurchases.Count,
@@ -442,15 +483,53 @@ public class ReportService : IReportService
                 StatusName = i.InvoiceStatus?.Name ?? "Unknown",
                 TotalAmount = i.TotalAmount,
             }).ToList(),
-            RecentTransactions = transactions.Select(t => new ClientTransactionSummary
-            {
-                TransactionId = t.Id,
-                TransDate = t.TransDate,
-                CategoryName = t.TransCategory?.Name ?? "Unknown",
-                TypeName = t.TransType?.Name ?? "Unknown",
-                Amount = t.Amount,
-                IsReversal = t.Notes?.StartsWith("REVERSAL of Payment", StringComparison.OrdinalIgnoreCase) ?? false,
-            }).ToList(),
+            RecentTransactions = transactions
+                .OrderByDescending(t => t.TransDate).ThenByDescending(t => t.Id)
+                .Take(20)
+                .Select(t => new ClientTransactionSummary
+                {
+                    TransactionId = t.Id,
+                    TransDate = t.TransDate,
+                    CategoryName = t.TransCategory?.Name ?? "Unknown",
+                    TypeName = t.TransType?.Name ?? "Unknown",
+                    Amount = t.Amount,
+                    IsReversal = t.Notes?.StartsWith("REVERSAL of Payment", StringComparison.OrdinalIgnoreCase) ?? false,
+                }).ToList(),
+            BalanceHistory = BuildBalanceHistory(transactions, client.OpeningBalance ?? 0),
         };
+    }
+
+    private const int BalanceHistoryMonths = 6;
+
+    private static List<MonthlyBalancePoint> BuildBalanceHistory(List<Transaction> transactions, decimal openingBalance)
+    {
+        var ascending = transactions.OrderBy(t => t.TransDate).ThenBy(t => t.Id).ToList();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var currentMonthStart = new DateOnly(today.Year, today.Month, 1);
+
+        var points = new List<MonthlyBalancePoint>();
+        decimal cumulative = openingBalance;
+        var txnIndex = 0;
+
+        for (var i = BalanceHistoryMonths - 1; i >= 0; i--)
+        {
+            var monthStart = currentMonthStart.AddMonths(-i);
+            var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+            var cutoff = monthEnd < today ? monthEnd : today;
+
+            while (txnIndex < ascending.Count && ascending[txnIndex].TransDate <= cutoff)
+            {
+                cumulative += ascending[txnIndex].Amount;
+                txnIndex++;
+            }
+
+            points.Add(new MonthlyBalancePoint
+            {
+                Month = monthStart.ToString("MMM yyyy"),
+                Balance = cumulative,
+            });
+        }
+
+        return points;
     }
 }

@@ -71,6 +71,18 @@ public class PaymentController : BaseController
         return ToActionResult(await _paymentService.GetAllPaginatedAsync(page, pageSize, includeReversed, userId.Value, IsAdmin()));
     }
 
+    /// <summary>Get aggregate received/paid totals and total count across the full payment set (independent of pagination). Staff see only their own; Admin sees all.</summary>
+    [HttpGet("summary")]
+    [Authorize(Policy = "Authenticated")]
+    [ProducesResponseType(typeof(Response<PaymentSummaryDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSummary([FromQuery] bool includeReversed = false)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        return ToActionResult(await _paymentService.GetSummaryAsync(includeReversed, userId.Value, IsAdmin()));
+    }
+
     /// <summary>Get a payment by ID with its allocations.</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(Response<PaymentDto>), StatusCodes.Status200OK)]

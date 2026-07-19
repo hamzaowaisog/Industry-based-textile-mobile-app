@@ -13,4 +13,10 @@ export interface SummaryTotalsViewModel {
   totalOrderCount?: number;
   totalPurchaseCount?: number;
   totalClientsCount?: number;
+  /** @nullable */
+  salesGrowthPercent?: number | null;
+  avgOrderValue?: number;
+  activeClientsCount?: number;
+  activeClientsChange?: number;
+  overdueInvoicesCount?: number;
 }

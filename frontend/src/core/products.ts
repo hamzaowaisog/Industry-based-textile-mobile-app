@@ -47,17 +47,18 @@ export const fetchProductsAsync = async (): Promise<ProductPickerItem[]> => {
 export const fetchProductsPageAsync = async (
   page: number,
   pageSize: number,
-): Promise<{ items: ProductRow[]; hasNextPage: boolean }> => {
+): Promise<{ items: ProductRow[]; hasNextPage: boolean; totalCount: number }> => {
   try {
     const res = await productGetAllProductsPaginated({ page, pageSize });
     const r = parseApiResponse<any>(res as unknown, '');
-    if (!r.success || !r.data) return { items: [], hasNextPage: false };
+    if (!r.success || !r.data) return { items: [], hasNextPage: false, totalCount: 0 };
     return {
       items: (r.data.items ?? []).map(mapApiProductToRow),
       hasNextPage: !!r.data.hasNextPage,
+      totalCount: r.data.totalCount ?? 0,
     };
   } catch {
-    return { items: [], hasNextPage: false };
+    return { items: [], hasNextPage: false, totalCount: 0 };
   }
 };
 

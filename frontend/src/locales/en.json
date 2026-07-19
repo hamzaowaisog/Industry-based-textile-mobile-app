@@ -23,8 +23,8 @@
   },
   "clients": {
     "title": "Clients",
-    "activeCount": "{{count}} active",
-    "noActive": "0 active",
+    "totalCount": "{{count}} clients",
+    "matchCount": "{{count}} matches",
     "searchPlaceholder": "Search clients",
     "filterAll": "All",
     "filterCustomers": "Customers",
@@ -38,6 +38,15 @@
     "deleteTitle": "Delete Client",
     "deleteMessage": "Delete {{name}}? This cannot be undone.",
     "deleteSuccess": "Client deleted",
+    "inactive": "Inactive",
+    "accountStatus": "Account Status",
+    "accountStatusHint": "Toggle to mark this client active or inactive.",
+    "activateTitle": "Activate client?",
+    "activateMessage": "{{name}} will be marked active again.",
+    "deactivateTitle": "Deactivate client?",
+    "deactivateMessage": "{{name}} will be marked inactive.",
+    "activateSuccess": "Client activated",
+    "deactivateSuccess": "Client deactivated",
     "emptyTitle": "Build your client list",
     "emptySubtext": "Add customers and suppliers to record orders, track balances, and issue invoices in one place.",
     "emptyCtaLabel": "Add First Client",
@@ -173,7 +182,9 @@
     "resetFailed": "Password reset failed.",
     "resetFailedRetry": "Password reset failed. Please try again.",
     "registerFailed": "Registration failed. Please try again.",
-    "logoutSuccess": "You have been signed out."
+    "logoutSuccess": "You have been signed out.",
+    "accountDeactivatedTitle": "Account Deactivated",
+    "accountDeactivatedMessage": "Your account has been deactivated by an administrator. You have been signed out."
   },
   "login": {
     "welcomeBack": "Welcome back",
@@ -423,7 +434,7 @@
   "orders": {
     "title": "Orders",
     "newOrder": "New Order",
-    "thisWeek": "{{count}} this week",
+    "totalCount": "{{count}} orders",
     "tabs": {
       "all": "All",
       "pending": "Pending",
@@ -566,7 +577,7 @@
   "purchases": {
     "title": "Purchases",
     "newPurchase": "New Purchase",
-    "thisMonth": "{{count}} this month",
+    "totalCount": "{{count}} purchases",
     "tabs": {
       "all": "All",
       "pending": "Pending",
@@ -712,7 +723,7 @@
     "amountHelperPaid": "Money going out of your account",
     "overpayHelperReceived": "{{allocated}} will be applied to this order. The remaining {{excess}} will be applied to this client's other outstanding orders, then held as unallocated credit.",
     "overpayHelperPaid": "{{allocated}} will be applied to this purchase. The remaining {{excess}} will be applied to this supplier's other outstanding purchases, then held as unallocated credit.",
-    "thisMonth": "{{count}} this month",
+    "totalCount": "{{count}} payments",
     "tabs": {
       "all": "All",
       "received": "Received",
@@ -745,13 +756,13 @@
       "successSubtitle": "Changes have been saved.",
       "immutableAmount": "Amount cannot be changed after recording",
       "immutableClient": "Client cannot be changed after recording",
-    "immutableDirection": "Direction cannot be changed after recording",
-    "dateHint": "Leave unchanged or enter a new date (yyyy-MM-dd)",
-    "discardTitle": "Discard changes?",
-    "discardMessage": "Any unsaved changes will be lost.",
-    "discard": "Discard",
-    "keepEditing": "Keep editing"
-  },
+      "immutableDirection": "Direction cannot be changed after recording",
+      "dateHint": "Leave unchanged or enter a new date (yyyy-MM-dd)",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
     "detail": {
       "reference": "HT-PAYMENT-{{id}}",
       "allocations": "Allocations",
@@ -776,7 +787,7 @@
     "createInvoice": "Create Invoice",
     "viewPdf": "View PDF",
     "share": "Share",
-    "thisMonth": "{{count}} this month",
+    "totalCount": "{{count}} invoices",
     "received": "Receivable",
     "paidOut": "Payable",
     "overdue": "Overdue",
@@ -874,7 +885,7 @@
     "recent": "Recent",
     "thisMonth": "This month",
     "summaryMeta": "{{entries}} entries · {{categories}} categories",
-    "entriesCount": "{{count}} this month",
+    "totalCount": "{{count}} expenses",
     "empty": {
       "title": "No expenses yet",
       "subtitle": "Add your first expense to start tracking spending."
@@ -923,19 +934,345 @@
     "deleteMessage": "Permanently delete expense {{id}}? Its ledger transaction will also be removed. This cannot be undone.",
     "deleteSuccess": "Expense deleted"
   },
+  "stockMovements": {
+    "title": "Stock Movements",
+    "subtitle": "In, out, adjustments",
+    "totalCount": "{{count}} movements",
+    "addStockMove": "Add Stock Move",
+    "searchPlaceholder": "Search by product or source…",
+    "stockIn": "Stock In",
+    "stockOut": "Stock Out",
+    "product": "Product",
+    "productPlaceholder": "Select a product",
+    "selectProduct": "Select Product",
+    "searchProductPlaceholder": "Search products…",
+    "currentStock": "Current stock: {{qty}}",
+    "source": "Movement source",
+    "type": "Movement type",
+    "qty": "Quantity",
+    "unitCost": "Unit cost",
+    "unitPrice": "Unit price",
+    "movementDate": "Movement Date",
+    "filters": {
+      "in": "In",
+      "out": "Out",
+      "adjustments": "Adjustments"
+    },
+    "empty": {
+      "title": "No stock movements yet",
+      "subtitle": "Record your first stock movement to start tracking inventory."
+    },
+    "validation": {
+      "productRequired": "Please select a product",
+      "sourceRequired": "Please select a movement source",
+      "typeRequired": "Please select a movement type",
+      "qtyRequired": "Quantity is required",
+      "qtyPositive": "Quantity must be greater than zero",
+      "unitCostPositive": "Unit cost must be greater than zero",
+      "unitPricePositive": "Unit price must be greater than zero"
+    },
+    "add": {
+      "title": "Record Movement",
+      "errorTitle": "Stock Movement Failed",
+      "successTitle": "Movement Recorded",
+      "successSubtitle": "The stock movement has been saved successfully.",
+      "dateHint": "Defaults to today if not selected",
+      "datePlaceholder": "Select a date",
+      "discardTitle": "Discard movement?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
+    "edit": {
+      "title": "Edit Stock Movement",
+      "errorTitle": "Update Failed",
+      "successTitle": "Movement Updated",
+      "successSubtitle": "Changes have been saved and stock recalculated.",
+      "dateHint": "Tap to change the movement date",
+      "datePlaceholder": "Select a date",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Any unsaved changes will be lost.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing"
+    },
+    "detail": {
+      "reference": "HT-MOVEMENT-{{id}}",
+      "unitCost": "Unit cost",
+      "unitPrice": "Unit price",
+      "source": "Source",
+      "details": "Details",
+      "avgCostSnapshot": "Avg cost snapshot",
+      "avgPriceSnapshot": "Avg price snapshot",
+      "currentAvgCost": "Current avg cost",
+      "currentAvgPrice": "Current avg price"
+    },
+    "deleteTitle": "Delete Stock Movement",
+    "deleteMessage": "Permanently delete movement {{id}}? Product stock and averages will be recalculated. This cannot be undone.",
+    "deleteSuccess": "Stock movement deleted"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "subtitle": "System ledger · read-only",
+    "totalCount": "{{count}} transactions",
+    "searchPlaceholder": "Search by client or category…",
+    "netForPeriod": "Net for the period",
+    "filters": {
+      "credit": "Credit",
+      "debit": "Debit"
+    },
+    "categories": {
+      "sales": "Sales",
+      "purchases": "Purchases",
+      "officeExpenses": "Office Expenses",
+      "homeExpenses": "Home Expenses",
+      "cashIn": "Cash In",
+      "cashOut": "Cash Out",
+      "bankIn": "Bank In",
+      "bankOut": "Bank Out"
+    },
+    "empty": {
+      "title": "No transactions yet",
+      "subtitle": "Ledger entries are posted automatically from orders, purchases, payments, and expenses."
+    },
+    "detail": {
+      "reference": "HT-TXN-{{id}}",
+      "category": "Category",
+      "mode": "Mode",
+      "source": "Source",
+      "details": "Details",
+      "client": "Client",
+      "recordedBy": "Recorded by",
+      "notes": "Notes"
+    }
+  },
   "reports": {
-    "title": "Reports",
-    "profitLoss": "Profit & Loss",
-    "clientBalance": "Client Balances",
-    "creditDebit": "Credit / Debit",
-    "month": "Month",
-    "grossProfit": "Gross Profit",
-    "netProfit": "Net Profit"
+    "hub": {
+      "title": "Reports",
+      "subtitle": "Insights and exports",
+      "view": "View",
+      "profitLoss": {
+        "title": "Profit & Loss",
+        "desc": "Sales vs purchases vs expenses"
+      },
+      "clientBalance": {
+        "title": "Client Balances",
+        "desc": "Who owes you, who you owe"
+      },
+      "creditDebit": {
+        "title": "Credit / Debit",
+        "desc": "Monthly money flow trend"
+      },
+      "summary": {
+        "title": "Overall Summary",
+        "desc": "Cross-business KPIs"
+      },
+      "clientDetail": {
+        "title": "Client Detail",
+        "desc": "Drill-down per customer"
+      }
+    },
+    "filter": {
+      "allTime": "All time",
+      "allMonths": "All months",
+      "months": {
+        "jan": "Jan",
+        "feb": "Feb",
+        "mar": "Mar",
+        "apr": "Apr",
+        "may": "May",
+        "jun": "Jun",
+        "jul": "Jul",
+        "aug": "Aug",
+        "sep": "Sep",
+        "oct": "Oct",
+        "nov": "Nov",
+        "dec": "Dec"
+      }
+    },
+    "profitLoss": {
+      "title": "Profit & Loss",
+      "subtitle": "Sales, purchases & expenses",
+      "empty": "No data for the selected period.",
+      "netProfitLabel": "Net Profit",
+      "totalSales": "Total Sales",
+      "totalPurchases": "Total Purchases",
+      "totalExpenses": "Total Expenses",
+      "grossProfit": "Gross Profit",
+      "monthlyBreakdown": "Monthly breakdown",
+      "month": "Month",
+      "sales": "Sales",
+      "net": "Net"
+    },
+    "clientBalance": {
+      "title": "Client Balances",
+      "subtitle": "Outstanding by party",
+      "tabs": {
+        "customers": "Customers",
+        "suppliers": "Suppliers"
+      },
+      "customersOweYou": "Customers owe you",
+      "youOweSuppliers": "You owe suppliers",
+      "clientCount": "{{count}} clients",
+      "supplierCount": "{{count}} suppliers",
+      "searchPlaceholder": "Search clients…",
+      "empty": "No outstanding balances.",
+      "topByBalance": "Top by balance",
+      "owedToYou": "Owed to you",
+      "youOwe": "You owe"
+    },
+    "creditDebit": {
+      "title": "Credit / Debit",
+      "subtitle": "Money flow trend",
+      "empty": "No data for the selected period.",
+      "credit": "Credit",
+      "debit": "Debit",
+      "totalCredit": "Total credit",
+      "totalDebit": "Total debit",
+      "monthlyBreakdown": "Monthly breakdown",
+      "month": "Month",
+      "net": "Net"
+    },
+    "summary": {
+      "title": "Overall Summary",
+      "subtitle": "Cross-business snapshot",
+      "netProfit": "Net Profit",
+      "totalSales": "Total Sales",
+      "totalPurchases": "Total Purchases",
+      "totalExpenses": "Total Expenses",
+      "totalClients": "Total Clients",
+      "volumeCounts": "Volume counts",
+      "orders": "Orders",
+      "purchases": "Purchases",
+      "clients": "Clients",
+      "expenseBreakdown": "Expense breakdown",
+      "noExpenses": "No expenses recorded yet.",
+      "trendsTitle": "Trends",
+      "trends": {
+        "salesGrowth": "Sales growth",
+        "avgOrderValue": "Avg order value",
+        "activeClients": "Active clients (vs last month)",
+        "overdueInvoices": "Overdue invoices"
+      }
+    },
+    "clientDetail": {
+      "title": "Client Detail Report",
+      "pickClient": "Pick a client to see their full report.",
+      "selectClient": "Select client",
+      "change": "Change",
+      "currentBalance": "Current balance",
+      "balanceTrend": "Balance trend · 6 months",
+      "owesYou": "Owes you",
+      "youOweThem": "You owe them",
+      "totalOrders": "Total orders",
+      "totalPurchases": "Total purchases",
+      "paymentsIn": "Payments in",
+      "paymentsOut": "Payments out",
+      "tabs": {
+        "orders": "Orders",
+        "purchases": "Purchases",
+        "payments": "Payments"
+      },
+      "noOrders": "No orders for this client.",
+      "noPurchases": "No purchases for this client.",
+      "noPayments": "No payments for this client.",
+      "orderRef": "#{{id}}",
+      "purchaseRef": "#{{id}}",
+      "reversed": "Reversed",
+      "searchPlaceholder": "Search clients…"
+    }
+  },
+  "users": {
+    "title": "Users",
+    "totalCount": "{{count}} accounts",
+    "matchCount": "{{count}} matches",
+    "searchPlaceholder": "Search by name or email…",
+    "filterAll": "All",
+    "filterAdmin": "Admin",
+    "filterStaff": "Staff",
+    "active": "Active",
+    "inactive": "Inactive",
+    "emptyTitle": "No users yet",
+    "emptySubtext": "Add your team members and assign roles to get started.",
+    "emptyCtaLabel": "Add first user",
+    "detailTitle": "User Profile",
+    "detailSection": "Account details",
+    "fieldEmail": "Email",
+    "fieldUserName": "Username",
+    "fieldPhone": "Phone",
+    "fieldCreatedAt": "Member since",
+    "deleteTitle": "Delete user?",
+    "deleteMessage": "This will permanently remove {{name}}'s account. This cannot be undone.",
+    "deleteSuccess": "User deleted",
+    "accountStatus": "Account Status",
+    "accountStatusHint": "Inactive users cannot sign in.",
+    "selfStatusHint": "You cannot change your own account status.",
+    "activateTitle": "Activate user?",
+    "activateMessage": "{{name}} will be able to sign in again.",
+    "deactivateTitle": "Deactivate user?",
+    "deactivateMessage": "{{name}} will no longer be able to sign in.",
+    "activateSuccess": "User activated",
+    "deactivateSuccess": "User deactivated",
+    "createTitle": "New User",
+    "createSubtitle": "Admin creates an account",
+    "createSuccessTitle": "Account created",
+    "createSuccessSubtitle": "The user can sign in immediately.",
+    "createErrorTitle": "Could not create account",
+    "createAccountBtn": "Create Account",
+    "identitySection": "Identity",
+    "fieldName": "Full name",
+    "fieldNamePlaceholder": "e.g. Ayesha Khan",
+    "fieldEmailPlaceholder": "user@hamzatex.pk",
+    "fieldUserNamePlaceholder": "ayesha.k",
+    "fieldPhonePlaceholder": "03xx-xxxxxxx",
+    "fieldPassword": "Initial password",
+    "passwordHelper": "User will be prompted to change on first login",
+    "fieldConfirmPassword": "Confirm password",
+    "roleSection": "Role",
+    "roleAdmin": "Admin",
+    "roleAdminDesc": "Full access, reports, users",
+    "roleStaff": "Staff",
+    "roleStaffDesc": "Own data only",
+    "preConfirmedNotice": "Account is pre-confirmed — no email verification required. The user can sign in immediately.",
+    "discardTitle": "Discard changes?",
+    "discardMessage": "You have unsaved changes. Are you sure you want to discard them?",
+    "keepEditing": "Keep Editing",
+    "discard": "Discard",
+    "validationNameRequired": "Full name is required",
+    "validationEmailRequired": "Email is required",
+    "validationEmailInvalid": "Invalid email address",
+    "validationUserNameRequired": "Username is required",
+    "validationUserNameTooShort": "Username must be at least 3 characters",
+    "validationPhoneTooShort": "Phone number is too short",
+    "validationPhoneTooLong": "Phone number is too long",
+    "validationPhoneInvalid": "Enter a valid phone number",
+    "validationPasswordRequired": "Password is required",
+    "validationPasswordTooShort": "At least 8 characters required",
+    "validationPasswordUppercase": "Must contain at least one capital letter",
+    "validationPasswordNumber": "Must contain at least one number",
+    "validationPasswordSpecial": "Must contain at least one special character",
+    "validationConfirmPasswordRequired": "Please confirm the password",
+    "validationPasswordsMismatch": "Passwords do not match"
   },
   "settings": {
     "title": "Settings",
-    "changePassword": "Change Password",
-    "logout": "Logout"
+    "changePassword": "Change password",
+    "logout": "Logout",
+    "accountSection": "Account",
+    "changePasswordSub": "Update your account password",
+    "resendConfirmation": "Resend confirmation",
+    "resendConfirmationSub": "Verify your email address",
+    "resendConfirmationSuccessTitle": "Confirmation email sent",
+    "resendConfirmationSuccessSubtitle": "Check your inbox for the verification link",
+    "resendConfirmationFailed": "Failed to resend confirmation email",
+    "securitySection": "Security",
+    "biometricLogin": "Biometric login",
+    "biometricLoginSub": "Sign in with Face ID or fingerprint",
+    "notificationsSection": "Notifications",
+    "pushNotifications": "Push notifications",
+    "pushNotificationsSub": "Order updates, payments, and alerts",
+    "aboutSection": "About",
+    "appVersion": "App version",
+    "signOut": "Sign out"
   },
   "welcome": {
     "brandSubtitle": "TEXTILE ERP · MOBILE",
@@ -1097,5 +1434,19 @@
     "errorNoPdfApp": "No PDF viewer installed. Please install a PDF reader app and try again.",
     "errorCannotPreview": "This file could not be previewed. The PDF may be corrupted or unsupported.",
     "errorShare": "Could not share the PDF. Please try again."
+  },
+  "changePassword": {
+    "title": "Change Password",
+    "oldPasswordLabel": "Current password",
+    "oldPasswordPlaceholder": "Enter current password",
+    "newPasswordLabel": "New password",
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmPasswordLabel": "Confirm new password",
+    "confirmPasswordPlaceholder": "Re-enter new password",
+    "submit": "Update Password",
+    "successTitle": "Password updated",
+    "successSubtitle": "Your password has been changed successfully",
+    "errorTitle": "Could not update password",
+    "failed": "Failed to update password"
   }
 }

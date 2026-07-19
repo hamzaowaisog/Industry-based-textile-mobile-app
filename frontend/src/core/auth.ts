@@ -4,16 +4,19 @@ import {
   authBiometricDisable,
   authBiometricLogin,
   authBiometricSetup,
+  authChangePassword,
   authForgotPassword,
   authLogin,
   authLogout,
   authRegister,
+  authResendEmailConfirmation,
   authResendSignupOtp,
   authResetPassword,
   authVerifyResetOtp,
   authVerifySignupOtp,
 } from '../api/generated/auth/auth';
 import {
+  ChangePasswordViewModel,
   ForgotPasswordViewModel,
   LogoutRequest,
   RegisterViewModel,
@@ -239,6 +242,32 @@ export const resetPasswordAsync = async (
     return { success: true };
   } catch (err) {
     return { success: false, error: parseApiError(err, i18n.t('auth.resetFailedRetry')) };
+  }
+};
+
+export const changePasswordAsync = async (
+  payload: ChangePasswordViewModel,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const response = await authChangePassword(payload);
+    const r = parseApiResponse(response, i18n.t('changePassword.failed'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('changePassword.failed')) };
+  }
+};
+
+export const resendEmailConfirmationAsync = async (
+  email: string,
+): Promise<{ success: boolean; message?: string; error?: string }> => {
+  try {
+    const response = await authResendEmailConfirmation({ email });
+    const r = parseApiResponse(response, i18n.t('settings.resendConfirmationFailed'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true, message: r.message };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('settings.resendConfirmationFailed')) };
   }
 };
 

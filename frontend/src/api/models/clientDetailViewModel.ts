@@ -10,6 +10,7 @@ import type { ClientOrderSummary } from './clientOrderSummary';
 import type { ClientPaymentSummary } from './clientPaymentSummary';
 import type { ClientPurchaseSummary } from './clientPurchaseSummary';
 import type { ClientTransactionSummary } from './clientTransactionSummary';
+import type { MonthlyBalancePoint } from './monthlyBalancePoint';
 
 export interface ClientDetailViewModel {
   clientId?: number;
@@ -28,6 +29,7 @@ export interface ClientDetailViewModel {
   openingBalance?: number | null;
   /** @nullable */
   notes?: string | null;
+  isActive?: boolean;
   totalOrderCount?: number;
   totalOrderAmount?: number;
   totalPurchaseCount?: number;
@@ -46,4 +48,6 @@ export interface ClientDetailViewModel {
   invoices?: ClientInvoiceSummary[] | null;
   /** @nullable */
   recentTransactions?: ClientTransactionSummary[] | null;
+  /** @nullable */
+  balanceHistory?: MonthlyBalancePoint[] | null;
 }

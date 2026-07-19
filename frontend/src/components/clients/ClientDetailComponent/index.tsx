@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppToggle } from '@components/common/AppToggle';
 import { PdfButton } from '@components/common/PdfButton';
 
 import { CUSTOMER_TABS, SUPPLIER_TABS } from '@utils/helpers/clientDetailContent';
@@ -60,6 +61,7 @@ export const ClientDetailComponent = ({
   submitting,
   onDossierPdfPress,
   isDossierPdfDownloading,
+  onToggleActive,
 }: ClientDetailComponentProps) => {
   const { t } = useTranslation();
   const { height: windowHeight } = useWindowDimensions();
@@ -146,7 +148,9 @@ export const ClientDetailComponent = ({
                     <Text style={styles.headerBadgeText}>{client.clientTypeName}</Text>
                   </View>
                   <View style={styles.headerBadge}>
-                    <Text style={styles.headerBadgeText}>{t('clients.active')}</Text>
+                    <Text style={styles.headerBadgeText}>
+                      {client.isActive ? t('clients.active') : t('clients.inactive')}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -215,6 +219,25 @@ export const ClientDetailComponent = ({
                   <Text style={styles.statChipLabel}>{t('clients.statsPaymentsOut')}</Text>
                   <Text style={styles.statChipValue}>{formatPKR(client.totalPaymentsOut)}</Text>
                 </View>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.sectionPad}>
+            <Text style={styles.sectionLabel}>{t('clients.accountStatus')}</Text>
+            <View style={styles.infoCard}>
+              <View style={styles.statusRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoVal}>
+                    {client.isActive ? t('clients.active') : t('clients.inactive')}
+                  </Text>
+                  <Text style={styles.infoKey}>{t('clients.accountStatusHint')}</Text>
+                </View>
+                <AppToggle
+                  value={client.isActive}
+                  onValueChange={onToggleActive}
+                  disabled={submitting}
+                />
               </View>
             </View>
           </View>

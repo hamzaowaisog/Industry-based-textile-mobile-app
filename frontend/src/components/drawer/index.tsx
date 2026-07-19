@@ -159,23 +159,23 @@ export const DrawerComponent = ({
           activeOpacity={0.7}
           style={[
             styles.navItem,
-            activeRoute === AppConstants.SCREENS.MAIN.SETTINGS && styles.navItemActive,
+            activeRoute === AppConstants.SCREENS.MAIN.SETTINGS_STACK && styles.navItemActive,
           ]}
         >
-          {activeRoute === AppConstants.SCREENS.MAIN.SETTINGS && <View style={styles.activeBar} />}
+          {activeRoute === AppConstants.SCREENS.MAIN.SETTINGS_STACK && <View style={styles.activeBar} />}
           <SettingsIcon
             size={21}
             color={
-              activeRoute === AppConstants.SCREENS.MAIN.SETTINGS
+              activeRoute === AppConstants.SCREENS.MAIN.SETTINGS_STACK
                 ? colors.primary
                 : colors.textSecondary
             }
-            strokeWidth={activeRoute === AppConstants.SCREENS.MAIN.SETTINGS ? 2 : 1.8}
+            strokeWidth={activeRoute === AppConstants.SCREENS.MAIN.SETTINGS_STACK ? 2 : 1.8}
           />
           <Text
             style={[
               styles.navLabel,
-              activeRoute === AppConstants.SCREENS.MAIN.SETTINGS && styles.navLabelActive,
+              activeRoute === AppConstants.SCREENS.MAIN.SETTINGS_STACK && styles.navLabelActive,
             ]}
           >
             {t('drawer.footer.settings')}

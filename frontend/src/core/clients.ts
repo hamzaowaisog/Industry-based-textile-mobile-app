@@ -3,6 +3,7 @@ import {
   clientDeleteClientById,
   clientGetAllClients,
   clientGetAllClientsFiltered,
+  clientSetClientActive,
   clientUpdateClientById,
 } from '@api/generated/client/client';
 import { reportGetClientDetailById } from '@api/generated/report/report';
@@ -39,11 +40,11 @@ export const fetchClientsAsync = async (): Promise<ApiClientItem[]> => {
 export const fetchClientsPageAsync = async (
   page: number,
   pageSize: number,
-): Promise<{ items: ClientRow[]; hasNextPage: boolean }> => {
+): Promise<{ items: ClientRow[]; hasNextPage: boolean; totalCount: number }> => {
   try {
     const res = await clientGetAllClientsFiltered({ page, pageSize });
     const r = parseApiResponse<ClientDtoPagedList>(res, '');
-    if (!r.success || !r.data) return { items: [], hasNextPage: false };
+    if (!r.success || !r.data) return { items: [], hasNextPage: false, totalCount: 0 };
     const items = (r.data.items ?? []).map((item) =>
       mapApiClientToRow({
         id: item.id ?? 0,
@@ -54,9 +55,9 @@ export const fetchClientsPageAsync = async (
         openingBalance: item.openingBalance ?? null,
       }),
     );
-    return { items, hasNextPage: !!r.data.hasNextPage };
+    return { items, hasNextPage: !!r.data.hasNextPage, totalCount: r.data.totalCount ?? 0 };
   } catch {
-    return { items: [], hasNextPage: false };
+    return { items: [], hasNextPage: false, totalCount: 0 };
   }
 };
 
@@ -90,6 +91,20 @@ export const updateClientAsync = async (
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     const res = await clientUpdateClientById(id, values);
+    const r = parseApiResponse(res, i18n.t('common.errorGeneric'));
+    if (!r.success) return { success: false, error: r.error };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: parseApiError(err, i18n.t('common.errorGeneric')) };
+  }
+};
+
+export const setClientActiveAsync = async (
+  id: number,
+  isActive: boolean,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const res = await clientSetClientActive(id, { isActive });
     const r = parseApiResponse(res, i18n.t('common.errorGeneric'));
     if (!r.success) return { success: false, error: r.error };
     return { success: true };

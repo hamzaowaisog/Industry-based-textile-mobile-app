@@ -23,3 +23,8 @@ public class ClientUpdateViewModel
     public string? Notes { get; set; }
     public bool IsActive { get; set; }
 }
+
+public class SetClientActiveViewModel
+{
+    public bool IsActive { get; set; }
+}

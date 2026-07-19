@@ -92,7 +92,7 @@ public class TransactionController : BaseController
 
     // ── Read ──────────────────────────────────────────────────────────────────
 
-    /// <summary>Get all transactions paginated. Staff see only their own; Admin sees all.</summary>
+    /// <summary>Get cash-movement transactions paginated (Expenses + Cash/Bank In &amp; Out — excludes accrual Sales/Purchases rows, which are already represented by their matching Payment row). Staff see only their own; Admin sees all.</summary>
     [HttpGet]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<PagedList<TransactionDto>>), StatusCodes.Status200OK)]
@@ -105,6 +105,18 @@ public class TransactionController : BaseController
     }
 
 
+
+    /// <summary>Get aggregate Credit/Debit cash-flow totals (Expenses + Cash/Bank In &amp; Out categories — excludes accrual Sales/Purchases postings, which would double-count the same amount at delivery and again at payment). Admin sees all; non-admins see only their own transactions.</summary>
+    [HttpGet("summary")]
+    [Authorize(Policy = "Authenticated")]
+    [ProducesResponseType(typeof(Response<TransactionSummaryDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSummary()
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
+
+        return ToActionResult(await _transactionService.GetSummaryAsync(userId.Value, IsAdmin()));
+    }
 
     /// <summary>Get a transaction by ID. Staff can only access their own records.</summary>
     [HttpGet("{id:int}")]
@@ -164,8 +176,21 @@ public class TransactionController : BaseController
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 
+        var summaryResult = await _transactionService.GetSummaryAsync(userId.Value, IsAdmin());
+        var totalCredit = summaryResult.Data?.TotalCredit ?? 0m;
+        var totalDebit = summaryResult.Data?.TotalDebit ?? 0m;
         var pdf = _pdfService.CreatePdf(
-            "Transactions", "Full ledger. All amounts in PKR.", result.Data, EntityPdfConfigs.Transaction, new PdfOptions { ShowRowNumbers = true });
+            "Transactions", "Cash movement ledger. All amounts in PKR.", result.Data, EntityPdfConfigs.Transaction,
+            new PdfOptions
+            {
+                ShowRowNumbers = true,
+                Stats = new()
+                {
+                    new Stat("Net for Period", PdfFormat.Rs(totalCredit - totalDebit), Highlight: true),
+                    new Stat("Total Credit", PdfFormat.Rs(totalCredit)),
+                    new Stat("Total Debit", PdfFormat.Rs(totalDebit)),
+                },
+            });
         return File(pdf, "application/pdf", "transactions.pdf");
     }
 

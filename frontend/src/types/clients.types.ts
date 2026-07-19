@@ -71,6 +71,7 @@ export type ClientDetail = {
   creditLimit: number | null;
   openingBalance: number | null;
   notes: string | null;
+  isActive: boolean;
   orders: ClientOrderSummary[];
   purchases: ClientPurchaseSummary[];
   payments: ClientPaymentSummary[];
@@ -100,12 +101,17 @@ export type ClientStore = {
     data: ClientFormValues,
   ) => Promise<{ success: boolean; error?: string }>;
   deleteClient: (serverId: number) => Promise<{ success: boolean; error?: string }>;
+  setClientActive: (
+    serverId: number,
+    isActive: boolean,
+  ) => Promise<{ success: boolean; error?: string }>;
   clearCurrentClient: () => void;
   prepareDetailLoad: () => void;
 };
 
 export type ClientListComponentProps = {
   clients: ClientRow[];
+  totalCount: number;
   filter: ClientFilter;
   search: string;
   loading: boolean;
@@ -138,6 +144,7 @@ export type ClientDetailComponentProps = {
   submitting?: boolean;
   onDossierPdfPress: () => void;
   isDossierPdfDownloading: boolean;
+  onToggleActive: (isActive: boolean) => void;
 };
 
 export type ClientFormComponentProps = {

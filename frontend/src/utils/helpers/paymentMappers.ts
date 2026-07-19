@@ -1,6 +1,6 @@
-import type { PaymentDto } from '@api/models';
+import type { PaymentDto, PaymentSummaryDto } from '@api/models';
 
-import type { PaymentDetail, PaymentRow } from '../../types/payments.types';
+import type { PaymentDetail, PaymentRow, PaymentSummary } from '../../types/payments.types';
 
 export const mapApiPaymentToRow = (p: PaymentDto): PaymentRow => ({
   id: p.id ?? 0,
@@ -13,6 +13,12 @@ export const mapApiPaymentToRow = (p: PaymentDto): PaymentRow => ({
   amount: p.amount ?? 0,
   paymentDate: p.paymentDate ?? '',
   isReversed: !!p.isReversed,
+});
+
+export const mapApiPaymentSummary = (s: PaymentSummaryDto): PaymentSummary => ({
+  totalReceived: s.totalReceived ?? 0,
+  totalPaid: s.totalPaid ?? 0,
+  totalCount: s.totalCount ?? 0,
 });
 
 export const mapApiPaymentDetail = (p: PaymentDto): PaymentDetail => ({

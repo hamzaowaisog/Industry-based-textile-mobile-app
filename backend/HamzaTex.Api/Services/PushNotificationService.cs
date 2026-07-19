@@ -42,6 +42,7 @@ public class PushNotificationService : IPushNotificationService
         ["low_stock"]          = ("Low Stock Alert",     "{productName} is below reorder level ({qty} remaining)"),
         ["expense_approved"]   = ("Expense Recorded",    "PKR {amount} expense recorded ({category})"),
         ["client_added"]       = ("New Client Added",    "{clientName} has been added as a client"),
+        ["account_deactivated"] = ("Account Deactivated", "Your account has been deactivated by an administrator."),
     };
 
     public PushNotificationService(
@@ -52,10 +53,22 @@ public class PushNotificationService : IPushNotificationService
         _scopeFactory = scopeFactory;
         _logger = logger;
 
+        var json = configuration["Firebase:ServiceAccountJson"];
         var path = configuration["Firebase:ServiceAccountPath"];
-        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+
+        GoogleCredential? credential = null;
+        if (!string.IsNullOrWhiteSpace(json))
         {
-            _logger.LogWarning("Firebase service account not found at '{Path}'. Push notifications disabled.", path);
+            credential = GoogleCredential.FromJson(json);
+        }
+        else if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+        {
+            credential = GoogleCredential.FromFile(path);
+        }
+
+        if (credential is null)
+        {
+            _logger.LogWarning("No Firebase service account configured (Firebase:ServiceAccountJson or Firebase:ServiceAccountPath). Push notifications disabled.");
             _isConfigured = false;
             return;
         }
@@ -64,7 +77,7 @@ public class PushNotificationService : IPushNotificationService
         {
             FirebaseApp.Create(new AppOptions
             {
-                Credential = GoogleCredential.FromFile(path)
+                Credential = credential
             });
         }
 

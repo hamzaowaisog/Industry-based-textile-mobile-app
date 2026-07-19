@@ -5,6 +5,8 @@ public class StockMovementsDto
     public int Id { get; set; }
     public int ProductId { get; set; }
     public string? ProductName { get; set; }
+    public int UnitId { get; set; }
+    public string? UnitName { get; set; }
     public int MovementSource { get; set; }
     public string? MovementSourceName { get; set; }
     public int MovementType { get; set; }
@@ -14,7 +16,18 @@ public class StockMovementsDto
     public decimal? UnitPrice { get; set; }
     public decimal? AverageCostAtMovement { get; set; }
     public decimal? AveragePriceAtMovement { get; set; }
+    public decimal? CurrentAverageCost { get; set; }
+    public decimal? CurrentAveragePrice { get; set; }
     public DateOnly MovementDate { get; set; }
+}
+
+/// <summary>Aggregate in/out quantity totals across the full matching stock movement history (not just one page).</summary>
+public class StockMovementsSummaryDto
+{
+    public decimal TotalIn { get; set; }
+    public decimal TotalOut { get; set; }
+    public string? TotalInUnitLabel { get; set; }
+    public string? TotalOutUnitLabel { get; set; }
 }
 
 public class CreateStockMovementsDto
@@ -36,6 +49,12 @@ public class CreateStockMovementsDto
     /// returns stock (In) but must adjust Price.
     /// </summary>
     public int? AverageDimensionOverride { get; set; } = null;
+
+    /// <summary>
+    /// When true, skips the stock-movement notification (used by order/purchase
+    /// line loops — those flows send their own document-level notification).
+    /// </summary>
+    public bool SuppressNotification { get; set; }
 }
 
 /// <summary>Average dimensions for <see cref="CreateStockMovementsDto.AverageDimensionOverride"/>.</summary>

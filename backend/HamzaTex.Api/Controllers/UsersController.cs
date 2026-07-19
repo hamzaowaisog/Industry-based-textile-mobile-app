@@ -96,6 +96,22 @@ public class UsersController : BaseController
         return ToActionResult(response);
     }
 
+    /// <summary>Admin activates or deactivates a user by ID. An admin cannot deactivate their own account.</summary>
+    [HttpPatch("{id}/active")]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(Response<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetUserActive(int id, [FromBody] SetUserActiveViewModel model)
+    {
+        if (GetUserIdOrUnauthorized(out var requestingUserId) is { } authError)
+            return authError;
+
+        var dto = new SetUserActiveDto { IsActive = model.IsActive };
+        var response = await _userService.SetActiveAsync(id, dto, requestingUserId);
+        return ToActionResult(response);
+    }
+
     /// <summary>Delete a user by ID. Admin only.</summary>
     [HttpDelete("{id}")]
     [Authorize(Policy = "AdminOnly")]

@@ -24,6 +24,12 @@ export type InvoiceRow = {
   createdAt: string | null;
 };
 
+export type InvoiceSummary = {
+  totalReceivable: number;
+  totalPayable: number;
+  totalCount: number;
+};
+
 export type InvoiceDetail = {
   id: number;
   invoiceNumber: string;

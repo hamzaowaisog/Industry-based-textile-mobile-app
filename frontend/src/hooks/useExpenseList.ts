@@ -36,9 +36,9 @@ export const useExpenseList = () => {
 
   const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
     useInfiniteQuery<
-      { items: ExpenseRow[]; hasNextPage: boolean },
+      { items: ExpenseRow[]; hasNextPage: boolean; totalCount: number },
       Error,
-      InfiniteData<{ items: ExpenseRow[]; hasNextPage: boolean }>,
+      InfiniteData<{ items: ExpenseRow[]; hasNextPage: boolean; totalCount: number }>,
       string[],
       number
     >({
@@ -68,6 +68,7 @@ export const useExpenseList = () => {
   );
 
   const allExpenses = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
 
   const filtered = useMemo(() => {
     let result = allExpenses;
@@ -78,8 +79,7 @@ export const useExpenseList = () => {
       const q = search.toLowerCase();
       result = result.filter(
         (e) =>
-          (e.notes ?? '').toLowerCase().includes(q) ||
-          e.expenseTypeName.toLowerCase().includes(q),
+          (e.notes ?? '').toLowerCase().includes(q) || e.expenseTypeName.toLowerCase().includes(q),
       );
     }
     return result;
@@ -117,7 +117,7 @@ export const useExpenseList = () => {
 
   return {
     expenses: filtered,
-    totalCount: allExpenses.length,
+    totalCount,
     summary: summary ?? null,
     summaryLoading: summaryFetching && !refreshing,
     search,

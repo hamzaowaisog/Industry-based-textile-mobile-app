@@ -117,7 +117,7 @@ export const InvoiceListComponent = ({
         </View>
         <Text style={styles.headerTitle}>{t('invoices.title')}</Text>
         <Text style={styles.headerSub}>
-          {totalCount > 0 ? t('invoices.thisMonth', { count: totalCount }) : t('invoices.subtitle')}
+          {totalCount > 0 ? t('invoices.totalCount', { count: totalCount }) : t('invoices.subtitle')}
         </Text>
       </View>
 

@@ -2,16 +2,16 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { DrawerActions, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
+import { InfiniteData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import { usePaymentStore } from '@stores/paymentStore';
 
-import { PAYMENT_DIRECTION_TAB_ID_MAP, isPaymentReceived } from '@utils/helpers/paymentContent';
+import { PAYMENT_DIRECTION_TAB_ID_MAP } from '@utils/helpers/paymentContent';
 
 import { AppConstants } from '@constants/appConstants';
 import { queryKeys } from '@constants/queryKeys';
 
-import { fetchPaymentsPageAsync } from '../core/payments';
+import { fetchPaymentsPageAsync, fetchPaymentsSummaryAsync } from '../core/payments';
 import type { PaymentStackParamList } from '../types/navigation.types';
 import type { PaymentDirectionTab, PaymentRow } from '../types/payments.types';
 import { usePdfDownload } from './usePdfDownload';
@@ -41,10 +41,17 @@ export const usePaymentList = () => {
       staleTime: 0,
     });
 
+  const { data: summary, refetch: refetchSummary } = useQuery({
+    queryKey: queryKeys.payments.summary(),
+    queryFn: fetchPaymentsSummaryAsync,
+    staleTime: 0,
+  });
+
   useFocusEffect(
     useCallback(() => {
       void refetch();
-    }, [refetch]),
+      void refetchSummary();
+    }, [refetch, refetchSummary]),
   );
 
   const allPayments = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
@@ -62,27 +69,15 @@ export const usePaymentList = () => {
     return result;
   }, [allPayments, activeTab, search]);
 
-  const totalReceived = useMemo(
-    () =>
-      allPayments
-        .filter((p) => !p.isReversed && isPaymentReceived(p.paymentDirectionId))
-        .reduce((sum, p) => sum + p.amount, 0),
-    [allPayments],
-  );
-
-  const totalPaid = useMemo(
-    () =>
-      allPayments
-        .filter((p) => !p.isReversed && !isPaymentReceived(p.paymentDirectionId))
-        .reduce((sum, p) => sum + p.amount, 0),
-    [allPayments],
-  );
+  const totalReceived = summary?.totalReceived ?? 0;
+  const totalPaid = summary?.totalPaid ?? 0;
+  const totalCount = summary?.totalCount ?? 0;
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await refetch();
+    await Promise.all([refetch(), refetchSummary()]);
     setRefreshing(false);
-  }, [refetch]);
+  }, [refetch, refetchSummary]);
 
   const onEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
@@ -110,7 +105,7 @@ export const usePaymentList = () => {
 
   return {
     payments: filtered,
-    totalCount: allPayments.length,
+    totalCount,
     totalReceived,
     totalPaid,
     search,

@@ -32,7 +32,9 @@ import type {
   PaymentGetAllParams,
   PaymentGetFilteredParams,
   PaymentGetPdfParams,
+  PaymentGetSummaryParams,
   PaymentReverseParams,
+  PaymentSummaryDtoResponse,
   PaymentUpdateViewModel,
   Response,
   ReverseAndCorrectViewModel,
@@ -189,6 +191,99 @@ export function usePaymentGetAll<TData = Awaited<ReturnType<typeof paymentGetAll
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getPaymentGetAllQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+/**
+ * @summary Get aggregate received/paid totals and total count across the full payment set (independent of pagination). Staff see only their own; Admin sees all.
+ */
+export const paymentGetSummary = (
+    params?: PaymentGetSummaryParams,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosInstance<PaymentSummaryDtoResponse>(
+      {url: `/api/Payment/summary`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getPaymentGetSummaryQueryKey = (params?: PaymentGetSummaryParams,) => {
+    return [
+    `/api/Payment/summary`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPaymentGetSummaryQueryOptions = <TData = Awaited<ReturnType<typeof paymentGetSummary>>, TError = unknown>(params?: PaymentGetSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetSummary>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPaymentGetSummaryQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof paymentGetSummary>>> = ({ signal }) => paymentGetSummary(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof paymentGetSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PaymentGetSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof paymentGetSummary>>>
+export type PaymentGetSummaryQueryError = unknown
+
+
+export function usePaymentGetSummary<TData = Awaited<ReturnType<typeof paymentGetSummary>>, TError = unknown>(
+ params: undefined |  PaymentGetSummaryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof paymentGetSummary>>,
+          TError,
+          Awaited<ReturnType<typeof paymentGetSummary>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePaymentGetSummary<TData = Awaited<ReturnType<typeof paymentGetSummary>>, TError = unknown>(
+ params?: PaymentGetSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof paymentGetSummary>>,
+          TError,
+          Awaited<ReturnType<typeof paymentGetSummary>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePaymentGetSummary<TData = Awaited<ReturnType<typeof paymentGetSummary>>, TError = unknown>(
+ params?: PaymentGetSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetSummary>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get aggregate received/paid totals and total count across the full payment set (independent of pagination). Staff see only their own; Admin sees all.
+ */
+
+export function usePaymentGetSummary<TData = Awaited<ReturnType<typeof paymentGetSummary>>, TError = unknown>(
+ params?: PaymentGetSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentGetSummary>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPaymentGetSummaryQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

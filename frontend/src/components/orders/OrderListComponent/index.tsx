@@ -87,7 +87,7 @@ export const OrderListComponent = ({
         </View>
         <Text style={styles.headerTitle}>{t('orders.title')}</Text>
         <Text style={styles.headerSub}>
-          {totalCount > 0 ? t('orders.thisWeek', { count: totalCount }) : t('orders.empty.title')}
+          {totalCount > 0 ? t('orders.totalCount', { count: totalCount }) : t('orders.empty.title')}
         </Text>
       </View>
 

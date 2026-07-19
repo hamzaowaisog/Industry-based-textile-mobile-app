@@ -96,7 +96,7 @@ export const PaymentListComponent = ({
         <Text style={styles.headerTitle}>{t('payments.title')}</Text>
         <Text style={styles.headerSub}>
           {totalCount > 0
-            ? t('payments.thisMonth', { count: totalCount })
+            ? t('payments.totalCount', { count: totalCount })
             : t('payments.subtitle')}
         </Text>
       </View>
