@@ -310,6 +310,10 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     dbContext.Database.Migrate();
     await SeedData.EnsureSeedDataAsync(dbContext);
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var startupLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    await SeedData.EnsureAdminUserAsync(userManager, builder.Configuration, startupLogger);
 }
 
 app.UseSwagger();
