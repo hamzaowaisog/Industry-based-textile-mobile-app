@@ -10,9 +10,7 @@ namespace HamzaTex.Api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "user");
-
+            migrationBuilder.Sql("DROP TABLE IF EXISTS `user`;");
         }
 
         /// <inheritdoc />
