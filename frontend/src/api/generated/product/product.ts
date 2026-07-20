@@ -351,7 +351,7 @@ export const useProductUpdateProductById = <TError = ProductDtoResponse,
       return useMutation(getProductUpdateProductByIdMutationOptions(options), queryClient);
     }
     /**
- * @summary Delete a product by ID.
+ * @summary Delete a product by ID. Admin only.
  */
 export const productDeleteProductById = (
     id: number,
@@ -399,7 +399,7 @@ const {mutation: mutationOptions} = options ?
     export type ProductDeleteProductByIdMutationError = Response
 
     /**
- * @summary Delete a product by ID.
+ * @summary Delete a product by ID. Admin only.
  */
 export const useProductDeleteProductById = <TError = Response,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof productDeleteProductById>>, TError,{id: number}, TContext>, }

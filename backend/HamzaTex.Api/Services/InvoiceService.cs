@@ -11,16 +11,16 @@ public interface IInvoiceService
 {
     /// <summary>Create a standalone invoice (no linked Order/Purchase). Staff or Admin.</summary>
     Task<Response<InvoiceDto>> CreateAsync(CreateInvoiceDto model, int userId);
-    /// <summary>Get full invoice detail by ID including lines and linked transactions.</summary>
-    Task<Response<InvoiceDetailDto>> GetByIdAsync(int id);
+    /// <summary>Get full invoice detail by ID including lines and linked transactions. Admin can access any invoice; non-admins only invoices they created.</summary>
+    Task<Response<InvoiceDetailDto>> GetByIdAsync(int id, int userId, bool isAdmin);
     /// <summary>Get all invoices paginated with rich data. Admin sees all; staff see invoices they created.</summary>
     Task<Response<PagedList<InvoiceDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
     /// <summary>Get aggregate receivable/payable totals (excluding cancelled invoices) and total count across the full invoice set. Admin sees all; staff see invoices they created.</summary>
     Task<Response<InvoiceSummaryDto>> GetSummaryAsync(int userId, bool isAdmin);
-    /// <summary>Get all invoices for a client with aggregate stats.</summary>
-    Task<Response<InvoiceByClientDto>> GetAllByClientIdAsync(int clientId);
-    /// <summary>Filter invoices by statusId, clientId, dateFrom, dateTo.</summary>
-    Task<Response<List<InvoiceDto>>> GetFilteredAsync(int? statusId, int? clientId, DateOnly? dateFrom, DateOnly? dateTo);
+    /// <summary>Get all invoices for a client with aggregate stats. Admin sees all; non-admins see only invoices they created.</summary>
+    Task<Response<InvoiceByClientDto>> GetAllByClientIdAsync(int clientId, int userId, bool isAdmin);
+    /// <summary>Filter invoices by statusId, clientId, dateFrom, dateTo. Admin sees all matches; non-admins see only invoices they created.</summary>
+    Task<Response<List<InvoiceDto>>> GetFilteredAsync(int? statusId, int? clientId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
     /// <summary>Update invoice status, dueDate, notes, totalAmount, and/or lines.</summary>
     Task<Response<InvoiceDto>> UpdateByIdAsync(int id, UpdateInvoiceDto model);
     /// <summary>Delete invoice. Only allowed for Draft status within 1 year of creation.</summary>
@@ -274,10 +274,13 @@ public class InvoiceService : IInvoiceService
 
     // ── Read ─────────────────────────────────────────────────────────────────
 
-    public async Task<Response<InvoiceDetailDto>> GetByIdAsync(int id)
+    public async Task<Response<InvoiceDetailDto>> GetByIdAsync(int id, int userId, bool isAdmin)
     {
         var invoice = await LoadInvoiceWithIncludes(id);
         if (invoice is null)
+            return Response<InvoiceDetailDto>.ErrorResponse("Not found", $"Invoice '{id}' not found.");
+
+        if (!isAdmin && invoice.CreatedByUserId != userId)
             return Response<InvoiceDetailDto>.ErrorResponse("Not found", $"Invoice '{id}' not found.");
 
         return Response<InvoiceDetailDto>.SuccessResponse(ToDetailDto(invoice), "Invoice fetched.");
@@ -320,14 +323,20 @@ public class InvoiceService : IInvoiceService
         return Response<InvoiceSummaryDto>.SuccessResponse(summary, "Invoice summary fetched.");
     }
 
-    public async Task<Response<InvoiceByClientDto>> GetAllByClientIdAsync(int clientId)
+    public async Task<Response<InvoiceByClientDto>> GetAllByClientIdAsync(int clientId, int userId, bool isAdmin)
     {
         var client = await _db.Clients.Include(c => c.ClientType).FirstOrDefaultAsync(c => c.Id == clientId);
         if (client is null)
             return Response<InvoiceByClientDto>.ErrorResponse("Not found", "Client not found.");
 
-        var invoices = await InvoiceQueryWithIncludes()
+        var query = InvoiceQueryWithIncludes()
             .Where(i => i.ClientId == clientId)
+            .AsQueryable();
+
+        if (!isAdmin)
+            query = query.Where(i => i.CreatedByUserId == userId);
+
+        var invoices = await query
             .OrderByDescending(i => i.CreatedAt)
             .ToListAsync();
 
@@ -353,9 +362,12 @@ public class InvoiceService : IInvoiceService
     }
 
     public async Task<Response<List<InvoiceDto>>> GetFilteredAsync(
-        int? statusId, int? clientId, DateOnly? dateFrom, DateOnly? dateTo)
+        int? statusId, int? clientId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin)
     {
         var query = InvoiceQueryWithIncludes();
+
+        if (!isAdmin)
+            query = query.Where(i => i.CreatedByUserId == userId);
 
         if (statusId.HasValue)   query = query.Where(i => i.InvoiceStatusId == statusId.Value);
         if (clientId.HasValue)   query = query.Where(i => i.ClientId == clientId.Value);

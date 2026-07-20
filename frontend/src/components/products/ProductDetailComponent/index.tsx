@@ -33,6 +33,7 @@ export const ProductDetailComponent = ({
   trendPct,
   loading,
   submitting,
+  isAdmin,
   onBack,
   onEdit,
   onDelete,
@@ -84,14 +85,16 @@ export const ProductDetailComponent = ({
           <TouchableOpacity style={styles.iconBtn} onPress={onEdit} activeOpacity={0.7}>
             <EditIcon size={20} color={colors.text} />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.iconBtn, submitting && styles.iconBtnDisabled]}
-            onPress={onDelete}
-            activeOpacity={0.7}
-            disabled={submitting}
-          >
-            <TrashIcon size={20} color={colors.danger} />
-          </TouchableOpacity>
+          {isAdmin && (
+            <TouchableOpacity
+              style={[styles.iconBtn, submitting && styles.iconBtnDisabled]}
+              onPress={onDelete}
+              activeOpacity={0.7}
+              disabled={submitting}
+            >
+              <TrashIcon size={20} color={colors.danger} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 

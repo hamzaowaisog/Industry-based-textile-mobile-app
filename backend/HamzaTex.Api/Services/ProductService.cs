@@ -6,20 +6,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Services;
 
-/// <summary>Product catalogue management. All methods are scoped to userId via the ProductUser join table.</summary>
+/// <summary>Product catalogue management. Products are a shared catalogue — every authenticated user (Admin or Staff) can view and update any product so the business has a single source of truth and no duplicate/incorrect entries. Deletion is Admin only. The creating user is still recorded via ProductUser for ownership/audit.</summary>
 public interface IProductService
 {
-    /// <summary>Create a product, link it to the user, and record an initial stock movement for the opening quantity.</summary>
+    /// <summary>Create a product, link it to the creating user, and record an initial stock movement for the opening quantity.</summary>
     Task<Response<ProductDto>> CreateWithUserIdAsync(CreateProductDto model, int userId);
-    /// <summary>Get a product by ID scoped to the given user.</summary>
+    /// <summary>Get a product by ID. Shared catalogue — visible to all authenticated users.</summary>
     Task<Response<ProductDto>> GetByIdAsync(int id, int userId);
-    /// <summary>Get all products for the given user.</summary>
+    /// <summary>Get all products. Shared catalogue — visible to all authenticated users.</summary>
     Task<Response<List<ProductDto>>> GetAllAsync(int userId);
-    /// <summary>Update product details. Does not adjust stock — use StockMovementsService for inventory changes.</summary>
+    /// <summary>Update product details. Shared catalogue — editable by any authenticated user. Does not adjust stock — use StockMovementsService for inventory changes.</summary>
     Task<Response<ProductDto>> UpdateByIdAsync(int id, UpdateProductByIdDto model, int userId);
-    /// <summary>Delete a product by ID.</summary>
+    /// <summary>Delete a product by ID. Admin only.</summary>
     Task<Response> DeleteByIdAsync(int id, int userId);
-    /// <summary>Get paginated products for the given user.</summary>
+    /// <summary>Get paginated products. Shared catalogue — visible to all authenticated users.</summary>
     Task<Response<PagedList<ProductDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId);
 }
 
@@ -127,10 +127,7 @@ public class ProductService : IProductService
    {
         var product = await _dbContext.Products
                       .Include(p => p.Unit)
-                      .Include(p => p.ProductUsers)
-                      .FirstOrDefaultAsync(
-                        p => p.Id == id &&
-                        p.ProductUsers.Any(pu => pu.UserId == userId));
+                      .FirstOrDefaultAsync(p => p.Id == id);
 
         if (product is null)
         {
@@ -147,8 +144,6 @@ public class ProductService : IProductService
    {
         var products = await _dbContext.Products
                        .Include(p => p.Unit)
-                       .Include(p => p.ProductUsers)
-                       .Where(p => p.ProductUsers.Any(pu => pu.UserId == userId))
                        .ToListAsync();
 
         if (products is null)
@@ -165,10 +160,7 @@ public class ProductService : IProductService
    {
         var product = await _dbContext.Products
                      .Include(p => p.Unit)
-                     .Include(p => p.ProductUsers)
-                     .FirstOrDefaultAsync(
-                        p => p.Id == id &&
-                        p.ProductUsers.Any(pu => pu.UserId == userId));
+                     .FirstOrDefaultAsync(p => p.Id == id);
 
         if (product is null)
         {
@@ -235,10 +227,7 @@ public class ProductService : IProductService
    public async Task<Response> DeleteByIdAsync(int id, int userId)
    {
         var product = await _dbContext.Products
-                     .Include(p => p.ProductUsers)
-                     .FirstOrDefaultAsync(
-                        p => p.Id == id &&
-                        p.ProductUsers.Any(pu => pu.UserId == userId));
+                     .FirstOrDefaultAsync(p => p.Id == id);
         
         if (product is null)
         {
@@ -253,9 +242,7 @@ public class ProductService : IProductService
    public async Task<Response<PagedList<ProductDto>>> GetAllPaginatedAsync (int page, int pageSize, int userId)
    {
         var query = _dbContext.Products
-                    .Include(p => p.Unit)
-                    .Include(p => p.ProductUsers)
-                    .Where(p => p.ProductUsers.Any(pu => pu.UserId == userId));
+                    .Include(p => p.Unit);
 
         var paged = await PagedList<Product>.CreateAsync(query, page, pageSize);
 

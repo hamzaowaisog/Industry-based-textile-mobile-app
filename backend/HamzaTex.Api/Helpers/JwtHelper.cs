@@ -17,14 +17,17 @@ public static class JwtHelper
 
     public static void Configure(IConfiguration configuration)
     {
-        _secretKey = configuration["Jwt:Key"] ?? "YourSuperSecretKeyThatShouldBeAtLeast32CharactersLong!";
+        _secretKey = configuration["Jwt:Key"];
+        if (string.IsNullOrWhiteSpace(_secretKey) || _secretKey.Length < 32)
+            throw new InvalidOperationException("Jwt:Key must be configured with a random secret of at least 32 characters.");
+
         _issuer = configuration["Jwt:Issuer"] ?? "HamzaTex.Api";
         _audience = configuration["Jwt:Audience"] ?? "HamzaTex.Client";
         _tokenExpirationMinutes = int.Parse(configuration["Jwt:TokenExpirationMinutes"] ?? "60");
         _refreshTokenExpirationDays = int.Parse(configuration["Jwt:RefreshTokenExpirationDays"] ?? "7");
     }
 
-    private static string SecretKey => _secretKey ?? "YourSuperSecretKeyThatShouldBeAtLeast32CharactersLong!";
+    private static string SecretKey => _secretKey ?? throw new InvalidOperationException("JwtHelper.Configure has not been called.");
     private static string Issuer => _issuer ?? "HamzaTex.Api";
     private static string Audience => _audience ?? "HamzaTex.Client";
     private static int TokenExpirationMinutes => _tokenExpirationMinutes;

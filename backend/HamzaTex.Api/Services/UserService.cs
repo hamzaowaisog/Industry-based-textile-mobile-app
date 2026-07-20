@@ -110,8 +110,6 @@ public class UserService : IUserService
         user.UserName = model.UserName.Trim();
         user.NormalizedEmail = model.Email.Trim().ToUpperInvariant();
         user.NormalizedUserName = model.UserName.Trim().ToUpperInvariant();
-        user.RoleId = model.RoleId;
-        user.IsActive = model.IsActive;
         user.PhoneNumber = !string.IsNullOrWhiteSpace(model.PhoneNumber) ? model.PhoneNumber.Trim() : null;
         user.PhoneNumberConfirmed = !string.IsNullOrWhiteSpace(model.PhoneNumber);
 

@@ -128,9 +128,9 @@ public class ProductController : BaseController
     }
 
 
-    /// <summary>Delete a product by ID.</summary>
+    /// <summary>Delete a product by ID. Admin only.</summary>
     [HttpDelete("{id}")]
-    [Authorize(Policy = "Authenticated")]
+    [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(typeof(Response), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteProductById(int id)
