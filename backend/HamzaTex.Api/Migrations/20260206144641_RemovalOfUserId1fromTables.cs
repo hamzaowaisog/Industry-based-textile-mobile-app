@@ -10,16 +10,9 @@ namespace HamzaTex.Api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "UserId1",
-                table: "expenses");
-            migrationBuilder.DropColumn(
-                name: "UserId1",
-                table: "transactions");
-            migrationBuilder.DropColumn(
-                name: "UserId1",
-                table: "clients");
-
+            migrationBuilder.Sql("ALTER TABLE `expenses` DROP COLUMN IF EXISTS `UserId1`;");
+            migrationBuilder.Sql("ALTER TABLE `transactions` DROP COLUMN IF EXISTS `UserId1`;");
+            migrationBuilder.Sql("ALTER TABLE `clients` DROP COLUMN IF EXISTS `UserId1`;");
         }
 
         /// <inheritdoc />
