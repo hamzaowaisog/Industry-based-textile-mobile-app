@@ -264,10 +264,7 @@ public class StockMovementsService : IStockMovementsService
                 .ThenInclude(p => p!.Unit)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
-            .FirstOrDefaultAsync(sm =>
-                sm.Id == id &&
-                sm.Product != null &&
-                sm.Product.ProductUsers.Any(pu => pu.UserId == userId));
+            .FirstOrDefaultAsync(sm => sm.Id == id);
 
         if (movement is null)
             return Response<StockMovementsDto>.ErrorResponse("Not found", "Stock movement not found.");
@@ -283,7 +280,6 @@ public class StockMovementsService : IStockMovementsService
                 .ThenInclude(p => p!.Unit)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
-            .Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId))
             .OrderByDescending(sm => sm.MovementDate)
             .ToListAsync();
 
@@ -301,9 +297,6 @@ public class StockMovementsService : IStockMovementsService
             .Include(sm => sm.MovementSource)
             .AsQueryable();
 
-        if (!isAdmin)
-            query = query.Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId));
-
         query = query.OrderByDescending(sm => sm.MovementDate);
         var pagedList = await PagedList<StockMovementsDto>.CreateAsync(query.Select(sm => ToDto(sm)), page, pageSize);
         return Response<PagedList<StockMovementsDto>>.SuccessResponse(pagedList, "Stock movements fetched successfully.");
@@ -316,9 +309,6 @@ public class StockMovementsService : IStockMovementsService
             .Include(sm => sm.Product)
                 .ThenInclude(p => p!.Unit)
             .AsQueryable();
-
-        if (!isAdmin)
-            query = query.Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId));
 
         var inGroups = await query
             .Where(sm => sm.MovementTypeId == 1)
@@ -360,7 +350,6 @@ public class StockMovementsService : IStockMovementsService
                 .ThenInclude(p => p!.Unit)
             .Include(sm => sm.MovementType)
             .Include(sm => sm.MovementSource)
-            .Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId))
             .AsQueryable();
 
         if (productId.HasValue)
@@ -397,9 +386,6 @@ public class StockMovementsService : IStockMovementsService
             .Where(sm => sm.ProductId == productId)
             .AsQueryable();
 
-        if (!isAdmin)
-            query = query.Where(sm => sm.Product != null && sm.Product.ProductUsers.Any(pu => pu.UserId == userId));
-
         var movements = await query
             .OrderByDescending(sm => sm.MovementDate)
             .ToListAsync();
@@ -431,14 +417,10 @@ public class StockMovementsService : IStockMovementsService
             }
 
             var movement = await _dbContext.StockMovements
-                .Include(sm => sm.Product).ThenInclude(p => p!.ProductUsers)
                 .Include(sm => sm.Product).ThenInclude(p => p!.Unit)
                 .Include(sm => sm.MovementType)
                 .Include(sm => sm.MovementSource)
-                .FirstOrDefaultAsync(sm =>
-                    sm.Id == id &&
-                    sm.Product != null &&
-                    sm.Product.ProductUsers.Any(pu => pu.UserId == userId));
+                .FirstOrDefaultAsync(sm => sm.Id == id);
 
             if (movement is null)
                 return Response<StockMovementsDto>.ErrorResponse("Not found", "Stock movement not found.");
@@ -524,10 +506,7 @@ public class StockMovementsService : IStockMovementsService
         {
             var movement = await _dbContext.StockMovements
                 .Include(sm => sm.Product)
-                .FirstOrDefaultAsync(sm =>
-                    sm.Id == id &&
-                    sm.Product != null &&
-                    sm.Product.ProductUsers.Any(pu => pu.UserId == userId));
+                .FirstOrDefaultAsync(sm => sm.Id == id);
 
             if (movement is null)
                 return Response.ErrorResponse("Not found", "Stock movement not found.");

@@ -78,23 +78,33 @@ public class InvoiceController : BaseController
         return ToActionResult(await _invoiceService.GetSummaryAsync(userId, IsAdmin()));
     }
 
-    /// <summary>Get a single invoice with lines and linked transactions.</summary>
+    /// <summary>Get a single invoice with lines and linked transactions. Admin can access any invoice; non-admins only invoices they created.</summary>
     [HttpGet("{id:int}")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<InvoiceDetailDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById([FromRoute] int id)
-        => ToActionResult(await _invoiceService.GetByIdAsync(id));
+    {
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
-    /// <summary>Get all invoices for a client with aggregate stats.</summary>
+        return ToActionResult(await _invoiceService.GetByIdAsync(id, userId, IsAdmin()));
+    }
+
+    /// <summary>Get all invoices for a client with aggregate stats. Admin sees all; non-admins see only invoices they created.</summary>
     [HttpGet("by-client/{clientId:int}")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<InvoiceByClientDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByClient([FromRoute] int clientId)
-        => ToActionResult(await _invoiceService.GetAllByClientIdAsync(clientId));
+    {
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
 
-    /// <summary>Filter invoices by statusId, clientId, dateFrom, dateTo.</summary>
+        return ToActionResult(await _invoiceService.GetAllByClientIdAsync(clientId, userId, IsAdmin()));
+    }
+
+    /// <summary>Filter invoices by statusId, clientId, dateFrom, dateTo. Admin sees all matches; non-admins see only invoices they created.</summary>
     [HttpGet("filtered")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<List<InvoiceDto>>), StatusCodes.Status200OK)]
@@ -103,7 +113,12 @@ public class InvoiceController : BaseController
         [FromQuery] int? clientId,
         [FromQuery] DateOnly? dateFrom,
         [FromQuery] DateOnly? dateTo)
-        => ToActionResult(await _invoiceService.GetFilteredAsync(statusId, clientId, dateFrom, dateTo));
+    {
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        return ToActionResult(await _invoiceService.GetFilteredAsync(statusId, clientId, dateFrom, dateTo, userId, IsAdmin()));
+    }
 
     /// <summary>Update invoice status, dueDate, notes, totalAmount, and/or lines.</summary>
     [HttpPut("{id:int}")]
@@ -199,7 +214,10 @@ public class InvoiceController : BaseController
     [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByIdPdf([FromRoute] int id)
     {
-        var result = await _invoiceService.GetByIdAsync(id);
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        var result = await _invoiceService.GetByIdAsync(id, userId, IsAdmin());
         if (!result.Success || result.Data is null) return NotFound(result.Message);
 
         var inv = result.Data;
@@ -254,7 +272,10 @@ public class InvoiceController : BaseController
     [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByClientPdf([FromRoute] int clientId)
     {
-        var result = await _invoiceService.GetAllByClientIdAsync(clientId);
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        var result = await _invoiceService.GetAllByClientIdAsync(clientId, userId, IsAdmin());
         if (!result.Success || result.Data is null) return NotFound(result.Message);
 
         var data = result.Data;
@@ -303,7 +324,10 @@ public class InvoiceController : BaseController
         [FromQuery] DateOnly? dateFrom,
         [FromQuery] DateOnly? dateTo)
     {
-        var result = await _invoiceService.GetFilteredAsync(statusId, clientId, dateFrom, dateTo);
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        var result = await _invoiceService.GetFilteredAsync(statusId, clientId, dateFrom, dateTo, userId, IsAdmin());
         if (!result.Success || result.Data is null) return BadRequest(result.Message);
 
         var data        = result.Data;

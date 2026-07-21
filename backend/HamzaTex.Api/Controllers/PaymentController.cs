@@ -83,21 +83,27 @@ public class PaymentController : BaseController
         return ToActionResult(await _paymentService.GetSummaryAsync(includeReversed, userId.Value, IsAdmin()));
     }
 
-    /// <summary>Get a payment by ID with its allocations.</summary>
+    /// <summary>Get a payment by ID with its allocations. Admin can access any payment; non-admins only their own.</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(Response<PaymentDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Response<PaymentDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        return ToActionResult(await _paymentService.GetByIdAsync(id));
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        return ToActionResult(await _paymentService.GetByIdAsync(id, userId, IsAdmin()));
     }
 
-    /// <summary>Get all payments for a specific client.</summary>
+    /// <summary>Get all payments for a specific client. Admin sees all; non-admins see only their own.</summary>
     [HttpGet("by-client/{clientId:int}")]
     [ProducesResponseType(typeof(Response<List<PaymentDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByClient([FromRoute] int clientId)
     {
-        return ToActionResult(await _paymentService.GetAllByClientIdAsync(clientId));
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        return ToActionResult(await _paymentService.GetAllByClientIdAsync(clientId, userId, IsAdmin()));
     }
 
     /// <summary>Filter payments by clientId, directionId, modeId, date range, and reversed flag.</summary>
@@ -118,16 +124,19 @@ public class PaymentController : BaseController
             clientId, directionId, modeId, dateFrom, dateTo, includeReversed, userId.Value, IsAdmin()));
     }
 
-    /// <summary>Get unallocated credit balance for a client.</summary>
+    /// <summary>Get unallocated credit balance for a client. Admin sees the client's full balance; non-admins see only credit from payments they recorded.</summary>
     [HttpGet("unallocated/{clientId:int}")]
     [ProducesResponseType(typeof(Response<UnallocatedCreditDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Response<UnallocatedCreditDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUnallocated([FromRoute] int clientId)
     {
-        return ToActionResult(await _paymentService.GetUnallocatedCreditAsync(clientId));
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        return ToActionResult(await _paymentService.GetUnallocatedCreditAsync(clientId, userId, IsAdmin()));
     }
 
-    /// <summary>Update payment notes, date, and transaction mode. Amount and client cannot be changed.</summary>
+    /// <summary>Update payment notes, date, and transaction mode. Amount and client cannot be changed. Admin can update any payment; non-admins only their own.</summary>
     [HttpPut("{id:int}")]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(typeof(Response<PaymentDto>), StatusCodes.Status200OK)]
@@ -138,6 +147,9 @@ public class PaymentController : BaseController
         if (ValidateModel<PaymentDto>() is { } invalid)
             return invalid;
 
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
         var dto = new UpdatePaymentDto
         {
             TransModeId = model.TransModeId,
@@ -145,7 +157,7 @@ public class PaymentController : BaseController
             Notes = model.Notes
         };
 
-        return ToActionResult(await _paymentService.UpdateByIdAsync(id, dto));
+        return ToActionResult(await _paymentService.UpdateByIdAsync(id, dto, userId, IsAdmin()));
     }
 
     /// <summary>Reverse a payment (e.g. wrong amount). Creates a reversing Transaction and marks original as reversed.</summary>
@@ -229,13 +241,16 @@ public class PaymentController : BaseController
         return File(pdf, "application/pdf", "payments.pdf");
     }
 
-    /// <summary>Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations.</summary>
+    /// <summary>Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations. Admin can access any payment; non-admins only their own.</summary>
     [HttpGet("{id:int}/pdf")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetPaymentDossierPdf([FromRoute] int id)
     {
-        var response = await _paymentService.GetByIdAsync(id);
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        var response = await _paymentService.GetByIdAsync(id, userId, IsAdmin());
         if (!response.Success || response.Data is null)
             return NotFound(response.Message);
 

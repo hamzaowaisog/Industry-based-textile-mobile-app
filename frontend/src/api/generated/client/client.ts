@@ -197,7 +197,7 @@ export const useClientCreateClient = <TError = ProblemDetails,
       return useMutation(getClientCreateClientMutationOptions(options), queryClient);
     }
     /**
- * @summary Get all clients (unpaginated). Admin sees all; non-admins see only their own. Prefer the paginated `GET /Filtered` for list UIs; this powers exports and pickers.
+ * @summary Get all active clients (unpaginated). Admin sees all; non-admins see only their own. Powers client pickers on Order/Purchase/Payment/Invoice creation — inactive clients are excluded since new business documents should not be created against them. Prefer the paginated `GET /Filtered` for list UIs, which includes inactive clients.
  */
 export const clientGetAllClients = (
 
@@ -268,7 +268,7 @@ export function useClientGetAllClients<TData = Awaited<ReturnType<typeof clientG
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get all clients (unpaginated). Admin sees all; non-admins see only their own. Prefer the paginated `GET /Filtered` for list UIs; this powers exports and pickers.
+ * @summary Get all active clients (unpaginated). Admin sees all; non-admins see only their own. Powers client pickers on Order/Purchase/Payment/Invoice creation — inactive clients are excluded since new business documents should not be created against them. Prefer the paginated `GET /Filtered` for list UIs, which includes inactive clients.
  */
 
 export function useClientGetAllClients<TData = Awaited<ReturnType<typeof clientGetAllClients>>, TError = unknown>(

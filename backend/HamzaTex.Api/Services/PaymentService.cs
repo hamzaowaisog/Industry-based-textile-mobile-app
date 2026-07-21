@@ -14,24 +14,24 @@ public interface IPaymentService
 {
     /// <summary>Create a payment. Allocates to orders/purchases (manual or auto-FIFO) and posts a Transaction to the ledger.</summary>
     Task<Response<PaymentDto>> CreateAsync(CreatePaymentDto model, int userId);
-    /// <summary>Get payment by ID with allocations.</summary>
-    Task<Response<PaymentDto>> GetByIdAsync(int id);
+    /// <summary>Get payment by ID with allocations. Admin can access any payment; non-admins only their own.</summary>
+    Task<Response<PaymentDto>> GetByIdAsync(int id, int userId, bool isAdmin);
     /// <summary>Get all payments paginated. Admin sees all; non-admins see only their own payments.</summary>
     Task<Response<PagedList<PaymentDto>>> GetAllPaginatedAsync(int page, int pageSize, bool includeReversed, int userId, bool isAdmin);
     /// <summary>Get aggregate received/paid totals and total count across the full (non-paginated) payment set, excluding reversed payments. Admin sees all; non-admins see only their own payments.</summary>
     Task<Response<PaymentSummaryDto>> GetSummaryAsync(bool includeReversed, int userId, bool isAdmin);
-    /// <summary>Get all payments for a specific client.</summary>
-    Task<Response<List<PaymentDto>>> GetAllByClientIdAsync(int clientId);
+    /// <summary>Get all payments for a specific client. Admin sees all; non-admins see only their own.</summary>
+    Task<Response<List<PaymentDto>>> GetAllByClientIdAsync(int clientId, int userId, bool isAdmin);
     /// <summary>Filter payments by clientId, directionId, modeId, date range, and reversed flag. Admin sees all matches; non-admins see only their own.</summary>
     Task<Response<List<PaymentDto>>> GetFilteredAsync(int? clientId, int? directionId, int? modeId, DateOnly? dateFrom, DateOnly? dateTo, bool includeReversed, int userId, bool isAdmin);
-    /// <summary>Update payment notes, date, and mode only. Amount and client cannot be changed.</summary>
-    Task<Response<PaymentDto>> UpdateByIdAsync(int id, UpdatePaymentDto model);
+    /// <summary>Update payment notes, date, and mode only. Amount and client cannot be changed. Admin can update any payment; non-admins only their own.</summary>
+    Task<Response<PaymentDto>> UpdateByIdAsync(int id, UpdatePaymentDto model, int userId, bool isAdmin);
     /// <summary>Reverse a payment (wrong amount). Creates a reversing Transaction + reversal Payment. Original is marked IsReversed=true.</summary>
     Task<Response<PaymentDto>> ReverseAsync(int id, string? notes, int adminUserId);
     /// <summary>Reverse a payment and re-create it for the correct client. Atomic operation.</summary>
     Task<Response<PaymentDto>> ReverseAndCorrectAsync(int id, ReverseAndCorrectPaymentDto model, int adminUserId);
-    /// <summary>Get unallocated credit balance for a client.</summary>
-    Task<Response<UnallocatedCreditDto>> GetUnallocatedCreditAsync(int clientId);
+    /// <summary>Get unallocated credit balance for a client. Admin sees the client's full balance; non-admins see only credit from payments they recorded.</summary>
+    Task<Response<UnallocatedCreditDto>> GetUnallocatedCreditAsync(int clientId, int userId, bool isAdmin);
     /// <summary>Hard delete a payment and its allocations. Deletes the linked Transaction. Admin only.</summary>
     Task<Response> DeleteByIdAsync(int id);
     /// <summary>Auto-apply any unallocated credit for a client against a newly delivered order or purchase. Called internally when status transitions to Delivered.</summary>
@@ -234,7 +234,7 @@ public class PaymentService : IPaymentService
                 EntityId = payment.Id
             }); } catch { }
 
-            return await GetByIdAsync(payment.Id);
+            return await GetByIdInternalAsync(payment.Id);
         }
         catch
         {
@@ -247,7 +247,19 @@ public class PaymentService : IPaymentService
     // GET
     // ──────────────────────────────────────────────────────────────────────────
 
-    public async Task<Response<PaymentDto>> GetByIdAsync(int id)
+    public async Task<Response<PaymentDto>> GetByIdAsync(int id, int userId, bool isAdmin)
+    {
+        var result = await GetByIdInternalAsync(id);
+        if (!result.Success || result.Data is null)
+            return result;
+
+        if (!isAdmin && result.Data.UserId != userId)
+            return Response<PaymentDto>.ErrorResponse("Not found", "Payment not found.");
+
+        return result;
+    }
+
+    private async Task<Response<PaymentDto>> GetByIdInternalAsync(int id)
     {
         var payment = await _db.Payments
             .AsNoTracking()
@@ -307,9 +319,9 @@ public class PaymentService : IPaymentService
         return Response<PaymentSummaryDto>.SuccessResponse(summary, "Payment summary fetched.");
     }
 
-    public async Task<Response<List<PaymentDto>>> GetAllByClientIdAsync(int clientId)
+    public async Task<Response<List<PaymentDto>>> GetAllByClientIdAsync(int clientId, int userId, bool isAdmin)
     {
-        var payments = await _db.Payments
+        var query = _db.Payments
             .AsNoTracking()
             .Include(p => p.PartyClient)
             .Include(p => p.PaymentDirection)
@@ -317,8 +329,12 @@ public class PaymentService : IPaymentService
             .Include(p => p.User)
             .Include(p => p.Allocations)
             .Where(p => p.PartyClientId == clientId)
-            .OrderByDescending(p => p.PaymentDate)
-            .ToListAsync();
+            .AsQueryable();
+
+        if (!isAdmin)
+            query = query.Where(p => p.UserId == userId);
+
+        var payments = await query.OrderByDescending(p => p.PaymentDate).ToListAsync();
 
         return Response<List<PaymentDto>>.SuccessResponse(
             payments.Select(MapToDto).ToList(), "Payments retrieved.");
@@ -355,10 +371,12 @@ public class PaymentService : IPaymentService
     // UPDATE
     // ──────────────────────────────────────────────────────────────────────────
 
-    public async Task<Response<PaymentDto>> UpdateByIdAsync(int id, UpdatePaymentDto model)
+    public async Task<Response<PaymentDto>> UpdateByIdAsync(int id, UpdatePaymentDto model, int userId, bool isAdmin)
     {
         var payment = await _db.Payments.FindAsync(id);
         if (payment is null)
+            return Response<PaymentDto>.ErrorResponse("Not found", "Payment not found.");
+        if (!isAdmin && payment.UserId != userId)
             return Response<PaymentDto>.ErrorResponse("Not found", "Payment not found.");
         if (payment.IsReversed)
             return Response<PaymentDto>.ErrorResponse("Invalid operation", "Cannot update a reversed payment.");
@@ -369,7 +387,7 @@ public class PaymentService : IPaymentService
         payment.Notes = model.Notes;
         await _db.SaveChangesAsync();
 
-        return await GetByIdAsync(id);
+        return await GetByIdInternalAsync(id);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -457,7 +475,7 @@ public class PaymentService : IPaymentService
                 EntityId = reversalPayment.Id
             }); } catch { }
 
-            return await GetByIdAsync(reversalPayment.Id);
+            return await GetByIdInternalAsync(reversalPayment.Id);
         }
         catch
         {
@@ -508,19 +526,27 @@ public class PaymentService : IPaymentService
     // UNALLOCATED CREDIT
     // ──────────────────────────────────────────────────────────────────────────
 
-    public async Task<Response<UnallocatedCreditDto>> GetUnallocatedCreditAsync(int clientId)
+    public async Task<Response<UnallocatedCreditDto>> GetUnallocatedCreditAsync(int clientId, int userId, bool isAdmin)
     {
         var client = await _db.Clients.FindAsync(clientId);
         if (client is null)
             return Response<UnallocatedCreditDto>.ErrorResponse("Not found", "Client not found.");
 
-        var totalPaid = await _db.Payments
+        var paidQuery = _db.Payments
             .Where(p => p.PartyClientId == clientId && !p.IsReversed && p.OriginalPaymentId == null)
-            .SumAsync(p => (decimal?)p.Amount) ?? 0;
-
-        var totalAllocated = await _db.PaymentAllocations
+            .AsQueryable();
+        var allocatedQuery = _db.PaymentAllocations
             .Where(a => a.Payment.PartyClientId == clientId && !a.Payment.IsReversed && a.Payment.OriginalPaymentId == null)
-            .SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
+            .AsQueryable();
+
+        if (!isAdmin)
+        {
+            paidQuery = paidQuery.Where(p => p.UserId == userId);
+            allocatedQuery = allocatedQuery.Where(a => a.Payment.UserId == userId);
+        }
+
+        var totalPaid = await paidQuery.SumAsync(p => (decimal?)p.Amount) ?? 0;
+        var totalAllocated = await allocatedQuery.SumAsync(a => (decimal?)a.AllocatedAmount) ?? 0;
 
         return Response<UnallocatedCreditDto>.SuccessResponse(new UnallocatedCreditDto
         {

@@ -11,7 +11,7 @@ import { PURCHASE_STATUS_TABS } from '@utils/helpers/purchaseContent';
 
 import { colors } from '@theme/colors';
 
-import { MenuIcon, PlusIcon, SearchIcon, ShoppingBagIcon } from '@constants/svgAssets';
+import { MenuIcon, PlusIcon, SearchIcon, TruckIcon } from '@constants/svgAssets';
 
 import type { PurchaseListComponentProps, PurchaseRow } from '../../../types/purchases.types';
 import { PurchaseCard } from './PurchaseCard';
@@ -28,7 +28,7 @@ const EmptyState = ({
 }) => (
   <View style={styles.emptyWrap}>
     <View style={styles.emptyIconBubble}>
-      <ShoppingBagIcon size={58} color={colors.primary} />
+      <TruckIcon size={58} color={colors.primary} />
       <View style={styles.emptyBadge}>
         <PlusIcon size={20} color={colors.surface} />
       </View>

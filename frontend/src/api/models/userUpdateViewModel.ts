@@ -13,8 +13,6 @@ export interface UserUpdateViewModel {
   email?: string | null;
   /** @nullable */
   userName?: string | null;
-  roleId?: number;
-  isActive?: boolean;
   /** @nullable */
   phoneNumber?: string | null;
 }

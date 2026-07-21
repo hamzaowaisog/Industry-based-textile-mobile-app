@@ -87,8 +87,6 @@ public class UsersController : BaseController
             Name = model.Name,
             Email = model.Email,
             UserName = model.UserName,
-            RoleId = model.RoleId,
-            IsActive = model.IsActive,
             PhoneNumber = model.PhoneNumber
         };
 
