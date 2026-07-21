@@ -105,6 +105,7 @@ export type ProductDetailComponentProps = {
   chartData: number[];
   trendPct: number | null;
   loading: boolean;
+  isAdmin: boolean;
   onBack: () => void;
   onEdit: () => void;
   onDelete: () => void;

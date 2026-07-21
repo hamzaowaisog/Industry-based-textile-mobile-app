@@ -296,7 +296,7 @@ export function usePaymentGetSummary<TData = Awaited<ReturnType<typeof paymentGe
 
 
 /**
- * @summary Get a payment by ID with its allocations.
+ * @summary Get a payment by ID with its allocations. Admin can access any payment; non-admins only their own.
  */
 export const paymentGetById = (
     id: number,
@@ -367,7 +367,7 @@ export function usePaymentGetById<TData = Awaited<ReturnType<typeof paymentGetBy
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get a payment by ID with its allocations.
+ * @summary Get a payment by ID with its allocations. Admin can access any payment; non-admins only their own.
  */
 
 export function usePaymentGetById<TData = Awaited<ReturnType<typeof paymentGetById>>, TError = PaymentDtoResponse>(
@@ -388,7 +388,7 @@ export function usePaymentGetById<TData = Awaited<ReturnType<typeof paymentGetBy
 
 
 /**
- * @summary Update payment notes, date, and transaction mode. Amount and client cannot be changed.
+ * @summary Update payment notes, date, and transaction mode. Amount and client cannot be changed. Admin can update any payment; non-admins only their own.
  */
 export const paymentUpdate = (
     id: number,
@@ -439,7 +439,7 @@ const {mutation: mutationOptions} = options ?
     export type PaymentUpdateMutationError = PaymentDtoResponse
 
     /**
- * @summary Update payment notes, date, and transaction mode. Amount and client cannot be changed.
+ * @summary Update payment notes, date, and transaction mode. Amount and client cannot be changed. Admin can update any payment; non-admins only their own.
  */
 export const usePaymentUpdate = <TError = PaymentDtoResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof paymentUpdate>>, TError,{id: number;data?: PaymentUpdateViewModel}, TContext>, }
@@ -513,7 +513,7 @@ export const usePaymentDelete = <TError = Response,
       return useMutation(getPaymentDeleteMutationOptions(options), queryClient);
     }
     /**
- * @summary Get all payments for a specific client.
+ * @summary Get all payments for a specific client. Admin sees all; non-admins see only their own.
  */
 export const paymentGetByClient = (
     clientId: number,
@@ -584,7 +584,7 @@ export function usePaymentGetByClient<TData = Awaited<ReturnType<typeof paymentG
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get all payments for a specific client.
+ * @summary Get all payments for a specific client. Admin sees all; non-admins see only their own.
  */
 
 export function usePaymentGetByClient<TData = Awaited<ReturnType<typeof paymentGetByClient>>, TError = unknown>(
@@ -698,7 +698,7 @@ export function usePaymentGetFiltered<TData = Awaited<ReturnType<typeof paymentG
 
 
 /**
- * @summary Get unallocated credit balance for a client.
+ * @summary Get unallocated credit balance for a client. Admin sees the client's full balance; non-admins see only credit from payments they recorded.
  */
 export const paymentGetUnallocated = (
     clientId: number,
@@ -769,7 +769,7 @@ export function usePaymentGetUnallocated<TData = Awaited<ReturnType<typeof payme
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get unallocated credit balance for a client.
+ * @summary Get unallocated credit balance for a client. Admin sees the client's full balance; non-admins see only credit from payments they recorded.
  */
 
 export function usePaymentGetUnallocated<TData = Awaited<ReturnType<typeof paymentGetUnallocated>>, TError = UnallocatedCreditDtoResponse>(
@@ -1011,7 +1011,7 @@ export function usePaymentGetPdf<TData = Awaited<ReturnType<typeof paymentGetPdf
 
 
 /**
- * @summary Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations.
+ * @summary Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations. Admin can access any payment; non-admins only their own.
  */
 export const paymentGetPaymentDossierPdf = (
     id: number,
@@ -1083,7 +1083,7 @@ export function usePaymentGetPaymentDossierPdf<TData = Awaited<ReturnType<typeof
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations.
+ * @summary Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations. Admin can access any payment; non-admins only their own.
  */
 
 export function usePaymentGetPaymentDossierPdf<TData = Awaited<ReturnType<typeof paymentGetPaymentDossierPdf>>, TError = Response>(

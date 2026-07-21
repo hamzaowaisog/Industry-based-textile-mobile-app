@@ -64,13 +64,16 @@ public class ExpenseController : BaseController
         return ToActionResult(await _expenseService.GetAllPaginatedAsync(page, pageSize, userId.Value, IsAdmin()));
     }
 
-    /// <summary>Get an expense by ID.</summary>
+    /// <summary>Get an expense by ID. Admin can access any expense; non-admins only their own.</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(Response<ExpenseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Response<ExpenseDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        return ToActionResult(await _expenseService.GetByIdAsync(id));
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        return ToActionResult(await _expenseService.GetByIdAsync(id, userId, IsAdmin()));
     }
 
     /// <summary>Filter expenses by type, mode, and date range. Admin sees all matches; non-admins see only their own.</summary>
@@ -88,7 +91,7 @@ public class ExpenseController : BaseController
         return ToActionResult(await _expenseService.GetFilteredAsync(expenseTypeId, modeId, dateFrom, dateTo, userId.Value, IsAdmin()));
     }
 
-    /// <summary>Update amount, mode, date, and notes. TransCategoryId cannot be changed — delete and re-create to reclassify.</summary>
+    /// <summary>Update amount, mode, date, and notes. Admin can update any expense; non-admins only their own. TransCategoryId cannot be changed — delete and re-create to reclassify.</summary>
     [HttpPut("{id:int}")]
     [Authorize(Policy = "AdminOrStaff")]
     [ProducesResponseType(typeof(Response<ExpenseDto>), StatusCodes.Status200OK)]
@@ -99,6 +102,9 @@ public class ExpenseController : BaseController
         if (ValidateModel<ExpenseDto>() is { } invalid)
             return invalid;
 
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
         var dto = new UpdateExpenseDto
         {
             Amount = model.Amount,
@@ -107,7 +113,7 @@ public class ExpenseController : BaseController
             Notes = model.Notes
         };
 
-        return ToActionResult(await _expenseService.UpdateByIdAsync(id, dto));
+        return ToActionResult(await _expenseService.UpdateByIdAsync(id, dto, userId, IsAdmin()));
     }
 
     /// <summary>Hard delete an expense and its linked Transaction. Admin only.</summary>
@@ -157,7 +163,10 @@ public class ExpenseController : BaseController
     [ProducesResponseType(typeof(Response), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetExpenseDossierPdf([FromRoute] int id)
     {
-        var response = await _expenseService.GetByIdAsync(id);
+        if (GetUserIdOrUnauthorized(out var userId) is { } authError)
+            return authError;
+
+        var response = await _expenseService.GetByIdAsync(id, userId, IsAdmin());
         if (!response.Success || response.Data is null)
             return NotFound(response.Message);
 

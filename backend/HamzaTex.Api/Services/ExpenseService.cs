@@ -141,14 +141,14 @@ public interface IExpenseService
 {
     /// <summary>Create an expense and atomically post a Debit transaction to the ledger. TransCategoryId is auto-derived from ExpenseTypeId for seeded types; must be supplied explicitly for custom types.</summary>
     Task<Response<ExpenseDto>> CreateAsync(CreateExpenseDto model, int userId);
-    /// <summary>Get expense by ID.</summary>
-    Task<Response<ExpenseDto>> GetByIdAsync(int id);
+    /// <summary>Get expense by ID. Admin can access any expense; non-admins only their own.</summary>
+    Task<Response<ExpenseDto>> GetByIdAsync(int id, int userId, bool isAdmin);
     /// <summary>Get all expenses paginated. Admin sees all; non-admins see only their own expenses.</summary>
     Task<Response<PagedList<ExpenseDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
     /// <summary>Filter expenses by type, mode, and date range. Admin sees all matches; non-admins see only their own. Unpaginated — for PDF/export.</summary>
     Task<Response<List<ExpenseDto>>> GetFilteredAsync(int? expenseTypeId, int? modeId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
-    /// <summary>Update amount, mode, date, and notes. Atomically updates the linked Transaction. TransCategoryId cannot be changed — delete and re-create to reclassify.</summary>
-    Task<Response<ExpenseDto>> UpdateByIdAsync(int id, UpdateExpenseDto model);
+    /// <summary>Update amount, mode, date, and notes. Admin can update any expense; non-admins only their own. Atomically updates the linked Transaction. TransCategoryId cannot be changed — delete and re-create to reclassify.</summary>
+    Task<Response<ExpenseDto>> UpdateByIdAsync(int id, UpdateExpenseDto model, int userId, bool isAdmin);
     /// <summary>Hard delete an expense and its linked Transaction. Admin only.</summary>
     Task<Response> DeleteByIdAsync(int id);
 }
@@ -250,7 +250,7 @@ public class ExpenseService : IExpenseService
                 EntityId = expense.Id
             }); } catch { }
 
-            return await GetByIdAsync(expense.Id);
+            return await GetByIdAsync(expense.Id, userId, false);
         }
         catch
         {
@@ -259,12 +259,15 @@ public class ExpenseService : IExpenseService
         }
     }
 
-    public async Task<Response<ExpenseDto>> GetByIdAsync(int id)
+    public async Task<Response<ExpenseDto>> GetByIdAsync(int id, int userId, bool isAdmin)
     {
         var expense = await ExpenseQueryWithIncludes()
             .FirstOrDefaultAsync(e => e.Id == id);
 
         if (expense is null)
+            return Response<ExpenseDto>.ErrorResponse("Not found", $"Expense with ID '{id}' was not found.");
+
+        if (!isAdmin && expense.UserId != userId)
             return Response<ExpenseDto>.ErrorResponse("Not found", $"Expense with ID '{id}' was not found.");
 
         return Response<ExpenseDto>.SuccessResponse(MapToDto(expense), "Expense fetched.");
@@ -298,10 +301,12 @@ public class ExpenseService : IExpenseService
         return Response<List<ExpenseDto>>.SuccessResponse(list, "Expenses fetched.");
     }
 
-    public async Task<Response<ExpenseDto>> UpdateByIdAsync(int id, UpdateExpenseDto model)
+    public async Task<Response<ExpenseDto>> UpdateByIdAsync(int id, UpdateExpenseDto model, int userId, bool isAdmin)
     {
         var expense = await _db.Expenses.FindAsync(id);
         if (expense is null)
+            return Response<ExpenseDto>.ErrorResponse("Not found", $"Expense with ID '{id}' was not found.");
+        if (!isAdmin && expense.UserId != userId)
             return Response<ExpenseDto>.ErrorResponse("Not found", $"Expense with ID '{id}' was not found.");
 
         if (expense.TransactionId is null)
@@ -328,7 +333,7 @@ public class ExpenseService : IExpenseService
 
             await _db.SaveChangesAsync();
             await txn.CommitAsync();
-            return await GetByIdAsync(id);
+            return await GetByIdAsync(id, userId, isAdmin);
         }
         catch
         {

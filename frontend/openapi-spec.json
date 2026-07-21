@@ -718,7 +718,7 @@
       },
       "get": {
         "tags": ["Client"],
-        "summary": "Get all clients (unpaginated). Admin sees all; non-admins see only their own. Prefer the paginated `GET /Filtered` for list UIs; this powers exports and pickers.",
+        "summary": "Get all active clients (unpaginated). Admin sees all; non-admins see only their own. Powers client pickers on Order/Purchase/Payment/Invoice creation — inactive clients are excluded since new business documents should not be created against them. Prefer the paginated `GET /Filtered` for list UIs, which includes inactive clients.",
         "operationId": "client_getAllClients",
         "responses": {
           "200": {
@@ -1460,7 +1460,7 @@
     "/api/Expense/{id}": {
       "get": {
         "tags": ["Expense"],
-        "summary": "Get an expense by ID.",
+        "summary": "Get an expense by ID. Admin can access any expense; non-admins only their own.",
         "operationId": "expense_getById",
         "parameters": [
           {
@@ -1498,7 +1498,7 @@
       },
       "put": {
         "tags": ["Expense"],
-        "summary": "Update amount, mode, date, and notes. TransCategoryId cannot be changed — delete and re-create to reclassify.",
+        "summary": "Update amount, mode, date, and notes. Admin can update any expense; non-admins only their own. TransCategoryId cannot be changed — delete and re-create to reclassify.",
         "operationId": "expense_update",
         "parameters": [
           {
@@ -2097,7 +2097,7 @@
     "/api/Invoice/{id}": {
       "get": {
         "tags": ["Invoice"],
-        "summary": "Get a single invoice with lines and linked transactions.",
+        "summary": "Get a single invoice with lines and linked transactions. Admin can access any invoice; non-admins only invoices they created.",
         "operationId": "invoice_getById",
         "parameters": [
           {
@@ -2252,7 +2252,7 @@
     "/api/Invoice/by-client/{clientId}": {
       "get": {
         "tags": ["Invoice"],
-        "summary": "Get all invoices for a client with aggregate stats.",
+        "summary": "Get all invoices for a client with aggregate stats. Admin sees all; non-admins see only invoices they created.",
         "operationId": "invoice_getByClient",
         "parameters": [
           {
@@ -2292,7 +2292,7 @@
     "/api/Invoice/filtered": {
       "get": {
         "tags": ["Invoice"],
-        "summary": "Filter invoices by statusId, clientId, dateFrom, dateTo.",
+        "summary": "Filter invoices by statusId, clientId, dateFrom, dateTo. Admin sees all matches; non-admins see only invoices they created.",
         "operationId": "invoice_getFiltered",
         "parameters": [
           {
@@ -3269,7 +3269,7 @@
     "/api/Payment/{id}": {
       "get": {
         "tags": ["Payment"],
-        "summary": "Get a payment by ID with its allocations.",
+        "summary": "Get a payment by ID with its allocations. Admin can access any payment; non-admins only their own.",
         "operationId": "payment_getById",
         "parameters": [
           {
@@ -3307,7 +3307,7 @@
       },
       "put": {
         "tags": ["Payment"],
-        "summary": "Update payment notes, date, and transaction mode. Amount and client cannot be changed.",
+        "summary": "Update payment notes, date, and transaction mode. Amount and client cannot be changed. Admin can update any payment; non-admins only their own.",
         "operationId": "payment_update",
         "parameters": [
           {
@@ -3414,7 +3414,7 @@
     "/api/Payment/by-client/{clientId}": {
       "get": {
         "tags": ["Payment"],
-        "summary": "Get all payments for a specific client.",
+        "summary": "Get all payments for a specific client. Admin sees all; non-admins see only their own.",
         "operationId": "payment_getByClient",
         "parameters": [
           {
@@ -3513,7 +3513,7 @@
     "/api/Payment/unallocated/{clientId}": {
       "get": {
         "tags": ["Payment"],
-        "summary": "Get unallocated credit balance for a client.",
+        "summary": "Get unallocated credit balance for a client. Admin sees the client's full balance; non-admins see only credit from payments they recorded.",
         "operationId": "payment_getUnallocated",
         "parameters": [
           {
@@ -3709,7 +3709,7 @@
     "/api/Payment/{id}/pdf": {
       "get": {
         "tags": ["Payment"],
-        "summary": "Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations.",
+        "summary": "Download a single payment as a branded PDF receipt — party, direction/mode, amount, and allocations. Admin can access any payment; non-admins only their own.",
         "operationId": "payment_getPaymentDossierPdf",
         "parameters": [
           {
@@ -3920,7 +3920,7 @@
       },
       "delete": {
         "tags": ["Product"],
-        "summary": "Delete a product by ID.",
+        "summary": "Delete a product by ID. Admin only.",
         "operationId": "product_deleteProductById",
         "parameters": [
           {
@@ -11153,14 +11153,6 @@
             "type": "string",
             "nullable": true,
             "example": "john_doe"
-          },
-          "roleId": {
-            "type": "integer",
-            "format": "int32",
-            "example": 1
-          },
-          "isActive": {
-            "type": "boolean"
           },
           "phoneNumber": {
             "type": "string",

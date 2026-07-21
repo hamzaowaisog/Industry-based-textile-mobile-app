@@ -198,7 +198,7 @@ export function useExpenseGetAll<TData = Awaited<ReturnType<typeof expenseGetAll
 
 
 /**
- * @summary Get an expense by ID.
+ * @summary Get an expense by ID. Admin can access any expense; non-admins only their own.
  */
 export const expenseGetById = (
     id: number,
@@ -269,7 +269,7 @@ export function useExpenseGetById<TData = Awaited<ReturnType<typeof expenseGetBy
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get an expense by ID.
+ * @summary Get an expense by ID. Admin can access any expense; non-admins only their own.
  */
 
 export function useExpenseGetById<TData = Awaited<ReturnType<typeof expenseGetById>>, TError = ExpenseDtoResponse>(
@@ -290,7 +290,7 @@ export function useExpenseGetById<TData = Awaited<ReturnType<typeof expenseGetBy
 
 
 /**
- * @summary Update amount, mode, date, and notes. TransCategoryId cannot be changed — delete and re-create to reclassify.
+ * @summary Update amount, mode, date, and notes. Admin can update any expense; non-admins only their own. TransCategoryId cannot be changed — delete and re-create to reclassify.
  */
 export const expenseUpdate = (
     id: number,
@@ -341,7 +341,7 @@ const {mutation: mutationOptions} = options ?
     export type ExpenseUpdateMutationError = ExpenseDtoResponse
 
     /**
- * @summary Update amount, mode, date, and notes. TransCategoryId cannot be changed — delete and re-create to reclassify.
+ * @summary Update amount, mode, date, and notes. Admin can update any expense; non-admins only their own. TransCategoryId cannot be changed — delete and re-create to reclassify.
  */
 export const useExpenseUpdate = <TError = ExpenseDtoResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof expenseUpdate>>, TError,{id: number;data?: ExpenseUpdateViewModel}, TContext>, }

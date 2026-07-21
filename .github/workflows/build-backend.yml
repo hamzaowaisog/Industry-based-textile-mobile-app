@@ -6,6 +6,8 @@ on:
       - 'hamzaTex/Qa'
     paths:
       - 'backend/**'
+      - '.github/workflows/build-backend.yml'
+  workflow_dispatch: {}
 
 jobs:
   build:
@@ -35,8 +37,12 @@ jobs:
       # (Program.cs → dbContext.Database.Migrate() / SeedData.EnsureAdminUserAsync).
       # No extra migration step needed here.
       # ──────────────────────────────────────────────────────────────────────
+      - name: Install Railway CLI
+        run: |
+          curl -fsSL cli.new | bash -s -- --yes
+          echo "$HOME/.railway/bin" >> "$GITHUB_PATH"
+
       - name: Deploy to Railway
-        uses: bervProject/railway-deploy@v1.4.0
-        with:
-          railway_token: ${{ secrets.RAILWAY_TOKEN }}
-          service: hamzatex-api
+        run: railway up --service hamzatex-api --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

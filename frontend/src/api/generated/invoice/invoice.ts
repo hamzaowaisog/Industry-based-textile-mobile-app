@@ -294,7 +294,7 @@ export function useInvoiceGetSummary<TData = Awaited<ReturnType<typeof invoiceGe
 
 
 /**
- * @summary Get a single invoice with lines and linked transactions.
+ * @summary Get a single invoice with lines and linked transactions. Admin can access any invoice; non-admins only invoices they created.
  */
 export const invoiceGetById = (
     id: number,
@@ -365,7 +365,7 @@ export function useInvoiceGetById<TData = Awaited<ReturnType<typeof invoiceGetBy
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get a single invoice with lines and linked transactions.
+ * @summary Get a single invoice with lines and linked transactions. Admin can access any invoice; non-admins only invoices they created.
  */
 
 export function useInvoiceGetById<TData = Awaited<ReturnType<typeof invoiceGetById>>, TError = Response>(
@@ -511,7 +511,7 @@ export const useInvoiceDelete = <TError = Response,
       return useMutation(getInvoiceDeleteMutationOptions(options), queryClient);
     }
     /**
- * @summary Get all invoices for a client with aggregate stats.
+ * @summary Get all invoices for a client with aggregate stats. Admin sees all; non-admins see only invoices they created.
  */
 export const invoiceGetByClient = (
     clientId: number,
@@ -582,7 +582,7 @@ export function useInvoiceGetByClient<TData = Awaited<ReturnType<typeof invoiceG
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get all invoices for a client with aggregate stats.
+ * @summary Get all invoices for a client with aggregate stats. Admin sees all; non-admins see only invoices they created.
  */
 
 export function useInvoiceGetByClient<TData = Awaited<ReturnType<typeof invoiceGetByClient>>, TError = Response>(
@@ -603,7 +603,7 @@ export function useInvoiceGetByClient<TData = Awaited<ReturnType<typeof invoiceG
 
 
 /**
- * @summary Filter invoices by statusId, clientId, dateFrom, dateTo.
+ * @summary Filter invoices by statusId, clientId, dateFrom, dateTo. Admin sees all matches; non-admins see only invoices they created.
  */
 export const invoiceGetFiltered = (
     params?: InvoiceGetFilteredParams,
@@ -675,7 +675,7 @@ export function useInvoiceGetFiltered<TData = Awaited<ReturnType<typeof invoiceG
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Filter invoices by statusId, clientId, dateFrom, dateTo.
+ * @summary Filter invoices by statusId, clientId, dateFrom, dateTo. Admin sees all matches; non-admins see only invoices they created.
  */
 
 export function useInvoiceGetFiltered<TData = Awaited<ReturnType<typeof invoiceGetFiltered>>, TError = unknown>(
