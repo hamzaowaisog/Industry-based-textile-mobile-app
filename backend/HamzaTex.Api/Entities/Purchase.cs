@@ -27,6 +27,9 @@ public partial class Purchase
 
     public DateOnly PurchaseDate { get; set; }
 
+    /// <summary>Hijri equivalent of PurchaseDate, "yyyy-MM-dd" in Hijri terms.</summary>
+    public string? PurchaseDateHijri { get; set; }
+
     public string? Notes { get; set; }
 
     public DateOnly? CreatedAt { get; set; }

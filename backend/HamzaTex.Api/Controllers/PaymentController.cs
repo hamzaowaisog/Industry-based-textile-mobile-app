@@ -44,6 +44,7 @@ public class PaymentController : BaseController
             TransModeId = model.TransModeId,
             Amount = model.Amount,
             PaymentDate = model.PaymentDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
+            PaymentDateHijri = model.PaymentDateHijri,
             Notes = model.Notes,
             Allocations = (model.Allocations ?? []).Select(a => new AllocationItemDto
             {

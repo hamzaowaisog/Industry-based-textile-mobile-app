@@ -10,6 +10,8 @@ public class OrderDto
     public int PaymentTypeId { get; set; }
     public string? PaymentTypeName { get; set; }
     public DateOnly OrderDate { get; set; }
+    public string? OrderDateHijri { get; set; }
+    public string? OrderDateHijriDisplay { get; set; }
     public string? Notes { get; set; }
     public DateOnly? CreatedAt { get; set; }
     public decimal Total { get; set; }
@@ -35,6 +37,7 @@ public class CreateOrderDto
     public int ClientId { get; set; }
     public int PaymentTypeId { get; set; }
     public DateOnly OrderDate { get; set; }
+    public string? OrderDateHijri { get; set; }
     public string? Notes { get; set; }
     public List<CreateOrderLineDto> Lines { get; set; } = new();
 }

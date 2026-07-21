@@ -201,6 +201,11 @@ public class ExpenseService : IExpenseService
                 "This expense type has no default category mapping. Please provide TransCategoryId explicitly.");
         }
 
+        var hijriOffset = (await _db.SystemSettings.AsNoTracking().FirstOrDefaultAsync())?.HijriOffsetDays ?? 0;
+        var expenseDateHijri = string.IsNullOrWhiteSpace(model.ExpenseDateHijri)
+            ? HijriDateHelper.ToHijriString(model.ExpenseDate, hijriOffset)
+            : model.ExpenseDateHijri;
+
         using var txn = await _db.Database.BeginTransactionAsync();
         try
         {
@@ -217,6 +222,7 @@ public class ExpenseService : IExpenseService
                 TransCategoryId = transCategoryId,
                 Amount = model.Amount,
                 TransDate = model.ExpenseDate,
+                TransDateHijri = expenseDateHijri,
                 Notes = $"Expense: {model.Notes}",
                 CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
@@ -233,6 +239,7 @@ public class ExpenseService : IExpenseService
                 TransCategoryId = transCategoryId,
                 TransactionId = transaction.Id,
                 ExpenseDate = model.ExpenseDate,
+                ExpenseDateHijri = expenseDateHijri,
                 Notes = model.Notes,
                 CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
@@ -402,6 +409,8 @@ public class ExpenseService : IExpenseService
         TransCategoryName = e.TransCategory?.Name,
         TransactionId = e.TransactionId,
         ExpenseDate = e.ExpenseDate,
+        ExpenseDateHijri = e.ExpenseDateHijri,
+        ExpenseDateHijriDisplay = HijriDateHelper.FormatForDisplay(e.ExpenseDateHijri),
         Notes = e.Notes,
         CreatedAt = e.CreatedAt
     };

@@ -6,6 +6,8 @@ public class PurchaseCreateViewModel
     public int PaymentTypeId { get; set; }
     /// <summary>Omit or null to use the current UTC date.</summary>
     public DateOnly? PurchaseDate { get; set; }
+    /// <summary>Optional Hijri override, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from PurchaseDate.</summary>
+    public string? PurchaseDateHijri { get; set; }
     public string? Notes { get; set; }
     public List<PurchaseLineCreateViewModel> Lines { get; set; } = [];
 }

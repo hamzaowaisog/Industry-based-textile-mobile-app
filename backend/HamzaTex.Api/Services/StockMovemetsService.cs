@@ -57,6 +57,12 @@ public class StockMovementsService : IStockMovementsService
 
     public async Task<Response<StockMovementsDto>> CreateAsync(CreateStockMovementsDto model, int userId)
     {
+        if (string.IsNullOrWhiteSpace(model.MovementDateHijri))
+        {
+            var hijriOffset = (await _dbContext.SystemSettings.AsNoTracking().FirstOrDefaultAsync())?.HijriOffsetDays ?? 0;
+            model.MovementDateHijri = HijriDateHelper.ToHijriString(model.MovementDate, hijriOffset);
+        }
+
         // If a transaction is already active (e.g. called from OrderService), participate in it.
         // Otherwise own the transaction ourselves.
         var ownTransaction = _dbContext.Database.CurrentTransaction == null;
@@ -650,7 +656,9 @@ public class StockMovementsService : IStockMovementsService
         AveragePriceAtMovement = entity.AveragePriceAtMovement,
         CurrentAverageCost = entity.Product?.AverageCost,
         CurrentAveragePrice = entity.Product?.AveragePrice,
-        MovementDate = entity.MovementDate
+        MovementDate = entity.MovementDate,
+        MovementDateHijri = entity.MovementDateHijri,
+        MovementDateHijriDisplay = HijriDateHelper.FormatForDisplay(entity.MovementDateHijri)
     };
 
     private static StockMovement ToEntity(
@@ -670,6 +678,7 @@ public class StockMovementsService : IStockMovementsService
         AverageCostAtMovement = snapshotAvgCost,
         AveragePriceAtMovement = snapshotAvgPrice,
         MovementDate = model.MovementDate,
+        MovementDateHijri = model.MovementDateHijri,
         AverageDimensionOverride = model.AverageDimensionOverride
     };
 }

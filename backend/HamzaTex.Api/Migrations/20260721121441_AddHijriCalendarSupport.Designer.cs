@@ -4,6 +4,7 @@ using HamzaTex.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HamzaTex.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260721121441_AddHijriCalendarSupport")]
+    partial class AddHijriCalendarSupport
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1701,37 +1704,6 @@ namespace HamzaTex.Api.Migrations
                     b.ToView("v_monthly_credit_debit", (string)null);
                 });
 
-            modelBuilder.Entity("HamzaTex.Api.Entities.VMonthlyCreditDebitHijri", b =>
-                {
-                    b.Property<decimal?>("Balance")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
-                        .HasColumnName("balance");
-
-                    b.Property<string>("HijriMonth")
-                        .HasColumnType("longtext")
-                        .HasColumnName("hijri_month");
-
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    b.Property<decimal?>("TotalCredit")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
-                        .HasColumnName("total_credit");
-
-                    b.Property<decimal?>("TotalDebit")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
-                        .HasColumnName("total_debit");
-
-                    b.ToTable((string)null);
-
-                    b.ToView("v_monthly_credit_debit_hijri", (string)null);
-                });
-
             modelBuilder.Entity("HamzaTex.Api.Entities.VMonthlyProfitLoss", b =>
                 {
                     b.Property<decimal?>("GrossProfit")
@@ -1770,46 +1742,6 @@ namespace HamzaTex.Api.Migrations
                     b.ToTable((string)null);
 
                     b.ToView("v_monthly_profit_loss", (string)null);
-                });
-
-            modelBuilder.Entity("HamzaTex.Api.Entities.VMonthlyProfitLossHijri", b =>
-                {
-                    b.Property<decimal?>("GrossProfit")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
-                        .HasColumnName("gross_profit");
-
-                    b.Property<string>("HijriMonth")
-                        .HasColumnType("longtext")
-                        .HasColumnName("hijri_month");
-
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("NetProfit")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
-                        .HasColumnName("net_profit");
-
-                    b.Property<decimal?>("TotalExpenses")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
-                        .HasColumnName("total_expenses");
-
-                    b.Property<decimal?>("TotalPurchases")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
-                        .HasColumnName("total_purchases");
-
-                    b.Property<decimal?>("TotalSales")
-                        .HasPrecision(14, 2)
-                        .HasColumnType("decimal(14,2)")
-                        .HasColumnName("total_sales");
-
-                    b.ToTable((string)null);
-
-                    b.ToView("v_monthly_profit_loss_hijri", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>

@@ -27,6 +27,8 @@ public class TransactionDto
 
     public decimal Amount { get; set; }
     public DateOnly TransDate { get; set; }
+    public string? TransDateHijri { get; set; }
+    public string? TransDateHijriDisplay { get; set; }
     public string? Notes { get; set; }
     public DateOnly? CreatedAt { get; set; }
 
@@ -42,6 +44,7 @@ public class CreateTransactionDto
     public decimal Amount { get; set; }
     public int TransCategoryId { get; set; }
     public DateOnly TransDate { get; set; }
+    public string? TransDateHijri { get; set; }
     public string? Notes { get; set; }
     public int? ClientId { get; set; }
     public int? TransTypeId { get; set; }

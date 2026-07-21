@@ -45,6 +45,7 @@ public class TransactionController : BaseController
             Amount          = model.Amount,
             TransCategoryId = model.TransCategoryId,
             TransDate       = model.TransDate,
+            TransDateHijri  = model.TransDateHijri,
             Notes           = model.Notes,
             ClientId        = model.ClientId,
             TransTypeId     = model.TransTypeId,

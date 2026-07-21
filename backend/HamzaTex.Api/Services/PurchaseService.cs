@@ -79,6 +79,11 @@ public class PurchaseService : IPurchaseService
         if (missingProductId != default)
             return Response<PurchaseDto>.ErrorResponse("Not found", $"Product with ID {missingProductId} does not exist.");
 
+        var hijriOffset = (await _dbContext.SystemSettings.AsNoTracking().FirstOrDefaultAsync())?.HijriOffsetDays ?? 0;
+        var purchaseDateHijri = string.IsNullOrWhiteSpace(model.PurchaseDateHijri)
+            ? HijriDateHelper.ToHijriString(model.PurchaseDate, hijriOffset)
+            : model.PurchaseDateHijri;
+
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
         try
         {
@@ -89,6 +94,7 @@ public class PurchaseService : IPurchaseService
                 StatusId = StatusPending,
                 PaymentTypeId = model.PaymentTypeId,
                 PurchaseDate = model.PurchaseDate,
+                PurchaseDateHijri = purchaseDateHijri,
                 Notes = model.Notes,
                 CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
@@ -425,6 +431,7 @@ public class PurchaseService : IPurchaseService
                 TransCategoryId = TransCategoryPurchases,
                 Amount = purchaseTotal,
                 TransDate = purchase.PurchaseDate,
+                TransDateHijri = purchase.PurchaseDateHijri,
                 Notes = $"Purchase — Purchase #{purchase.Id}",
                 CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
@@ -517,6 +524,8 @@ public class PurchaseService : IPurchaseService
                 // Compensating ledger entry (opposite: Debit, negative amount)
                 var purchaseTotal = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost);
                 var transMode = MapPaymentTypeToTransMode(purchase.PaymentTypeId ?? 1);
+                var reversalDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                var reversalHijriOffset = (await _dbContext.SystemSettings.AsNoTracking().FirstOrDefaultAsync())?.HijriOffsetDays ?? 0;
 
                 var reversalTxn = new Transaction
                 {
@@ -527,7 +536,8 @@ public class PurchaseService : IPurchaseService
                     TransModeId = transMode,
                     TransCategoryId = TransCategoryPurchases,
                     Amount = -purchaseTotal,
-                    TransDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                    TransDate = reversalDate,
+                    TransDateHijri = HijriDateHelper.ToHijriString(reversalDate, reversalHijriOffset),
                     Notes = $"Purchase reversal — Purchase #{purchase.Id} cancelled",
                     CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
                 };
@@ -600,6 +610,8 @@ public class PurchaseService : IPurchaseService
             PaymentTypeId = purchase.PaymentTypeId ?? 0,
             PaymentTypeName = purchase.PaymentType?.Name,
             PurchaseDate = purchase.PurchaseDate,
+            PurchaseDateHijri = purchase.PurchaseDateHijri,
+            PurchaseDateHijriDisplay = HijriDateHelper.FormatForDisplay(purchase.PurchaseDateHijri),
             Notes = purchase.Notes,
             CreatedAt = purchase.CreatedAt,
             Total = total,

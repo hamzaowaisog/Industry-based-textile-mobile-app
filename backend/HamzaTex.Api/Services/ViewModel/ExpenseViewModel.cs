@@ -9,6 +9,8 @@ public class ExpenseCreateViewModel
     public int? TransCategoryId { get; set; }
     /// <summary>Omit or set null to use today's UTC date.</summary>
     public DateOnly? ExpenseDate { get; set; }
+    /// <summary>Optional Hijri override, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from ExpenseDate.</summary>
+    public string? ExpenseDateHijri { get; set; }
     public string? Notes { get; set; }
 }
 

@@ -15,8 +15,8 @@ public interface IDashboardService
     /// <summary>Dashboard summary: financials, operations, alerts, recent orders.</summary>
     Task<Response<DashboardSummaryDto>> GetSummaryAsync(int userId, bool isAdmin);
 
-    /// <summary>Last N months of aggregated financials for charts.</summary>
-    Task<Response<MonthlyOverviewDto>> GetMonthlyOverviewAsync(int userId, bool isAdmin, int months = 6);
+    /// <summary>Last N months of aggregated financials for charts. <paramref name="calendar"/> is "gregorian" (default) or "hijri".</summary>
+    Task<Response<MonthlyOverviewDto>> GetMonthlyOverviewAsync(int userId, bool isAdmin, int months = 6, string calendar = "gregorian");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -156,10 +156,16 @@ public class DashboardService : IDashboardService
             PurchaseDate = p.PurchaseDate.ToString("dd MMM, yyyy")
         }).ToList();
 
+        // --- HIJRI OFFSET ----------------------------------------------------
+
+        var hijriOffset = (await _db.SystemSettings.AsNoTracking().FirstOrDefaultAsync())?.HijriOffsetDays ?? 0;
+        var todayHijri = HijriDateHelper.FormatForDisplay(HijriDateHelper.ToHijriString(DateOnly.FromDateTime(DateTime.UtcNow), hijriOffset));
+
         // ── Build response ──────────────────────────────────────────────────
         var dto = new DashboardSummaryDto
         {
             AsOf = today.ToString("dd MMM, yyyy"),
+            TodayHijri = todayHijri,
             Financials = new DashboardFinancialsDto
             {
                 ThisMonthRevenue = thisMonthRevenue,
@@ -188,9 +194,15 @@ public class DashboardService : IDashboardService
         return Response<DashboardSummaryDto>.SuccessResponse(dto, "Dashboard summary");
     }
 
-    public async Task<Response<MonthlyOverviewDto>> GetMonthlyOverviewAsync(int userId, bool isAdmin, int months = 6)
+    public async Task<Response<MonthlyOverviewDto>> GetMonthlyOverviewAsync(int userId, bool isAdmin, int months = 6, string calendar = "gregorian")
     {
         months = Math.Clamp(months, 1, 12);
+
+        if (string.Equals(calendar, "hijri", StringComparison.OrdinalIgnoreCase))
+        {
+            return await GetMonthlyOverviewHijriAsync(userId, isAdmin, months);
+        }
+
         var utcNow = DateTime.UtcNow;
         var cutoffStart = new DateTime(utcNow.Year, utcNow.Month, 1).AddMonths(-(months - 1));
 
@@ -243,5 +255,80 @@ public class DashboardService : IDashboardService
 
         return Response<MonthlyOverviewDto>.SuccessResponse(
             new MonthlyOverviewDto { Months = monthItems }, "Monthly overview");
+    }
+
+    private async Task<Response<MonthlyOverviewDto>> GetMonthlyOverviewHijriAsync(int userId, bool isAdmin, int months)
+    {
+        List<MonthlyOverviewItemDto> monthItems;
+
+        if (isAdmin)
+        {
+            var viewData = await _db.VMonthlyProfitLossesHijri.AsNoTracking()
+                .Where(v => v.HijriMonth != null)
+                .OrderByDescending(v => v.HijriMonth)
+                .Take(months)
+                .ToListAsync();
+
+            monthItems = viewData
+                .OrderBy(v => v.HijriMonth)
+                .Select(v => new MonthlyOverviewItemDto
+                {
+                    Month = FormatHijriMonthLabel(v.HijriMonth),
+                    TotalSales = v.TotalSales ?? 0m,
+                    TotalPurchases = v.TotalPurchases ?? 0m,
+                    TotalExpenses = v.TotalExpenses ?? 0m,
+                    NetProfit = v.NetProfit ?? 0m
+                }).ToList();
+        }
+        else
+        {
+            var rawTransactions = await _db.Transactions.AsNoTracking()
+                .Where(t => t.UserId == userId && t.TransDateHijri != null)
+                .Select(t => new { t.TransDateHijri, t.TransCategoryId, t.Amount })
+                .ToListAsync();
+
+            monthItems = rawTransactions
+                .GroupBy(t => t.TransDateHijri!.Substring(0, 7))
+                .Select(g => new
+                {
+                    HijriMonth = g.Key,
+                    TotalSales = g.Sum(t => t.TransCategoryId == 1 ? t.Amount : 0m),
+                    TotalPurchases = g.Sum(t => t.TransCategoryId == 2 ? t.Amount : 0m),
+                    TotalExpenses = g.Sum(t => (t.TransCategoryId == 3 || t.TransCategoryId == 4) ? t.Amount : 0m)
+                })
+                .OrderByDescending(x => x.HijriMonth)
+                .Take(months)
+                .OrderBy(x => x.HijriMonth)
+                .Select(x => new MonthlyOverviewItemDto
+                {
+                    Month = FormatHijriMonthLabel(x.HijriMonth),
+                    TotalSales = x.TotalSales,
+                    TotalPurchases = x.TotalPurchases,
+                    TotalExpenses = x.TotalExpenses,
+                    NetProfit = x.TotalSales - x.TotalPurchases - x.TotalExpenses
+                }).ToList();
+        }
+
+        return Response<MonthlyOverviewDto>.SuccessResponse(
+            new MonthlyOverviewDto { Months = monthItems }, "Monthly overview (Hijri)");
+    }
+
+    private static string FormatHijriMonthLabel(string? hijriMonth)
+    {
+        if (string.IsNullOrWhiteSpace(hijriMonth))
+        {
+            return string.Empty;
+        }
+
+        var parts = hijriMonth.Split('-');
+        if (parts.Length != 2
+            || !int.TryParse(parts[0], out var year)
+            || !int.TryParse(parts[1], out var month)
+            || month is < 1 or > 12)
+        {
+            return hijriMonth;
+        }
+
+        return $"{HijriDateHelper.HijriMonthNames[month - 1]} {year}";
     }
 }

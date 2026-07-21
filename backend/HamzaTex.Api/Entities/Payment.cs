@@ -29,6 +29,9 @@ public partial class Payment
 
     public DateOnly PaymentDate { get; set; }
 
+    /// <summary>Hijri equivalent of PaymentDate, "yyyy-MM-dd" in Hijri terms.</summary>
+    public string? PaymentDateHijri { get; set; }
+
     public string? Notes { get; set; }
 
     public DateOnly? CreatedAt { get; set; }

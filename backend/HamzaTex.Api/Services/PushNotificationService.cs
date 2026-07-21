@@ -43,6 +43,7 @@ public class PushNotificationService : IPushNotificationService
         ["expense_approved"]   = ("Expense Recorded",    "PKR {amount} expense recorded ({category})"),
         ["client_added"]       = ("New Client Added",    "{clientName} has been added as a client"),
         ["account_deactivated"] = ("Account Deactivated", "Your account has been deactivated by an administrator."),
+        ["hijri_offset_reminder"] = ("New Hijri Month Expected", "A new Hijri month is expected to begin tomorrow. Please confirm the moon sighting and adjust the calendar offset in Settings if needed."),
     };
 
     public PushNotificationService(
@@ -221,6 +222,8 @@ public class PushNotificationService : IPushNotificationService
             => vars.TryGetValue("expenseId", out var eid) ? $"/expenses/{eid}" : "/expenses",
         "client_added"
             => vars.TryGetValue("clientId", out var cid) ? $"/clients/{cid}" : "/clients",
+        "hijri_offset_reminder"
+            => "/settings",
         _ => "/"
     };
 

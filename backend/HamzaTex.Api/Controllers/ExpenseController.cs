@@ -44,6 +44,7 @@ public class ExpenseController : BaseController
             TransModeId = model.TransModeId,
             TransCategoryId = model.TransCategoryId,
             ExpenseDate = model.ExpenseDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
+            ExpenseDateHijri = model.ExpenseDateHijri,
             Notes = model.Notes
         };
 

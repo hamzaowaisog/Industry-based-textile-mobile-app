@@ -100,6 +100,8 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddSingleton<IPushNotificationService, PushNotificationService>();
 builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ISettingsService, SettingsService>();
+builder.Services.AddHostedService<HijriOffsetReminderJob>();
 builder.Services.Configure<SmtpOptionsDto>(builder.Configuration.GetSection("Smtp"));
 builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSenderService>();
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>

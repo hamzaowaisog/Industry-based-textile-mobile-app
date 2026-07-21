@@ -27,7 +27,13 @@ public partial class Invoice
 
     public DateOnly? IssueDate { get; set; }
 
+    /// <summary>Hijri equivalent of IssueDate, "yyyy-MM-dd" in Hijri terms.</summary>
+    public string? IssueDateHijri { get; set; }
+
     public DateOnly? DueDate { get; set; }
+
+    /// <summary>Hijri equivalent of DueDate, "yyyy-MM-dd" in Hijri terms.</summary>
+    public string? DueDateHijri { get; set; }
 
     public decimal TotalAmount { get; set; }
 

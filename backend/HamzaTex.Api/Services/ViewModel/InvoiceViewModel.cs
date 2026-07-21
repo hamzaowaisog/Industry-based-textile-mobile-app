@@ -6,6 +6,8 @@ public class InvoiceCreateViewModel
     public int? PurchaseId { get; set; }
     public int ClientId { get; set; }
     public DateOnly? DueDate { get; set; }
+    /// <summary>Optional Hijri override for DueDate, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from DueDate.</summary>
+    public string? DueDateHijri { get; set; }
     public decimal TotalAmount { get; set; }
     public string? Notes { get; set; }
     public List<InvoiceLineCreateViewModel> Lines { get; set; } = [];

@@ -20,6 +20,8 @@ public class PaymentDto
     public string? TransModeName { get; set; }
     public decimal Amount { get; set; }
     public DateOnly PaymentDate { get; set; }
+    public string? PaymentDateHijri { get; set; }
+    public string? PaymentDateHijriDisplay { get; set; }
     public string? Notes { get; set; }
     public DateOnly? CreatedAt { get; set; }
     public int? UserId { get; set; }
@@ -45,6 +47,7 @@ public class CreatePaymentDto
     public int TransModeId { get; set; }
     public decimal Amount { get; set; }
     public DateOnly PaymentDate { get; set; }
+    public string? PaymentDateHijri { get; set; }
     public string? Notes { get; set; }
     public List<AllocationItemDto> Allocations { get; set; } = new();
 }

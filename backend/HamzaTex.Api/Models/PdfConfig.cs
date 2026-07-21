@@ -85,6 +85,7 @@ public static class EntityPdfConfigs
         PdfColumnConfig.Create("StatusName", "Status", fixedWidthMm: 22),
         PdfColumnConfig.Create("PaymentTypeName", "Payment Type", fixedWidthMm: 26),
         PdfColumnConfig.Create("OrderDate", "Order Date", PdfColumnFormat.Date, fixedWidthMm: 24),
+        PdfColumnConfig.Create("OrderDateHijriDisplay", "Hijri Date", weight: 1.2f),
         PdfColumnConfig.Create("Total", "Total (PKR)", PdfColumnFormat.Currency, fixedWidthMm: 26),
         PdfColumnConfig.Create("Notes", "Notes", weight: 1.8f),
     ];
@@ -94,6 +95,7 @@ public static class EntityPdfConfigs
         PdfColumnConfig.Create("StatusName", "Status", fixedWidthMm: 22),
         PdfColumnConfig.Create("PaymentTypeName", "Payment Type", fixedWidthMm: 26),
         PdfColumnConfig.Create("PurchaseDate", "Purchase Date", PdfColumnFormat.Date, fixedWidthMm: 24),
+        PdfColumnConfig.Create("PurchaseDateHijriDisplay", "Hijri Date", weight: 1.2f),
         PdfColumnConfig.Create("Total", "Total (PKR)", PdfColumnFormat.Currency, fixedWidthMm: 26),
         PdfColumnConfig.Create("Notes", "Notes", weight: 1.8f),
     ];
@@ -104,6 +106,7 @@ public static class EntityPdfConfigs
         PdfColumnConfig.Create("TransModeName", "Mode", fixedWidthMm: 22),
         PdfColumnConfig.Create("Amount", "Amount (PKR)", PdfColumnFormat.Currency, fixedWidthMm: 26),
         PdfColumnConfig.Create("PaymentDate", "Date", PdfColumnFormat.Date, fixedWidthMm: 24),
+        PdfColumnConfig.Create("PaymentDateHijriDisplay", "Hijri Date", weight: 1.2f),
         PdfColumnConfig.Create("RecordedByName", "Recorded By", weight: 1.3f),
         PdfColumnConfig.Create("IsReversed", "Reversed", PdfColumnFormat.Boolean, fixedWidthMm: 22),
     ];
@@ -127,6 +130,7 @@ public static class EntityPdfConfigs
         PdfColumnConfig.Create("TransModeName", "Mode", weight: 0.85f),
         PdfColumnConfig.Create("TransCategoryName", "Category", weight: 1.1f),
         PdfColumnConfig.Create("ExpenseDate", "Date", PdfColumnFormat.Date, 1f),
+        PdfColumnConfig.Create("ExpenseDateHijriDisplay", "Hijri Date", weight: 1.2f),
         PdfColumnConfig.Create("RecordedByName", "Recorded By", weight: 1.2f),
         PdfColumnConfig.Create("Notes", "Notes", weight: 1.8f),
     ];
@@ -195,6 +199,7 @@ public static class EntityPdfConfigs
         PdfColumnConfig.Create("Paid",          nameof(InvoiceDto.AmountPaid)),
         PdfColumnConfig.Create("Outstanding",   nameof(InvoiceDto.Outstanding)),
         PdfColumnConfig.Create("Issue Date",    nameof(InvoiceDto.IssueDate)),
+        PdfColumnConfig.Create("Hijri Date",    nameof(InvoiceDto.IssueDateHijriDisplay)),
     ];
 
     /// <summary>
