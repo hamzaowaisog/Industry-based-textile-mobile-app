@@ -58,6 +58,9 @@ public class LookupService : ILookupService
             UserRoles         = await _dbContext.UserRoles.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
             InvoiceStatuses   = await _dbContext.InvoiceStatuses.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
             Units             = await _dbContext.Units.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
+            HijriMonths       = HijriDateHelper.HijriMonthNames
+                                    .Select((name, index) => ToDto(index + 1, name))
+                                    .ToList(),
         };
 
         return Response<LookupsAllDto>.SuccessResponse(result, "Lookups fetched successfully.");
