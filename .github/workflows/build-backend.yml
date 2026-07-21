@@ -6,6 +6,8 @@ on:
       - 'hamzaTex/Qa'
     paths:
       - 'backend/**'
+      - '.github/workflows/build-backend.yml'
+  workflow_dispatch: {}
 
 jobs:
   build:
