@@ -39,6 +39,10 @@ export interface TransactionDto {
   amount?: number;
   transDate?: string;
   /** @nullable */
+  transDateHijri?: string | null;
+  /** @nullable */
+  transDateHijriDisplay?: string | null;
+  /** @nullable */
   notes?: string | null;
   /** @nullable */
   createdAt?: string | null;

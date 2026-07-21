@@ -32,7 +32,15 @@ export interface InvoiceDto {
   /** @nullable */
   issueDate?: string | null;
   /** @nullable */
+  issueDateHijri?: string | null;
+  /** @nullable */
+  issueDateHijriDisplay?: string | null;
+  /** @nullable */
   dueDate?: string | null;
+  /** @nullable */
+  dueDateHijri?: string | null;
+  /** @nullable */
+  dueDateHijriDisplay?: string | null;
   totalAmount?: number;
   amountPaid?: number;
   outstanding?: number;

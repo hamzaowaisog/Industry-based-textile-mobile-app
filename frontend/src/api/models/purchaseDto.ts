@@ -20,6 +20,10 @@ export interface PurchaseDto {
   paymentTypeName?: string | null;
   purchaseDate?: string;
   /** @nullable */
+  purchaseDateHijri?: string | null;
+  /** @nullable */
+  purchaseDateHijriDisplay?: string | null;
+  /** @nullable */
   notes?: string | null;
   /** @nullable */
   createdAt?: string | null;

@@ -6,7 +6,6 @@
  * OpenAPI spec version: v1
  */
 
-export type DashboardGetMonthlyOverviewParams = {
-months?: number;
-calendar?: string;
-};
+export interface SettingsUpdateViewModel {
+  hijriOffsetDays?: number;
+}

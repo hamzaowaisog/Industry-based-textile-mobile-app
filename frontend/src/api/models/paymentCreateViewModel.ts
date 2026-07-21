@@ -17,6 +17,11 @@ export interface PaymentCreateViewModel {
      * @nullable
      */
   paymentDate?: string | null;
+  /**
+     * Optional Hijri override, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from PaymentDate.
+     * @nullable
+     */
+  paymentDateHijri?: string | null;
   /** @nullable */
   notes?: string | null;
   /** @nullable */
