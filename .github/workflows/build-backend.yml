@@ -44,5 +44,6 @@ jobs:
 
       - name: Deploy to Railway
         run: railway up --service hamzatex-api --detach
+        working-directory: backend/HamzaTex.Api
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
