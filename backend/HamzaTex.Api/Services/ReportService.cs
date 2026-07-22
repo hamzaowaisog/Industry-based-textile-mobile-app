@@ -64,6 +64,8 @@ public class ReportService : IReportService
                 .OrderBy(v => v.HijriMonth)
                 .ToListAsync();
 
+            hijriRows = HijriDateHelper.FilterByPeriod(hijriRows, r => r.HijriMonth, year, month);
+
             var hijriResult = hijriRows.Select(r => new ProfitLossViewModel
             {
                 Month = HijriDateHelper.FormatHijriMonthLabel(r.HijriMonth),
@@ -158,6 +160,8 @@ public class ReportService : IReportService
                 .Where(v => v.HijriMonth != null)
                 .OrderBy(v => v.HijriMonth)
                 .ToListAsync();
+
+            hijriRows = HijriDateHelper.FilterByPeriod(hijriRows, r => r.HijriMonth, year, month);
 
             var hijriResult = hijriRows.Select(r => new CreditDebitViewModel
             {

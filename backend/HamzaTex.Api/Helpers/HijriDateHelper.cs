@@ -79,5 +79,30 @@ public static class HijriDateHelper
 
         return $"{HijriMonthNames[month - 1]} {year}";
     }
+
+    /// <summary>
+    /// Filters rows whose "yyyy-MM" Hijri month key (selected via <paramref name="hijriMonthSelector"/>)
+    /// matches the given Hijri year and/or month. Returns all rows if both are null.
+    /// </summary>
+    public static List<T> FilterByPeriod<T>(List<T> rows, Func<T, string?> hijriMonthSelector, int? year, int? month)
+    {
+        if (!year.HasValue && !month.HasValue)
+        {
+            return rows;
+        }
+
+        return rows.Where(r =>
+        {
+            var parts = hijriMonthSelector(r)?.Split('-');
+            if (parts is not { Length: 2 }
+                || !int.TryParse(parts[0], out var rowYear)
+                || !int.TryParse(parts[1], out var rowMonth))
+            {
+                return false;
+            }
+
+            return (!year.HasValue || rowYear == year.Value) && (!month.HasValue || rowMonth == month.Value);
+        }).ToList();
+    }
 }
 
