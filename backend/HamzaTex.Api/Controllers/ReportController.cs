@@ -31,25 +31,27 @@ public class ReportController : BaseController
     [HttpGet("profit-loss")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(typeof(Response<List<ProfitLossViewModel>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetProfitLoss([FromQuery] int? year, [FromQuery] int? month)
+    public async Task<IActionResult> GetProfitLoss([FromQuery] int? year, [FromQuery] int? month, [FromQuery] string calendar = "gregorian")
     {
-        return ToActionResult(await _reportService.GetMonthlyProfitLossAsync(year, month));
+        return ToActionResult(await _reportService.GetMonthlyProfitLossAsync(year, month, calendar));
     }
 
     /// <summary>Export profit and loss report as PDF. Accepts same year/month filters.</summary>
     [HttpGet("profit-loss/pdf")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetProfitLossPdf([FromQuery] int? year, [FromQuery] int? month)
+    public async Task<IActionResult> GetProfitLossPdf([FromQuery] int? year, [FromQuery] int? month, [FromQuery] string calendar = "gregorian")
     {
-        var result = await _reportService.GetMonthlyProfitLossAsync(year, month);
+        var result = await _reportService.GetMonthlyProfitLossAsync(year, month, calendar);
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 
         var data        = result.Data;
-        var periodLabel = year.HasValue
-            ? (month.HasValue ? $"{month.Value:D2}/{year.Value}" : year.Value.ToString())
-            : "All Time";
+        var periodLabel = calendar == "hijri"
+            ? "Hijri — All Time"
+            : (year.HasValue
+                ? (month.HasValue ? $"{month.Value:D2}/{year.Value}" : year.Value.ToString())
+                : "All Time");
 
         var totalSales     = data.Sum(r => r.TotalSales);
         var totalPurchases = data.Sum(r => r.TotalPurchases);
@@ -184,25 +186,27 @@ public class ReportController : BaseController
     [HttpGet("credit-debit")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(typeof(Response<List<CreditDebitViewModel>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetCreditDebit([FromQuery] int? year, [FromQuery] int? month)
+    public async Task<IActionResult> GetCreditDebit([FromQuery] int? year, [FromQuery] int? month, [FromQuery] string calendar = "gregorian")
     {
-        return ToActionResult(await _reportService.GetMonthlyCreditDebitAsync(year, month));
+        return ToActionResult(await _reportService.GetMonthlyCreditDebitAsync(year, month, calendar));
     }
 
     /// <summary>Export credit/debit report as PDF. Accepts same year/month filters.</summary>
     [HttpGet("credit-debit/pdf")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetCreditDebitPdf([FromQuery] int? year, [FromQuery] int? month)
+    public async Task<IActionResult> GetCreditDebitPdf([FromQuery] int? year, [FromQuery] int? month, [FromQuery] string calendar = "gregorian")
     {
-        var result = await _reportService.GetMonthlyCreditDebitAsync(year, month);
+        var result = await _reportService.GetMonthlyCreditDebitAsync(year, month, calendar);
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 
         var data        = result.Data;
-        var periodLabel = year.HasValue
-            ? (month.HasValue ? $"{month.Value:D2}/{year.Value}" : year.Value.ToString())
-            : "All Time";
+        var periodLabel = calendar == "hijri"
+            ? "Hijri — All Time"
+            : (year.HasValue
+                ? (month.HasValue ? $"{month.Value:D2}/{year.Value}" : year.Value.ToString())
+                : "All Time");
 
         var totalCredit = data.Sum(r => r.TotalCredit);
         var totalDebit  = data.Sum(r => r.TotalDebit);

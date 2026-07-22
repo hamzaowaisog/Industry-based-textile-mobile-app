@@ -14,7 +14,7 @@ namespace HamzaTex.Api.Services;
 public interface IReportService
 {
     /// <summary>Monthly profit and loss report. Optionally filter by year and/or month.</summary>
-    Task<Response<List<ProfitLossViewModel>>> GetMonthlyProfitLossAsync(int? year, int? month);
+    Task<Response<List<ProfitLossViewModel>>> GetMonthlyProfitLossAsync(int? year, int? month, string calendar = "gregorian");
 
     /// <summary>All client balances from v_client_balance.</summary>
     Task<Response<List<ClientBalanceViewModel>>> GetClientBalancesAsync();
@@ -23,7 +23,7 @@ public interface IReportService
     Task<Response<ClientBalanceViewModel>> GetClientBalanceByIdAsync(int clientId, int userId, bool isAdmin);
 
     /// <summary>Monthly credit/debit report. Optionally filter by year and/or month.</summary>
-    Task<Response<List<CreditDebitViewModel>>> GetMonthlyCreditDebitAsync(int? year, int? month);
+    Task<Response<List<CreditDebitViewModel>>> GetMonthlyCreditDebitAsync(int? year, int? month, string calendar = "gregorian");
 
     /// <summary>Aggregate totals: sales, purchases, expenses amounts + order/purchase/client counts.</summary>
     Task<Response<SummaryTotalsViewModel>> GetSummaryTotalsAsync();
@@ -55,8 +55,28 @@ public class ReportService : IReportService
 
     // ── P&L ──────────────────────────────────────────────────────────────────
 
-    public async Task<Response<List<ProfitLossViewModel>>> GetMonthlyProfitLossAsync(int? year, int? month)
+    public async Task<Response<List<ProfitLossViewModel>>> GetMonthlyProfitLossAsync(int? year, int? month, string calendar = "gregorian")
     {
+        if (calendar == "hijri")
+        {
+            var hijriRows = await _db.VMonthlyProfitLossesHijri.AsNoTracking()
+                .Where(v => v.HijriMonth != null)
+                .OrderBy(v => v.HijriMonth)
+                .ToListAsync();
+
+            var hijriResult = hijriRows.Select(r => new ProfitLossViewModel
+            {
+                Month = HijriDateHelper.FormatHijriMonthLabel(r.HijriMonth),
+                TotalSales = r.TotalSales ?? 0,
+                TotalPurchases = r.TotalPurchases ?? 0,
+                TotalExpenses = r.TotalExpenses ?? 0,
+                GrossProfit = r.GrossProfit ?? 0,
+                NetProfit = r.NetProfit ?? 0,
+            }).ToList();
+
+            return Response<List<ProfitLossViewModel>>.SuccessResponse(hijriResult, "P&L report fetched (Hijri).");
+        }
+
         var query = _db.VMonthlyProfitLosses.AsNoTracking();
 
         if (year.HasValue)
@@ -130,8 +150,26 @@ public class ReportService : IReportService
 
     // ── Credit / Debit ───────────────────────────────────────────────────────
 
-    public async Task<Response<List<CreditDebitViewModel>>> GetMonthlyCreditDebitAsync(int? year, int? month)
+    public async Task<Response<List<CreditDebitViewModel>>> GetMonthlyCreditDebitAsync(int? year, int? month, string calendar = "gregorian")
     {
+        if (calendar == "hijri")
+        {
+            var hijriRows = await _db.VMonthlyCreditDebitsHijri.AsNoTracking()
+                .Where(v => v.HijriMonth != null)
+                .OrderBy(v => v.HijriMonth)
+                .ToListAsync();
+
+            var hijriResult = hijriRows.Select(r => new CreditDebitViewModel
+            {
+                Month = HijriDateHelper.FormatHijriMonthLabel(r.HijriMonth),
+                TotalCredit = r.TotalCredit ?? 0,
+                TotalDebit = r.TotalDebit ?? 0,
+                Balance = r.Balance ?? 0,
+            }).ToList();
+
+            return Response<List<CreditDebitViewModel>>.SuccessResponse(hijriResult, "Credit/debit report fetched (Hijri).");
+        }
+        
         var query = _db.VMonthlyCreditDebits.AsNoTracking();
 
         if (year.HasValue)

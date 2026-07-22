@@ -273,7 +273,7 @@ public class DashboardService : IDashboardService
                 .OrderBy(v => v.HijriMonth)
                 .Select(v => new MonthlyOverviewItemDto
                 {
-                    Month = FormatHijriMonthLabel(v.HijriMonth),
+                    Month = HijriDateHelper.FormatHijriMonthLabel(v.HijriMonth),
                     TotalSales = v.TotalSales ?? 0m,
                     TotalPurchases = v.TotalPurchases ?? 0m,
                     TotalExpenses = v.TotalExpenses ?? 0m,
@@ -301,7 +301,7 @@ public class DashboardService : IDashboardService
                 .OrderBy(x => x.HijriMonth)
                 .Select(x => new MonthlyOverviewItemDto
                 {
-                    Month = FormatHijriMonthLabel(x.HijriMonth),
+                    Month = HijriDateHelper.FormatHijriMonthLabel(x.HijriMonth),
                     TotalSales = x.TotalSales,
                     TotalPurchases = x.TotalPurchases,
                     TotalExpenses = x.TotalExpenses,
@@ -313,22 +313,4 @@ public class DashboardService : IDashboardService
             new MonthlyOverviewDto { Months = monthItems }, "Monthly overview (Hijri)");
     }
 
-    private static string FormatHijriMonthLabel(string? hijriMonth)
-    {
-        if (string.IsNullOrWhiteSpace(hijriMonth))
-        {
-            return string.Empty;
-        }
-
-        var parts = hijriMonth.Split('-');
-        if (parts.Length != 2
-            || !int.TryParse(parts[0], out var year)
-            || !int.TryParse(parts[1], out var month)
-            || month is < 1 or > 12)
-        {
-            return hijriMonth;
-        }
-
-        return $"{HijriDateHelper.HijriMonthNames[month - 1]} {year}";
-    }
 }

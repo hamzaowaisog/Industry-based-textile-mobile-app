@@ -56,4 +56,28 @@ public static class HijriDateHelper
 
         return $"{day:D2} {HijriMonthNames[month - 1]} {year}";
     }
+
+    /// <summary>
+    /// Formats a "yyyy-MM" Hijri year-month key (e.g. from a *_hijri view's grouped column)
+    /// as "Safar 1448" for display. Returns the raw input if it doesn't parse.
+    /// </summary>
+    public static string FormatHijriMonthLabel(string? hijriMonth)
+    {
+        if (string.IsNullOrWhiteSpace(hijriMonth))
+        {
+            return string.Empty;
+        }
+
+        var parts = hijriMonth.Split('-');
+        if (parts.Length != 2
+            || !int.TryParse(parts[0], out var year)
+            || !int.TryParse(parts[1], out var month)
+            || month is < 1 or > 12)
+        {
+            return hijriMonth;
+        }
+
+        return $"{HijriMonthNames[month - 1]} {year}";
+    }
 }
+
