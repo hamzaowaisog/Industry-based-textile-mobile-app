@@ -24,6 +24,10 @@ export interface PaymentDto {
   amount?: number;
   paymentDate?: string;
   /** @nullable */
+  paymentDateHijri?: string | null;
+  /** @nullable */
+  paymentDateHijriDisplay?: string | null;
+  /** @nullable */
   notes?: string | null;
   /** @nullable */
   createdAt?: string | null;

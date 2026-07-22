@@ -15,6 +15,8 @@ export interface DashboardSummaryDto {
   /** @nullable */
   asOf?: string | null;
   /** @nullable */
+  todayHijri?: string | null;
+  /** @nullable */
   currency?: string | null;
   financials?: DashboardFinancialsDto;
   operations?: DashboardOperationsDto;

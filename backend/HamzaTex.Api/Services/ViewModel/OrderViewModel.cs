@@ -6,6 +6,8 @@ public class OrderCreateViewModel
     public int PaymentTypeId { get; set; }
     /// <summary>Omit or null to use the current UTC date.</summary>
     public DateOnly? OrderDate { get; set; }
+    /// <summary>Optional Hijri override, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from OrderDate.</summary>
+    public string? OrderDateHijri { get; set; }
     public string? Notes { get; set; }
     public List<OrderLineCreateViewModel> Lines { get; set; } = new();
 }

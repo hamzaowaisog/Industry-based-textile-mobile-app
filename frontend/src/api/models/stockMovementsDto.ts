@@ -34,4 +34,8 @@ export interface StockMovementsDto {
   /** @nullable */
   currentAveragePrice?: number | null;
   movementDate?: string;
+  /** @nullable */
+  movementDateHijri?: string | null;
+  /** @nullable */
+  movementDateHijriDisplay?: string | null;
 }

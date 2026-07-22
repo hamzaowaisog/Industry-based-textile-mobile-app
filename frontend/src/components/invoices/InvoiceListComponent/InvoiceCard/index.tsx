@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { AppAmount } from '@components/common/AppAmount';
 import { AppBadge } from '@components/common/AppBadge';
 import { AppCard } from '@components/common/AppCard';
+import { AppHijriDateLabel } from '@components/common/AppHijriDateLabel';
 import { AppIconTile } from '@components/common/AppIconTile';
 
 import { getInvoiceStatusConfig } from '@utils/helpers/invoiceContent';
@@ -40,6 +41,7 @@ export const InvoiceCard = React.memo(
             <Text style={styles.client} numberOfLines={1}>
               {invoice.clientName}
             </Text>
+            <AppHijriDateLabel value={invoice.dueDateHijriDisplay ?? invoice.issueDateHijriDisplay} />
 
             <View style={styles.bottomRow}>
               <Text style={[styles.due, invoice.isOverdue && styles.dueOverdue]} numberOfLines={1}>

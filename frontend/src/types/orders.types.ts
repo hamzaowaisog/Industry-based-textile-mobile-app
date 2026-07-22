@@ -13,6 +13,7 @@ export type OrderRow = {
   statusId: number;
   statusName: string;
   orderDate: string;
+  orderDateHijriDisplay: string | null;
   total: number;
   amountPaid: number;
   paymentStatus: string | null;
@@ -27,6 +28,7 @@ export type OrderDetail = {
   paymentTypeId: number;
   paymentTypeName: string;
   orderDate: string;
+  orderDateHijriDisplay: string | null;
   notes: string | null;
   createdAt: string | null;
   total: number;

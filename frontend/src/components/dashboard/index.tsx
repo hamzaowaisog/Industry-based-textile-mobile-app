@@ -17,6 +17,7 @@ import { BellIcon, MenuIcon, ShoppingBagIcon, TruckIcon } from '@constants/svgAs
 
 import type { DashboardComponentProps } from '../../types/dashboard.types';
 import { BarChart } from './BarChart';
+import { CalendarToggle } from './CalendarToggle';
 import { DashboardSkeleton } from './DashboardSkeleton';
 import { FinancialCell } from './FinancialCell';
 import { OrderRow } from './OrderRow';
@@ -27,6 +28,8 @@ export const DashboardComponent = ({
   isLoading,
   summary,
   monthlyOverview,
+  calendar,
+  onCalendarChange,
   userName,
   onOpenDrawer,
   onNewOrder,
@@ -68,6 +71,7 @@ export const DashboardComponent = ({
 
           <View style={styles.greetingBlock}>
             <Text style={styles.greetingDate}>{today}</Text>
+            <Text style={styles.hijriDateText}>{summary?.todayHijri}</Text>
             <Text style={styles.greetingName} numberOfLines={2}>
               {t(greetingKey)}, {userName}
             </Text>
@@ -188,7 +192,7 @@ export const DashboardComponent = ({
           <View style={styles.section}>
             <View style={styles.sectionRow}>
               <Text style={styles.sectionTitle}>{t('dashboard.monthlyOverview')}</Text>
-              <Text style={styles.sectionAction}>{t('dashboard.lastNMonths')}</Text>
+              <CalendarToggle calendar={calendar} onChange={onCalendarChange} />
             </View>
             <View style={styles.card}>
               {monthlyOverview.length > 0 ? (

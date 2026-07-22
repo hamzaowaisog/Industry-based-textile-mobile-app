@@ -213,12 +213,13 @@ public class ClientController : BaseController
             {
                 new TableSection(
                     "Orders",
-                    Headers:    new[] { "#", "Date", "Status", "Total", "Paid", "Outstanding" },
-                    RightAlign: new[] { 3, 4, 5 },
+                    Headers:    new[] { "#", "Date", "Hijri Date", "Status", "Total", "Paid", "Outstanding" },
+                    RightAlign: new[] { 4, 5, 6 },
                     Rows:       d.Orders.Select((o, i) => new[]
                     {
                         (i + 1).ToString(),
                         o.OrderDate.ToString("dd MMM yyyy"),
+                        o.OrderDateHijriDisplay ?? "—",
                         o.StatusName,
                         PdfFormat.Rs(o.Total),
                         PdfFormat.Rs(o.AmountPaid),
@@ -226,12 +227,13 @@ public class ClientController : BaseController
                     })),
                 new TableSection(
                     "Purchases",
-                    Headers:    new[] { "#", "Date", "Status", "Total", "Paid", "Outstanding" },
-                    RightAlign: new[] { 3, 4, 5 },
+                    Headers:    new[] { "#", "Date", "Hijri Date", "Status", "Total", "Paid", "Outstanding" },
+                    RightAlign: new[] { 4, 5, 6 },
                     Rows:       d.Purchases.Select((p, i) => new[]
                     {
                         (i + 1).ToString(),
                         p.PurchaseDate.ToString("dd MMM yyyy"),
+                        p.PurchaseDateHijriDisplay ?? "—",
                         p.StatusName,
                         PdfFormat.Rs(p.Total),
                         PdfFormat.Rs(p.AmountPaid),
@@ -239,24 +241,26 @@ public class ClientController : BaseController
                     })),
                 new TableSection(
                     "Payments",
-                    Headers:    new[] { "#", "Date", "Direction", "Mode", "Amount" },
-                    RightAlign: new[] { 4 },
+                    Headers:    new[] { "#", "Date", "Hijri Date", "Direction", "Mode", "Amount" },
+                    RightAlign: new[] { 5 },
                     Rows:       d.Payments.Select((p, i) => new[]
                     {
                         (i + 1).ToString(),
                         p.PaymentDate.ToString("dd MMM yyyy"),
+                        p.PaymentDateHijriDisplay ?? "—",
                         p.DirectionName,
                         p.ModeName,
                         PdfFormat.Rs(p.Amount) + (p.IsReversed ? " (rev)" : ""),
                     })),
                 new TableSection(
                     "Recent Transactions",
-                    Headers:    new[] { "#", "Date", "Category", "Type", "Amount" },
-                    RightAlign: new[] { 4 },
+                    Headers:    new[] { "#", "Date", "Hijri Date", "Category", "Type", "Amount" },
+                    RightAlign: new[] { 5 },
                     Rows:       d.RecentTransactions.Select((t, i) => new[]
                     {
                         (i + 1).ToString(),
                         t.TransDate.ToString("dd MMM yyyy"),
+                        t.TransDateHijriDisplay ?? "—",
                         t.CategoryName,
                         t.TypeName,
                         PdfFormat.Rs(t.Amount) + (t.IsReversal ? " (rev)" : ""),

@@ -35,6 +35,9 @@ public partial class StockMovement
 
     public DateOnly MovementDate { get; set; }
 
+    /// <summary>Hijri equivalent of MovementDate, "yyyy-MM-dd" in Hijri terms.</summary>
+    public string? MovementDateHijri { get; set; }
+
     /// <summary>
     /// Persisted AverageDimensionOverride so history replays know which pool
     /// (Cost or Price) each movement targeted. Null = auto-derived from MovementType.

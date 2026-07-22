@@ -36,6 +36,10 @@ public sealed class StockMovementsCreateViewModelValidation : AbstractValidator<
             .GreaterThan(0)
             .WithMessage("Unit price must be greater than 0.")
             .When(x => x.UnitPrice.HasValue);
+
+        RuleFor(x => x.MovementDateHijri)
+            .Matches(@"^\d{4}-\d{2}-\d{2}$").WithMessage("MovementDateHijri must be in yyyy-MM-dd format")
+            .When(x => !string.IsNullOrEmpty(x.MovementDateHijri));
     }
 }
 

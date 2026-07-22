@@ -14,6 +14,9 @@ public class ExpenseCreateViewModelValidation : AbstractValidator<ExpenseCreateV
         RuleFor(x => x.TransCategoryId)
             .GreaterThan(0).WithMessage("Transaction category ID must be greater than zero.")
             .When(x => x.TransCategoryId.HasValue);
+        RuleFor(x => x.ExpenseDateHijri)
+            .Matches(@"^\d{4}-\d{2}-\d{2}$").WithMessage("ExpenseDateHijri must be in yyyy-MM-dd format")
+            .When(x => !string.IsNullOrEmpty(x.ExpenseDateHijri));
     }
 }
 

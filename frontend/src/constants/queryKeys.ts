@@ -73,18 +73,20 @@ export const queryKeys = {
   },
   reports: {
     all: ['reports'],
-    profitLoss: (year?: number, month?: number) => [
+    profitLoss: (year?: number, month?: number, calendar?: string) => [
       ...queryKeys.reports.all,
       'profitLoss',
       year ?? null,
       month ?? null,
+      calendar ?? 'gregorian',
     ],
     clientBalances: () => [...queryKeys.reports.all, 'clientBalances'],
-    creditDebit: (year?: number, month?: number) => [
+    creditDebit: (year?: number, month?: number, calendar?: string) => [
       ...queryKeys.reports.all,
       'creditDebit',
       year ?? null,
       month ?? null,
+      calendar ?? 'gregorian',
     ],
     summary: () => [...queryKeys.reports.all, 'summary'],
     summaryExpenseBreakdown: () => [...queryKeys.reports.all, 'summaryExpenseBreakdown'],

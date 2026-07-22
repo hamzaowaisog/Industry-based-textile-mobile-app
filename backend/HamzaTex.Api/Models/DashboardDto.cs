@@ -45,6 +45,7 @@ public class RecentPurchaseDto
 public class DashboardSummaryDto
 {
     public string AsOf { get; set; } = string.Empty;
+    public string? TodayHijri { get; set; }
     public string Currency { get; set; } = "PKR";
     public DashboardFinancialsDto Financials { get; set; } = new();
     public DashboardOperationsDto Operations { get; set; } = new();

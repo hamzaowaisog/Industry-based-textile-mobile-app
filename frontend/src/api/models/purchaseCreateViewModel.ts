@@ -15,6 +15,11 @@ export interface PurchaseCreateViewModel {
      * @nullable
      */
   purchaseDate?: string | null;
+  /**
+     * Optional Hijri override, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from PurchaseDate.
+     * @nullable
+     */
+  purchaseDateHijri?: string | null;
   /** @nullable */
   notes?: string | null;
   /** @nullable */

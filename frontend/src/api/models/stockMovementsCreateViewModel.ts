@@ -27,4 +27,9 @@ export interface StockMovementsCreateViewModel {
      * @nullable
      */
   movementDate?: string | null;
+  /**
+     * Optional Hijri override, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from MovementDate.
+     * @nullable
+     */
+  movementDateHijri?: string | null;
 }

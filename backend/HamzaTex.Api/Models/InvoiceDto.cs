@@ -15,7 +15,11 @@ public class InvoiceDto
     public int InvoiceStatusId { get; set; }
     public string StatusName { get; set; } = string.Empty;
     public DateOnly? IssueDate { get; set; }
+    public string? IssueDateHijri { get; set; }
+    public string? IssueDateHijriDisplay { get; set; }
     public DateOnly? DueDate { get; set; }
+    public string? DueDateHijri { get; set; }
+    public string? DueDateHijriDisplay { get; set; }
     public decimal TotalAmount { get; set; }
     public decimal AmountPaid { get; set; }
     public decimal Outstanding { get; set; }
@@ -77,6 +81,7 @@ public class CreateInvoiceDto
     public int? PurchaseId { get; set; }
     public int ClientId { get; set; }
     public DateOnly? DueDate { get; set; }
+    public string? DueDateHijri { get; set; }
     public decimal TotalAmount { get; set; }
     public string? Notes { get; set; }
     public List<CreateInvoiceLineDto> Lines { get; set; } = [];

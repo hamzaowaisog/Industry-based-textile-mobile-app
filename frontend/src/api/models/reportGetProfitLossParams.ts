@@ -9,4 +9,5 @@
 export type ReportGetProfitLossParams = {
 year?: number;
 month?: number;
+calendar?: string;
 };

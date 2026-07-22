@@ -31,6 +31,9 @@ public partial class Expense
 
     public DateOnly ExpenseDate { get; set; }
 
+    /// <summary>Hijri equivalent of ExpenseDate, "yyyy-MM-dd" in Hijri terms.</summary>
+    public string? ExpenseDateHijri { get; set; }
+
     public string? Notes { get; set; }
 
     public DateOnly? CreatedAt { get; set; }

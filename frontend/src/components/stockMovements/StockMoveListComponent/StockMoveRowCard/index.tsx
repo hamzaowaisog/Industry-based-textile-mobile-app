@@ -3,6 +3,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 
 import { AppCard } from '@components/common/AppCard';
+import { AppHijriDateLabel } from '@components/common/AppHijriDateLabel';
 import { AppIconTile } from '@components/common/AppIconTile';
 
 import { formatAmount } from '@utils/helpers/formatCurrency';
@@ -33,6 +34,7 @@ export const StockMoveRowCard = React.memo(({ movement, onPress }: StockMoveRowC
           <Text style={styles.secondary} numberOfLines={1}>
             {`${movement.movementSourceName} · ${movement.movementDate}`}
           </Text>
+          <AppHijriDateLabel value={movement.movementDateHijriDisplay} />
         </View>
         <Text style={[styles.qty, { color }]}>
           {sign}

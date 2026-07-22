@@ -9,6 +9,9 @@ public class PurchaseCreateViewModelValidation : AbstractValidator<PurchaseCreat
     {
         RuleFor(x => x.SupplierId).GreaterThan(0).WithMessage("SupplierId is required.");
         RuleFor(x => x.PaymentTypeId).GreaterThan(0).WithMessage("PaymentTypeId is required.");
+        RuleFor(x => x.PurchaseDateHijri)
+            .Matches(@"^\d{4}-\d{2}-\d{2}$").WithMessage("PurchaseDateHijri must be in yyyy-MM-dd format")
+            .When(x => !string.IsNullOrEmpty(x.PurchaseDateHijri));
         RuleFor(x => x.Lines).NotEmpty().WithMessage("At least one purchase line is required.");
         RuleForEach(x => x.Lines).ChildRules(line =>
         {

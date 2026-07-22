@@ -10,6 +10,7 @@ import { AppCard } from '@components/common/AppCard';
 import { PdfButton } from '@components/common/PdfButton';
 import { ReportPeriodFilter } from '@components/common/ReportPeriodFilter';
 import { ReportScreenHeader } from '@components/common/ReportScreenHeader';
+import { CalendarToggle } from '@components/dashboard/CalendarToggle';
 
 import { colors } from '@theme/colors';
 
@@ -26,6 +27,9 @@ export const CreditDebitReportComponent = ({
   years,
   onYearChange,
   onMonthChange,
+  monthItems,
+  calendar,
+  onCalendarChange,
   onBack,
   onPdfPress,
   isPdfDownloading,
@@ -46,11 +50,13 @@ export const CreditDebitReportComponent = ({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        <CalendarToggle calendar={calendar} onChange={onCalendarChange} />
         <ReportPeriodFilter
           filter={filter}
           years={years}
           onYearChange={onYearChange}
           onMonthChange={onMonthChange}
+          monthItems={monthItems}
         />
 
         {loading ? (

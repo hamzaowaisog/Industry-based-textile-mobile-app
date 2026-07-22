@@ -19,6 +19,7 @@ import {
   logoutAsync,
   resendEmailConfirmationAsync,
 } from '../core/auth';
+import { fetchSettingsAsync, updateHijriOffsetAsync } from '../core/settings';
 import { useAuthStore } from '../stores/authStore';
 import type { SettingsStackParamList } from '../types/navigation.types';
 import { showError, showSuccess } from '../utils/toast';
@@ -51,6 +52,8 @@ export const useSettings = () => {
   const [isBiometricPending, setIsBiometricPending] = useState(false);
   const [isNotificationsPending, setIsNotificationsPending] = useState(false);
   const [isResendingConfirmation, setIsResendingConfirmation] = useState(false);
+  const [hijriOffsetDays, setHijriOffsetDays] = useState(0);
+  const [isHijriOffsetSaving, setIsHijriOffsetSaving] = useState(false);
 
   useEffect(() => {
     SecureStore.getItemAsync(AppConstants.SECURE_STORE.EMAIL).then(setUserEmail);
@@ -59,6 +62,15 @@ export const useSettings = () => {
       LocalAuthentication.isEnrolledAsync(),
     ]).then(([hasHardware, isEnrolled]) => setIsBiometricAvailable(hasHardware && isEnrolled));
   }, []);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    fetchSettingsAsync().then((result) => {
+      if (result.success && result.hijriOffsetDays !== undefined) {
+        setHijriOffsetDays(result.hijriOffsetDays);
+      }
+    });
+  }, [isAdmin]);
 
   const onMenuPress = useCallback(() => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -108,7 +120,31 @@ export const useSettings = () => {
     void logoutAsync();
   }, []);
 
+  const applyHijriOffset = useCallback(async (next: number) => {
+    if (next < AppConstants.HIJRI_OFFSET.MIN || next > AppConstants.HIJRI_OFFSET.MAX) return;
+    setIsHijriOffsetSaving(true);
+    const result = await updateHijriOffsetAsync(next);
+    setIsHijriOffsetSaving(false);
+    if (result.success && result.hijriOffsetDays !== undefined) {
+      setHijriOffsetDays(result.hijriOffsetDays);
+    } else {
+      showError(t('common.errorGeneric'), result.error);
+    }
+  }, [t]);
+
+  const onIncrementHijriOffset = useCallback(() => {
+    void applyHijriOffset(hijriOffsetDays + 1);
+  }, [applyHijriOffset, hijriOffsetDays]);
+
+  const onDecrementHijriOffset = useCallback(() => {
+    void applyHijriOffset(hijriOffsetDays - 1);
+  }, [applyHijriOffset, hijriOffsetDays]);
+
   return {
+    hijriOffsetDays,
+    isHijriOffsetSaving,
+    onIncrementHijriOffset,
+    onDecrementHijriOffset,
     userName,
     userEmail,
     roleLabel,

@@ -1,5 +1,6 @@
-import type { ExpenseCategorySlice } from './expenses.types';
 import type { SelectItem } from './common.types';
+import type { AppCalendar } from './common.types';
+import type { ExpenseCategorySlice } from './expenses.types';
 
 // ── Domain rows ──────────────────────────────────────────────────────────────
 
@@ -69,6 +70,7 @@ export type BalanceHistoryPoint = {
 export type ClientOrderRow = {
   orderId: number;
   orderDate: string;
+  orderDateHijriDisplay: string | null;
   statusName: string;
   total: number;
   amountPaid: number;
@@ -79,6 +81,7 @@ export type ClientOrderRow = {
 export type ClientPurchaseRow = {
   purchaseId: number;
   purchaseDate: string;
+  purchaseDateHijriDisplay: string | null;
   statusName: string;
   total: number;
   amountPaid: number;
@@ -89,6 +92,7 @@ export type ClientPurchaseRow = {
 export type ClientPaymentRow = {
   paymentId: number;
   paymentDate: string;
+  paymentDateHijriDisplay: string | null;
   directionName: string;
   modeName: string;
   amount: number;
@@ -135,14 +139,10 @@ export type ReportPeriodFilterProps = {
   years: number[];
   onYearChange: (year?: number) => void;
   onMonthChange: (month?: number) => void;
+  monthItems?: { value: number; label: string }[];
 };
 
-export type ReportKey =
-  | 'profitLoss'
-  | 'clientBalance'
-  | 'creditDebit'
-  | 'summary'
-  | 'clientDetail';
+export type ReportKey = 'profitLoss' | 'clientBalance' | 'creditDebit' | 'summary' | 'clientDetail';
 
 // ── Component props ─────────────────────────────────────────────────────────
 
@@ -161,6 +161,9 @@ export type ProfitLossComponentProps = {
   years: number[];
   onYearChange: (year?: number) => void;
   onMonthChange: (month?: number) => void;
+  monthItems?: { value: number; label: string }[];
+  calendar: AppCalendar;
+  onCalendarChange: (calendar: AppCalendar) => void;
   onBack: () => void;
   onPdfPress: () => void;
   isPdfDownloading: boolean;
@@ -195,6 +198,9 @@ export type CreditDebitComponentProps = {
   years: number[];
   onYearChange: (year?: number) => void;
   onMonthChange: (month?: number) => void;
+  monthItems?: { value: number; label: string }[];
+  calendar: AppCalendar;
+  onCalendarChange: (calendar: AppCalendar) => void;
   onBack: () => void;
   onPdfPress: () => void;
   isPdfDownloading: boolean;

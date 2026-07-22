@@ -124,7 +124,7 @@ export function useDashboardGetSummary<TData = Awaited<ReturnType<typeof dashboa
 
 
 /**
- * @summary Last N months of aggregated financials for charts. Query param: ?months=6 (1-12).
+ * @summary Last N months of aggregated financials for charts. Query params: ?months=6 (1-12), ?calendar=gregorian|hijri.
  */
 export const dashboardGetMonthlyOverview = (
     params?: DashboardGetMonthlyOverviewParams,
@@ -196,7 +196,7 @@ export function useDashboardGetMonthlyOverview<TData = Awaited<ReturnType<typeof
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Last N months of aggregated financials for charts. Query param: ?months=6 (1-12).
+ * @summary Last N months of aggregated financials for charts. Query params: ?months=6 (1-12), ?calendar=gregorian|hijri.
  */
 
 export function useDashboardGetMonthlyOverview<TData = Awaited<ReturnType<typeof dashboardGetMonthlyOverview>>, TError = unknown>(

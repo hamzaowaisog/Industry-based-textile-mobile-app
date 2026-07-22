@@ -30,7 +30,11 @@ export const InvoiceTabRow = ({ item }: { item: ClientInvoiceSummary }) => {
       <AppRow
         leading={<AppIconTile Icon={FileTextIcon} color={colors.warning} size={36} />}
         primary={item.invoiceNumber ?? `#${item.invoiceId ?? '—'}`}
-        secondary={item.issueDate ?? '—'}
+        secondary={
+          item.issueDateHijriDisplay
+            ? `${item.issueDate ?? '—'} · ${item.issueDateHijriDisplay}`
+            : (item.issueDate ?? '—')
+        }
         right={
           <>
             <AppAmount value={item.totalAmount} size={14} />

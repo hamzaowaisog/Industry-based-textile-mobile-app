@@ -42,6 +42,7 @@ public class PurchaseController : BaseController
             SupplierId = model.SupplierId,
             PaymentTypeId = model.PaymentTypeId,
             PurchaseDate = model.PurchaseDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
+            PurchaseDateHijri = model.PurchaseDateHijri,
             Notes = model.Notes,
             Lines = model.Lines.Select(l => new CreatePurchaseLineDto
             {

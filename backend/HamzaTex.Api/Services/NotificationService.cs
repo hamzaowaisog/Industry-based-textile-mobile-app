@@ -12,6 +12,9 @@ public interface INotificationService
     /// <summary>Create a notification for a user and fan-out an FCM push to all their devices.</summary>
     Task<Response<NotificationDto>> CreateAsync(CreateNotificationDto dto);
 
+    /// <summary>Creates and pushes a notification to every Admin (RoleId = 1) user.</summary>
+    Task CreateForAdminsAsync(string type, string title, string body, int? entityId = null);
+
     /// <summary>Get all notifications for a user, optionally filtered to unread only.</summary>
     Task<Response<List<NotificationDto>>> GetAllAsync(int userId, bool unreadOnly = false, int? limit = null);
 
@@ -73,6 +76,30 @@ public class NotificationService : INotificationService
         });
 
         return Response<NotificationDto>.SuccessResponse(ToDto(entity), "Notification created.");
+    }
+
+    public async Task CreateForAdminsAsync(string type, string title, string body, int? entityId = null)
+    {
+        var adminIds = await _db.Users.Where(u => u.RoleId == 1).Select(u => u.Id).ToListAsync();
+
+        foreach (var adminId in adminIds)
+        {
+            try
+            {
+                await CreateAsync(new CreateNotificationDto
+                {
+                    UserId = adminId,
+                    Type = type,
+                    Title = title,
+                    Body = body,
+                    EntityId = entityId
+                });
+            }
+            catch
+            {
+                // per-recipient failure must not block the rest of the fan-out
+            }
+        }
     }
 
     public async Task<Response<List<NotificationDto>>> GetAllAsync(int userId, bool unreadOnly = false, int? limit = null)

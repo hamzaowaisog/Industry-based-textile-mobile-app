@@ -25,7 +25,11 @@ export const TransactionTabRow = ({ item }: { item: ClientTransactionSummary }) 
           <AppIconTile Icon={TagIcon} color={isCredit ? colors.success : colors.danger} size={36} />
         }
         primary={item.categoryName ?? ''}
-        secondary={item.transDate}
+        secondary={
+          item.transDateHijriDisplay
+            ? `${item.transDate} · ${item.transDateHijriDisplay}`
+            : item.transDate
+        }
         right={
           <>
             <AppAmount

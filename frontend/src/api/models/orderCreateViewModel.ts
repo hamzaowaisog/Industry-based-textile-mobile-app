@@ -15,6 +15,11 @@ export interface OrderCreateViewModel {
      * @nullable
      */
   orderDate?: string | null;
+  /**
+     * Optional Hijri override, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from OrderDate.
+     * @nullable
+     */
+  orderDateHijri?: string | null;
   /** @nullable */
   notes?: string | null;
   /** @nullable */

@@ -12,6 +12,7 @@ export const mapApiPaymentToRow = (p: PaymentDto): PaymentRow => ({
   transModeName: p.transModeName ?? '',
   amount: p.amount ?? 0,
   paymentDate: p.paymentDate ?? '',
+  paymentDateHijriDisplay: p.paymentDateHijriDisplay ?? null,
   isReversed: !!p.isReversed,
 });
 
@@ -31,6 +32,7 @@ export const mapApiPaymentDetail = (p: PaymentDto): PaymentDetail => ({
   transModeName: p.transModeName ?? '',
   amount: p.amount ?? 0,
   paymentDate: p.paymentDate ?? '',
+  paymentDateHijriDisplay: p.paymentDateHijriDisplay ?? null,
   notes: p.notes ?? null,
   createdAt: p.createdAt ?? null,
   recordedByName: p.recordedByName ?? null,

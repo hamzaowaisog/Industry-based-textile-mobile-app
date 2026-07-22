@@ -25,6 +25,8 @@ public interface ILookupService
     Task<Response<List<LookupDto>>> GetInvoiceStatusesAsync();
     /// <summary>Get all product units.</summary>
     Task<Response<List<LookupDto>>> GetUnitsAsync();
+    /// <summary>Returns the 12 Hijri month names as an ordered lookup list (value 1..12).</summary>
+    Task<Response<List<LookupDto>>> GetHijriMonthsAsync();
 }
 
 public class LookupService : ILookupService
@@ -56,6 +58,9 @@ public class LookupService : ILookupService
             UserRoles         = await _dbContext.UserRoles.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
             InvoiceStatuses   = await _dbContext.InvoiceStatuses.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
             Units             = await _dbContext.Units.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync(),
+            HijriMonths       = HijriDateHelper.HijriMonthNames
+                                    .Select((name, index) => ToDto(index + 1, name))
+                                    .ToList(),
         };
 
         return Response<LookupsAllDto>.SuccessResponse(result, "Lookups fetched successfully.");
@@ -79,6 +84,7 @@ public class LookupService : ILookupService
             "userroles"          or "user-roles"          => await GetUserRolesAsync(),
             "invoicestatuses"    or "invoice-statuses"    => await GetInvoiceStatusesAsync(),
             "units"                                       => await GetUnitsAsync(),
+            "hijrimonths"        or "hijri-months"        => await GetHijriMonthsAsync(),
             _ => Response<List<LookupDto>>.ErrorResponse("Invalid type",
                      $"Unknown lookup type '{type}'. Valid values: orderStatuses, paymentTypes, paymentDirections, " +
                      "transTypes, transModes, transCategories, expenseTypes, movementTypes, movementSources, clientTypes, userRoles")
@@ -126,6 +132,15 @@ public class LookupService : ILookupService
 
     public async Task<Response<List<LookupDto>>> GetUnitsAsync()
         => Success(await _dbContext.Units.AsNoTracking().Select(x => ToDto(x.Id, x.Name)).ToListAsync());
+
+    public Task<Response<List<LookupDto>>> GetHijriMonthsAsync()
+    {
+        var months = HijriDateHelper.HijriMonthNames
+            .Select((name, index) => new LookupDto { Id = index + 1, Name = name })
+            .ToList();
+
+        return Task.FromResult(Response<List<LookupDto>>.SuccessResponse(months, "Hijri months retrieved"));
+    }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 

@@ -79,6 +79,8 @@ public class ClientOrderSummary
 {
     public int OrderId { get; set; }
     public DateOnly OrderDate { get; set; }
+    /// <summary>Hijri equivalent of OrderDate, formatted for display (e.g. "06 Muharram 1448").</summary>
+    public string? OrderDateHijriDisplay { get; set; }
     public string StatusName { get; set; } = string.Empty;
     public decimal Total { get; set; }
     public decimal AmountPaid { get; set; }
@@ -90,6 +92,8 @@ public class ClientPurchaseSummary
 {
     public int PurchaseId { get; set; }
     public DateOnly PurchaseDate { get; set; }
+    /// <summary>Hijri equivalent of PurchaseDate, formatted for display (e.g. "06 Muharram 1448").</summary>
+    public string? PurchaseDateHijriDisplay { get; set; }
     public string StatusName { get; set; } = string.Empty;
     public decimal Total { get; set; }
     public decimal AmountPaid { get; set; }
@@ -101,6 +105,8 @@ public class ClientPaymentSummary
 {
     public int PaymentId { get; set; }
     public DateOnly PaymentDate { get; set; }
+    /// <summary>Hijri equivalent of PaymentDate, formatted for display (e.g. "06 Muharram 1448").</summary>
+    public string? PaymentDateHijriDisplay { get; set; }
     public string DirectionName { get; set; } = string.Empty;
     public string ModeName { get; set; } = string.Empty;
     public decimal Amount { get; set; }
@@ -112,7 +118,11 @@ public class ClientInvoiceSummary
     public int InvoiceId { get; set; }
     public string InvoiceNumber { get; set; } = string.Empty;
     public DateOnly? IssueDate { get; set; }
+    /// <summary>Hijri equivalent of IssueDate, formatted for display (e.g. "06 Muharram 1448").</summary>
+    public string? IssueDateHijriDisplay { get; set; }
     public DateOnly? DueDate { get; set; }
+    /// <summary>Hijri equivalent of DueDate, formatted for display (e.g. "06 Muharram 1448").</summary>
+    public string? DueDateHijriDisplay { get; set; }
     public int InvoiceStatusId { get; set; }
     public string StatusName { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
@@ -122,6 +132,8 @@ public class ClientTransactionSummary
 {
     public int TransactionId { get; set; }
     public DateOnly TransDate { get; set; }
+    /// <summary>Hijri equivalent of TransDate, formatted for display (e.g. "06 Muharram 1448").</summary>
+    public string? TransDateHijriDisplay { get; set; }
     public string CategoryName { get; set; } = string.Empty;
     public string TypeName { get; set; } = string.Empty;
     public decimal Amount { get; set; }

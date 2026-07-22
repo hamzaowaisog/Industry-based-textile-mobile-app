@@ -8,6 +8,7 @@ import { AppAmount } from '@components/common/AppAmount';
 import { AppAvatar } from '@components/common/AppAvatar';
 import { AppBadge } from '@components/common/AppBadge';
 import { AppCard } from '@components/common/AppCard';
+import { AppHijriDateLabel } from '@components/common/AppHijriDateLabel';
 
 import { getInitials } from '@utils/helpers/textHelpers';
 import { getPaymentDirectionColor, isPaymentReceived } from '@utils/helpers/paymentContent';
@@ -39,6 +40,7 @@ export const PaymentCard = React.memo(({ payment, onPress }: PaymentCardProps) =
             <Text style={styles.sub} numberOfLines={1}>
               {`${payment.paymentDate} · ${payment.transModeName}`}
             </Text>
+            <AppHijriDateLabel value={payment.paymentDateHijriDisplay} />
           </View>
 
           <View style={styles.right}>

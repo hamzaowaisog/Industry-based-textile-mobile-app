@@ -11,6 +11,9 @@ public class InvoiceCreateViewModelValidation : AbstractValidator<InvoiceCreateV
         RuleFor(x => x.TotalAmount).GreaterThan(0).WithMessage("TotalAmount must be greater than 0.");
         RuleFor(x => x).Must(x => x.OrderId is null || x.PurchaseId is null)
             .WithMessage("An invoice cannot be linked to both an Order and a Purchase.");
+        RuleFor(x => x.DueDateHijri)
+            .Matches(@"^\d{4}-\d{2}-\d{2}$").WithMessage("DueDateHijri must be in yyyy-MM-dd format")
+            .When(x => !string.IsNullOrEmpty(x.DueDateHijri));
 
         RuleForEach(x => x.Lines).ChildRules(line =>
         {

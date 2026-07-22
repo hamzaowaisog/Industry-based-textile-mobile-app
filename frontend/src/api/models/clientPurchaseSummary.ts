@@ -9,6 +9,11 @@
 export interface ClientPurchaseSummary {
   purchaseId?: number;
   purchaseDate?: string;
+  /**
+     * Hijri equivalent of PurchaseDate, formatted for display (e.g. "06 Muharram 1448").
+     * @nullable
+     */
+  purchaseDateHijriDisplay?: string | null;
   /** @nullable */
   statusName?: string | null;
   total?: number;

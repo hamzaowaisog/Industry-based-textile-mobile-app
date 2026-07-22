@@ -7,6 +7,7 @@ export type ExpenseRow = {
   transCategoryName: string;
   amount: number;
   expenseDate: string;
+  expenseDateHijriDisplay: string | null;
   notes: string | null;
 };
 
@@ -21,6 +22,7 @@ export type ExpenseDetail = {
   transactionId: number | null;
   amount: number;
   expenseDate: string;
+  expenseDateHijriDisplay: string | null;
   notes: string | null;
   recordedByName: string | null;
   createdAt: string | null;

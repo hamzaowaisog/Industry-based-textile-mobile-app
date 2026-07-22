@@ -9,6 +9,11 @@
 export interface ClientPaymentSummary {
   paymentId?: number;
   paymentDate?: string;
+  /**
+     * Hijri equivalent of PaymentDate, formatted for display (e.g. "06 Muharram 1448").
+     * @nullable
+     */
+  paymentDateHijriDisplay?: string | null;
   /** @nullable */
   directionName?: string | null;
   /** @nullable */

@@ -15,6 +15,10 @@ public class TransactionCreateViewModelValidation : AbstractValidator<Transactio
 
         RuleFor(x => x.TransDate)
             .NotEmpty().WithMessage("TransDate is required.");
+
+        RuleFor(x => x.TransDateHijri)
+            .Matches(@"^\d{4}-\d{2}-\d{2}$").WithMessage("TransDateHijri must be in yyyy-MM-dd format")
+            .When(x => !string.IsNullOrEmpty(x.TransDateHijri));
     }
 }
 

@@ -8,4 +8,5 @@
 
 export type DashboardGetMonthlyOverviewParams = {
 months?: number;
+calendar?: string;
 };

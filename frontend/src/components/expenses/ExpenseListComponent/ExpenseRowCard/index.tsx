@@ -4,6 +4,7 @@ import { Text, View } from 'react-native';
 
 import { AppAmount } from '@components/common/AppAmount';
 import { AppCard } from '@components/common/AppCard';
+import { AppHijriDateLabel } from '@components/common/AppHijriDateLabel';
 import { AppIconTile } from '@components/common/AppIconTile';
 
 import { getExpenseCategoryColor } from '@utils/helpers/expenseContent';
@@ -31,6 +32,7 @@ export const ExpenseRowCard = React.memo(({ expense, onPress }: ExpenseRowCardPr
           <Text style={styles.secondary} numberOfLines={1}>
             {secondary}
           </Text>
+          <AppHijriDateLabel value={expense.expenseDateHijriDisplay} />
         </View>
         <AppAmount value={expense.amount} tone="debit" size={15} />
       </View>

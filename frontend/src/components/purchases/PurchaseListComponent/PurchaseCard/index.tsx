@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { AppAmount } from '@components/common/AppAmount';
 import { AppBadge } from '@components/common/AppBadge';
 import { AppCard } from '@components/common/AppCard';
+import { AppHijriDateLabel } from '@components/common/AppHijriDateLabel';
 
 import { formatPKR } from '@utils/helpers/formatCurrency';
 import { getPurchaseStatusConfig } from '@utils/helpers/purchaseContent';
@@ -31,6 +32,7 @@ export const PurchaseCard = React.memo(({ purchase, onPress }: PurchaseCardProps
           <Text style={styles.purchaseId}>{`PUR-${purchase.id}`}</Text>
           <Text style={styles.supplierName}>{purchase.supplierName}</Text>
           <Text style={styles.date}>{purchase.purchaseDate}</Text>
+          <AppHijriDateLabel value={purchase.purchaseDateHijriDisplay} />
         </View>
         <View style={styles.right}>
           <AppAmount value={purchase.total} size={17} tone="debit" />

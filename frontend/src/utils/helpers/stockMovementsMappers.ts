@@ -19,6 +19,7 @@ export const mapApiStockMovementToRow = (m: StockMovementsDto): StockMoveRow => 
   unitCost: m.unitCost ?? null,
   unitPrice: m.unitPrice ?? null,
   movementDate: m.movementDate ?? '',
+  movementDateHijriDisplay: m.movementDateHijriDisplay ?? null,
 });
 
 export const getCommonUnitLabel = (rows: StockMoveRow[]): string => {
@@ -50,4 +51,5 @@ export const mapApiStockMovementDetail = (m: StockMovementsDto): StockMoveDetail
   currentAverageCost: m.currentAverageCost ?? null,
   currentAveragePrice: m.currentAveragePrice ?? null,
   movementDate: m.movementDate ?? '',
+  movementDateHijriDisplay: m.movementDateHijriDisplay ?? null,
 });
