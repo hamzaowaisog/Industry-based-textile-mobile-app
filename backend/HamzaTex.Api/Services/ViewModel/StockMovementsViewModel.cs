@@ -33,6 +33,8 @@ public class StockMovementsCreateViewModel
     public decimal? UnitPrice { get; set; } = null;
     /// <summary>Omit or null to use the current UTC date.</summary>
     public DateOnly? MovementDate { get; set; }
+    /// <summary>Optional Hijri override, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from MovementDate.</summary>
+    public string? MovementDateHijri { get; set; }
 }
 
 public class StockMovementsUpdateViewModel

@@ -19,6 +19,8 @@ public class StockMovementsDto
     public decimal? CurrentAverageCost { get; set; }
     public decimal? CurrentAveragePrice { get; set; }
     public DateOnly MovementDate { get; set; }
+    public string? MovementDateHijri { get; set; }
+    public string? MovementDateHijriDisplay { get; set; }
 }
 
 /// <summary>Aggregate in/out quantity totals across the full matching stock movement history (not just one page).</summary>
@@ -39,6 +41,7 @@ public class CreateStockMovementsDto
     public decimal? UnitCost { get; set; } = null;
     public decimal? UnitPrice { get; set; } = null;
     public DateOnly MovementDate { get; set; }
+    public string? MovementDateHijri { get; set; }
 
     /// <summary>
     /// Overrides which weighted average the movement recalculates.

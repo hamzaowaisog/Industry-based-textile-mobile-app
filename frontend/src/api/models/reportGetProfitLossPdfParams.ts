@@ -9,4 +9,5 @@
 export type ReportGetProfitLossPdfParams = {
 year?: number;
 month?: number;
+calendar?: string;
 };

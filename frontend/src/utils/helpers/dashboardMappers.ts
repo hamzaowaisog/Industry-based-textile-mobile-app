@@ -8,6 +8,7 @@ import type {
 } from '../../types/dashboard.types';
 
 export const mapApiSummary = (d: any): DashboardSummary => ({
+  todayHijri: d.todayHijri ?? '',
   asOf: d.asOf ?? '',
   thisMonthRevenue: d.financials?.thisMonthRevenue ?? 0,
   lastMonthRevenue: d.financials?.lastMonthRevenue ?? 0,

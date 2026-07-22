@@ -41,6 +41,7 @@ public class InvoiceController : BaseController
             PurchaseId  = model.PurchaseId,
             ClientId    = model.ClientId,
             DueDate     = model.DueDate,
+            DueDateHijri = model.DueDateHijri,
             TotalAmount = model.TotalAmount,
             Notes       = model.Notes,
             Lines       = model.Lines.Select(l => new CreateInvoiceLineDto

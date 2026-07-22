@@ -9,6 +9,13 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 
+  hijriDateText: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: typography.fontSize.sm,
+    color: colors.text,
+    marginTop: 2,
+  },
+
   // ── Header ──
   header: {
     flexDirection: 'row',

@@ -5,6 +5,7 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppHijriDateLabel } from '@components/common/AppHijriDateLabel';
 import { PdfButton } from '@components/common/PdfButton';
 
 import { formatAmount, formatPKR } from '@utils/helpers/formatCurrency';
@@ -155,7 +156,10 @@ export const StockMoveDetailComponent = ({
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>{t('stockMovements.movementDate')}</Text>
-              <Text style={styles.infoValue}>{movement.movementDate}</Text>
+              <View>
+                <Text style={styles.infoValue}>{movement.movementDate}</Text>
+                <AppHijriDateLabel value={movement.movementDateHijriDisplay} />
+              </View>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>{t('stockMovements.detail.avgCostSnapshot')}</Text>

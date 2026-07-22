@@ -1,3 +1,5 @@
+import type { AppCalendar } from '../types/common.types';
+
 export const AppConstants = {
   // App identity
   APP: {
@@ -46,6 +48,7 @@ export const AppConstants = {
     USER_ROLES: 'userRoles',
     INVOICE_STATUSES: 'invoiceStatuses',
     UNITS: 'units',
+    HIJRI_MONTHS: 'hijriMonths',
   } as const,
 
   // Client type IDs (matches backend seeded ClientType table)
@@ -280,7 +283,7 @@ export const AppConstants = {
     Y_AXIS_LABEL_WIDTH: 40,
     HEIGHT: 120,
     SECTIONS: 5,
-    INITIAL_SPACING: 8,
+    INITIAL_SPACING: 14,
     END_SPACING: 8,
     DATA_POINT_RADIUS: 4,
     ANIMATION_DURATION_MS: 600,
@@ -288,11 +291,17 @@ export const AppConstants = {
     Y_HEADROOM_EMPTY: 1.25,
     Y_HEADROOM_NORMAL: 1.12,
     FALLBACK_MAX: 4,
+    X_AXIS_TEXT_NUMBER_OF_LINES: 2,
+    LABELS_EXTRA_HEIGHT: 16,
   },
   DONUT: {
     SIZE: 84,
     STROKE_WIDTH: 12,
     START_ROTATION_DEGREES: -90,
+  },
+  HIJRI_OFFSET: {
+    MIN: -2,
+    MAX: 2,
   },
 
   // Screen names
@@ -427,10 +436,30 @@ export const AppConstants = {
       CLIENT_BALANCE_LIST: 'Report/client-balance/pdf',
       SUMMARY_REPORT: 'Report/summary/pdf',
       CLIENT_DETAIL_LIST: 'Report/client-detail/pdf',
-      profitLoss: (year?: number, month?: number) =>
-        `Report/profit-loss/pdf${year ? `?year=${year}${month ? `&month=${month}` : ''}` : ''}`,
-      creditDebit: (year?: number, month?: number) =>
-        `Report/credit-debit/pdf${year ? `?year=${year}${month ? `&month=${month}` : ''}` : ''}`,
+      profitLoss: (year?: number, month?: number, calendar?: AppCalendar) => {
+        const params = new URLSearchParams();
+        if (calendar === 'hijri') {
+          params.set('calendar', 'hijri');
+        }
+        if (year) {
+          params.set('year', String(year));
+          if (month) params.set('month', String(month));
+        }
+        const qs = params.toString();
+        return `Report/profit-loss/pdf${qs ? `?${qs}` : ''}`;
+      },
+      creditDebit: (year?: number, month?: number, calendar?: AppCalendar) => {
+        const params = new URLSearchParams();
+        if (calendar === 'hijri') {
+          params.set('calendar', 'hijri');
+        }
+        if (year) {
+          params.set('year', String(year));
+          if (month) params.set('month', String(month));
+        }
+        const qs = params.toString();
+        return `Report/credit-debit/pdf${qs ? `?${qs}` : ''}`;
+      },
       clientDetailReportDossier: (id: number) => `Report/client-detail/${id}/pdf`,
     },
     FILENAMES: {
@@ -456,10 +485,18 @@ export const AppConstants = {
       CLIENT_BALANCE_LIST: 'client-balances.pdf',
       SUMMARY_REPORT: 'business-summary.pdf',
       CLIENT_DETAIL_LIST: 'client-detail.pdf',
-      profitLoss: (year?: number, month?: number) =>
-        year ? `profit-loss-${month ? `${month}-` : ''}${year}.pdf` : 'profit-loss.pdf',
-      creditDebit: (year?: number, month?: number) =>
-        year ? `credit-debit-${month ? `${month}-` : ''}${year}.pdf` : 'credit-debit.pdf',
+      profitLoss: (year?: number, month?: number, calendar?: AppCalendar) => {
+        const suffix = calendar === 'hijri' ? '-hijri' : '';
+        return year
+          ? `profit-loss-${month ? `${month}-` : ''}${year}${suffix}.pdf`
+          : `profit-loss${suffix}.pdf`;
+      },
+      creditDebit: (year?: number, month?: number, calendar?: AppCalendar) => {
+        const suffix = calendar === 'hijri' ? '-hijri' : '';
+        return year
+          ? `credit-debit-${month ? `${month}-` : ''}${year}${suffix}.pdf`
+          : `credit-debit${suffix}.pdf`;
+      },
       clientDetailReportDossier: (id: number) => `client-detail-${id}.pdf`,
     },
   },

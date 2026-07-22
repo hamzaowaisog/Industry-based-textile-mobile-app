@@ -38,14 +38,14 @@ public class DashboardController : BaseController
         return ToActionResult(await _dashboardService.GetSummaryAsync(userId.Value, IsAdmin()));
     }
 
-    /// <summary>Last N months of aggregated financials for charts. Query param: ?months=6 (1-12).</summary>
+    /// <summary>Last N months of aggregated financials for charts. Query params: ?months=6 (1-12), ?calendar=gregorian|hijri.</summary>
     [HttpGet("monthly-overview")]
     [ProducesResponseType(typeof(Response<MonthlyOverviewDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMonthlyOverview([FromQuery] int months = 6)
+    public async Task<IActionResult> GetMonthlyOverview([FromQuery] int months = 6, [FromQuery] string calendar = "gregorian")
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        return ToActionResult(await _dashboardService.GetMonthlyOverviewAsync(userId.Value, IsAdmin(), months));
+        return ToActionResult(await _dashboardService.GetMonthlyOverviewAsync(userId.Value, IsAdmin(), months, calendar));
     }
 }

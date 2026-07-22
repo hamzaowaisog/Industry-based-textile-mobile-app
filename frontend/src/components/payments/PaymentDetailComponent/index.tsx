@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppAmount } from '@components/common/AppAmount';
 import { AppBottomBar } from '@components/common/AppBottomBar';
 import { AppCard } from '@components/common/AppCard';
+import { AppHijriDateLabel } from '@components/common/AppHijriDateLabel';
 import { AppIconTile } from '@components/common/AppIconTile';
 import { AppRow } from '@components/common/AppRow';
 import { PdfButton } from '@components/common/PdfButton';
@@ -141,6 +142,7 @@ export const PaymentDetailComponent = ({
           <Text style={styles.heroMeta}>
             {`${payment.paymentDate} · ${payment.transModeName}`}
           </Text>
+          <AppHijriDateLabel value={payment.paymentDateHijriDisplay} />
         </View>
 
         <View style={styles.statsRow}>

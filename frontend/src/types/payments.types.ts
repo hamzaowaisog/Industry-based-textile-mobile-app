@@ -12,6 +12,7 @@ export type PaymentRow = {
   transModeName: string;
   amount: number;
   paymentDate: string;
+  paymentDateHijriDisplay: string | null;
   isReversed: boolean;
 };
 
@@ -33,6 +34,7 @@ export type PaymentDetail = {
   transModeName: string;
   amount: number;
   paymentDate: string;
+  paymentDateHijriDisplay: string | null;
   notes: string | null;
   createdAt: string | null;
   recordedByName: string | null;

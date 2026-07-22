@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppBottomBar } from '@components/common/AppBottomBar';
 import { AppCard } from '@components/common/AppCard';
+import { AppHijriDateLabel } from '@components/common/AppHijriDateLabel';
 import { AppIconTile } from '@components/common/AppIconTile';
 import { AppRow } from '@components/common/AppRow';
 import { AppStepIndicator } from '@components/common/AppStepIndicator';
@@ -210,6 +211,7 @@ export const OrderDetailComponent = ({
               <View style={styles.dateCell}>
                 <Text style={styles.dateCellLabel}>{t('orders.detail.orderDate')}</Text>
                 <Text style={styles.dateCellValue}>{order.orderDate}</Text>
+                <AppHijriDateLabel value={order.orderDateHijriDisplay} />
               </View>
               <View style={[styles.dateCell, styles.dateCellRight]}>
                 <Text style={styles.dateCellLabel}>{t('orders.detail.paymentMethod')}</Text>

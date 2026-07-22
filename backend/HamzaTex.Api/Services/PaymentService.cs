@@ -134,6 +134,11 @@ public class PaymentService : IPaymentService
         // Determine ledger posting values
         var (transCategoryId, transTypeId) = GetLedgerPosting(model.PaymentDirectionId, model.TransModeId);
 
+        var hijriOffset = (await _db.SystemSettings.AsNoTracking().FirstOrDefaultAsync())?.HijriOffsetDays ?? 0;
+        var paymentDateHijri = string.IsNullOrWhiteSpace(model.PaymentDateHijri)
+            ? HijriDateHelper.ToHijriString(model.PaymentDate, hijriOffset)
+            : model.PaymentDateHijri;
+
         using var txn = await _db.Database.BeginTransactionAsync();
         try
         {
@@ -144,6 +149,7 @@ public class PaymentService : IPaymentService
                 TransModeId = model.TransModeId,
                 Amount = model.Amount,
                 PaymentDate = model.PaymentDate,
+                PaymentDateHijri = paymentDateHijri,
                 Notes = model.Notes,
                 UserId = userId,
                 IsReversed = false,
@@ -196,6 +202,7 @@ public class PaymentService : IPaymentService
                 TransCategoryId = transCategoryId,
                 Amount = model.Amount,
                 TransDate = model.PaymentDate,
+                TransDateHijri = paymentDateHijri,
                 OrderId = singleAlloc.OrderId,
                 PurchaseId = singleAlloc.PurchaseId,
                 InvoiceId = singleInvoiceId,
@@ -419,6 +426,8 @@ public class PaymentService : IPaymentService
             var reversalAmount = (transCategoryId == CatSales || transCategoryId == CatPurchases)
                 ? -original.Amount
                 : original.Amount;
+            var reversalDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            var reversalHijriOffset = (await _db.SystemSettings.AsNoTracking().FirstOrDefaultAsync())?.HijriOffsetDays ?? 0;
 
             var reversalTransaction = new Transaction
             {
@@ -428,7 +437,8 @@ public class PaymentService : IPaymentService
                 TransModeId = original.TransModeId,
                 TransCategoryId = transCategoryId,
                 Amount = reversalAmount,
-                TransDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                TransDate = reversalDate,
+                TransDateHijri = HijriDateHelper.ToHijriString(reversalDate, reversalHijriOffset),
                 OrderId = originalSingleAlloc?.OrderId,
                 PurchaseId = originalSingleAlloc?.PurchaseId,
                 InvoiceId = originalSingleInvoiceId,
@@ -515,6 +525,7 @@ public class PaymentService : IPaymentService
             TransModeId = original.TransModeId ?? ModeCash,
             Amount = original.Amount,
             PaymentDate = original.PaymentDate,
+            PaymentDateHijri = original.PaymentDateHijri,
             Notes = $"CORRECTION for Payment #{original.Id}: {model.Notes}",
             Allocations = new List<AllocationItemDto>() // auto-FIFO on correct client
         };
@@ -819,6 +830,8 @@ public class PaymentService : IPaymentService
         TransModeName = p.TransMode?.Name,
         Amount = p.Amount,
         PaymentDate = p.PaymentDate,
+        PaymentDateHijri = p.PaymentDateHijri,
+        PaymentDateHijriDisplay = HijriDateHelper.FormatForDisplay(p.PaymentDateHijri),
         Notes = p.Notes,
         CreatedAt = p.CreatedAt,
         UserId = p.UserId,

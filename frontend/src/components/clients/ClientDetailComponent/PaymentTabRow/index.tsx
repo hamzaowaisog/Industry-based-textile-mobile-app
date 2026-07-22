@@ -31,7 +31,9 @@ export const PaymentTabRow = ({ item }: { item: ClientPaymentSummary }) => {
             />
           }
           primary={item.directionName ?? ''}
-          secondary={`${item.paymentDate}${item.isReversed ? ` · ${t('clients.reversed')}` : ''}`}
+          secondary={`${item.paymentDate}${
+            item.paymentDateHijriDisplay ? ` · ${item.paymentDateHijriDisplay}` : ''
+          }${item.isReversed ? ` · ${t('clients.reversed')}` : ''}`}
           right={
             <>
               <AppAmount

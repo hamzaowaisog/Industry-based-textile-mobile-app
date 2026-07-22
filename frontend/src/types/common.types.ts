@@ -237,3 +237,15 @@ export type AppDatePickerProps = {
   maximumDate?: Date;
   minimumDate?: Date;
 };
+
+export type AppHijriDateLabelProps = {
+  value: string | null | undefined;
+};
+
+export type AppCalendar = 'gregorian' | 'hijri';
+
+export type CalendarToggleProps = {
+  calendar: AppCalendar;
+  onChange: (calendar: AppCalendar) => void;
+
+}

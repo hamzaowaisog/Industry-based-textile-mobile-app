@@ -293,6 +293,17 @@ public static class SeedData
     public static async Task EnsureSeedDataAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
     {
         await SeedStatusesAsync(context, cancellationToken);
+        await SeedSystemSettingAsync(context, cancellationToken);
+    }
+
+    /// <summary>Ensures exactly one SystemSetting row exists. No-op if one already exists (safe to re-run on every startup).</summary>
+    private static async Task SeedSystemSettingAsync(ApplicationDbContext context, CancellationToken cancellationToken)
+    {
+        if (!await context.SystemSettings.AnyAsync(cancellationToken))
+        {
+            context.SystemSettings.Add(new SystemSetting { HijriOffsetDays = 0, LastHijriReminderSentDate = null });
+            await context.SaveChangesAsync(cancellationToken);
+        }
     }
 
     /// <summary>

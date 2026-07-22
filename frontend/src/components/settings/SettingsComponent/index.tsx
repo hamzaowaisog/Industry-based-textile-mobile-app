@@ -23,6 +23,8 @@ import {
   MenuIcon,
 } from '@constants/svgAssets';
 
+import { HijriOffsetStepper } from '@components/settings/HijriOffsetStepper';
+
 import type { SettingsComponentProps } from '../../../types/settings.types';
 import { ProfileCard } from './ProfileCard';
 import { styles } from './styles';
@@ -38,12 +40,16 @@ export const SettingsComponent = ({
   isNotificationsEnabled,
   isNotificationsPending,
   appVersion,
+  hijriOffsetDays,
+  isHijriOffsetSaving,
   onMenuPress,
   onChangePassword,
   onResendConfirmation,
   isResendingConfirmation,
   onToggleBiometric,
   onToggleNotifications,
+  onIncrementHijriOffset,
+  onDecrementHijriOffset,
   onSignOut,
 }: SettingsComponentProps) => {
   const { t } = useTranslation();
@@ -140,6 +146,20 @@ export const SettingsComponent = ({
             </View>
           </AppCard>
         </View>
+
+        {isAdmin && (
+          <View style={styles.section}>
+            <AppSection title={t('settings.calendarSection')} />
+            <AppCard padding={0}>
+              <HijriOffsetStepper
+                hijriOffsetDays={hijriOffsetDays}
+                saving={isHijriOffsetSaving}
+                onIncrement={onIncrementHijriOffset}
+                onDecrement={onDecrementHijriOffset}
+              />
+            </AppCard>
+          </View>
+        )}
 
         <View style={styles.section}>
           <AppSection title={t('settings.aboutSection')} />

@@ -9,6 +9,7 @@ import { AppAmount } from '@components/common/AppAmount';
 import { AppBottomBar } from '@components/common/AppBottomBar';
 import { AppButton } from '@components/common/AppButton';
 import { AppCard } from '@components/common/AppCard';
+import { AppHijriDateLabel } from '@components/common/AppHijriDateLabel';
 import { AppIconTile } from '@components/common/AppIconTile';
 import { AppRow } from '@components/common/AppRow';
 import { PdfButton } from '@components/common/PdfButton';
@@ -142,12 +143,14 @@ export const InvoiceDetailComponent = ({
             <Text style={styles.statValue} numberOfLines={1}>
               {invoice.issueDate ?? '—'}
             </Text>
+            <AppHijriDateLabel value={invoice.issueDateHijriDisplay} />
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>{t('invoices.detail.due')}</Text>
             <Text style={styles.statValue} numberOfLines={1}>
               {invoice.dueDate ?? '—'}
             </Text>
+            <AppHijriDateLabel value={invoice.dueDateHijriDisplay} />
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>{t('invoices.detail.outstanding')}</Text>

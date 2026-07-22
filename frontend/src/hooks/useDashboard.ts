@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -13,15 +13,17 @@ import { useNotificationStore } from '@stores/notificationStore';
 
 import { mapApiMonthly, mapApiSummary } from '@utils/helpers/dashboardMappers';
 
+import type { AppCalendar } from '../types/common.types';
 import type { MainStackParamList } from '../types/navigation.types';
 
 export const useDashboard = () => {
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const userName = useAuthStore((s) => s.userName) ?? '';
   const { unreadCount, hydrate: hydrateNotifications } = useNotificationStore();
+  const [calendar, setCalendar] = useState<AppCalendar>('gregorian');
 
   const summaryQuery = useDashboardGetSummary();
-  const monthlyQuery = useDashboardGetMonthlyOverview(undefined);
+  const monthlyQuery = useDashboardGetMonthlyOverview({ calendar });
 
   useFocusEffect(
     useCallback(() => {
@@ -40,11 +42,14 @@ export const useDashboard = () => {
 
   const onBell = useCallback(() => navigation.navigate('NotificationCenter'), [navigation]);
   const onSeeAll = useCallback(() => navigation.navigate('More'), [navigation]);
+  const onCalendarChange = useCallback((next: AppCalendar) => setCalendar(next), []);
 
   return {
     isLoading: summaryQuery.isFetching || monthlyQuery.isFetching,
     summary,
     monthlyOverview,
+    calendar,
+    onCalendarChange,
     userName,
     unreadCount,
     onBell,

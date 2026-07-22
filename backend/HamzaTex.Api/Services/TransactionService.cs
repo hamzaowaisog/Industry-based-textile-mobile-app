@@ -103,6 +103,8 @@ public class TransactionService : ITransactionService
         TransCategoryName = t.TransCategory?.Name,
         Amount          = t.Amount,
         TransDate       = t.TransDate,
+        TransDateHijri  = t.TransDateHijri,
+        TransDateHijriDisplay = HijriDateHelper.FormatForDisplay(t.TransDateHijri),
         Notes           = t.Notes,
         CreatedAt       = t.CreatedAt,
         Source          = DeriveSource(t),
@@ -131,11 +133,17 @@ public class TransactionService : ITransactionService
 
     public async Task<Response<TransactionDto>> CreateAsync(CreateTransactionDto model, int userId)
     {
+        var hijriOffset = (await _db.SystemSettings.AsNoTracking().FirstOrDefaultAsync())?.HijriOffsetDays ?? 0;
+        var transDateHijri = string.IsNullOrWhiteSpace(model.TransDateHijri)
+            ? HijriDateHelper.ToHijriString(model.TransDate, hijriOffset)
+            : model.TransDateHijri;
+
         var entity = new Transaction
         {
             Amount          = model.Amount,
             TransCategoryId = model.TransCategoryId,
             TransDate       = model.TransDate,
+            TransDateHijri  = transDateHijri,
             Notes           = model.Notes,
             ClientId        = model.ClientId,
             TransTypeId     = model.TransTypeId ?? 1,

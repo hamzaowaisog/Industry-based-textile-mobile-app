@@ -16,7 +16,9 @@ export type InvoiceRow = {
   invoiceStatusId: number;
   statusName: string;
   issueDate: string | null;
+  issueDateHijriDisplay: string | null;
   dueDate: string | null;
+  dueDateHijriDisplay: string | null;
   totalAmount: number;
   amountPaid: number;
   outstanding: number;
@@ -43,7 +45,9 @@ export type InvoiceDetail = {
   invoiceStatusId: number;
   statusName: string;
   issueDate: string | null;
+  issueDateHijriDisplay: string | null;
   dueDate: string | null;
+  dueDateHijriDisplay: string | null;
   totalAmount: number;
   amountPaid: number;
   outstanding: number;

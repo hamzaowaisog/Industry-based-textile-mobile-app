@@ -333,6 +333,11 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("date")
                         .HasColumnName("expense_date");
 
+                    b.Property<string>("ExpenseDateHijri")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("expense_date_hijri");
+
                     b.Property<int?>("ExpenseTypeId")
                         .HasColumnType("int")
                         .HasColumnName("expense_type_id");
@@ -427,6 +432,11 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("date")
                         .HasColumnName("due_date");
 
+                    b.Property<string>("DueDateHijri")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("due_date_hijri");
+
                     b.Property<string>("InvoiceNumber")
                         .IsRequired()
                         .HasColumnType("varchar(255)")
@@ -439,6 +449,11 @@ namespace HamzaTex.Api.Migrations
                     b.Property<DateTime?>("IssueDate")
                         .HasColumnType("date")
                         .HasColumnName("issue_date");
+
+                    b.Property<string>("IssueDateHijri")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("issue_date_hijri");
 
                     b.Property<string>("Notes")
                         .HasColumnType("longtext")
@@ -665,6 +680,11 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("date")
                         .HasColumnName("order_date");
 
+                    b.Property<string>("OrderDateHijri")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("order_date_hijri");
+
                     b.Property<int?>("PaymentTypeId")
                         .HasColumnType("int")
                         .HasColumnName("payment_type_id");
@@ -837,6 +857,11 @@ namespace HamzaTex.Api.Migrations
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("date")
                         .HasColumnName("payment_date");
+
+                    b.Property<string>("PaymentDateHijri")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("payment_date_hijri");
 
                     b.Property<int?>("PaymentDirectionId")
                         .HasColumnType("int")
@@ -1150,6 +1175,11 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("date")
                         .HasColumnName("purchase_date");
 
+                    b.Property<string>("PurchaseDateHijri")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("purchase_date_hijri");
+
                     b.Property<int?>("StatusId")
                         .HasColumnType("int")
                         .HasColumnName("status_id");
@@ -1326,6 +1356,11 @@ namespace HamzaTex.Api.Migrations
                         .HasColumnType("date")
                         .HasColumnName("movement_date");
 
+                    b.Property<string>("MovementDateHijri")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("movement_date_hijri");
+
                     b.Property<int?>("MovementSourceId")
                         .HasColumnType("int")
                         .HasColumnName("movement_source_id");
@@ -1369,6 +1404,25 @@ namespace HamzaTex.Api.Migrations
                     b.HasIndex(new[] { "ProductId" }, "IX_stock_movements_product_id");
 
                     b.ToTable("stock_movements", (string)null);
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.SystemSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("HijriOffsetDays")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastHijriReminderSentDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SystemSettings");
                 });
 
             modelBuilder.Entity("HamzaTex.Api.Entities.TransCategory", b =>
@@ -1497,6 +1551,11 @@ namespace HamzaTex.Api.Migrations
                     b.Property<DateTime>("TransDate")
                         .HasColumnType("date")
                         .HasColumnName("trans_date");
+
+                    b.Property<string>("TransDateHijri")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("trans_date_hijri");
 
                     b.Property<int?>("TransModeId")
                         .HasColumnType("int")
@@ -1642,6 +1701,37 @@ namespace HamzaTex.Api.Migrations
                     b.ToView("v_monthly_credit_debit", (string)null);
                 });
 
+            modelBuilder.Entity("HamzaTex.Api.Entities.VMonthlyCreditDebitHijri", b =>
+                {
+                    b.Property<decimal?>("Balance")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("balance");
+
+                    b.Property<string>("HijriMonth")
+                        .HasColumnType("longtext")
+                        .HasColumnName("hijri_month");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    b.Property<decimal?>("TotalCredit")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("total_credit");
+
+                    b.Property<decimal?>("TotalDebit")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("total_debit");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("v_monthly_credit_debit_hijri", (string)null);
+                });
+
             modelBuilder.Entity("HamzaTex.Api.Entities.VMonthlyProfitLoss", b =>
                 {
                     b.Property<decimal?>("GrossProfit")
@@ -1680,6 +1770,46 @@ namespace HamzaTex.Api.Migrations
                     b.ToTable((string)null);
 
                     b.ToView("v_monthly_profit_loss", (string)null);
+                });
+
+            modelBuilder.Entity("HamzaTex.Api.Entities.VMonthlyProfitLossHijri", b =>
+                {
+                    b.Property<decimal?>("GrossProfit")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("gross_profit");
+
+                    b.Property<string>("HijriMonth")
+                        .HasColumnType("longtext")
+                        .HasColumnName("hijri_month");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("NetProfit")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("net_profit");
+
+                    b.Property<decimal?>("TotalExpenses")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("total_expenses");
+
+                    b.Property<decimal?>("TotalPurchases")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("total_purchases");
+
+                    b.Property<decimal?>("TotalSales")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)")
+                        .HasColumnName("total_sales");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("v_monthly_profit_loss_hijri", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>

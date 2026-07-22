@@ -15,6 +15,11 @@ export interface InvoiceCreateViewModel {
   clientId?: number;
   /** @nullable */
   dueDate?: string | null;
+  /**
+     * Optional Hijri override for DueDate, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from DueDate.
+     * @nullable
+     */
+  dueDateHijri?: string | null;
   totalAmount?: number;
   /** @nullable */
   notes?: string | null;

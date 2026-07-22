@@ -29,7 +29,11 @@ export const OrderTabRow = ({ item }: { item: ClientOrderSummary }) => {
       <AppRow
         leading={<AppIconTile Icon={OrderIcon} color={colors.primary} size={36} />}
         primary={`#${item.orderId}`}
-        secondary={item.orderDate}
+        secondary={
+          item.orderDateHijriDisplay
+            ? `${item.orderDate} · ${item.orderDateHijriDisplay}`
+            : item.orderDate
+        }
         right={
           <>
             <AppAmount value={item.total ?? 0} size={14} />

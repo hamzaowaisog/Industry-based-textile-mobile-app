@@ -28,6 +28,9 @@ public partial class Order
 
     public DateOnly OrderDate { get; set; }
 
+    /// <summary>Hijri equivalent of OrderDate, "yyyy-MM-dd" in Hijri terms. Computed at create time or supplied manually; never recalculated on update.</summary>
+    public string? OrderDateHijri { get; set; }
+
     public string? Notes { get; set; }
 
     public DateOnly? CreatedAt { get; set; }

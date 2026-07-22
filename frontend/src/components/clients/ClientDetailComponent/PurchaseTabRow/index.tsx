@@ -29,7 +29,11 @@ export const PurchaseTabRow = ({ item }: { item: ClientPurchaseSummary }) => {
       <AppRow
         leading={<AppIconTile Icon={TruckIcon} color={colors.warning} size={36} />}
         primary={`#${item.purchaseId}`}
-        secondary={item.purchaseDate}
+        secondary={
+          item.purchaseDateHijriDisplay
+            ? `${item.purchaseDate} · ${item.purchaseDateHijriDisplay}`
+            : item.purchaseDate
+        }
         right={
           <>
             <AppAmount value={item.total ?? 0} size={14} />

@@ -91,6 +91,14 @@ public class InvoiceService : IInvoiceService
             return Response<InvoiceDto>.ErrorResponse("Not found", "Client not found.");
 
         var number = await GenerateInvoiceNumberAsync();
+        var issueDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var hijriOffset = (await _db.SystemSettings.AsNoTracking().FirstOrDefaultAsync())?.HijriOffsetDays ?? 0;
+        var issueDateHijri = HijriDateHelper.ToHijriString(issueDate, hijriOffset);
+        var dueDateHijri = model.DueDate is null
+            ? null
+            : (string.IsNullOrWhiteSpace(model.DueDateHijri)
+                ? HijriDateHelper.ToHijriString(model.DueDate.Value, hijriOffset)
+                : model.DueDateHijri);
 
         var invoice = new Invoice
         {
@@ -99,8 +107,10 @@ public class InvoiceService : IInvoiceService
             PurchaseId      = model.PurchaseId,
             ClientId        = model.ClientId,
             InvoiceStatusId = StatusDraft,
-            IssueDate       = DateOnly.FromDateTime(DateTime.UtcNow),
+            IssueDate       = issueDate,
+            IssueDateHijri  = issueDateHijri,
             DueDate         = model.DueDate,
+            DueDateHijri    = dueDateHijri,
             TotalAmount     = model.TotalAmount,
             Notes           = model.Notes,
             CreatedByUserId = userId,
@@ -137,6 +147,8 @@ public class InvoiceService : IInvoiceService
 
         var number = await GenerateInvoiceNumberAsync();
         var total  = order.OrderLines.Sum(l => l.Qty * l.UnitPrice);
+        var issueDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var hijriOffset = (await _db.SystemSettings.AsNoTracking().FirstOrDefaultAsync())?.HijriOffsetDays ?? 0;
 
         var invoice = new Invoice
         {
@@ -144,7 +156,8 @@ public class InvoiceService : IInvoiceService
             OrderId         = orderId,
             ClientId        = order.ClientId ?? 0,
             InvoiceStatusId = StatusDraft,
-            IssueDate       = DateOnly.FromDateTime(DateTime.UtcNow),
+            IssueDate       = issueDate,
+            IssueDateHijri  = HijriDateHelper.ToHijriString(issueDate, hijriOffset),
             TotalAmount     = total,
             CreatedByUserId = userId,
             CreatedAt       = DateOnly.FromDateTime(DateTime.UtcNow),
@@ -180,6 +193,8 @@ public class InvoiceService : IInvoiceService
 
         var number = await GenerateInvoiceNumberAsync();
         var total  = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost);
+        var issueDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var hijriOffset = (await _db.SystemSettings.AsNoTracking().FirstOrDefaultAsync())?.HijriOffsetDays ?? 0;
 
         var invoice = new Invoice
         {
@@ -187,7 +202,8 @@ public class InvoiceService : IInvoiceService
             PurchaseId      = purchaseId,
             ClientId        = purchase.SupplierId ?? 0,
             InvoiceStatusId = StatusDraft,
-            IssueDate       = DateOnly.FromDateTime(DateTime.UtcNow),
+            IssueDate       = issueDate,
+            IssueDateHijri  = HijriDateHelper.ToHijriString(issueDate, hijriOffset),
             TotalAmount     = total,
             CreatedByUserId = userId,
             CreatedAt       = DateOnly.FromDateTime(DateTime.UtcNow),
@@ -505,7 +521,11 @@ public class InvoiceService : IInvoiceService
             InvoiceStatusId = i.InvoiceStatusId,
             StatusName      = i.InvoiceStatus?.Name ?? string.Empty,
             IssueDate       = i.IssueDate,
+            IssueDateHijri  = i.IssueDateHijri,
+            IssueDateHijriDisplay = HijriDateHelper.FormatForDisplay(i.IssueDateHijri),
             DueDate         = i.DueDate,
+            DueDateHijri    = i.DueDateHijri,
+            DueDateHijriDisplay = HijriDateHelper.FormatForDisplay(i.DueDateHijri),
             TotalAmount     = i.TotalAmount,
             AmountPaid      = paid,
             Outstanding     = i.TotalAmount - paid,

@@ -10,6 +10,11 @@ export interface TransactionCreateViewModel {
   amount?: number;
   transCategoryId?: number;
   transDate?: string;
+  /**
+     * Optional Hijri override, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from TransDate.
+     * @nullable
+     */
+  transDateHijri?: string | null;
   /** @nullable */
   notes?: string | null;
   /** @nullable */

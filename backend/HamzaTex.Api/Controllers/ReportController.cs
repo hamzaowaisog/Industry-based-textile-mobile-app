@@ -31,25 +31,27 @@ public class ReportController : BaseController
     [HttpGet("profit-loss")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(typeof(Response<List<ProfitLossViewModel>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetProfitLoss([FromQuery] int? year, [FromQuery] int? month)
+    public async Task<IActionResult> GetProfitLoss([FromQuery] int? year, [FromQuery] int? month, [FromQuery] string calendar = "gregorian")
     {
-        return ToActionResult(await _reportService.GetMonthlyProfitLossAsync(year, month));
+        return ToActionResult(await _reportService.GetMonthlyProfitLossAsync(year, month, calendar));
     }
 
     /// <summary>Export profit and loss report as PDF. Accepts same year/month filters.</summary>
     [HttpGet("profit-loss/pdf")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetProfitLossPdf([FromQuery] int? year, [FromQuery] int? month)
+    public async Task<IActionResult> GetProfitLossPdf([FromQuery] int? year, [FromQuery] int? month, [FromQuery] string calendar = "gregorian")
     {
-        var result = await _reportService.GetMonthlyProfitLossAsync(year, month);
+        var result = await _reportService.GetMonthlyProfitLossAsync(year, month, calendar);
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 
         var data        = result.Data;
-        var periodLabel = year.HasValue
-            ? (month.HasValue ? $"{month.Value:D2}/{year.Value}" : year.Value.ToString())
-            : "All Time";
+        var periodLabel = calendar == "hijri"
+            ? "Hijri — All Time"
+            : (year.HasValue
+                ? (month.HasValue ? $"{month.Value:D2}/{year.Value}" : year.Value.ToString())
+                : "All Time");
 
         var totalSales     = data.Sum(r => r.TotalSales);
         var totalPurchases = data.Sum(r => r.TotalPurchases);
@@ -184,25 +186,27 @@ public class ReportController : BaseController
     [HttpGet("credit-debit")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(typeof(Response<List<CreditDebitViewModel>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetCreditDebit([FromQuery] int? year, [FromQuery] int? month)
+    public async Task<IActionResult> GetCreditDebit([FromQuery] int? year, [FromQuery] int? month, [FromQuery] string calendar = "gregorian")
     {
-        return ToActionResult(await _reportService.GetMonthlyCreditDebitAsync(year, month));
+        return ToActionResult(await _reportService.GetMonthlyCreditDebitAsync(year, month, calendar));
     }
 
     /// <summary>Export credit/debit report as PDF. Accepts same year/month filters.</summary>
     [HttpGet("credit-debit/pdf")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetCreditDebitPdf([FromQuery] int? year, [FromQuery] int? month)
+    public async Task<IActionResult> GetCreditDebitPdf([FromQuery] int? year, [FromQuery] int? month, [FromQuery] string calendar = "gregorian")
     {
-        var result = await _reportService.GetMonthlyCreditDebitAsync(year, month);
+        var result = await _reportService.GetMonthlyCreditDebitAsync(year, month, calendar);
         if (!result.Success || result.Data is null)
             return BadRequest(result.Message);
 
         var data        = result.Data;
-        var periodLabel = year.HasValue
-            ? (month.HasValue ? $"{month.Value:D2}/{year.Value}" : year.Value.ToString())
-            : "All Time";
+        var periodLabel = calendar == "hijri"
+            ? "Hijri — All Time"
+            : (year.HasValue
+                ? (month.HasValue ? $"{month.Value:D2}/{year.Value}" : year.Value.ToString())
+                : "All Time");
 
         var totalCredit = data.Sum(r => r.TotalCredit);
         var totalDebit  = data.Sum(r => r.TotalDebit);
@@ -385,46 +389,46 @@ public class ReportController : BaseController
         if (d.Orders.Count > 0)
             model.Sections.Add(new TableSection(
                 $"Orders ({d.Orders.Count})",
-                Headers:    new[] { "#", "Date", "Status", "Total", "Paid", "Outstanding", "Payment" },
+                Headers:    new[] { "#", "Date", "Hijri Date", "Status", "Total", "Paid", "Outstanding", "Payment" },
                 Rows:       d.Orders.Select((o, i) => new[]
                 {
-                    (i + 1).ToString(), o.OrderDate.ToString("dd MMM yyyy"), o.StatusName,
+                    (i + 1).ToString(), o.OrderDate.ToString("dd MMM yyyy"), o.OrderDateHijriDisplay ?? "—", o.StatusName,
                     Curr(o.Total), Curr(o.AmountPaid), Curr(o.Outstanding), o.PaymentStatus
                 }),
-                RightAlign: new[] { 3, 4, 5 }));
+                RightAlign: new[] { 4, 5, 6 }));
 
         if (d.Purchases.Count > 0)
             model.Sections.Add(new TableSection(
                 $"Purchases ({d.Purchases.Count})",
-                Headers:    new[] { "#", "Date", "Status", "Total", "Paid", "Outstanding", "Payment" },
+                Headers:    new[] { "#", "Date", "Hijri Date", "Status", "Total", "Paid", "Outstanding", "Payment" },
                 Rows:       d.Purchases.Select((p, i) => new[]
                 {
-                    (i + 1).ToString(), p.PurchaseDate.ToString("dd MMM yyyy"), p.StatusName,
+                    (i + 1).ToString(), p.PurchaseDate.ToString("dd MMM yyyy"), p.PurchaseDateHijriDisplay ?? "—", p.StatusName,
                     Curr(p.Total), Curr(p.AmountPaid), Curr(p.Outstanding), p.PaymentStatus
                 }),
-                RightAlign: new[] { 3, 4, 5 }));
+                RightAlign: new[] { 4, 5, 6 }));
 
         if (d.Payments.Count > 0)
             model.Sections.Add(new TableSection(
                 $"Payments ({d.Payments.Count})",
-                Headers:    new[] { "#", "Date", "Direction", "Mode", "Amount" },
+                Headers:    new[] { "#", "Date", "Hijri Date", "Direction", "Mode", "Amount" },
                 Rows:       d.Payments.Select((p, i) => new[]
                 {
-                    (i + 1).ToString(), p.PaymentDate.ToString("dd MMM yyyy"),
+                    (i + 1).ToString(), p.PaymentDate.ToString("dd MMM yyyy"), p.PaymentDateHijriDisplay ?? "—",
                     p.DirectionName, p.ModeName, Curr(p.Amount)
                 }),
-                RightAlign: new[] { 4 }));
+                RightAlign: new[] { 5 }));
 
         if (d.RecentTransactions.Count > 0)
             model.Sections.Add(new TableSection(
                 $"Recent Transactions ({d.RecentTransactions.Count})",
-                Headers:    new[] { "#", "Date", "Category", "Type", "Amount" },
+                Headers:    new[] { "#", "Date", "Hijri Date", "Category", "Type", "Amount" },
                 Rows:       d.RecentTransactions.Select((t, i) => new[]
                 {
-                    (i + 1).ToString(), t.TransDate.ToString("dd MMM yyyy"),
+                    (i + 1).ToString(), t.TransDate.ToString("dd MMM yyyy"), t.TransDateHijriDisplay ?? "—",
                     t.CategoryName, t.TypeName, Curr(t.Amount)
                 }),
-                RightAlign: new[] { 4 }));
+                RightAlign: new[] { 5 }));
 
         model.Closing = new ClosingSummary(
             "CLOSING BALANCE", $"As of {DateTime.Now:dd MMM yyyy}",

@@ -16,6 +16,10 @@ public sealed class OrderCreateViewModelValidation : AbstractValidator<OrderCrea
         RuleFor(x => x.Lines)
             .NotEmpty().WithMessage("At least one order line is required");
 
+        RuleFor(x => x.OrderDateHijri)
+            .Matches(@"^\d{4}-\d{2}-\d{2}$").WithMessage("OrderDateHijri must be in yyyy-MM-dd format")
+            .When(x => !string.IsNullOrEmpty(x.OrderDateHijri));
+
         RuleForEach(x => x.Lines).ChildRules(line =>
         {
             line.RuleFor(l => l.ProductId)

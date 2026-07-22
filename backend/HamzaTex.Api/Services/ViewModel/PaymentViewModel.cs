@@ -15,6 +15,8 @@ public class PaymentCreateViewModel
     public decimal Amount { get; set; }
     /// <summary>Omit or set null to use the current UTC date.</summary>
     public DateOnly? PaymentDate { get; set; }
+    /// <summary>Optional Hijri override, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from PaymentDate.</summary>
+    public string? PaymentDateHijri { get; set; }
     public string? Notes { get; set; }
     public List<AllocationItemViewModel>? Allocations { get; set; } = new();
 }

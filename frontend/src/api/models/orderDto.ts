@@ -20,6 +20,10 @@ export interface OrderDto {
   paymentTypeName?: string | null;
   orderDate?: string;
   /** @nullable */
+  orderDateHijri?: string | null;
+  /** @nullable */
+  orderDateHijriDisplay?: string | null;
+  /** @nullable */
   notes?: string | null;
   /** @nullable */
   createdAt?: string | null;

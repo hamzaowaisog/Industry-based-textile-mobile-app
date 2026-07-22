@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { AppAmount } from '@components/common/AppAmount';
 import { AppBadge } from '@components/common/AppBadge';
 import { AppCard } from '@components/common/AppCard';
+import { AppHijriDateLabel } from '@components/common/AppHijriDateLabel';
 
 import { formatPKR } from '@utils/helpers/formatCurrency';
 import { getOrderStatusConfig } from '@utils/helpers/orderContent';
@@ -31,6 +32,7 @@ export const OrderCard = React.memo(({ order, onPress }: OrderCardProps) => {
           <Text style={styles.orderId}>{`ORD-${order.id}`}</Text>
           <Text style={styles.clientName}>{order.clientName}</Text>
           <Text style={styles.date}>{order.orderDate}</Text>
+          <AppHijriDateLabel value={order.orderDateHijriDisplay} />
         </View>
         <View style={styles.right}>
           <AppAmount value={order.total} size={17} />

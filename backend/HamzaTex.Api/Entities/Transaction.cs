@@ -50,6 +50,9 @@ public partial class Transaction
 
     public DateOnly TransDate { get; set; }
 
+    /// <summary>Hijri equivalent of TransDate, "yyyy-MM-dd" in Hijri terms.</summary>
+    public string? TransDateHijri { get; set; }
+
     public string? Notes { get; set; }
 
     public DateOnly? CreatedAt { get; set; }

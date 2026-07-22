@@ -1182,7 +1182,7 @@
     "/api/Dashboard/monthly-overview": {
       "get": {
         "tags": ["Dashboard"],
-        "summary": "Last N months of aggregated financials for charts. Query param: ?months=6 (1-12).",
+        "summary": "Last N months of aggregated financials for charts. Query params: ?months=6 (1-12), ?calendar=gregorian|hijri.",
         "operationId": "dashboard_getMonthlyOverview",
         "parameters": [
           {
@@ -1192,6 +1192,14 @@
               "type": "integer",
               "format": "int32",
               "default": 6
+            }
+          },
+          {
+            "name": "calendar",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "gregorian"
             }
           }
         ],
@@ -4483,6 +4491,14 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "calendar",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "gregorian"
+            }
           }
         ],
         "responses": {
@@ -4519,6 +4535,14 @@
             "schema": {
               "type": "integer",
               "format": "int32"
+            }
+          },
+          {
+            "name": "calendar",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "gregorian"
             }
           }
         ],
@@ -4637,6 +4661,14 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "calendar",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "gregorian"
+            }
           }
         ],
         "responses": {
@@ -4673,6 +4705,14 @@
             "schema": {
               "type": "integer",
               "format": "int32"
+            }
+          },
+          {
+            "name": "calendar",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "gregorian"
             }
           }
         ],
@@ -4843,6 +4883,81 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Settings": {
+      "get": {
+        "tags": ["Settings"],
+        "summary": "Gets the current system settings.",
+        "operationId": "settings_get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsDtoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsDtoResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Settings"],
+        "summary": "Updates the system settings (currently the Hijri offset, -2..+2 days).",
+        "operationId": "settings_update",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsUpdateViewModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsUpdateViewModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsUpdateViewModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsDtoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsDtoResponse"
                 }
               }
             }
@@ -6657,9 +6772,21 @@
             "nullable": true,
             "example": "string"
           },
+          "issueDateHijriDisplay": {
+            "type": "string",
+            "description": "Hijri equivalent of IssueDate, formatted for display (e.g. \"06 Muharram 1448\").",
+            "nullable": true,
+            "example": "string"
+          },
           "dueDate": {
             "type": "string",
             "format": "date",
+            "nullable": true,
+            "example": "string"
+          },
+          "dueDateHijriDisplay": {
+            "type": "string",
+            "description": "Hijri equivalent of DueDate, formatted for display (e.g. \"06 Muharram 1448\").",
             "nullable": true,
             "example": "string"
           },
@@ -6691,6 +6818,12 @@
           "orderDate": {
             "type": "string",
             "format": "date",
+            "example": "string"
+          },
+          "orderDateHijriDisplay": {
+            "type": "string",
+            "description": "Hijri equivalent of OrderDate, formatted for display (e.g. \"06 Muharram 1448\").",
+            "nullable": true,
             "example": "string"
           },
           "statusName": {
@@ -6732,6 +6865,12 @@
             "format": "date",
             "example": "string"
           },
+          "paymentDateHijriDisplay": {
+            "type": "string",
+            "description": "Hijri equivalent of PaymentDate, formatted for display (e.g. \"06 Muharram 1448\").",
+            "nullable": true,
+            "example": "string"
+          },
           "directionName": {
             "type": "string",
             "nullable": true,
@@ -6764,6 +6903,12 @@
           "purchaseDate": {
             "type": "string",
             "format": "date",
+            "example": "string"
+          },
+          "purchaseDateHijriDisplay": {
+            "type": "string",
+            "description": "Hijri equivalent of PurchaseDate, formatted for display (e.g. \"06 Muharram 1448\").",
+            "nullable": true,
             "example": "string"
           },
           "statusName": {
@@ -6803,6 +6948,12 @@
           "transDate": {
             "type": "string",
             "format": "date",
+            "example": "string"
+          },
+          "transDateHijriDisplay": {
+            "type": "string",
+            "description": "Hijri equivalent of TransDate, formatted for display (e.g. \"06 Muharram 1448\").",
+            "nullable": true,
             "example": "string"
           },
           "categoryName": {
@@ -7019,6 +7170,11 @@
             "nullable": true,
             "example": "string"
           },
+          "todayHijri": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
           "currency": {
             "type": "string",
             "nullable": true,
@@ -7106,6 +7262,12 @@
             "nullable": true,
             "example": "string"
           },
+          "expenseDateHijri": {
+            "type": "string",
+            "description": "Optional Hijri override, \"yyyy-MM-dd\" in Hijri terms. Omit to auto-compute from ExpenseDate.",
+            "nullable": true,
+            "example": "string"
+          },
           "notes": {
             "type": "string",
             "nullable": true,
@@ -7180,6 +7342,16 @@
           "expenseDate": {
             "type": "string",
             "format": "date",
+            "example": "string"
+          },
+          "expenseDateHijri": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "expenseDateHijriDisplay": {
+            "type": "string",
+            "nullable": true,
             "example": "string"
           },
           "notes": {
@@ -7541,6 +7713,12 @@
             "nullable": true,
             "example": "string"
           },
+          "dueDateHijri": {
+            "type": "string",
+            "description": "Optional Hijri override for DueDate, \"yyyy-MM-dd\" in Hijri terms. Omit to auto-compute from DueDate.",
+            "nullable": true,
+            "example": "string"
+          },
           "totalAmount": {
             "type": "number",
             "format": "double"
@@ -7626,9 +7804,29 @@
             "nullable": true,
             "example": "string"
           },
+          "issueDateHijri": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "issueDateHijriDisplay": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
           "dueDate": {
             "type": "string",
             "format": "date",
+            "nullable": true,
+            "example": "string"
+          },
+          "dueDateHijri": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "dueDateHijriDisplay": {
+            "type": "string",
             "nullable": true,
             "example": "string"
           },
@@ -7763,9 +7961,29 @@
             "nullable": true,
             "example": "string"
           },
+          "issueDateHijri": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "issueDateHijriDisplay": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
           "dueDate": {
             "type": "string",
             "format": "date",
+            "nullable": true,
+            "example": "string"
+          },
+          "dueDateHijri": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "dueDateHijriDisplay": {
+            "type": "string",
             "nullable": true,
             "example": "string"
           },
@@ -8242,6 +8460,13 @@
               "$ref": "#/components/schemas/LookupDto"
             },
             "nullable": true
+          },
+          "hijriMonths": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LookupDto"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -8467,6 +8692,12 @@
             "nullable": true,
             "example": "string"
           },
+          "orderDateHijri": {
+            "type": "string",
+            "description": "Optional Hijri override, \"yyyy-MM-dd\" in Hijri terms. Omit to auto-compute from OrderDate.",
+            "nullable": true,
+            "example": "string"
+          },
           "notes": {
             "type": "string",
             "nullable": true,
@@ -8523,6 +8754,16 @@
           "orderDate": {
             "type": "string",
             "format": "date",
+            "example": "string"
+          },
+          "orderDateHijri": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "orderDateHijriDisplay": {
+            "type": "string",
+            "nullable": true,
             "example": "string"
           },
           "notes": {
@@ -8840,6 +9081,12 @@
             "nullable": true,
             "example": "string"
           },
+          "paymentDateHijri": {
+            "type": "string",
+            "description": "Optional Hijri override, \"yyyy-MM-dd\" in Hijri terms. Omit to auto-compute from PaymentDate.",
+            "nullable": true,
+            "example": "string"
+          },
           "notes": {
             "type": "string",
             "nullable": true,
@@ -8904,6 +9151,16 @@
           "paymentDate": {
             "type": "string",
             "format": "date",
+            "example": "string"
+          },
+          "paymentDateHijri": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "paymentDateHijriDisplay": {
+            "type": "string",
+            "nullable": true,
             "example": "string"
           },
           "notes": {
@@ -9576,6 +9833,12 @@
             "nullable": true,
             "example": "string"
           },
+          "purchaseDateHijri": {
+            "type": "string",
+            "description": "Optional Hijri override, \"yyyy-MM-dd\" in Hijri terms. Omit to auto-compute from PurchaseDate.",
+            "nullable": true,
+            "example": "string"
+          },
           "notes": {
             "type": "string",
             "nullable": true,
@@ -9632,6 +9895,16 @@
           "purchaseDate": {
             "type": "string",
             "format": "date",
+            "example": "string"
+          },
+          "purchaseDateHijri": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "purchaseDateHijriDisplay": {
+            "type": "string",
+            "nullable": true,
             "example": "string"
           },
           "notes": {
@@ -10111,6 +10384,50 @@
         },
         "additionalProperties": false
       },
+      "SettingsDto": {
+        "type": "object",
+        "properties": {
+          "hijriOffsetDays": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SettingsDtoResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SettingsDto"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SettingsUpdateViewModel": {
+        "type": "object",
+        "properties": {
+          "hijriOffsetDays": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "StockMovementsCreateViewModel": {
         "type": "object",
         "properties": {
@@ -10153,6 +10470,12 @@
             "type": "string",
             "description": "Omit or null to use the current UTC date.",
             "format": "date",
+            "nullable": true,
+            "example": "string"
+          },
+          "movementDateHijri": {
+            "type": "string",
+            "description": "Optional Hijri override, \"yyyy-MM-dd\" in Hijri terms. Omit to auto-compute from MovementDate.",
             "nullable": true,
             "example": "string"
           }
@@ -10247,6 +10570,16 @@
           "movementDate": {
             "type": "string",
             "format": "date",
+            "example": "string"
+          },
+          "movementDateHijri": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "movementDateHijriDisplay": {
+            "type": "string",
+            "nullable": true,
             "example": "string"
           }
         },
@@ -10571,6 +10904,12 @@
             "format": "date",
             "example": "string"
           },
+          "transDateHijri": {
+            "type": "string",
+            "description": "Optional Hijri override, \"yyyy-MM-dd\" in Hijri terms. Omit to auto-compute from TransDate.",
+            "nullable": true,
+            "example": "string"
+          },
           "notes": {
             "type": "string",
             "nullable": true,
@@ -10693,6 +11032,16 @@
           "transDate": {
             "type": "string",
             "format": "date",
+            "example": "string"
+          },
+          "transDateHijri": {
+            "type": "string",
+            "nullable": true,
+            "example": "string"
+          },
+          "transDateHijriDisplay": {
+            "type": "string",
+            "nullable": true,
             "example": "string"
           },
           "notes": {

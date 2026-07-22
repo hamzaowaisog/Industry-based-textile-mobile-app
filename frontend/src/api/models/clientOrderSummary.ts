@@ -9,6 +9,11 @@
 export interface ClientOrderSummary {
   orderId?: number;
   orderDate?: string;
+  /**
+     * Hijri equivalent of OrderDate, formatted for display (e.g. "06 Muharram 1448").
+     * @nullable
+     */
+  orderDateHijriDisplay?: string | null;
   /** @nullable */
   statusName?: string | null;
   total?: number;

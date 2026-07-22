@@ -5,6 +5,8 @@ public class TransactionCreateViewModel
     public decimal Amount { get; set; }
     public int TransCategoryId { get; set; }
     public DateOnly TransDate { get; set; }
+    /// <summary>Optional Hijri override, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from TransDate.</summary>
+    public string? TransDateHijri { get; set; }
     public string? Notes { get; set; }
     public int? ClientId { get; set; }
     /// <summary>Defaults to 1 (Debit) if omitted.</summary>

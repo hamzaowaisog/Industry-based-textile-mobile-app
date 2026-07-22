@@ -29,6 +29,10 @@ export interface ExpenseDto {
   transactionId?: number | null;
   expenseDate?: string;
   /** @nullable */
+  expenseDateHijri?: string | null;
+  /** @nullable */
+  expenseDateHijriDisplay?: string | null;
+  /** @nullable */
   notes?: string | null;
   /** @nullable */
   createdAt?: string | null;

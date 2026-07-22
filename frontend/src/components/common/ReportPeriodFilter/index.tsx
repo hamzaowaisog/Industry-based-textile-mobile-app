@@ -27,8 +27,10 @@ export const ReportPeriodFilter = ({
   years,
   onYearChange,
   onMonthChange,
+  monthItems,
 }: ReportPeriodFilterProps) => {
   const { t } = useTranslation();
+  const months = monthItems ?? MONTH_KEYS.map((key, i) => ({ value: i + 1, label: t(key) }));
 
   return (
     <View style={styles.wrap}>
@@ -76,17 +78,16 @@ export const ReportPeriodFilter = ({
               {t('reports.filter.allMonths')}
             </Text>
           </TouchableOpacity>
-          {MONTH_KEYS.map((key, i) => {
-            const monthNum = i + 1;
-            const isActive = filter.month === monthNum;
+          {months.map(({ value, label }) => {
+            const isActive = filter.month === value;
             return (
               <TouchableOpacity
-                key={key}
+                key={value}
                 style={[styles.chip, isActive && styles.chipActive]}
-                onPress={() => onMonthChange(monthNum)}
+                onPress={() => onMonthChange(value)}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{t(key)}</Text>
+                <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{label}</Text>
               </TouchableOpacity>
             );
           })}

@@ -81,12 +81,17 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
 
     public virtual DbSet<VMonthlyCreditDebit> VMonthlyCreditDebits { get; set; }
 
+    public virtual DbSet<VMonthlyProfitLossHijri> VMonthlyProfitLossesHijri { get; set; }
+
+    public virtual DbSet<VMonthlyCreditDebitHijri> VMonthlyCreditDebitsHijri { get; set; }
+
     public virtual DbSet<ProductUser> ProductUsers { get; set; }
     public virtual DbSet<DeviceToken> DeviceTokens { get; set; }
     public virtual DbSet<PasswordResetOtp> PasswordResetOtps { get; set; }
     public virtual DbSet<EmailVerificationOtp> EmailVerificationOtps { get; set; }
     public virtual DbSet<Notification> Notifications { get; set; }
     public virtual DbSet<Unit> Units { get; set; }
+    public virtual DbSet<SystemSetting> SystemSettings { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -227,6 +232,9 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.ExpenseDate)
                 .HasColumnType("date")
                 .HasColumnName("expense_date");
+            entity.Property(e => e.ExpenseDateHijri)
+                .HasMaxLength(10)
+                .HasColumnName("expense_date_hijri");
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
@@ -276,6 +284,9 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.OrderDate)
                 .HasColumnType("date")
                 .HasColumnName("order_date");
+            entity.Property(e => e.OrderDateHijri)
+                .HasMaxLength(10)
+                .HasColumnName("order_date_hijri");
 
             entity.HasOne(d => d.Client).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.ClientId)
@@ -337,6 +348,10 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.PaymentDate)
                 .HasColumnType("date")
                 .HasColumnName("payment_date");
+            entity.Property(e => e.PaymentDateHijri)
+                .HasMaxLength(10)
+                .HasColumnName("payment_date_hijri");
+
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
@@ -499,6 +514,10 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.PurchaseDate)
                 .HasColumnType("date")
                 .HasColumnName("purchase_date");
+            entity.Property(e => e.PurchaseDateHijri)
+                .HasMaxLength(10)
+                .HasColumnName("purchase_date_hijri");
+
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
@@ -580,6 +599,9 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.MovementDate)
                 .HasColumnType("date")
                 .HasColumnName("movement_date");
+            entity.Property(e => e.MovementDateHijri)
+                .HasMaxLength(10)
+                .HasColumnName("movement_date_hijri");
 
             entity.HasOne(d => d.Product).WithMany(p => p.StockMovements)
                 .HasForeignKey(d => d.ProductId)
@@ -618,6 +640,10 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.TransDate)
                 .HasColumnType("date")
                 .HasColumnName("trans_date");
+            entity.Property(e => e.TransDateHijri)
+                .HasMaxLength(10)
+                .HasColumnName("trans_date_hijri");
+                
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
@@ -956,6 +982,48 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.Id).HasColumnName("id");
         });
 
+        modelBuilder.Entity<VMonthlyProfitLossHijri>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("v_monthly_profit_loss_hijri");
+
+            entity.Property(e => e.GrossProfit)
+                .HasPrecision(14, 2)
+                .HasColumnName("gross_profit");
+            entity.Property(e => e.HijriMonth).HasColumnName("hijri_month");
+            entity.Property(e => e.NetProfit)
+                .HasPrecision(14, 2)
+                .HasColumnName("net_profit");
+            entity.Property(e => e.TotalExpenses)
+                .HasPrecision(14, 2)
+                .HasColumnName("total_expenses");
+            entity.Property(e => e.TotalPurchases)
+                .HasPrecision(14, 2)
+                .HasColumnName("total_purchases");
+            entity.Property(e => e.TotalSales)
+                .HasPrecision(14, 2)
+                .HasColumnName("total_sales");
+        });
+
+        modelBuilder.Entity<VMonthlyCreditDebitHijri>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("v_monthly_credit_debit_hijri");
+            entity.Property(e => e.Balance)
+                .HasPrecision(14, 2)
+                .HasColumnName("balance");
+            entity.Property(e => e.HijriMonth).HasColumnName("hijri_month");
+            entity.Property(e => e.TotalCredit)
+                .HasPrecision(14, 2)
+                .HasColumnName("total_credit");
+            entity.Property(e => e.TotalDebit)
+                .HasPrecision(14, 2)
+                .HasColumnName("total_debit");
+            entity.Property(e => e.Id).HasColumnName("id");
+        });
+
         modelBuilder.Entity<RefreshToken>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("refresh_tokens_pkey");
@@ -1049,6 +1117,8 @@ public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, I
             entity.Property(e => e.InvoiceStatusId).HasColumnName("invoice_status_id");
             entity.Property(e => e.IssueDate).HasColumnName("issue_date");
             entity.Property(e => e.DueDate).HasColumnName("due_date");
+            entity.Property(e => e.IssueDateHijri).HasMaxLength(10).HasColumnName("issue_date_hijri");
+            entity.Property(e => e.DueDateHijri).HasMaxLength(10).HasColumnName("due_date_hijri");
             entity.Property(e => e.TotalAmount).HasColumnName("total_amount").HasColumnType("decimal(14,2)");
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");

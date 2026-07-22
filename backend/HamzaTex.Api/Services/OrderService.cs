@@ -84,6 +84,11 @@ public class OrderService : IOrderService
         if (stockError is not null)
             return Response<OrderDto>.ErrorResponse("Insufficient stock", stockError);
 
+        var hijriOffset = (await _dbContext.SystemSettings.AsNoTracking().FirstOrDefaultAsync())?.HijriOffsetDays ?? 0;
+        var orderDateHijri = string.IsNullOrWhiteSpace(model.OrderDateHijri)
+            ? HijriDateHelper.ToHijriString(model.OrderDate, hijriOffset)
+            : model.OrderDateHijri;
+
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
         try
         {
@@ -94,6 +99,7 @@ public class OrderService : IOrderService
                 StatusId = StatusPending,
                 PaymentTypeId = model.PaymentTypeId,
                 OrderDate = model.OrderDate,
+                OrderDateHijri = orderDateHijri,
                 Notes = model.Notes,
                 CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
@@ -440,6 +446,7 @@ public class OrderService : IOrderService
                 TransCategoryId = TransCategorySales,
                 Amount = orderTotal,
                 TransDate = order.OrderDate,
+                TransDateHijri = order.OrderDateHijri,
                 Notes = $"Sale — Order #{order.Id}",
                 CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
@@ -524,6 +531,8 @@ public class OrderService : IOrderService
                 // Compensating ledger entry (opposite: Credit, negative amount)
                 var orderTotal = order.OrderLines.Sum(l => l.Qty * l.UnitPrice);
                 var transMode = MapPaymentTypeToTransMode(order.PaymentTypeId ?? 1);
+                var reversalDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                var reversalHijriOffset = (await _dbContext.SystemSettings.AsNoTracking().FirstOrDefaultAsync())?.HijriOffsetDays ?? 0;
 
                 var reversalTxn = new Transaction
                 {
@@ -534,7 +543,8 @@ public class OrderService : IOrderService
                     TransModeId = transMode,
                     TransCategoryId = TransCategorySales,
                     Amount = -orderTotal,
-                    TransDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                    TransDate = reversalDate,
+                    TransDateHijri = HijriDateHelper.ToHijriString(reversalDate, reversalHijriOffset),
                     Notes = $"Sale reversal — Order #{order.Id} cancelled",
                     CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
                 };
@@ -648,6 +658,8 @@ public class OrderService : IOrderService
             PaymentTypeId = order.PaymentTypeId ?? 0,
             PaymentTypeName = order.PaymentType?.Name,
             OrderDate = order.OrderDate,
+            OrderDateHijri = order.OrderDateHijri,
+            OrderDateHijriDisplay = HijriDateHelper.FormatForDisplay(order.OrderDateHijri),
             Notes = order.Notes,
             CreatedAt = order.CreatedAt,
             Total = total,

@@ -14,6 +14,8 @@ public class ExpenseDto
     public string? TransCategoryName { get; set; }
     public int? TransactionId { get; set; }
     public DateOnly ExpenseDate { get; set; }
+    public string? ExpenseDateHijri { get; set; }
+    public string? ExpenseDateHijriDisplay { get; set; }
     public string? Notes { get; set; }
     public DateOnly? CreatedAt { get; set; }
 }
@@ -26,6 +28,7 @@ public class CreateExpenseDto
     /// <summary>Optional. If omitted, TransCategoryId is auto-derived from ExpenseTypeId (Office=1→Cat3, Home=2→Cat4). Required for custom expense types.</summary>
     public int? TransCategoryId { get; set; }
     public DateOnly ExpenseDate { get; set; }
+    public string? ExpenseDateHijri { get; set; }
     public string? Notes { get; set; }
 }
 

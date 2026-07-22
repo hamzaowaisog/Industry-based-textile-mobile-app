@@ -11,6 +11,9 @@ public class PaymentCreateViewModelValidation : AbstractValidator<PaymentCreateV
         RuleFor(x => x.PaymentDirectionId).InclusiveBetween(1, 3).WithMessage("Payment direction must be 1 (Received), 2 (Paid), or 3 (Adjustment).");
         RuleFor(x => x.TransModeId).InclusiveBetween(1, 3).WithMessage("Transaction mode must be 1 (Cash), 2 (Bank), or 3 (Credit).");
         RuleFor(x => x.Amount).GreaterThan(0).WithMessage("Amount must be greater than zero.");
+        RuleFor(x => x.PaymentDateHijri)
+            .Matches(@"^\d{4}-\d{2}-\d{2}$").WithMessage("PaymentDateHijri must be in yyyy-MM-dd format")
+            .When(x => !string.IsNullOrEmpty(x.PaymentDateHijri));
 
         RuleForEach(x => x.Allocations).ChildRules(a =>
         {

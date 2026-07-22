@@ -738,16 +738,40 @@ CREATE INDEX `IX_product_users_user_id` ON `product_users` (`user_id`);
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260205223359_ProductUserTableCreated', '9.0.10');
 
-DROP TABLE `user`;
+DROP TABLE IF EXISTS `user`;
 
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260205224336_DroppingUserTable', '9.0.10');
 
-ALTER TABLE `expenses` DROP COLUMN `UserId1`;
 
-ALTER TABLE `transactions` DROP COLUMN `UserId1`;
+            SET @dbname = DATABASE();
+            SET @exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                           WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = 'expenses' AND COLUMN_NAME = 'UserId1');
+            SET @sql = IF(@exists > 0, 'ALTER TABLE `expenses` DROP COLUMN `UserId1`', 'SELECT 1');
+            PREPARE stmt FROM @sql;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+        
 
-ALTER TABLE `clients` DROP COLUMN `UserId1`;
+
+            SET @dbname = DATABASE();
+            SET @exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                           WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = 'transactions' AND COLUMN_NAME = 'UserId1');
+            SET @sql = IF(@exists > 0, 'ALTER TABLE `transactions` DROP COLUMN `UserId1`', 'SELECT 1');
+            PREPARE stmt FROM @sql;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+        
+
+
+            SET @dbname = DATABASE();
+            SET @exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                           WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = 'clients' AND COLUMN_NAME = 'UserId1');
+            SET @sql = IF(@exists > 0, 'ALTER TABLE `clients` DROP COLUMN `UserId1`', 'SELECT 1');
+            PREPARE stmt FROM @sql;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+        
 
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260206144641_RemovalOfUserId1fromTables', '9.0.10');
@@ -1690,6 +1714,76 @@ WHERE c.client_type_id = 2;
 
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260705030846_AddOpeningBalanceLedgerCategory', '9.0.10');
+
+ALTER TABLE `transactions` ADD `trans_date_hijri` varchar(10) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `stock_movements` ADD `movement_date_hijri` varchar(10) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `purchases` ADD `purchase_date_hijri` varchar(10) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `payments` ADD `payment_date_hijri` varchar(10) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `orders` ADD `order_date_hijri` varchar(10) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `invoices` ADD `due_date_hijri` varchar(10) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `invoices` ADD `issue_date_hijri` varchar(10) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `expenses` ADD `expense_date_hijri` varchar(10) CHARACTER SET utf8mb4 NULL;
+
+CREATE TABLE `SystemSettings` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `HijriOffsetDays` int NOT NULL,
+    `LastHijriReminderSentDate` date NULL,
+    CONSTRAINT `PK_SystemSettings` PRIMARY KEY (`Id`)
+) CHARACTER SET=utf8mb4;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260721121441_AddHijriCalendarSupport', '9.0.10');
+
+
+                CREATE VIEW v_monthly_profit_loss_hijri AS
+                SELECT
+                    ROW_NUMBER() OVER (ORDER BY hijri_month) AS id,
+                    hijri_month,
+                    total_sales,
+                    total_purchases,
+                    total_expenses,
+                    (total_sales - total_purchases) AS gross_profit,
+                    (total_sales - total_purchases - total_expenses) AS net_profit
+                FROM (
+                    SELECT
+                        SUBSTRING(t.trans_date_hijri, 1, 7) AS hijri_month,
+                        SUM(CASE WHEN t.trans_category_id = 1 THEN t.amount ELSE 0 END) AS total_sales,
+                        SUM(CASE WHEN t.trans_category_id = 2 THEN t.amount ELSE 0 END) AS total_purchases,
+                        SUM(CASE WHEN t.trans_category_id IN (3, 4) THEN t.amount ELSE 0 END) AS total_expenses
+                    FROM transactions t
+                    WHERE t.trans_date_hijri IS NOT NULL
+                    GROUP BY SUBSTRING(t.trans_date_hijri, 1, 7)
+                ) x;
+            
+
+
+                CREATE VIEW v_monthly_credit_debit_hijri AS
+                SELECT
+                    ROW_NUMBER() OVER (ORDER BY hijri_month) AS id,
+                    hijri_month,
+                    total_credit,
+                    total_debit,
+                    (total_credit - total_debit) AS balance
+                FROM (
+                    SELECT
+                        SUBSTRING(t.trans_date_hijri, 1, 7) AS hijri_month,
+                        SUM(CASE WHEN t.trans_type_id = 2 THEN t.amount ELSE 0 END) AS total_credit,
+                        SUM(CASE WHEN t.trans_type_id = 1 THEN t.amount ELSE 0 END) AS total_debit
+                    FROM transactions t
+                    WHERE t.trans_category_id IN (5, 6, 7, 8) AND t.trans_date_hijri IS NOT NULL
+                    GROUP BY SUBSTRING(t.trans_date_hijri, 1, 7)
+                ) x;
+            
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260721201653_AddHijriMonthlyReportingViews', '9.0.10');
 
 COMMIT;
 
