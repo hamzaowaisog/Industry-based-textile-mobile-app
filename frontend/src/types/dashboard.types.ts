@@ -1,3 +1,6 @@
+import type { ComponentType, ReactNode } from 'react';
+
+import type { AppCalendar } from './common.types';
 
 export type RecentOrder = {
   orderId: number;
@@ -17,6 +20,7 @@ export type RecentPurchase = {
 
 export type DashboardSummary = {
   asOf: string;
+  todayHijri: string;
   thisMonthRevenue: number;
   lastMonthRevenue: number;
   thisMonthPurchases: number;
@@ -40,8 +44,6 @@ export type MonthlyOverviewItem = {
   totalExpenses: number;
   netProfit: number;
 };
-
-import type { ComponentType, ReactNode } from 'react';
 
 export type RevenueTrend = { pct: number; up: boolean };
 
@@ -123,6 +125,8 @@ export type DashboardComponentProps = {
   isLoading: boolean;
   summary: DashboardSummary | null;
   monthlyOverview: MonthlyOverviewItem[];
+  calendar: AppCalendar;
+  onCalendarChange: (calendar: AppCalendar) => void;
   userName: string;
   onOpenDrawer: () => void;
   onNewOrder: () => void;

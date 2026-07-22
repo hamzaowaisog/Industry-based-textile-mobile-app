@@ -9,6 +9,11 @@
 export interface ClientTransactionSummary {
   transactionId?: number;
   transDate?: string;
+  /**
+     * Hijri equivalent of TransDate, formatted for display (e.g. "06 Muharram 1448").
+     * @nullable
+     */
+  transDateHijriDisplay?: string | null;
   /** @nullable */
   categoryName?: string | null;
   /** @nullable */

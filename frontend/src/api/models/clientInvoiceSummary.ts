@@ -12,8 +12,18 @@ export interface ClientInvoiceSummary {
   invoiceNumber?: string | null;
   /** @nullable */
   issueDate?: string | null;
+  /**
+     * Hijri equivalent of IssueDate, formatted for display (e.g. "06 Muharram 1448").
+     * @nullable
+     */
+  issueDateHijriDisplay?: string | null;
   /** @nullable */
   dueDate?: string | null;
+  /**
+     * Hijri equivalent of DueDate, formatted for display (e.g. "06 Muharram 1448").
+     * @nullable
+     */
+  dueDateHijriDisplay?: string | null;
   invoiceStatusId?: number;
   /** @nullable */
   statusName?: string | null;

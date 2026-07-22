@@ -23,6 +23,7 @@ import {
   mapApiSummaryTotals,
 } from '@utils/helpers/reportMappers';
 
+import type { AppCalendar } from '../types/common.types';
 import type {
   ClientBalanceRow,
   ClientDetailReportData,
@@ -34,9 +35,10 @@ import type {
 export const fetchProfitLossAsync = async (
   year?: number,
   month?: number,
+  calendar?: AppCalendar,
 ): Promise<ProfitLossRow[]> => {
   try {
-    const res = await reportGetProfitLoss({ year, month });
+    const res = await reportGetProfitLoss({ year, month, calendar });
     const r = parseApiResponse<ProfitLossViewModel[]>(res, '');
     if (!r.success || !r.data) return [];
     return r.data.map(mapApiProfitLossRow);
@@ -59,9 +61,10 @@ export const fetchClientBalancesAsync = async (): Promise<ClientBalanceRow[]> =>
 export const fetchCreditDebitAsync = async (
   year?: number,
   month?: number,
+  calendar?: AppCalendar,
 ): Promise<CreditDebitRow[]> => {
   try {
-    const res = await reportGetCreditDebit({ year, month });
+    const res = await reportGetCreditDebit({ year, month, calendar });
     const r = parseApiResponse<CreditDebitViewModel[]>(res, '');
     if (!r.success || !r.data) return [];
     return r.data.map(mapApiCreditDebitRow);

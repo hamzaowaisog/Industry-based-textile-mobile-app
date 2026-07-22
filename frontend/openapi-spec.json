@@ -4491,6 +4491,14 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "calendar",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "gregorian"
+            }
           }
         ],
         "responses": {
@@ -4527,6 +4535,14 @@
             "schema": {
               "type": "integer",
               "format": "int32"
+            }
+          },
+          {
+            "name": "calendar",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "gregorian"
             }
           }
         ],
@@ -4645,6 +4661,14 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "calendar",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "gregorian"
+            }
           }
         ],
         "responses": {
@@ -4681,6 +4705,14 @@
             "schema": {
               "type": "integer",
               "format": "int32"
+            }
+          },
+          {
+            "name": "calendar",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "gregorian"
             }
           }
         ],
@@ -6740,9 +6772,21 @@
             "nullable": true,
             "example": "string"
           },
+          "issueDateHijriDisplay": {
+            "type": "string",
+            "description": "Hijri equivalent of IssueDate, formatted for display (e.g. \"06 Muharram 1448\").",
+            "nullable": true,
+            "example": "string"
+          },
           "dueDate": {
             "type": "string",
             "format": "date",
+            "nullable": true,
+            "example": "string"
+          },
+          "dueDateHijriDisplay": {
+            "type": "string",
+            "description": "Hijri equivalent of DueDate, formatted for display (e.g. \"06 Muharram 1448\").",
             "nullable": true,
             "example": "string"
           },
@@ -6774,6 +6818,12 @@
           "orderDate": {
             "type": "string",
             "format": "date",
+            "example": "string"
+          },
+          "orderDateHijriDisplay": {
+            "type": "string",
+            "description": "Hijri equivalent of OrderDate, formatted for display (e.g. \"06 Muharram 1448\").",
+            "nullable": true,
             "example": "string"
           },
           "statusName": {
@@ -6815,6 +6865,12 @@
             "format": "date",
             "example": "string"
           },
+          "paymentDateHijriDisplay": {
+            "type": "string",
+            "description": "Hijri equivalent of PaymentDate, formatted for display (e.g. \"06 Muharram 1448\").",
+            "nullable": true,
+            "example": "string"
+          },
           "directionName": {
             "type": "string",
             "nullable": true,
@@ -6847,6 +6903,12 @@
           "purchaseDate": {
             "type": "string",
             "format": "date",
+            "example": "string"
+          },
+          "purchaseDateHijriDisplay": {
+            "type": "string",
+            "description": "Hijri equivalent of PurchaseDate, formatted for display (e.g. \"06 Muharram 1448\").",
+            "nullable": true,
             "example": "string"
           },
           "statusName": {
@@ -6886,6 +6948,12 @@
           "transDate": {
             "type": "string",
             "format": "date",
+            "example": "string"
+          },
+          "transDateHijriDisplay": {
+            "type": "string",
+            "description": "Hijri equivalent of TransDate, formatted for display (e.g. \"06 Muharram 1448\").",
+            "nullable": true,
             "example": "string"
           },
           "categoryName": {
@@ -8387,6 +8455,13 @@
             "nullable": true
           },
           "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LookupDto"
+            },
+            "nullable": true
+          },
+          "hijriMonths": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/LookupDto"

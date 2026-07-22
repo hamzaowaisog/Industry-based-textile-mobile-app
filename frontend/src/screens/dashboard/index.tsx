@@ -19,6 +19,8 @@ export const DashboardScreen = () => {
       isLoading={dash.isLoading}
       summary={dash.summary}
       monthlyOverview={dash.monthlyOverview}
+      calendar={dash.calendar}
+      onCalendarChange={dash.onCalendarChange}
       userName={dash.userName}
       onOpenDrawer={() => navigation.openDrawer()}
       onNewOrder={() => (navigation as any).navigate(S.ORDERS_STACK)}

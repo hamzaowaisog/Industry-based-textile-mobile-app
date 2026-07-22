@@ -40,4 +40,6 @@ export interface LookupsAllDto {
   invoiceStatuses?: LookupDto[] | null;
   /** @nullable */
   units?: LookupDto[] | null;
+  /** @nullable */
+  hijriMonths?: LookupDto[] | null;
 }

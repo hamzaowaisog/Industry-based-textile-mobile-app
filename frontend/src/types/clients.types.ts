@@ -35,7 +35,9 @@ export type ClientInvoiceSummary = {
   invoiceId: number;
   invoiceNumber: string;
   issueDate: string | null;
+  issueDateHijriDisplay: string | null;
   dueDate: string | null;
+  dueDateHijriDisplay: string | null;
   invoiceStatusId: number;
   statusName: string;
   totalAmount: number;

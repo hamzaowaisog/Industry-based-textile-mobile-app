@@ -13,6 +13,7 @@ export type PurchaseRow = {
   statusId: number;
   statusName: string;
   purchaseDate: string;
+  purchaseDateHijriDisplay: string | null;
   total: number;
   amountPaid: number;
   paymentStatus: string | null;
@@ -27,6 +28,7 @@ export type PurchaseDetail = {
   paymentTypeId: number;
   paymentTypeName: string;
   purchaseDate: string;
+  purchaseDateHijriDisplay: string | null;
   notes: string | null;
   createdAt: string | null;
   total: number;

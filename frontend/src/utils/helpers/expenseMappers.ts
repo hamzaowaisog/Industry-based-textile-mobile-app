@@ -16,6 +16,7 @@ export const mapApiExpenseToRow = (e: ExpenseDto): ExpenseRow => ({
   transCategoryName: e.transCategoryName ?? '',
   amount: e.amount ?? 0,
   expenseDate: e.expenseDate ?? '',
+  expenseDateHijriDisplay: e.expenseDateHijriDisplay ?? null,
   notes: e.notes ?? null,
 });
 
@@ -30,6 +31,7 @@ export const mapApiExpenseDetail = (e: ExpenseDto): ExpenseDetail => ({
   transactionId: e.transactionId ?? null,
   amount: e.amount ?? 0,
   expenseDate: e.expenseDate ?? '',
+  expenseDateHijriDisplay: e.expenseDateHijriDisplay ?? null,
   notes: e.notes ?? null,
   recordedByName: e.recordedByName ?? null,
   createdAt: e.createdAt ?? null,

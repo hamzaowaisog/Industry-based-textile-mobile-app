@@ -11,6 +11,7 @@ export type StockMoveRow = {
   unitCost: number | null;
   unitPrice: number | null;
   movementDate: string;
+  movementDateHijriDisplay: string | null;
 };
 
 export type StockMoveSummary = {
@@ -37,6 +38,7 @@ export type StockMoveDetail = {
   currentAverageCost: number | null;
   currentAveragePrice: number | null;
   movementDate: string;
+  movementDateHijriDisplay: string | null;
 };
 
 export type AddStockMoveFormValues = {

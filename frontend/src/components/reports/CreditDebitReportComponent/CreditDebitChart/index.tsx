@@ -4,6 +4,7 @@ import { View, useWindowDimensions } from 'react-native';
 
 import { LineChart } from 'react-native-gifted-charts';
 
+import { formatTwoLineMonthYearLabel } from '@utils/helpers/formatChartLabel';
 import { formatCompactNumber } from '@utils/helpers/formatNumber';
 
 import { colors } from '@theme/colors';
@@ -18,8 +19,8 @@ export const CreditDebitChart = ({ rows }: CreditDebitChartProps) => {
 
   const creditData = rows.map((r) => ({
     value: r.totalCredit,
-    label: r.month,
-    labelTextStyle: { fontSize: 10, color: colors.textSecondary },
+    label: formatTwoLineMonthYearLabel(r.month),
+    labelTextStyle: { fontSize: 10, textAlign: 'center' as const, color: colors.textSecondary },
   }));
   const debitData = rows.map((r) => ({ value: r.totalDebit }));
 
@@ -47,6 +48,8 @@ export const CreditDebitChart = ({ rows }: CreditDebitChartProps) => {
         noOfSections={AppConstants.CHART.SECTIONS}
         initialSpacing={AppConstants.CHART.INITIAL_SPACING}
         endSpacing={AppConstants.CHART.END_SPACING}
+        xAxisTextNumberOfLines={AppConstants.CHART.X_AXIS_TEXT_NUMBER_OF_LINES}
+        labelsExtraHeight={AppConstants.CHART.LABELS_EXTRA_HEIGHT}
         isAnimated
         animationDuration={AppConstants.CHART.ANIMATION_DURATION_MS}
       />

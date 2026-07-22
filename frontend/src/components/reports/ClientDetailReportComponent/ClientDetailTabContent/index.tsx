@@ -34,7 +34,9 @@ export const ClientDetailTabContent = ({ tab, detail }: ClientDetailTabContentPr
               <AppRow
                 leading={<AppIconTile Icon={ShoppingBagIcon} color={colors.primary} size={36} />}
                 primary={t('reports.clientDetail.orderRef', { id: o.orderId })}
-                secondary={o.orderDate}
+                secondary={
+                  o.orderDateHijriDisplay ? `${o.orderDate} · ${o.orderDateHijriDisplay}` : o.orderDate
+                }
                 right={
                   <>
                     <AppAmount value={o.total} size={14} />
@@ -62,7 +64,11 @@ export const ClientDetailTabContent = ({ tab, detail }: ClientDetailTabContentPr
               <AppRow
                 leading={<AppIconTile Icon={TruckIcon} color={colors.warning} size={36} />}
                 primary={t('reports.clientDetail.purchaseRef', { id: p.purchaseId })}
-                secondary={p.purchaseDate}
+                secondary={
+                  p.purchaseDateHijriDisplay
+                    ? `${p.purchaseDate} · ${p.purchaseDateHijriDisplay}`
+                    : p.purchaseDate
+                }
                 right={
                   <>
                     <AppAmount value={p.total} size={14} />
@@ -88,7 +94,11 @@ export const ClientDetailTabContent = ({ tab, detail }: ClientDetailTabContentPr
           <AppRow
             leading={<AppIconTile Icon={CreditCardIcon} color={colors.success} size={36} />}
             primary={`${p.directionName} · ${p.modeName}`}
-            secondary={p.paymentDate}
+            secondary={
+              p.paymentDateHijriDisplay
+                ? `${p.paymentDate} · ${p.paymentDateHijriDisplay}`
+                : p.paymentDate
+            }
             right={<AppAmount value={p.amount} tone={p.isReversed ? 'debit' : 'credit'} size={14} />}
             rightSub={p.isReversed ? t('reports.clientDetail.reversed') : undefined}
             chevron={false}

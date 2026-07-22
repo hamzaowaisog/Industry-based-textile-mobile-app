@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppAmount } from '@components/common/AppAmount';
+import { AppHijriDateLabel } from '@components/common/AppHijriDateLabel';
 import { PdfButton } from '@components/common/PdfButton';
 
 import { colors } from '@theme/colors';
@@ -152,7 +153,10 @@ export const ExpenseDetailComponent = ({
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>{t('expenses.expenseDate')}</Text>
-              <Text style={styles.infoValue}>{expense.expenseDate}</Text>
+              <View>
+                <Text style={styles.infoValue}>{expense.expenseDate}</Text>
+                <AppHijriDateLabel value={expense.expenseDateHijriDisplay} />
+              </View>
             </View>
             <View style={[styles.infoRow, styles.infoRowLast]}>
               <Text style={styles.infoLabel}>{t('expenses.detail.createdAt')}</Text>

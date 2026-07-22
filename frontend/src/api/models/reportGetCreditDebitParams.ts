@@ -9,4 +9,5 @@
 export type ReportGetCreditDebitParams = {
 year?: number;
 month?: number;
+calendar?: string;
 };

@@ -5,14 +5,14 @@ import { ScrollView, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BarChart } from '@components/dashboard/BarChart';
-
 import { AppAmount } from '@components/common/AppAmount';
 import { AppCard } from '@components/common/AppCard';
 import { AppStatCard } from '@components/common/AppStatCard';
 import { PdfButton } from '@components/common/PdfButton';
 import { ReportPeriodFilter } from '@components/common/ReportPeriodFilter';
 import { ReportScreenHeader } from '@components/common/ReportScreenHeader';
+import { BarChart } from '@components/dashboard/BarChart';
+import { CalendarToggle } from '@components/dashboard/CalendarToggle';
 
 import { formatPKR } from '@utils/helpers/formatCurrency';
 
@@ -32,6 +32,9 @@ export const ProfitLossReportComponent = ({
   years,
   onYearChange,
   onMonthChange,
+  monthItems,
+  calendar,
+  onCalendarChange,
   onBack,
   onPdfPress,
   isPdfDownloading,
@@ -53,8 +56,14 @@ export const ProfitLossReportComponent = ({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <ReportPeriodFilter filter={filter} years={years} onYearChange={onYearChange} onMonthChange={onMonthChange} />
-
+        <CalendarToggle calendar={calendar} onChange={onCalendarChange} />
+        <ReportPeriodFilter
+          filter={filter}
+          years={years}
+          onYearChange={onYearChange}
+          onMonthChange={onMonthChange}
+          monthItems={monthItems}
+        />
         {loading ? (
           <Skeleton />
         ) : rows.length === 0 ? (
