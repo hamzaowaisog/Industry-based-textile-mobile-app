@@ -459,6 +459,7 @@ public class ReportService : IReportService
             {
                 OrderId = o.Id,
                 OrderDate = o.OrderDate,
+                OrderDateHijriDisplay = HijriDateHelper.FormatForDisplay(o.OrderDateHijri),
                 StatusName = o.Status?.Name ?? "Unknown",
                 Total = total,
                 AmountPaid = paid,
@@ -476,6 +477,7 @@ public class ReportService : IReportService
             {
                 PurchaseId = p.Id,
                 PurchaseDate = p.PurchaseDate,
+                PurchaseDateHijriDisplay = HijriDateHelper.FormatForDisplay(p.PurchaseDateHijri),
                 StatusName = p.Status?.Name ?? "Unknown",
                 Total = total,
                 AmountPaid = paid,
@@ -510,6 +512,7 @@ public class ReportService : IReportService
             {
                 PaymentId = p.Id,
                 PaymentDate = p.PaymentDate,
+                PaymentDateHijriDisplay = HijriDateHelper.FormatForDisplay(p.PaymentDateHijri),
                 DirectionName = p.PaymentDirection?.Name ?? "Unknown",
                 ModeName = p.TransMode?.Name ?? "Unknown",
                 Amount = p.Amount,
@@ -520,7 +523,9 @@ public class ReportService : IReportService
                 InvoiceId = i.Id,
                 InvoiceNumber = i.InvoiceNumber,
                 IssueDate = i.IssueDate,
+                IssueDateHijriDisplay = HijriDateHelper.FormatForDisplay(i.IssueDateHijri),
                 DueDate = i.DueDate,
+                DueDateHijriDisplay = HijriDateHelper.FormatForDisplay(i.DueDateHijri),
                 InvoiceStatusId = i.InvoiceStatusId,
                 StatusName = i.InvoiceStatus?.Name ?? "Unknown",
                 TotalAmount = i.TotalAmount,
@@ -532,6 +537,7 @@ public class ReportService : IReportService
                 {
                     TransactionId = t.Id,
                     TransDate = t.TransDate,
+                    TransDateHijriDisplay = HijriDateHelper.FormatForDisplay(t.TransDateHijri),
                     CategoryName = t.TransCategory?.Name ?? "Unknown",
                     TypeName = t.TransType?.Name ?? "Unknown",
                     Amount = t.Amount,
