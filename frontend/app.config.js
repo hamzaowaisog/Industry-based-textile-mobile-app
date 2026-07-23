@@ -2,7 +2,7 @@ export default ({ config }) => ({
   ...config,
   name: 'HamzaTex',
   slug: 'hamzatex',
-  version: '1.0.0',
+  version: '2.1.0',
   owner: 'hamzatex',
   icon: './assets/icon.png',
   ios: {

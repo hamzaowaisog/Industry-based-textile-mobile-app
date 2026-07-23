@@ -32,7 +32,6 @@ import i18n from '../utils/i18n';
 
 export const loginAsync = async ({
   credentials,
-  rememberMe,
 }: LoginOptions): Promise<{ success: boolean; error?: string }> => {
   try {
     const response = await authLogin(credentials);
@@ -59,16 +58,11 @@ export const loginAsync = async ({
       const secureStoreWrites: Promise<void>[] = [
         SecureStore.setItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN, accessTokenStr),
         SecureStore.setItemAsync(AppConstants.SECURE_STORE.REFRESH_TOKEN, refreshTokenStr),
+        SecureStore.setItemAsync(AppConstants.SECURE_STORE.USER_ID, userIdStr),
+        SecureStore.setItemAsync(AppConstants.SECURE_STORE.ROLE_ID, roleIdStr),
+        SecureStore.setItemAsync(AppConstants.SECURE_STORE.USER_NAME, userNameStr),
+        SecureStore.setItemAsync(AppConstants.SECURE_STORE.EMAIL, emailStr),
       ];
-
-      if (rememberMe) {
-        secureStoreWrites.push(
-          SecureStore.setItemAsync(AppConstants.SECURE_STORE.USER_ID, userIdStr),
-          SecureStore.setItemAsync(AppConstants.SECURE_STORE.ROLE_ID, roleIdStr),
-          SecureStore.setItemAsync(AppConstants.SECURE_STORE.USER_NAME, userNameStr),
-          SecureStore.setItemAsync(AppConstants.SECURE_STORE.EMAIL, emailStr),
-        );
-      }
 
       await Promise.all(secureStoreWrites);
     } catch (secureStoreError) {

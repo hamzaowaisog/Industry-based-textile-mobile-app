@@ -396,9 +396,11 @@ export const AppConstants = {
   // PDF download
   PDF: {
     MIME_TYPE: 'application/pdf',
-    ANDROID_CHOOSER_TITLE: 'Open PDF',
     SHARE_TITLE: 'Share invoice',
     FILE_URL_SCHEME: 'file://',
+    ENCODING: {
+      BASE64: 'base64' as const,
+    },
     ERROR: {
       NO_APP: 'no_pdf_app',
       CANNOT_PREVIEW: 'cannot_preview',

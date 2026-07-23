@@ -6,32 +6,52 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 
 import { AppConstants } from '@constants/appConstants';
 
+import { ensureFreshAccessToken } from '@utils/axiosInstance';
+import { arrayBufferToBase64 } from '@utils/helpers/arrayBufferToBase64';
+
 const API_URL: string = Constants.expoConfig?.extra?.apiUrl ?? '';
 
 type PdfResult = { success: boolean; error?: string };
+
+const fetchPdfResponse = async (urlPath: string, token: string): Promise<Response> => {
+  return fetch(`${API_URL}/api/${urlPath}`, {
+    method: AppConstants.HTTP.METHOD.GET,
+    headers: {
+      [AppConstants.HTTP.HEADER_AUTHORIZATION]: `${AppConstants.HTTP.AUTH_SCHEME}${token}`,
+    },
+  });
+};
 
 const downloadToCache = async (
   urlPath: string,
   filename: string,
 ): Promise<{ success: boolean; filePath?: string; error?: string }> => {
-  const token = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN);
+  let token = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN);
   if (!token) return { success: false, error: AppConstants.PDF.MESSAGE.NOT_AUTHENTICATED };
 
-  const destPath = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${filename}`;
+  let response = await fetchPdfResponse(urlPath, token);
 
-  const res = await ReactNativeBlobUtil.config({
-    path: destPath,
-    overwrite: true,
-  }).fetch(AppConstants.HTTP.METHOD.GET, `${API_URL}/api/${urlPath}`, {
-    [AppConstants.HTTP.HEADER_AUTHORIZATION]: `${AppConstants.HTTP.AUTH_SCHEME}${token}`,
-  });
-
-  const status = res.info().status;
-  if (status !== AppConstants.HTTP.OK) {
-    return { success: false, error: `${AppConstants.PDF.MESSAGE.DOWNLOAD_FAILED} (${status})` };
+  if (response.status === AppConstants.HTTP.UNAUTHORIZED) {
+    try {
+      token = await ensureFreshAccessToken();
+    } catch {
+      return { success: false, error: AppConstants.PDF.MESSAGE.NOT_AUTHENTICATED };
+    }
+    response = await fetchPdfResponse(urlPath, token);
   }
 
-  return { success: true, filePath: res.path() };
+  if (response.status !== AppConstants.HTTP.OK) {
+    return {
+      success: false,
+      error: `${AppConstants.PDF.MESSAGE.DOWNLOAD_FAILED} (${response.status})`,
+    };
+  }
+
+  const destPath = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${filename}`;
+  const base64 = arrayBufferToBase64(await response.arrayBuffer());
+  await ReactNativeBlobUtil.fs.writeFile(destPath, base64, AppConstants.PDF.ENCODING.BASE64);
+
+  return { success: true, filePath: destPath };
 };
 
 const toErrorMessage = (e: unknown): string => {
@@ -60,7 +80,6 @@ export const downloadAndOpenPdf = async (urlPath: string, filename: string): Pro
       await ReactNativeBlobUtil.android.actionViewIntent(
         filePath,
         AppConstants.PDF.MIME_TYPE,
-        AppConstants.PDF.ANDROID_CHOOSER_TITLE,
       );
     }
 
@@ -84,22 +103,16 @@ export const downloadAndSharePdf = async (
     const filePath = downloaded.filePath;
 
     if (Platform.OS === AppConstants.PLATFORM.OS.IOS) {
-      // iOS: open the native share sheet with the cached PDF attached.
-      // Cancel resolves rather than rejects in this RN version, so no options arg is needed.
       await Share.share({ url: `${AppConstants.PDF.FILE_URL_SCHEME}${filePath}`, title });
     } else {
-      // Android: ACTION_VIEW chooser — lists PDF-capable apps (WhatsApp, Mail, Drive) that share the file.
       await ReactNativeBlobUtil.android.actionViewIntent(
         filePath,
         AppConstants.PDF.MIME_TYPE,
-        title,
       );
     }
 
     return { success: true };
   } catch {
-    // Any throw during the share step (sheet dismissed with error, no handler app, etc.)
-    // is surfaced as a share-specific failure — the hook maps it to a user message.
     return { success: false, error: AppConstants.PDF.MESSAGE.SHARE_FAILED };
   }
 };
