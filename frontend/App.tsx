@@ -101,6 +101,7 @@ const AppInner = () => {
 
 export default function App() {
   const hydrate = useAuthStore((s) => s.hydrate);
+  const hydrated = useAuthStore((s) => s.hydrated);
 
   useEffect(() => {
     void (async () => {
@@ -114,9 +115,7 @@ export default function App() {
       <KeyboardProvider>
         <SafeAreaProvider>
           <QueryClientProvider client={queryClient}>
-            <BottomSheetModalProvider>
-              <AppInner />
-            </BottomSheetModalProvider>
+            <BottomSheetModalProvider>{hydrated && <AppInner />}</BottomSheetModalProvider>
           </QueryClientProvider>
         </SafeAreaProvider>
       </KeyboardProvider>

@@ -33,6 +33,13 @@ const refreshAccessToken = async (): Promise<string> => {
   return data.data.token;
 };
 
+export const ensureFreshAccessToken = async (): Promise<string> => {
+  refreshPromise ??= refreshAccessToken().finally(() => {
+    refreshPromise = null;
+  });
+  return refreshPromise;
+};
+
 client.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -40,10 +47,7 @@ client.interceptors.response.use(
     if (error.response?.status === AppConstants.HTTP.UNAUTHORIZED && !original._retry) {
       original._retry = true;
       try {
-        refreshPromise ??= refreshAccessToken().finally(() => {
-          refreshPromise = null;
-        });
-        const token = await refreshPromise;
+        const token = await ensureFreshAccessToken();
         original.headers = { ...original.headers, Authorization: `Bearer ${token}` };
         return client(original as AxiosRequestConfig);
       } catch {

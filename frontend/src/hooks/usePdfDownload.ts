@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { useTranslation } from 'react-i18next';
 
@@ -11,12 +11,15 @@ import { downloadAndOpenPdf } from '../core/pdf';
 export const usePdfDownload = () => {
   const { t } = useTranslation();
   const [isDownloading, setIsDownloading] = useState(false);
+  const isDownloadingRef = useRef(false);
 
   const downloadPdf = useCallback(
     async (urlPath: string, filename: string) => {
-      if (isDownloading) return;
+      if (isDownloadingRef.current) return;
+      isDownloadingRef.current = true;
       setIsDownloading(true);
       const result = await downloadAndOpenPdf(urlPath, filename);
+      isDownloadingRef.current = false;
       setIsDownloading(false);
       if (!result.success) {
         const message =
@@ -26,9 +29,10 @@ export const usePdfDownload = () => {
               ? t('pdf.errorCannotPreview')
               : (result.error ?? t('pdf.errorGeneric'));
         showError(t('pdf.errorTitle'), message);
+        console.log('message', message);
       }
     },
-    [isDownloading, t],
+    [t],
   );
 
   return { downloadPdf, isDownloading };

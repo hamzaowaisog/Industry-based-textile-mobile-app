@@ -55,7 +55,7 @@ const AnimatedRing = ({ delay = 0 }: { delay?: number }) => {
     opacity: opacity.value,
   }));
 
-  return <Animated.View style={[styles.ring, ringStyle]} />;
+  return <Animated.View pointerEvents="none" style={[styles.ring, ringStyle]} />;
 };
 
 export const BiometricComponent = ({
@@ -99,12 +99,16 @@ export const BiometricComponent = ({
             </View>
           </View>
 
-          {/* Fingerprint with 3 animated rings */}
+          {/* Fingerprint with 3 animated rings — tap re-opens biometric prompt */}
           <TouchableOpacity
             style={styles.fingerprintSection}
             onPress={onAuthenticate}
             activeOpacity={0.75}
             disabled={isPending}
+            accessibilityRole="button"
+            accessibilityLabel={t('biometric.touchSensor')}
+            accessibilityState={{ disabled: isPending, busy: isPending }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
             {rings.map((ring) => (
               <AnimatedRing key={ring.id} delay={ring.delay} />
@@ -114,17 +118,25 @@ export const BiometricComponent = ({
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={[styles.gradientCircle, isPending && styles.gradientCirclePending]}
+              pointerEvents="none"
             >
               <FingerprintIcon size={56} color="#fff" />
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Labels */}
-          <View style={styles.labelSection}>
+          {/* Labels — also tappable so “Touch sensor” clearly retries */}
+          <TouchableOpacity
+            style={styles.labelSection}
+            onPress={onAuthenticate}
+            activeOpacity={0.7}
+            disabled={isPending}
+            accessibilityRole="button"
+            accessibilityLabel={t('biometric.touchSensor')}
+          >
             <Text style={styles.touchLabel}>{t('biometric.touchSensor')}</Text>
             <Text style={styles.orLabel}>{t('biometric.orFaceId')}</Text>
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Bottom: Ghost button */}
