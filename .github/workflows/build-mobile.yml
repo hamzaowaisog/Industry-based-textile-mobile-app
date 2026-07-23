@@ -77,7 +77,22 @@ jobs:
           ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
 
       - name: Download artifact from EAS
-        run: curl -L "${{ steps.eas_build.outputs.artifact_url }}" -o app-release.apk
+        run: |
+          ARTIFACT_URL="${{ steps.eas_build.outputs.artifact_url }}"
+          if [ -z "$ARTIFACT_URL" ] || [ "$ARTIFACT_URL" = "null" ]; then
+            echo "EAS did not return a build artifact URL"
+            exit 1
+          fi
+          curl -fL "$ARTIFACT_URL" -o app-release.apk
+          # Fail early if the download is HTML/empty/corrupt (not a ZIP/APK)
+          if ! unzip -t app-release.apk >/dev/null 2>&1; then
+            echo "Downloaded file is not a valid APK:"
+            ls -la app-release.apk
+            file app-release.apk || true
+            head -c 200 app-release.apk || true
+            exit 1
+          fi
+          ls -la app-release.apk
 
       - name: Distribute to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1

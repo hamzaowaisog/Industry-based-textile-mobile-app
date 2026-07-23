@@ -30,18 +30,23 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
   hasBeenPrompted: true,
 
   hydratePromptedFlag: async () => {
-    const flag = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.NOTIFICATIONS_PROMPTED);
-    const prompted = flag === 'true';
-    if (prompted) {
-      const token = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.PUSH_TOKEN);
-      if (token) {
-        console.log('FCM TOKEN >>>', token);
-        set({ hasBeenPrompted: true, pushToken: token, notificationsEnabled: true });
+    try {
+      const flag = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.NOTIFICATIONS_PROMPTED);
+      const prompted = flag === 'true';
+      if (prompted) {
+        const token = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.PUSH_TOKEN);
+        if (token) {
+          console.log('FCM TOKEN >>>', token);
+          set({ hasBeenPrompted: true, pushToken: token, notificationsEnabled: true });
+        } else {
+          set({ hasBeenPrompted: true, pushToken: null, notificationsEnabled: false });
+          await get().checkPermissionStatus();
+        }
       } else {
-        set({ hasBeenPrompted: true, pushToken: null, notificationsEnabled: false });
-        await get().checkPermissionStatus();
+        set({ hasBeenPrompted: false, notificationsEnabled: false });
       }
-    } else {
+    } catch (e) {
+      console.log('hydratePromptedFlag ERROR >>>', e);
       set({ hasBeenPrompted: false, notificationsEnabled: false });
     }
   },

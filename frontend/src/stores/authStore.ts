@@ -27,6 +27,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
       roleId: null,
       userName: null,
       isAuthenticated: false,
+      isBiometricEnabled: false,
     }),
 
   setOnboardingCompleted: (completed) => set({ onboardingCompleted: completed }),
