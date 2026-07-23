@@ -16,6 +16,15 @@ using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    // Physical mobile devices on cellular/slow wifi can write PDF downloads slower than
+    // Kestrel's default MinResponseDataRate (240 B/s after a 5s grace period), which aborts
+    // the response mid-transfer and surfaces to react-native-blob-util as "Download interrupted."
+    options.Limits.MinResponseDataRate = null;
+    options.Limits.MinRequestBodyDataRate = null;
+});
+
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly, includeInternalTypes: true);
 builder.Services.AddFluentValidationAutoValidation(config =>
 {
