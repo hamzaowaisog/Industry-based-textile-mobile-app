@@ -30,7 +30,8 @@
       android:grantUriPermissions="true">
       <meta-data
         android:name="android.support.FILE_PROVIDER_PATHS"
-        android:resource="@xml/file_paths"/>
+        android:resource="@xml/file_paths"
+        tools:replace="android:resource"/>
     </provider>
     <activity android:name=".MainActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode|smallestScreenSize" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize" android:theme="@style/BootTheme" android:exported="true">
       <intent-filter>
