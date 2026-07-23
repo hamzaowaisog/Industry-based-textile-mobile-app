@@ -459,11 +459,11 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.hamzatex.app;
-				PRODUCT_NAME = HamzaTex;
+				PRODUCT_NAME = "HamzaTex";
 				SWIFT_OBJC_BRIDGING_HEADER = "HamzaTex/HamzaTex-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -493,10 +493,10 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.hamzatex.app;
-				PRODUCT_NAME = HamzaTex;
+				PRODUCT_NAME = "HamzaTex";
 				SWIFT_OBJC_BRIDGING_HEADER = "HamzaTex/HamzaTex-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;

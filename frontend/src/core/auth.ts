@@ -267,6 +267,17 @@ export const resendEmailConfirmationAsync = async (
 
 export const logoutAsync = async (): Promise<{ success: boolean; error?: string }> => {
   try {
+    const biometricToken = await SecureStore.getItemAsync(
+      AppConstants.SECURE_STORE.BIOMETRIC_TOKEN,
+    );
+    if (biometricToken) {
+      try {
+        await authBiometricDisable();
+      } catch {
+        // Best-effort: still clear local biometric state below even if the API call fails.
+      }
+    }
+
     const refreshToken = await SecureStore.getItemAsync(AppConstants.SECURE_STORE.REFRESH_TOKEN);
 
     if (refreshToken) {
@@ -281,6 +292,7 @@ export const logoutAsync = async (): Promise<{ success: boolean; error?: string 
     await Promise.all([
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN),
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.REFRESH_TOKEN),
+      SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.BIOMETRIC_TOKEN),
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.USER_ID),
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.ROLE_ID),
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.USER_NAME),
@@ -296,6 +308,7 @@ export const logoutAsync = async (): Promise<{ success: boolean; error?: string 
     await Promise.all([
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.ACCESS_TOKEN),
       SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.REFRESH_TOKEN),
+      SecureStore.deleteItemAsync(AppConstants.SECURE_STORE.BIOMETRIC_TOKEN),
     ]);
     useAuthStore.getState().clearAuth();
     return { success: true };

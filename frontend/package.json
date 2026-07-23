@@ -62,6 +62,7 @@
     "ios:preview": "API_URL=$(node -p \"require('./eas.json').build.preview.env.API_URL\") expo run:ios --device \"iPhone 17 Pro Max\"",
     "ios:prod": "API_URL=$(node -p \"require('./eas.json').build.production.env.API_URL\") expo run:ios --device \"iPhone 17 Pro Max\"",
     "web": "expo start --web",
+    "version:sync": "expo prebuild",
     "api:generate": "orval --config orval.config.js",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
