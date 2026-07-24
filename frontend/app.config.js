@@ -9,6 +9,12 @@ export default ({ config }) => ({
     bundleIdentifier: 'com.hamzatex.app',
     googleServicesFile: './GoogleService-Info.plist',
     buildNumber: '1',
+    infoPlist: {
+      UIBackgroundModes: ['remote-notification'],
+    },
+    entitlements: {
+      'aps-environment': process.env.APP_ENV === 'production' ? 'production' : 'development',
+    },
   },
   android: {
     package: 'com.hamzatex.app',

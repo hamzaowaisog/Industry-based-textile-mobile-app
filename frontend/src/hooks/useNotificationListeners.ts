@@ -19,6 +19,7 @@ import { showError } from '@utils/toast';
 
 import { AppConstants } from '@constants/appConstants';
 
+import { displayLocalNotification } from '../core/pushChannel';
 import type { BannerPayload } from '../types/notifications.types';
 
 const fcm = getMessaging();
@@ -48,6 +49,10 @@ export const useNotificationListeners = () => {
         entityId: data.entityId ? Number(data.entityId) : undefined,
       };
       showBanner(banner);
+
+      // The OS only auto-displays FCM alerts when backgrounded/killed, so mirror it
+      // with a local notification while foregrounded — same as Facebook.
+      void displayLocalNotification(banner.title, banner.body);
     });
 
     const unsubBgTap = onNotificationOpenedApp(fcm, async (remoteMessage) => {
