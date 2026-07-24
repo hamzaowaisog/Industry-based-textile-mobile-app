@@ -6,10 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HamzaTex.Api.Services;
 
-/// <summary>Sends FCM data-only push notifications to registered device tokens. Singleton — holds the initialized FirebaseApp instance.</summary>
+/// <summary>Sends FCM push notifications (alert + data) to registered device tokens. Singleton — holds the initialized FirebaseApp instance.</summary>
 public interface IPushNotificationService
 {
-    /// <summary>Send a data-only FCM message to a single device token.</summary>
+    /// <summary>Send an FCM message with a system notification banner and data payload to a single device token.</summary>
     Task SendAsync(string deviceToken, string title, string body, Dictionary<string, string> data);
 
     /// <summary>Fan-out to all active device tokens of a user.</summary>
@@ -99,13 +99,30 @@ public class PushNotificationService : IPushNotificationService
         var message = new Message
         {
             Token = deviceToken,
+            Notification = new Notification
+            {
+                Title = title,
+                Body = body,
+            },
             Data = payload,
-            Android = new AndroidConfig { Priority = Priority.High },
+            Android = new AndroidConfig
+            {
+                Priority = Priority.High,
+                Notification = new AndroidNotification
+                {
+                    ChannelId = "hamzatex",
+                    DefaultSound = true,
+                },
+            },
             Apns = new ApnsConfig
             {
                 Headers = new Dictionary<string, string> { ["apns-priority"] = "10" },
-                Aps = new Aps { ContentAvailable = true }
-            }
+                Aps = new Aps
+                {
+                    ContentAvailable = true,
+                    Sound = "default",
+                },
+            },
         };
 
         try
@@ -186,13 +203,30 @@ public class PushNotificationService : IPushNotificationService
         var message = new Message
         {
             Topic = "dry-run-validation",
-            Data  = payload,
-            Android = new AndroidConfig { Priority = Priority.High },
+            Notification = new Notification
+            {
+                Title = title,
+                Body = body,
+            },
+            Data = payload,
+            Android = new AndroidConfig
+            {
+                Priority = Priority.High,
+                Notification = new AndroidNotification
+                {
+                    ChannelId = "hamzatex",
+                    DefaultSound = true,
+                },
+            },
             Apns = new ApnsConfig
             {
                 Headers = new Dictionary<string, string> { ["apns-priority"] = "10" },
-                Aps = new Aps { ContentAvailable = true }
-            }
+                Aps = new Aps
+                {
+                    ContentAvailable = true,
+                    Sound = "default",
+                },
+            },
         };
 
         var messageId = await FirebaseMessaging.DefaultInstance.SendAsync(message, dryRun: true);
