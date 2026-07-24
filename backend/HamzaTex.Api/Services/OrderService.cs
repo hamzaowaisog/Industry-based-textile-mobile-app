@@ -20,8 +20,8 @@ public interface IOrderService
     Task<Response<List<OrderDto>>> GetAllAsync(int userId, bool isAdmin);
     /// <summary>Get paginated orders. Admin sees all; non-admins see only their own orders.</summary>
     Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
-    /// <summary>Filter orders by clientId, statusId, and/or date range.</summary>
-    Task<Response<List<OrderDto>>> GetFilteredAsync(int? clientId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
+    /// <summary>Filter orders by clientId, statusId, date range, and/or a free-text search matching BillNo or client name.</summary>
+    Task<Response<List<OrderDto>>> GetFilteredAsync(int? clientId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, string? search, int userId, bool isAdmin);
     /// <summary>Update order header and handle status transitions (Delivered → stock+ledger, Cancelled → reversal).</summary>
     Task<Response<OrderDto>> UpdateByIdAsync(int id, UpdateOrderDto model, int userId, bool isAdmin);
     /// <summary>Replace all lines on a Pending or InProgress order. Syncs the linked Draft invoice. Blocked for Delivered/Cancelled orders.</summary>
@@ -101,6 +101,7 @@ public class OrderService : IOrderService
                 OrderDate = model.OrderDate,
                 OrderDateHijri = orderDateHijri,
                 Notes = model.Notes,
+                BillNo = model.BillNo,
                 CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
 
@@ -180,7 +181,7 @@ public class OrderService : IOrderService
     }
 
     public async Task<Response<List<OrderDto>>> GetFilteredAsync(
-        int? clientId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin)
+        int? clientId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, string? search, int userId, bool isAdmin)
     {
         var query = OrderQueryWithIncludes().AsNoTracking();
 
@@ -198,6 +199,11 @@ public class OrderService : IOrderService
 
         if (dateTo.HasValue)
             query = query.Where(o => o.OrderDate <= dateTo.Value);
+
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(o =>
+                (o.BillNo != null && o.BillNo.Contains(search)) ||
+                (o.Client != null && o.Client.Name.Contains(search)));
 
         var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
         return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Filtered orders fetched successfully.");
@@ -227,6 +233,7 @@ public class OrderService : IOrderService
             // Idempotent: already delivered, just update other fields
             if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
             order.Notes = model.Notes;
+            order.BillNo = model.BillNo;
             if (model.OrderDate.HasValue)
                 order.OrderDate = model.OrderDate.Value;
             await _dbContext.SaveChangesAsync();
@@ -260,6 +267,7 @@ public class OrderService : IOrderService
         order.StatusId = model.StatusId;
         if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
         order.Notes = model.Notes;
+        order.BillNo = model.BillNo;
         if (model.OrderDate.HasValue)
             order.OrderDate = model.OrderDate.Value;
         await _dbContext.SaveChangesAsync();
@@ -405,6 +413,7 @@ public class OrderService : IOrderService
             order.StatusId = StatusDelivered;
             if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
             order.Notes = model.Notes;
+            order.BillNo = model.BillNo;
             if (model.OrderDate.HasValue)
                 order.OrderDate = model.OrderDate.Value;
             await _dbContext.SaveChangesAsync();
@@ -661,6 +670,7 @@ public class OrderService : IOrderService
             OrderDateHijri = order.OrderDateHijri,
             OrderDateHijriDisplay = HijriDateHelper.FormatForDisplay(order.OrderDateHijri),
             Notes = order.Notes,
+            BillNo = order.BillNo,
             CreatedAt = order.CreatedAt,
             Total = total,
             AmountReceived = amountPaid,

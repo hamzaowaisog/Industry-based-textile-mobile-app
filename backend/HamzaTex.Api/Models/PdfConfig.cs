@@ -82,6 +82,7 @@ public static class EntityPdfConfigs
 
     public static readonly PdfColumnConfig[] Order = [
         PdfColumnConfig.Create("ClientName", "Client", weight: 1.8f),
+        PdfColumnConfig.Create("BillNo", "Bill No", fixedWidthMm: 26),
         PdfColumnConfig.Create("StatusName", "Status", fixedWidthMm: 22),
         PdfColumnConfig.Create("PaymentTypeName", "Payment Type", fixedWidthMm: 26),
         PdfColumnConfig.Create("OrderDate", "Order Date", PdfColumnFormat.Date, fixedWidthMm: 24),
@@ -92,6 +93,7 @@ public static class EntityPdfConfigs
 
     public static readonly PdfColumnConfig[] Purchase = [
         PdfColumnConfig.Create("SupplierName", "Supplier", weight: 1.8f),
+        PdfColumnConfig.Create("BillNo", "Bill No", fixedWidthMm: 26),
         PdfColumnConfig.Create("StatusName", "Status", fixedWidthMm: 22),
         PdfColumnConfig.Create("PaymentTypeName", "Payment Type", fixedWidthMm: 26),
         PdfColumnConfig.Create("PurchaseDate", "Purchase Date", PdfColumnFormat.Date, fixedWidthMm: 24),

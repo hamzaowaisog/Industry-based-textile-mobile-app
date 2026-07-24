@@ -23,5 +23,7 @@ export interface PurchaseCreateViewModel {
   /** @nullable */
   notes?: string | null;
   /** @nullable */
+  billNo?: string | null;
+  /** @nullable */
   lines?: PurchaseLineCreateViewModel[] | null;
 }

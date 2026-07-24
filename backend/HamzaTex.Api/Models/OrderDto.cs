@@ -13,6 +13,7 @@ public class OrderDto
     public string? OrderDateHijri { get; set; }
     public string? OrderDateHijriDisplay { get; set; }
     public string? Notes { get; set; }
+    public string? BillNo { get; set; }
     public DateOnly? CreatedAt { get; set; }
     public decimal Total { get; set; }
     public decimal AmountReceived { get; set; }
@@ -39,6 +40,7 @@ public class CreateOrderDto
     public DateOnly OrderDate { get; set; }
     public string? OrderDateHijri { get; set; }
     public string? Notes { get; set; }
+    public string? BillNo { get; set; }
     public List<CreateOrderLineDto> Lines { get; set; } = new();
 }
 
@@ -54,6 +56,7 @@ public class UpdateOrderDto
     public int StatusId { get; set; }
     public int? PaymentTypeId { get; set; }
     public string? Notes { get; set; }
+    public string? BillNo { get; set; }
     public DateOnly? OrderDate { get; set; }
 }
 

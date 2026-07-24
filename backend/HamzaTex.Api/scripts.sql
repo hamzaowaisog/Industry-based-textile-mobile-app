@@ -1785,6 +1785,13 @@ VALUES ('20260721121441_AddHijriCalendarSupport', '9.0.10');
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20260721201653_AddHijriMonthlyReportingViews', '9.0.10');
 
+ALTER TABLE `purchases` ADD `BillNo` varchar(50) CHARACTER SET utf8mb4 NULL;
+
+ALTER TABLE `orders` ADD `BillNo` varchar(50) CHARACTER SET utf8mb4 NULL;
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20260724172822_AddBillNoToOrdersAndPurchases', '9.0.10');
+
 COMMIT;
 
 

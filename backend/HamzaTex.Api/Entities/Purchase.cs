@@ -32,6 +32,9 @@ public partial class Purchase
 
     public string? Notes { get; set; }
 
+    [MaxLength(50)]
+    public string? BillNo { get; set; }
+
     public DateOnly? CreatedAt { get; set; }
 
     public virtual ICollection<PurchaseLine> PurchaseLines { get; set; } = new List<PurchaseLine>();

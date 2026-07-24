@@ -2972,7 +2972,7 @@
     "/api/Order/filtered": {
       "get": {
         "tags": ["Order"],
-        "summary": "Filter orders by clientId, statusId, and/or date range.",
+        "summary": "Filter orders by clientId, statusId, date range, and/or a free-text search matching BillNo or client name.",
         "operationId": "order_getFilteredOrders",
         "parameters": [
           {
@@ -3005,6 +3005,13 @@
             "schema": {
               "type": "string",
               "format": "date"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -4290,7 +4297,7 @@
     "/api/Purchase/filtered": {
       "get": {
         "tags": ["Purchase"],
-        "summary": "Filter purchases by supplierId, statusId, and/or date range.",
+        "summary": "Filter purchases by supplierId, statusId, date range, and/or a free-text search matching BillNo or supplier name.",
         "operationId": "purchase_getFilteredPurchases",
         "parameters": [
           {
@@ -4323,6 +4330,13 @@
             "schema": {
               "type": "string",
               "format": "date"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -8703,6 +8717,11 @@
             "nullable": true,
             "example": "Optional notes here"
           },
+          "billNo": {
+            "type": "string",
+            "nullable": true,
+            "example": "INV-2024-0456"
+          },
           "lines": {
             "type": "array",
             "items": {
@@ -8770,6 +8789,11 @@
             "type": "string",
             "nullable": true,
             "example": "Optional notes here"
+          },
+          "billNo": {
+            "type": "string",
+            "nullable": true,
+            "example": "INV-2024-0456"
           },
           "createdAt": {
             "type": "string",
@@ -9007,6 +9031,11 @@
             "type": "string",
             "nullable": true,
             "example": "Optional notes here"
+          },
+          "billNo": {
+            "type": "string",
+            "nullable": true,
+            "example": "INV-2024-0456"
           },
           "orderDate": {
             "type": "string",
@@ -9844,6 +9873,11 @@
             "nullable": true,
             "example": "Optional notes here"
           },
+          "billNo": {
+            "type": "string",
+            "nullable": true,
+            "example": "INV-2024-0456"
+          },
           "lines": {
             "type": "array",
             "items": {
@@ -9911,6 +9945,11 @@
             "type": "string",
             "nullable": true,
             "example": "Optional notes here"
+          },
+          "billNo": {
+            "type": "string",
+            "nullable": true,
+            "example": "INV-2024-0456"
           },
           "createdAt": {
             "type": "string",
@@ -10149,6 +10188,11 @@
             "type": "string",
             "nullable": true,
             "example": "Optional notes here"
+          },
+          "billNo": {
+            "type": "string",
+            "nullable": true,
+            "example": "INV-2024-0456"
           }
         },
         "additionalProperties": false
