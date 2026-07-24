@@ -517,4 +517,9 @@ export const AppConstants = {
     EXPENSE_APPROVED: 'expense_approved',
     ACCOUNT_DEACTIVATED: 'account_deactivated',
   },
+
+  PUSH: {
+    ANDROID_CHANNEL_ID: 'hamzatex',
+    ANDROID_CHANNEL_NAME: 'HamzaTex Alerts',
+  },
 } as const;
