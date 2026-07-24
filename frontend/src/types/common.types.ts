@@ -214,6 +214,7 @@ export type InputFieldProps = {
   onSubmitEditing?: () => void;
   editable?: boolean;
   onFocus?: () => void;
+  maxLength?: number;
 };
 
 export type AppDonutSlice = {

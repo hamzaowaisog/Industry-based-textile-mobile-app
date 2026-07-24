@@ -58,6 +58,7 @@ export const useEditOrder = (orderId: number) => {
     initialValues: {
       paymentTypeId: AppConstants.PAYMENT_TYPE.CASH,
       notes: '',
+      billNo: '',
       lines: [],
     },
     validateOnBlur: true,
@@ -65,7 +66,13 @@ export const useEditOrder = (orderId: number) => {
     onSubmit: async (values, helpers) => {
       if (!currentOrder) return;
       const [headerResult, linesResult] = await Promise.all([
-        updateOrderHeaderAsync(orderId, currentOrder.statusId, values.paymentTypeId, values.notes),
+        updateOrderHeaderAsync(
+          orderId,
+          currentOrder.statusId,
+          values.paymentTypeId,
+          values.notes,
+          values.billNo,
+        ),
         updateOrderLinesAsync(orderId, values),
       ]);
       if (!headerResult.success) {
@@ -98,6 +105,7 @@ export const useEditOrder = (orderId: number) => {
     const filled: EditOrderFormValues = {
       paymentTypeId: currentOrder.paymentTypeId,
       notes: currentOrder.notes ?? '',
+      billNo: currentOrder.billNo ?? '',
       lines: currentOrder.orderLines.map((l) => ({
         productId: l.productId ?? 0,
         productName: l.productName ?? '',
@@ -153,6 +161,7 @@ export const useEditOrder = (orderId: number) => {
     if (!init) return false;
     if (formik.values.paymentTypeId !== init.paymentTypeId) return true;
     if (formik.values.notes.trim() !== init.notes.trim()) return true;
+    if (formik.values.billNo.trim() !== init.billNo.trim()) return true;
     if (formik.values.lines.length !== init.lines.length) return true;
     return formik.values.lines.some(
       (l, i) =>

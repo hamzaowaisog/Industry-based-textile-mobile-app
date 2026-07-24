@@ -41,6 +41,8 @@ export const EditPurchaseComponent = ({
   loading,
   supplierName,
   values,
+  errors,
+  touched,
   paymentTypes,
   productItems,
   productPickerVisible,
@@ -107,6 +109,17 @@ export const EditPurchaseComponent = ({
 
           {/* Purchase date — omitted: server keeps the original date on edit. */}
 
+          {/* Bill No */}
+          <AppInputField
+            label={t('purchases.edit.billNo')}
+            value={values.billNo}
+            onChangeText={(v) => onFieldChange('billNo', v)}
+            onBlur={() => onFieldBlur('billNo')}
+            placeholder={t('purchases.edit.billNoPlaceholder')}
+            maxLength={50}
+            error={touched.billNo ? errors.billNo : undefined}
+          />
+
           {/* Notes */}
           <AppInputField
             label={t('purchases.edit.notes')}
@@ -156,6 +169,11 @@ export const EditPurchaseComponent = ({
       <View style={styles.stepContent}>
         <View style={styles.reviewSupplierCard}>
           <Text style={styles.reviewSupplierName}>{supplierName || '—'}</Text>
+          {values.billNo ? (
+            <Text style={styles.reviewSupplierSub}>
+              {t('purchases.billNoLabel', { billNo: values.billNo })}
+            </Text>
+          ) : null}
           <Text style={styles.reviewSupplierSub}>
             {paymentTypes.find((p) => p.id === values.paymentTypeId)?.name ?? ''}
           </Text>
@@ -193,6 +211,7 @@ export const EditPurchaseComponent = ({
             <Text style={styles.reviewTotalValue}>{formatPKR(runningTotal)}</Text>
           </View>
         </View>
+
 
         {values.notes ? (
           <View style={styles.fieldGroup}>

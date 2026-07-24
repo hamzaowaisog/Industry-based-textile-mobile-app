@@ -58,6 +58,7 @@ export const useEditPurchase = (purchaseId: number) => {
     initialValues: {
       paymentTypeId: AppConstants.PAYMENT_TYPE.CASH,
       notes: '',
+      billNo: '',
       lines: [],
     },
     validateOnBlur: true,
@@ -70,6 +71,7 @@ export const useEditPurchase = (purchaseId: number) => {
           currentPurchase.statusId,
           values.paymentTypeId,
           values.notes,
+          values.billNo,
         ),
         updatePurchaseLinesAsync(purchaseId, values),
       ]);
@@ -103,6 +105,7 @@ export const useEditPurchase = (purchaseId: number) => {
     const filled: EditPurchaseFormValues = {
       paymentTypeId: currentPurchase.paymentTypeId,
       notes: currentPurchase.notes ?? '',
+      billNo: currentPurchase.billNo ?? '',
       lines: currentPurchase.purchaseLines.map((l) => ({
         productId: l.productId ?? 0,
         productName: l.productName ?? '',
@@ -137,6 +140,7 @@ export const useEditPurchase = (purchaseId: number) => {
     if (!init) return false;
     if (formik.values.paymentTypeId !== init.paymentTypeId) return true;
     if (formik.values.notes.trim() !== init.notes.trim()) return true;
+    if (formik.values.billNo.trim() !== init.billNo.trim()) return true;
     if (formik.values.lines.length !== init.lines.length) return true;
     return formik.values.lines.some(
       (l, i) =>

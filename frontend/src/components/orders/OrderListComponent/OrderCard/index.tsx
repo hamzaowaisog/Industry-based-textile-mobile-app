@@ -31,6 +31,9 @@ export const OrderCard = React.memo(({ order, onPress }: OrderCardProps) => {
         <View style={styles.left}>
           <Text style={styles.orderId}>{`ORD-${order.id}`}</Text>
           <Text style={styles.clientName}>{order.clientName}</Text>
+          {!!order.billNo && (
+            <Text style={styles.date}>{t('orders.billNoLabel', { billNo: order.billNo })}</Text>
+          )}
           <Text style={styles.date}>{order.orderDate}</Text>
           <AppHijriDateLabel value={order.orderDateHijriDisplay} />
         </View>

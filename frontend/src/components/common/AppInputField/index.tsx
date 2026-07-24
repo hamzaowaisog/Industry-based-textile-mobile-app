@@ -34,6 +34,7 @@ export const AppInputField = React.forwardRef<TextInput, InputFieldProps>(
       onSubmitEditing,
       editable = true,
       onFocus,
+      maxLength,
     },
     ref,
   ) => {
@@ -78,6 +79,7 @@ export const AppInputField = React.forwardRef<TextInput, InputFieldProps>(
             numberOfLines={numberOfLines}
             onSubmitEditing={onSubmitEditing}
             editable={editable}
+            maxLength={maxLength}
           />
           {trailing}
         </View>

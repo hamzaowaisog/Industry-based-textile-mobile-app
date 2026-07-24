@@ -6,6 +6,7 @@ export const createOrderStep1Schema = Yup.object({
   clientId: Yup.number().nullable().required('orders.create.selectCustomerError'),
   paymentTypeId: Yup.number().required(),
   notes: Yup.string(),
+  billNo: Yup.string().max(50, 'orders.validation.billNoMaxLength'),
 });
 
 const lineSchema = Yup.object({
@@ -24,6 +25,7 @@ export const createOrderStep2Schema = Yup.object({
 export const editOrderStep1Schema = Yup.object({
   paymentTypeId: Yup.number().required(),
   notes: Yup.string(),
+  billNo: Yup.string().max(50, 'orders.validation.billNoMaxLength'),
 });
 
 export const editOrderStep2Schema = Yup.object({

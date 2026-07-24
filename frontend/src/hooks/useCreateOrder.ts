@@ -37,6 +37,7 @@ const INITIAL_VALUES: CreateOrderFormValues = {
   paymentTypeId: AppConstants.PAYMENT_TYPE.CASH,
   orderDate: '',
   notes: '',
+  billNo: '',
   lines: [],
 };
 

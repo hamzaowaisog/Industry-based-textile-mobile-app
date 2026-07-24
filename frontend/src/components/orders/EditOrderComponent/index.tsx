@@ -37,6 +37,8 @@ export const EditOrderComponent = ({
   loading,
   clientName,
   values,
+  errors,
+  touched,
   paymentTypes,
   productItems,
   productPickerVisible,
@@ -108,6 +110,16 @@ export const EditOrderComponent = ({
           </View>
 
           <AppInputField
+            label={t('orders.edit.billNo')}
+            value={values.billNo}
+            onChangeText={(v) => onFieldChange('billNo', v)}
+            onBlur={() => onFieldBlur('billNo')}
+            placeholder={t('orders.edit.billNoPlaceholder')}
+            maxLength={50}
+            error={touched.billNo ? errors.billNo : undefined}
+          />
+
+          <AppInputField
             label={t('orders.edit.notes')}
             value={values.notes}
             onChangeText={(v) => onFieldChange('notes', v)}
@@ -157,6 +169,11 @@ export const EditOrderComponent = ({
         <View style={styles.reviewClientCard}>
           <View style={styles.reviewClientLeft}>
             <Text style={styles.reviewClientName}>{clientName || '—'}</Text>
+            {values.billNo ? (
+              <Text style={styles.reviewClientSub}>
+                {t('orders.billNoLabel', { billNo: values.billNo })}
+              </Text>
+            ) : null}
             <Text style={styles.reviewClientSub}>
               {paymentTypes.find((p) => p.id === values.paymentTypeId)?.name ?? ''}
             </Text>
@@ -195,6 +212,7 @@ export const EditOrderComponent = ({
             <Text style={styles.reviewTotalValue}>{formatPKR(runningTotal)}</Text>
           </View>
         </View>
+
 
         {values.notes ? (
           <View style={styles.fieldGroup}>

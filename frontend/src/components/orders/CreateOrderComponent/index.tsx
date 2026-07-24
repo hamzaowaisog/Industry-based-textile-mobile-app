@@ -120,6 +120,17 @@ export const CreateOrderComponent = ({
             </View>
           </View>
 
+          {/* Bill No */}
+          <AppInputField
+            label={t('orders.create.billNo')}
+            value={values.billNo}
+            onChangeText={(v) => onFieldChange('billNo', v)}
+            onBlur={() => onFieldBlur('billNo')}
+            placeholder={t('orders.create.billNoPlaceholder')}
+            maxLength={50}
+            error={touched.billNo ? errors.billNo : undefined}
+          />
+
           {/* Notes */}
           <AppInputField
             label={t('orders.create.notes')}
@@ -178,6 +189,11 @@ export const CreateOrderComponent = ({
         <View style={styles.reviewClientCard}>
           <View style={styles.reviewClientLeft}>
             <Text style={styles.reviewClientName}>{values.clientName || '—'}</Text>
+            {values.billNo ? (
+              <Text style={styles.reviewClientSub}>
+                {t('orders.billNoLabel', { billNo: values.billNo })}
+              </Text>
+            ) : null}
             <Text style={styles.reviewClientSub}>
               {paymentTypes.find((p) => p.id === values.paymentTypeId)?.name ?? ''}
             </Text>

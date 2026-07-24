@@ -221,6 +221,14 @@ export const PurchaseDetailComponent = ({
                 <Text style={styles.dateCellValue}>{purchase.paymentTypeName}</Text>
               </View>
             </View>
+            {!!purchase.billNo && (
+              <View style={styles.dateGrid}>
+                <View style={styles.dateCell}>
+                  <Text style={styles.dateCellLabel}>{t('purchases.detail.billNo')}</Text>
+                  <Text style={styles.dateCellValue}>{purchase.billNo}</Text>
+                </View>
+              </View>
+            )}
           </AppCard>
         </View>
 

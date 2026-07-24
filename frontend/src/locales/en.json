@@ -447,7 +447,9 @@
     },
     "due": "Due {{date}}",
     "paid": "Paid {{amount}}",
+    "billNoLabel": "Bill #{{billNo}}",
     "detail": {
+      "billNo": "Bill No",
       "orderDate": "Order date",
       "paymentMethod": "Payment",
       "totalAmount": "Total amount",
@@ -488,7 +490,8 @@
       "qtyRequired": "Quantity is required",
       "qtyPositive": "Quantity must be greater than zero",
       "unitPriceRequired": "Unit price is required",
-      "unitPricePositive": "Unit price must be greater than zero"
+      "unitPricePositive": "Unit price must be greater than zero",
+      "billNoMaxLength": "Bill No must be 50 characters or fewer"
     },
     "create": {
       "title": "New Order",
@@ -501,6 +504,8 @@
       "customerLocked": "Customer is preset from the client profile",
       "paymentType": "Payment type",
       "orderDate": "Order date",
+      "billNo": "Bill No",
+      "billNoPlaceholder": "Supplier bill or reference number (optional)",
       "notes": "Notes",
       "notesPlaceholder": "Internal notes (optional)",
       "product": "Product",
@@ -537,6 +542,8 @@
       "customer": "Customer",
       "customerLocked": "Customer cannot be changed on an existing order",
       "paymentType": "Payment type",
+      "billNo": "Bill No",
+      "billNoPlaceholder": "Supplier bill or reference number (optional)",
       "notes": "Notes",
       "notesPlaceholder": "Internal notes (optional)",
       "product": "Product",
@@ -589,7 +596,9 @@
       "cancelled": "Cancelled"
     },
     "paid": "Paid {{amount}}",
+    "billNoLabel": "Bill #{{billNo}}",
     "detail": {
+      "billNo": "Bill No",
       "purchaseDate": "PO date",
       "paymentMethod": "Payment",
       "totalAmount": "Total amount",
@@ -623,7 +632,8 @@
       "qtyRequired": "Quantity is required",
       "qtyPositive": "Quantity must be greater than zero",
       "unitCostRequired": "Unit cost is required",
-      "unitCostPositive": "Unit cost must be greater than zero"
+      "unitCostPositive": "Unit cost must be greater than zero",
+      "billNoMaxLength": "Bill No must be 50 characters or fewer"
     },
     "create": {
       "title": "New Purchase",
@@ -635,6 +645,8 @@
       "supplierPlaceholder": "Select a supplier",
       "supplierLocked": "Supplier is preset from the client profile",
       "paymentType": "Payment type",
+      "billNo": "Bill No",
+      "billNoPlaceholder": "Supplier bill or reference number (optional)",
       "notes": "Notes",
       "notesPlaceholder": "Internal notes (optional)",
       "product": "Product",
@@ -668,6 +680,8 @@
       "supplier": "Supplier",
       "supplierLocked": "Supplier cannot be changed on an existing purchase",
       "paymentType": "Payment type",
+      "billNo": "Bill No",
+      "billNoPlaceholder": "Supplier bill or reference number (optional)",
       "notes": "Notes",
       "notesPlaceholder": "Internal notes (optional)",
       "product": "Product",
