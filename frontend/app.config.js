@@ -2,13 +2,19 @@ export default ({ config }) => ({
   ...config,
   name: 'HamzaTex',
   slug: 'hamzatex',
-  version: '2.1.0',
+  version: '2.2.0',
   owner: 'hamzatex',
   icon: './assets/icon.png',
   ios: {
     bundleIdentifier: 'com.hamzatex.app',
     googleServicesFile: './GoogleService-Info.plist',
     buildNumber: '1',
+    infoPlist: {
+      UIBackgroundModes: ['remote-notification'],
+    },
+    entitlements: {
+      'aps-environment': process.env.APP_ENV === 'production' ? 'production' : 'development',
+    },
   },
   android: {
     package: 'com.hamzatex.app',

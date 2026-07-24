@@ -7,8 +7,11 @@ import { getMessaging, setBackgroundMessageHandler } from '@react-native-firebas
 import { registerRootComponent } from 'expo';
 
 import { AppConstants } from './src/constants/appConstants';
+import { ensurePushChannel } from './src/core/pushChannel';
 import { forceLogout } from './src/utils/forceLogout';
 import App from './App';
+
+void ensurePushChannel();
 
 setBackgroundMessageHandler(getMessaging(), async (remoteMessage) => {
   const data = remoteMessage.data as Record<string, string>;
@@ -18,11 +21,13 @@ setBackgroundMessageHandler(getMessaging(), async (remoteMessage) => {
     await forceLogout();
   }
 
-  const channelId = await notifee.createChannel({
-    id: 'hamzatex',
-    name: 'HamzaTex Alerts',
-    importance: AndroidImportance.HIGH,
-  });
+  // Alert+data messages are shown by the OS when backgrounded/killed.
+  // Only display via Notifee for legacy data-only payloads.
+  if (remoteMessage.notification?.title || remoteMessage.notification?.body) {
+    return;
+  }
+
+  const channelId = await ensurePushChannel();
 
   await notifee.displayNotification({
     title: data.title ?? 'HamzaTex',
@@ -30,6 +35,7 @@ setBackgroundMessageHandler(getMessaging(), async (remoteMessage) => {
     android: {
       channelId,
       pressAction: { id: 'default' },
+      importance: AndroidImportance.HIGH,
     },
   });
 });
