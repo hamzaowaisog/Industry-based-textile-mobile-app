@@ -22,7 +22,12 @@
     "saving": "Saving...",
     "hijriDateFallBack": "-",
     "calendarGregorian": "Gregorian",
-    "calendarHijri": "Hijri"
+    "calendarHijri": "Hijri",
+    "billNoInlineList": {
+      "prefix": "Bills: ",
+      "more": "+{{count}}",
+      "sheetTitle": "All Bill Numbers"
+    }
   },
   "clients": {
     "title": "Clients",
@@ -734,6 +739,8 @@
     "client": "Client",
     "clientPlaceholder": "Select a client",
     "clientLocked": "Client pre-selected from previous screen",
+    "linkedBill": "Linked Bill: {{billNo}}",
+    "billNoLabel": "Bill #{{billNo}}",
     "balanceHelper": "Currently owes you {{amount}}",
     "balancePaidHelper": "You owe {{amount}}",
     "amountHelperReceived": "Money coming into your account",
@@ -809,6 +816,7 @@
     "paidOut": "Payable",
     "overdue": "Overdue",
     "duePrefix": "Due",
+    "billNoLabel": "Bill #{{billNo}}",
     "tabs": {
       "all": "All",
       "draft": "Draft",
@@ -1033,6 +1041,7 @@
     "totalCount": "{{count}} transactions",
     "searchPlaceholder": "Search by client or category…",
     "netForPeriod": "Net for the period",
+    "billNoLabel": "Bill #{{billNo}}",
     "filters": {
       "credit": "Credit",
       "debit": "Debit"
@@ -1056,6 +1065,7 @@
       "category": "Category",
       "mode": "Mode",
       "source": "Source",
+      "billNo": "Bill No",
       "details": "Details",
       "client": "Client",
       "recordedBy": "Recorded by",

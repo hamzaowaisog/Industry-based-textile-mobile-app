@@ -133,6 +133,10 @@ export const TransactionDetailComponent = ({
               <Text style={styles.infoValue}>{transaction.clientName || '—'}</Text>
             </View>
             <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{t('transactions.detail.billNo')}</Text>
+              <Text style={styles.infoValue}>{transaction.billNo || '—'}</Text>
+            </View>
+            <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>{t('transactions.detail.recordedBy')}</Text>
               <Text style={styles.infoValue}>{transaction.userName || '—'}</Text>
             </View>

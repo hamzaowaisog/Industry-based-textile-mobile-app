@@ -41,6 +41,11 @@ export const InvoiceCard = React.memo(
             <Text style={styles.client} numberOfLines={1}>
               {invoice.clientName}
             </Text>
+            {invoice.billNo ? (
+              <Text style={styles.client} numberOfLines={1}>
+                {t('invoices.billNoLabel', { billNo: invoice.billNo })}
+              </Text>
+            ) : null}
             <AppHijriDateLabel value={invoice.dueDateHijriDisplay ?? invoice.issueDateHijriDisplay} />
 
             <View style={styles.bottomRow}>

@@ -108,7 +108,7 @@ export const updatePurchaseHeaderAsync = async (
       statusId,
       paymentTypeId,
       notes: notes.trim() || null,
-      billNo: billNo.trim() || null,
+      billNo: billNo.trim(),
     };
     const res = await purchaseUpdatePurchase(id, payload);
     const r = parseApiResponse(res, i18n.t('purchases.edit.errorTitle'));

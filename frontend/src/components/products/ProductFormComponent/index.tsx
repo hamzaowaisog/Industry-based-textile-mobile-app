@@ -175,7 +175,6 @@ export const ProductFormComponent = ({
                 <AppInputField
                   ref={quantityRef}
                   label={t('products.fields.quantity')}
-                  required
                   value={values.quantity}
                   onChangeText={(v) => void setFieldValue('quantity', sanitizeDecimalInput(v))}
                   onBlur={() => setFieldTouched('quantity', true)}
@@ -190,7 +189,6 @@ export const ProductFormComponent = ({
                 <AppInputField
                   ref={reorderLevelRef}
                   label={t('products.fields.reorderLevel')}
-                  required
                   value={values.reorderLevel}
                   onChangeText={(v) => void setFieldValue('reorderLevel', sanitizeDecimalInput(v))}
                   onBlur={() => setFieldTouched('reorderLevel', true)}
@@ -208,7 +206,6 @@ export const ProductFormComponent = ({
             <AppInputField
               ref={reorderLevelRef}
               label={t('products.fields.reorderLevel')}
-              required
               value={values.reorderLevel}
               onChangeText={(v) => void setFieldValue('reorderLevel', sanitizeDecimalInput(v))}
               onBlur={() => setFieldTouched('reorderLevel', true)}

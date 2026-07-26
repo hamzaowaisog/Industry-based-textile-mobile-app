@@ -175,7 +175,7 @@ export const AddExpenseComponent = ({
           </View>
           <View style={styles.flexBtn}>
             <AppButton
-              variant="success"
+              variant="primary"
               label={t('expenses.addExpense')}
               onPress={onSubmit}
               loading={submitting}

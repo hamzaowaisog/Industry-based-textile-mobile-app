@@ -149,7 +149,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    backgroundColor: colors.success,
+    backgroundColor: colors.primary,
   },
   btnSuccessDisabled: { opacity: 0.6 },
   btnSuccessText: {

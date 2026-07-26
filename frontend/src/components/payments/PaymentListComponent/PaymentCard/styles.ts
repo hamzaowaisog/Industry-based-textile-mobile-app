@@ -24,6 +24,13 @@ export const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
   },
+  billNo: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
   right: { alignItems: 'flex-end', gap: 6 },
   footerRow: {
     flexDirection: 'row',

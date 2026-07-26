@@ -294,7 +294,7 @@ export const EditOrderComponent = ({
                   : t('orders.edit.continue')
               }
               onPress={step === AppConstants.ORDER_WIZARD.STEP_REVIEW ? onSubmit : onNext}
-              variant={step === AppConstants.ORDER_WIZARD.STEP_REVIEW ? 'success' : 'primary'}
+              variant="primary"
               size="lg"
               fullWidth
               loading={submitting}

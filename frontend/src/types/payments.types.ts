@@ -14,6 +14,8 @@ export type PaymentRow = {
   paymentDate: string;
   paymentDateHijriDisplay: string | null;
   isReversed: boolean;
+  allocatedBillNos: string;
+  billNos: string[];
 };
 
 export type PaymentAllocation = PaymentAllocationDto;
@@ -43,6 +45,7 @@ export type PaymentDetail = {
   originalPaymentId: number | null;
   isCashSettled: boolean;
   allocations: PaymentAllocation[];
+  billNos: string[];
 };
 
 export type AllocationFormValues = {

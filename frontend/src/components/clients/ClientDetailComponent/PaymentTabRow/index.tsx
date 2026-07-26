@@ -11,6 +11,7 @@ import { AppBadge } from '@components/common/AppBadge';
 import { AppCard } from '@components/common/AppCard';
 import { AppIconTile } from '@components/common/AppIconTile';
 import { AppRow } from '@components/common/AppRow';
+import { BillNoInlineList } from '@components/common/BillNoInlineList';
 
 import { colors } from '@theme/colors';
 
@@ -50,6 +51,7 @@ export const PaymentTabRow = ({ item }: { item: ClientPaymentSummary }) => {
             </>
           }
         />
+        <BillNoInlineList billNos={item.billNos ?? []} />
       </AppCard>
     </View>
   );

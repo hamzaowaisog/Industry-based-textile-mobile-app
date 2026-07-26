@@ -308,7 +308,7 @@ export const CreatePurchaseComponent = ({
                   : t('purchases.create.continue')
               }
               onPress={step === AppConstants.PURCHASE_WIZARD.STEP_REVIEW ? onSubmit : onNext}
-              variant={step === AppConstants.PURCHASE_WIZARD.STEP_REVIEW ? 'success' : 'primary'}
+              variant="primary"
               size="lg"
               fullWidth
               loading={submitting}

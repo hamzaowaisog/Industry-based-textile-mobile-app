@@ -106,7 +106,7 @@ export const updateOrderHeaderAsync = async (
       statusId,
       paymentTypeId,
       notes: notes.trim() || null,
-      billNo: billNo.trim() || null,
+      billNo: billNo.trim(),
     };
     const res = await orderUpdateOrder(id, payload);
     const r = parseApiResponse(res, i18n.t('orders.edit.errorTitle'));

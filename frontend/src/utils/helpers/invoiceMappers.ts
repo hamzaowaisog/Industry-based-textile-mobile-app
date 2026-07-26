@@ -7,6 +7,7 @@ import type { InvoiceDetail, InvoiceRow, InvoiceSummary } from '../../types/invo
 export const mapApiInvoiceToRow = (i: InvoiceDto): InvoiceRow => ({
   id: i.id ?? 0,
   invoiceNumber: i.invoiceNumber ?? '',
+  billNo: i.billNo ?? null,
   clientId: i.clientId ?? 0,
   clientName: i.clientName ?? '',
   clientTypeName: i.clientTypeName ?? '',
@@ -34,6 +35,7 @@ export const mapApiInvoiceSummary = (s: InvoiceSummaryDto): InvoiceSummary => ({
 export const mapApiInvoiceDetail = (i: InvoiceDetailDto): InvoiceDetail => ({
   id: i.id ?? 0,
   invoiceNumber: i.invoiceNumber ?? '',
+  billNo: i.billNo ?? null,
   orderId: i.orderId ?? null,
   purchaseId: i.purchaseId ?? null,
   clientId: i.clientId ?? 0,

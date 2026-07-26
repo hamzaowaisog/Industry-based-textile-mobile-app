@@ -145,7 +145,7 @@ export const useRecordPayment = (
                       orderId: order.id,
                       purchaseId: null,
                       allocatedAmount: String(order.outstanding),
-                      label: `ORD-${order.id}`,
+                      label: order.billNo ? `Bill #${order.billNo}` : `ORD-${order.id}`,
                     },
                   ]
                 : [],
@@ -173,7 +173,7 @@ export const useRecordPayment = (
                       orderId: null,
                       purchaseId: purchase.id,
                       allocatedAmount: String(purchase.payable),
-                      label: `PUR-${purchase.id}`,
+                      label: purchase.billNo ? `Bill #${purchase.billNo}` : `PUR-${purchase.id}`,
                     },
                   ]
                 : [],

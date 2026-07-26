@@ -250,3 +250,7 @@ export type CalendarToggleProps = {
   onChange: (calendar: AppCalendar) => void;
 
 }
+
+export type BillNoInlineListProps = {
+  billNos: string[];
+};

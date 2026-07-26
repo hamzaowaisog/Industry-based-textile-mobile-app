@@ -105,6 +105,13 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
     color: colors.textSecondary,
   },
+  linkedBillText: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    marginTop: -4,
+  },
 
   fieldGroup: { gap: 8 },
   fieldError: {

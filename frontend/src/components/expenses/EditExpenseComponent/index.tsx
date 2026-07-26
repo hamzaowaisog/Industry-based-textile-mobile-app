@@ -165,7 +165,7 @@ export const EditExpenseComponent = ({
           </View>
           <View style={styles.flexBtn}>
             <AppButton
-              variant="success"
+              variant="primary"
               label={t('common.save')}
               onPress={onSubmit}
               loading={submitting}
