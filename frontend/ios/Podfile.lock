@@ -1786,6 +1786,28 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - react-native-contacts (8.0.10):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - react-native-get-random-values (2.0.0):
     - hermes-engine
     - RCTRequired
@@ -2780,6 +2802,7 @@ DEPENDENCIES:
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - React-mutationobservernativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/mutationobserver`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
+  - react-native-contacts (from `../node_modules/react-native-contacts`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-keyboard-controller (from `../node_modules/react-native-keyboard-controller`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
@@ -2981,6 +3004,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/mutationobserver"
   react-native-blob-util:
     :path: "../node_modules/react-native-blob-util"
+  react-native-contacts:
+    :path: "../node_modules/react-native-contacts"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
   react-native-keyboard-controller:
@@ -3162,6 +3187,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: ab33a818d339f5a1da308893c11b487be66121a8
   React-mutationobservernativemodule: a42d1626651ccd7d0dc02a56e69d4ec77c248893
   react-native-blob-util: 13e70f811eb34f14864622c4afa37cc20fe8100e
+  react-native-contacts: eafd71cece3c79aacb38c46bc4b31ae757f29255
   react-native-get-random-values: 68792987aef40e8aa72dc448d97e009d1f440c88
   react-native-keyboard-controller: 2d179482c2eb51f9748149eefe27efe81fa79e05
   react-native-pdf: 2bc0989bc44ef7e5221c49c0f1bb464a2c27640b

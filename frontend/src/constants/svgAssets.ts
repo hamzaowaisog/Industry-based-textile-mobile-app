@@ -32,6 +32,7 @@ export {
   MenuIcon,
 } from '../../assets/svg/icons/DrawerIconSet';
 export { SearchIcon } from '../../assets/svg/icons/SearchIcon';
+export { CloseIcon } from '../../assets/svg/icons/CloseIcon';
 export { BellIcon } from '../../assets/svg/icons/BellIcon';
 export { ClockIcon } from '../../assets/svg/icons/ClockIcon';
 export { PlusIcon } from '../../assets/svg/icons/PlusIcon';
@@ -39,6 +40,7 @@ export { WalletIcon } from '../../assets/svg/icons/WalletIcon';
 export { AlertIcon } from '../../assets/svg/icons/AlertIcon';
 export { CloudIcon } from '../../assets/svg/icons/CloudIcon';
 export { PhoneIcon } from '../../assets/svg/icons/PhoneIcon';
+export { AddressBookIcon } from '../../assets/svg/icons/AddressBookIcon';
 export { MapPinIcon } from '../../assets/svg/icons/MapPinIcon';
 export { EditIcon } from '../../assets/svg/icons/EditIcon';
 export { FilterIcon } from '../../assets/svg/icons/FilterIcon';

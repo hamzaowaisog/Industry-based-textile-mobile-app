@@ -6820,6 +6820,11 @@ react-native-bootsplash@^7.3.1:
     ts-dedent "^2.2.0"
     xml-formatter "^3.7.0"
 
+react-native-contacts@^8.0.10:
+  version "8.0.10"
+  resolved "https://registry.yarnpkg.com/react-native-contacts/-/react-native-contacts-8.0.10.tgz#427ac7638db134e221cfe6af0ec6537f53016d07"
+  integrity sha512-9iBRf/YLYSXQxfbPvz43DwXMv0OcHeit37W/313adYJIWz/W8SypqqxmAg9B/Lg1hzD+KYEn+UpljZnwgp78OQ==
+
 react-native-drawer-layout@^4.2.4:
   version "4.2.4"
   resolved "https://registry.yarnpkg.com/react-native-drawer-layout/-/react-native-drawer-layout-4.2.4.tgz#06d850f6599fd2be2558073ddf073913780971f3"

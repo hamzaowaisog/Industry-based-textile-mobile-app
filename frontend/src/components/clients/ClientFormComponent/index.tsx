@@ -13,7 +13,7 @@ import { sanitizeDecimalInput, sanitizeSignedDecimalInput } from '@utils/helpers
 import { colors } from '@theme/colors';
 
 import { AppConstants } from '@constants/appConstants';
-import { ArrowLeftIcon, PhoneIcon } from '@constants/svgAssets';
+import { AddressBookIcon, ArrowLeftIcon, PhoneIcon } from '@constants/svgAssets';
 
 import type { ClientFormComponentProps } from '../../../types/clients.types';
 import { styles } from './styles';
@@ -29,6 +29,8 @@ export const ClientFormComponent = ({
   setFieldTouched,
   handleSubmit,
   onCancel,
+  onOpenContactPicker,
+  contactPicker,
 }: ClientFormComponentProps) => {
   const { t } = useTranslation();
   const phoneRef = React.useRef<React.ComponentRef<typeof AppInputField>>(null);
@@ -112,6 +114,18 @@ export const ClientFormComponent = ({
               keyboardType="phone-pad"
               returnKeyType="next"
               onSubmitEditing={() => addressRef.current?.focus()}
+              trailing={
+                <TouchableOpacity
+                  style={styles.contactBtn}
+                  onPress={onOpenContactPicker}
+                  accessibilityLabel={t('clients.contactPickerButton')}
+                  accessibilityRole="button"
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  activeOpacity={0.5}
+                >
+                  <AddressBookIcon size={26} color={colors.textTertiary} />
+                </TouchableOpacity>
+              }
             />
             <AppInputField
               ref={addressRef}
@@ -197,6 +211,7 @@ export const ClientFormComponent = ({
           </TouchableOpacity>
         </View>
       </View>
+      {contactPicker}
     </SafeAreaView>
   );
 };

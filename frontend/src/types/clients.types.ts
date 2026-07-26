@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import type {
   ClientDetailViewModel,
   ClientOrderSummary,
@@ -161,6 +163,8 @@ export type ClientFormComponentProps = {
   setFieldTouched: (field: string, isTouched?: boolean) => void;
   handleSubmit: () => void;
   onCancel: () => void;
+  onOpenContactPicker: () => void;
+  contactPicker: ReactNode;
 };
 
 export type StatusStyle = { bg: string; fg: string };
