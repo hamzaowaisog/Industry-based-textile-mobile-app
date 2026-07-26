@@ -31,6 +31,19 @@
   },
   "clients": {
     "title": "Clients",
+    "contactPickerButton": "Pick from contacts",
+    "contactPicker": {
+      "title": "Select a contact",
+      "searchPlaceholder": "Search name or number",
+      "emptyTitle": "No contacts found",
+      "emptySubtitle": "Your address book has no contacts with phone numbers.",
+      "noMatchesTitle": "No matches",
+      "permissionTitle": "Contacts access needed",
+      "permissionBody": "Allow contacts access so you can pick a client's phone from your address book.",
+      "permissionAllow": "Allow",
+      "permissionPrimary": "Open Settings",
+      "permissionSecondary": "Not now"
+    },
     "totalCount": "{{count}} clients",
     "matchCount": "{{count}} matches",
     "searchPlaceholder": "Search clients",

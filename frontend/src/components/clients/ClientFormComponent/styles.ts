@@ -6,6 +6,14 @@ import { typography } from '@theme/typography';
 export const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
+  contactBtn: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
+    marginRight: -16,
+  },
 
   header: {
     flexDirection: 'row',

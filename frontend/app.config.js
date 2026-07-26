@@ -2,7 +2,7 @@ export default ({ config }) => ({
   ...config,
   name: 'HamzaTex',
   slug: 'hamzatex',
-  version: '2.2.0',
+  version: '3.0.0',
   owner: 'hamzatex',
   icon: './assets/icon.png',
   ios: {
@@ -11,6 +11,8 @@ export default ({ config }) => ({
     buildNumber: '1',
     infoPlist: {
       UIBackgroundModes: ['remote-notification'],
+      NSContactsUsageDescription:
+        'Used to fill client phone and name from your address book.',
     },
     entitlements: {
       'aps-environment': process.env.APP_ENV === 'production' ? 'production' : 'development',
@@ -20,6 +22,7 @@ export default ({ config }) => ({
     package: 'com.hamzatex.app',
     googleServicesFile: './google-services.json',
     versionCode: 1,
+    permissions: ['READ_CONTACTS'],
     adaptiveIcon: {
       foregroundImage:
         './textile-erp/project/design_handoff_hamzatex_erp/app-icons/android/res/mipmap-xxxhdpi/ic_launcher_foreground.png',
