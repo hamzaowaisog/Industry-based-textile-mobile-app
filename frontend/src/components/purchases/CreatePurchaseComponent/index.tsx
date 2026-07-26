@@ -122,6 +122,17 @@ export const CreatePurchaseComponent = ({
 
           {/* Purchase date — omitted: server defaults to the current UTC date on create. */}
 
+          {/* Bill No */}
+          <AppInputField
+            label={t('purchases.create.billNo')}
+            value={values.billNo}
+            onChangeText={(v) => onFieldChange('billNo', v)}
+            onBlur={() => onFieldBlur('billNo')}
+            placeholder={t('purchases.create.billNoPlaceholder')}
+            maxLength={50}
+            error={touched.billNo ? errors.billNo : undefined}
+          />
+
           {/* Notes */}
           <AppInputField
             label={t('purchases.create.notes')}
@@ -172,6 +183,11 @@ export const CreatePurchaseComponent = ({
         <View style={styles.reviewSupplierCard}>
           <View style={styles.reviewSupplierLeft}>
             <Text style={styles.reviewSupplierName}>{values.supplierName || '—'}</Text>
+            {values.billNo ? (
+              <Text style={styles.reviewSupplierSub}>
+                {t('purchases.billNoLabel', { billNo: values.billNo })}
+              </Text>
+            ) : null}
             <Text style={styles.reviewSupplierSub}>
               {paymentTypes.find((p) => p.id === values.paymentTypeId)?.name ?? ''}
             </Text>
@@ -210,6 +226,7 @@ export const CreatePurchaseComponent = ({
             <Text style={styles.reviewTotalValue}>{formatPKR(runningTotal)}</Text>
           </View>
         </View>
+
 
         {values.notes ? (
           <View style={styles.fieldGroup}>
@@ -291,7 +308,7 @@ export const CreatePurchaseComponent = ({
                   : t('purchases.create.continue')
               }
               onPress={step === AppConstants.PURCHASE_WIZARD.STEP_REVIEW ? onSubmit : onNext}
-              variant={step === AppConstants.PURCHASE_WIZARD.STEP_REVIEW ? 'success' : 'primary'}
+              variant="primary"
               size="lg"
               fullWidth
               loading={submitting}

@@ -28,7 +28,9 @@ export const PurchaseTabRow = ({ item }: { item: ClientPurchaseSummary }) => {
     <AppCard padding={14}>
       <AppRow
         leading={<AppIconTile Icon={TruckIcon} color={colors.warning} size={36} />}
-        primary={`#${item.purchaseId}`}
+        primary={
+          item.billNo ? t('purchases.billNoLabel', { billNo: item.billNo }) : `#${item.purchaseId}`
+        }
         secondary={
           item.purchaseDateHijriDisplay
             ? `${item.purchaseDate} · ${item.purchaseDateHijriDisplay}`

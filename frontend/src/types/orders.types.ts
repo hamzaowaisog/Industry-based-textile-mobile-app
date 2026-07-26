@@ -17,6 +17,7 @@ export type OrderRow = {
   total: number;
   amountPaid: number;
   paymentStatus: string | null;
+  billNo: string | null;
 };
 
 export type OrderDetail = {
@@ -30,6 +31,7 @@ export type OrderDetail = {
   orderDate: string;
   orderDateHijriDisplay: string | null;
   notes: string | null;
+  billNo: string | null;
   createdAt: string | null;
   total: number;
   amountPaid: number;
@@ -52,12 +54,14 @@ export type CreateOrderFormValues = {
   paymentTypeId: number;
   orderDate: string;
   notes: string;
+  billNo: string;
   lines: OrderLineFormValues[];
 };
 
 export type EditOrderFormValues = {
   paymentTypeId: number;
   notes: string;
+  billNo: string;
   lines: OrderLineFormValues[];
 };
 

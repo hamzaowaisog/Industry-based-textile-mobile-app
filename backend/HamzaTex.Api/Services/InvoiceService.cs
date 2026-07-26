@@ -481,7 +481,9 @@ public class InvoiceService : IInvoiceService
             .Include(i => i.InvoiceStatus)
             .Include(i => i.InvoiceLines)
             .Include(i => i.PaymentAllocations).ThenInclude(a => a.Payment)
-            .AsSplitQuery(); 
+            .Include(i => i.Order)
+            .Include(i => i.Purchase)
+            .AsSplitQuery();
     private async Task<Invoice?> LoadInvoiceWithIncludes(int id) =>
         await _db.Invoices
             .Include(i => i.Client).ThenInclude(c => c!.ClientType)
@@ -490,7 +492,9 @@ public class InvoiceService : IInvoiceService
             .Include(i => i.PaymentAllocations).ThenInclude(a => a.Payment)
             .Include(i => i.Transactions).ThenInclude(t => t.TransCategory)
             .Include(i => i.Transactions).ThenInclude(t => t.TransType)
-            .AsSplitQuery() 
+            .Include(i => i.Order)
+            .Include(i => i.Purchase)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(i => i.Id == id);
 
     private static decimal ComputeAmountPaid(Invoice i) =>
@@ -513,6 +517,7 @@ public class InvoiceService : IInvoiceService
             InvoiceNumber   = i.InvoiceNumber,
             OrderId         = i.OrderId,
             PurchaseId      = i.PurchaseId,
+            BillNo          = i.Order?.BillNo ?? i.Purchase?.BillNo,
             ClientId        = i.ClientId ?? 0,
             ClientName      = i.Client?.Name ?? string.Empty,
             ClientTypeName  = i.Client?.ClientType?.Name ?? "Unknown",
@@ -543,6 +548,7 @@ public class InvoiceService : IInvoiceService
             InvoiceNumber   = dto.InvoiceNumber,
             OrderId         = dto.OrderId,
             PurchaseId      = dto.PurchaseId,
+            BillNo          = dto.BillNo,
             ClientId        = dto.ClientId,
             ClientName      = dto.ClientName,
             ClientTypeName  = dto.ClientTypeName,

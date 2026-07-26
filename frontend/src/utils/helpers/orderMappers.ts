@@ -12,6 +12,7 @@ export const mapApiOrderToRow = (o: OrderDto): OrderRow => ({
   total: o.total ?? 0,
   amountPaid: o.amountReceived ?? 0,
   paymentStatus: o.paymentStatus ?? null,
+  billNo: o.billNo ?? null,
 });
 
 export const mapApiOrderDetail = (o: OrderDto): OrderDetail => ({
@@ -25,6 +26,7 @@ export const mapApiOrderDetail = (o: OrderDto): OrderDetail => ({
   orderDate: o.orderDate ?? '',
   orderDateHijriDisplay: o.orderDateHijriDisplay ?? null,
   notes: o.notes ?? null,
+  billNo: o.billNo ?? null,
   createdAt: o.createdAt ?? null,
   total: o.total ?? 0,
   amountPaid: o.amountReceived ?? 0,

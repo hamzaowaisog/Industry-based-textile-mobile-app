@@ -15,6 +15,8 @@ export interface OrderUpdateViewModel {
   paymentTypeId?: number | null;
   /** @nullable */
   notes?: string | null;
+  /** @nullable */
+  billNo?: string | null;
   /**
      * Omit or null to leave the existing order date unchanged.
      * @nullable

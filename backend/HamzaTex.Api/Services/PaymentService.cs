@@ -274,7 +274,8 @@ public class PaymentService : IPaymentService
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
             .Include(p => p.User)
-            .Include(p => p.Allocations)
+            .Include(p => p.Allocations).ThenInclude(a => a.Order)
+            .Include(p => p.Allocations).ThenInclude(a => a.Purchase)
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (payment is null)
@@ -291,7 +292,8 @@ public class PaymentService : IPaymentService
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
             .Include(p => p.User)
-            .Include(p => p.Allocations)
+            .Include(p => p.Allocations).ThenInclude(a => a.Order)
+            .Include(p => p.Allocations).ThenInclude(a => a.Purchase)
             .AsQueryable();
 
         if (!isAdmin)
@@ -302,10 +304,11 @@ public class PaymentService : IPaymentService
 
         query = query.OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.Id);
 
-        var paged = await PagedList<PaymentDto>.CreateAsync(
-            query.Select(p => MapToDto(p)), page, pageSize);
+        var paged = await PagedList<Payment>.CreateAsync(query, page, pageSize);
+        var pagedList = new PagedList<PaymentDto>(
+            paged.Items.Select(MapToDto).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
 
-        return Response<PagedList<PaymentDto>>.SuccessResponse(paged, "Payments retrieved.");
+        return Response<PagedList<PaymentDto>>.SuccessResponse(pagedList, "Payments retrieved.");
     }
 
     public async Task<Response<PaymentSummaryDto>> GetSummaryAsync(bool includeReversed, int userId, bool isAdmin)
@@ -334,7 +337,8 @@ public class PaymentService : IPaymentService
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
             .Include(p => p.User)
-            .Include(p => p.Allocations)
+            .Include(p => p.Allocations).ThenInclude(a => a.Order)
+            .Include(p => p.Allocations).ThenInclude(a => a.Purchase)
             .Where(p => p.PartyClientId == clientId)
             .AsQueryable();
 
@@ -357,7 +361,8 @@ public class PaymentService : IPaymentService
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
             .Include(p => p.User)
-            .Include(p => p.Allocations)
+            .Include(p => p.Allocations).ThenInclude(a => a.Order)
+            .Include(p => p.Allocations).ThenInclude(a => a.Purchase)
             .AsQueryable();
 
         if (!isAdmin)
@@ -846,7 +851,12 @@ public class PaymentService : IPaymentService
             PaymentId = a.PaymentId,
             OrderId = a.OrderId,
             PurchaseId = a.PurchaseId,
-            AllocatedAmount = a.AllocatedAmount
-        }).ToList()
+            AllocatedAmount = a.AllocatedAmount,
+            BillNo = a.Order?.BillNo ?? a.Purchase?.BillNo,
+        }).ToList(),
+        AllocatedBillNos = string.Join(", ", p.Allocations
+            .Select(a => a.Order?.BillNo ?? a.Purchase?.BillNo)
+            .Where(b => !string.IsNullOrWhiteSpace(b))),
+        UnallocatedAmount = p.Amount - p.Allocations.Sum(a => a.AllocatedAmount),
     };
 }

@@ -8,6 +8,8 @@
 
 export interface ClientOrderSummary {
   orderId?: number;
+  /** @nullable */
+  billNo?: string | null;
   orderDate?: string;
   /**
      * Hijri equivalent of OrderDate, formatted for display (e.g. "06 Muharram 1448").

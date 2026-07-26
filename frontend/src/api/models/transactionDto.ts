@@ -24,6 +24,21 @@ export interface TransactionDto {
   orderId?: number | null;
   /** @nullable */
   purchaseId?: number | null;
+  /**
+     * Comma-joined bill numbers for this transaction (single value for Order/Purchase rows; may list several for a Payment split across multiple bills). Null for Expense/Manual rows.
+     * @nullable
+     */
+  billNo?: string | null;
+  /**
+     * All distinct bill numbers behind this transaction, unjoined. A Payment applied across several delivered Orders/Purchases carries one entry per bill.
+     * @nullable
+     */
+  billNos?: string[] | null;
+  /**
+     * For Payment-driven rows (Cash In/Out): portion of the underlying Payment not yet applied to any Order/Purchase. Null for non-Payment rows.
+     * @nullable
+     */
+  unallocatedAmount?: number | null;
   /** @nullable */
   transTypeId?: number | null;
   /** @nullable */

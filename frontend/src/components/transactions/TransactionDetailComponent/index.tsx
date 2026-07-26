@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PdfButton } from '@components/common/PdfButton';
 
-import { formatPKR } from '@utils/helpers/formatCurrency';
+import { formatAmount, formatPKR } from '@utils/helpers/formatCurrency';
 import {
   TRANS_CATEGORY_ICONS,
   getTransTypeColor,
@@ -17,6 +17,7 @@ import {
 
 import { colors } from '@theme/colors';
 
+import { AppConstants } from '@constants/appConstants';
 import { ArrowLeftIcon, WalletIcon } from '@constants/svgAssets';
 
 import type { TransactionDetailComponentProps } from '../../../types/transactions.types';
@@ -132,6 +133,18 @@ export const TransactionDetailComponent = ({
               <Text style={styles.infoLabel}>{t('transactions.detail.client')}</Text>
               <Text style={styles.infoValue}>{transaction.clientName || '—'}</Text>
             </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{t('transactions.detail.billNo')}</Text>
+              <Text style={styles.infoValue}>{transaction.billNo || '—'}</Text>
+            </View>
+            {transaction.unallocatedAmount != null && transaction.unallocatedAmount > 0 && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>{t('transactions.unallocatedDetail')}</Text>
+                <Text style={[styles.infoValue, { color: colors.warning }]}>
+                  {`${AppConstants.APP.CURRENCY} ${formatAmount(transaction.unallocatedAmount)}`}
+                </Text>
+              </View>
+            )}
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>{t('transactions.detail.recordedBy')}</Text>
               <Text style={styles.infoValue}>{transaction.userName || '—'}</Text>

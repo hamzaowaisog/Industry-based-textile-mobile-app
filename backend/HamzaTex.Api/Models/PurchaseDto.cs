@@ -13,6 +13,7 @@ public class PurchaseDto
     public string? PurchaseDateHijri { get; set; }
     public string? PurchaseDateHijriDisplay { get; set; }
     public string? Notes { get; set; }
+    public string? BillNo { get; set; }
     public DateOnly? CreatedAt { get; set; }
     public decimal Total { get; set; }
     public decimal AmountPaid { get; set; }
@@ -38,6 +39,7 @@ public class CreatePurchaseDto
     public DateOnly PurchaseDate { get; set; }
     public string? PurchaseDateHijri { get; set; }
     public string? Notes { get; set; }
+    public string? BillNo { get; set; }
     public List<CreatePurchaseLineDto> Lines { get; set; } = [];
 }
 
@@ -54,6 +56,7 @@ public class UpdatePurchaseDto
     public int PaymentTypeId { get; set; }
     public DateOnly? PurchaseDate { get; set; }
     public string? Notes { get; set; }
+    public string? BillNo { get; set; }
 }
 
 public class UpdatePurchaseLinesDto

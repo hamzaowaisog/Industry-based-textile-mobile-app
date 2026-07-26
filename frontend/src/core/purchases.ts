@@ -63,6 +63,7 @@ export const createPurchaseAsync = async (
       supplierId: values.supplierId ?? undefined,
       paymentTypeId: values.paymentTypeId,
       notes: values.notes.trim() || null,
+      billNo: values.billNo.trim() || null,
       lines: values.lines.map((l) => ({
         productId: l.productId,
         qty: parseFloat(l.qty),
@@ -100,12 +101,14 @@ export const updatePurchaseHeaderAsync = async (
   statusId: number,
   paymentTypeId: number,
   notes: string,
+  billNo: string,
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     const payload: PurchaseUpdateViewModel = {
       statusId,
       paymentTypeId,
       notes: notes.trim() || null,
+      billNo: billNo.trim(),
     };
     const res = await purchaseUpdatePurchase(id, payload);
     const r = parseApiResponse(res, i18n.t('purchases.edit.errorTitle'));

@@ -194,11 +194,11 @@ public class InvoiceController : BaseController
             {
                 new TableSection(
                     "Invoice List",
-                    Headers:    new[] { "#", "Invoice #", "Client", "Direction", "Status", "Total", "Paid", "Outstanding", "Issue Date" },
-                    RightAlign: new[] { 5, 6, 7 },
+                    Headers:    new[] { "#", "Invoice #", "Bill No", "Client", "Direction", "Status", "Total", "Paid", "Outstanding", "Issue Date" },
+                    RightAlign: new[] { 6, 7, 8 },
                     Rows:       data.Select((i, idx) => new[]
                     {
-                        (idx + 1).ToString(), i.InvoiceNumber, i.ClientName, i.Direction, i.StatusName,
+                        (idx + 1).ToString(), i.InvoiceNumber, i.BillNo ?? "—", i.ClientName, i.Direction, i.StatusName,
                         Curr(i.TotalAmount), Curr(i.AmountPaid), Curr(i.Outstanding),
                         i.IssueDate?.ToString("dd MMM, yyyy") ?? "-"
                     })),
@@ -237,6 +237,7 @@ public class InvoiceController : BaseController
                 new Stat("Total Amount",                                Curr(inv.TotalAmount)),
                 new Stat(inv.Direction == "Receivable" ? "Received" : "Paid",  Curr(inv.AmountPaid)),
                 new Stat(inv.Direction == "Receivable" ? "Receivable (Owed to Us)" : "Payable (We Owe)", Curr(inv.Outstanding), Highlight: true),
+                new Stat("Bill No",       inv.BillNo ?? "—"),
                 new Stat("Due Date",      inv.DueDate?.ToString("dd MMM, yyyy") ?? "N/A"),
             },
             Sections = new()
@@ -300,11 +301,11 @@ public class InvoiceController : BaseController
             {
                 new TableSection(
                     "Invoice Summary",
-                    Headers:    new[] { "#", "Invoice #", "Direction", "Status", "Total", "Paid", "Outstanding", "Issue Date", "Due Date" },
-                    RightAlign: new[] { 4, 5, 6 },
+                    Headers:    new[] { "#", "Invoice #", "Bill No", "Direction", "Status", "Total", "Paid", "Outstanding", "Issue Date", "Due Date" },
+                    RightAlign: new[] { 5, 6, 7 },
                     Rows:       data.Invoices.Select((i, idx) => new[]
                     {
-                        (idx + 1).ToString(), i.InvoiceNumber, i.Direction, i.StatusName,
+                        (idx + 1).ToString(), i.InvoiceNumber, i.BillNo ?? "—", i.Direction, i.StatusName,
                         Curr(i.TotalAmount), Curr(i.AmountPaid), Curr(i.Outstanding),
                         i.IssueDate?.ToString("dd MMM, yyyy") ?? "-",
                         i.DueDate?.ToString("dd MMM, yyyy") ?? "-"
@@ -357,11 +358,11 @@ public class InvoiceController : BaseController
             {
                 new TableSection(
                     "Invoice List",
-                    Headers:    new[] { "#", "Invoice #", "Client", "Direction", "Status", "Total", "Paid", "Outstanding", "Issue Date" },
-                    RightAlign: new[] { 5, 6, 7 },
+                    Headers:    new[] { "#", "Invoice #", "Bill No", "Client", "Direction", "Status", "Total", "Paid", "Outstanding", "Issue Date" },
+                    RightAlign: new[] { 6, 7, 8 },
                     Rows:       data.Select((i, idx) => new[]
                     {
-                        (idx + 1).ToString(), i.InvoiceNumber, i.ClientName, i.Direction, i.StatusName,
+                        (idx + 1).ToString(), i.InvoiceNumber, i.BillNo ?? "—", i.ClientName, i.Direction, i.StatusName,
                         Curr(i.TotalAmount), Curr(i.AmountPaid), Curr(i.Outstanding),
                         i.IssueDate?.ToString("dd MMM, yyyy") ?? "-"
                     })),

@@ -23,5 +23,7 @@ export interface OrderCreateViewModel {
   /** @nullable */
   notes?: string | null;
   /** @nullable */
+  billNo?: string | null;
+  /** @nullable */
   lines?: OrderLineCreateViewModel[] | null;
 }

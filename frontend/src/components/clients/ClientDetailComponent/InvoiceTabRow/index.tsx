@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { useTranslation } from 'react-i18next';
+
 import { AppAmount } from '@components/common/AppAmount';
 import { AppBadge } from '@components/common/AppBadge';
 import { AppCard } from '@components/common/AppCard';
@@ -20,6 +22,7 @@ const INVOICE_STATUS_STYLES: Record<number, { bg: string; fg: string }> = {
 };
 
 export const InvoiceTabRow = ({ item }: { item: ClientInvoiceSummary }) => {
+  const { t } = useTranslation();
   const s = INVOICE_STATUS_STYLES[item.invoiceStatusId] ?? {
     bg: `${colors.textTertiary}20`,
     fg: colors.textTertiary,
@@ -31,9 +34,11 @@ export const InvoiceTabRow = ({ item }: { item: ClientInvoiceSummary }) => {
         leading={<AppIconTile Icon={FileTextIcon} color={colors.warning} size={36} />}
         primary={item.invoiceNumber ?? `#${item.invoiceId ?? '—'}`}
         secondary={
-          item.issueDateHijriDisplay
-            ? `${item.issueDate ?? '—'} · ${item.issueDateHijriDisplay}`
-            : (item.issueDate ?? '—')
+          item.billNo
+            ? `${t('invoices.billNoLabel', { billNo: item.billNo })} · ${item.issueDate ?? '—'}`
+            : item.issueDateHijriDisplay
+              ? `${item.issueDate ?? '—'} · ${item.issueDateHijriDisplay}`
+              : (item.issueDate ?? '—')
         }
         right={
           <>

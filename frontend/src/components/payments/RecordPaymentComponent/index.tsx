@@ -161,15 +161,22 @@ export const RecordPaymentComponent = ({
           </View>
 
           {isClientLocked ? (
-            <AppInputField
-              label={t('payments.client')}
-              required
-              value={values.partyClientName}
-              onChangeText={() => {}}
-              onBlur={() => {}}
-              editable={false}
-              helper={balanceHelper ?? t('payments.clientLocked')}
-            />
+            <>
+              <AppInputField
+                label={t('payments.client')}
+                required
+                value={values.partyClientName}
+                onChangeText={() => {}}
+                onBlur={() => {}}
+                editable={false}
+                helper={balanceHelper ?? t('payments.clientLocked')}
+              />
+              {values.allocations[0]?.label ? (
+                <Text style={styles.linkedBillText}>
+                  {t('payments.linkedBill', { billNo: values.allocations[0].label })}
+                </Text>
+              ) : null}
+            </>
           ) : (
             <View style={styles.fieldGroup}>
               <FieldLabel label={t('payments.client')} required />
@@ -261,7 +268,7 @@ export const RecordPaymentComponent = ({
           </View>
           <View style={styles.flexBtn}>
             <AppButton
-              variant="success"
+              variant="primary"
               label={t('payments.recordPayment')}
               onPress={onSubmit}
               loading={submitting}

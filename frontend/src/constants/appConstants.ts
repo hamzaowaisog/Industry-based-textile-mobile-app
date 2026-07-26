@@ -51,6 +51,17 @@ export const AppConstants = {
     HIJRI_MONTHS: 'hijriMonths',
   } as const,
 
+  // Unit IDs (matches backend seeded Units table)
+  UNIT: {
+    METER: 1, // "m"
+    KG: 2,
+    PCS: 3,
+    YARD: 4,
+    ROLL: 5,
+    BALE: 6,
+    CONE: 7,
+  },
+
   // Client type IDs (matches backend seeded ClientType table)
   CLIENT_TYPE: {
     CUSTOMER: 1,

@@ -8,6 +8,7 @@ export type InvoiceLinkedTransaction = InvoiceTransactionSummary;
 export type InvoiceRow = {
   id: number;
   invoiceNumber: string;
+  billNo: string | null;
   clientId: number;
   clientName: string;
   clientTypeName: string;
@@ -35,6 +36,7 @@ export type InvoiceSummary = {
 export type InvoiceDetail = {
   id: number;
   invoiceNumber: string;
+  billNo: string | null;
   orderId: number | null;
   purchaseId: number | null;
   clientId: number;

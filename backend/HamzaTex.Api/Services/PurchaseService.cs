@@ -20,8 +20,8 @@ public interface IPurchaseService
     Task<Response<List<PurchaseDto>>> GetAllAsync(int userId, bool isAdmin);
     /// <summary>Get paginated purchases. Admin sees all; non-admins see only their own purchases.</summary>
     Task<Response<PagedList<PurchaseDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
-    /// <summary>Filter purchases by supplierId, statusId, and/or date range.</summary>
-    Task<Response<List<PurchaseDto>>> GetFilteredAsync(int? supplierId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
+    /// <summary>Filter purchases by supplierId, statusId, date range, and/or a free-text search matching BillNo or supplier name.</summary>
+    Task<Response<List<PurchaseDto>>> GetFilteredAsync(int? supplierId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, string? search, int userId, bool isAdmin);
     /// <summary>Update purchase header and handle status transitions (Received → stock+ledger, Cancelled → reversal).</summary>
     Task<Response<PurchaseDto>> UpdateByIdAsync(int id, UpdatePurchaseDto model, int userId, bool isAdmin);
     /// <summary>Replace all lines on a Pending or InProgress purchase. Syncs the linked Draft invoice. Blocked for Received/Cancelled purchases.</summary>
@@ -96,6 +96,7 @@ public class PurchaseService : IPurchaseService
                 PurchaseDate = model.PurchaseDate,
                 PurchaseDateHijri = purchaseDateHijri,
                 Notes = model.Notes,
+                BillNo = model.BillNo,
                 CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
 
@@ -174,7 +175,7 @@ public class PurchaseService : IPurchaseService
     }
 
     public async Task<Response<List<PurchaseDto>>> GetFilteredAsync(
-        int? supplierId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin)
+        int? supplierId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, string? search, int userId, bool isAdmin)
     {
         var query = PurchaseQueryWithIncludes().AsNoTracking();
 
@@ -192,6 +193,11 @@ public class PurchaseService : IPurchaseService
 
         if (dateTo.HasValue)
             query = query.Where(p => p.PurchaseDate <= dateTo.Value);
+
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(p =>
+                (p.BillNo != null && p.BillNo.Contains(search)) ||
+                (p.Supplier != null && p.Supplier.Name.Contains(search)));
 
         var purchases = await query.OrderByDescending(p => p.PurchaseDate).ToListAsync();
         return Response<List<PurchaseDto>>.SuccessResponse(purchases.Select(p => ToDto(p)).ToList(), "Filtered purchases fetched successfully.");
@@ -220,6 +226,7 @@ public class PurchaseService : IPurchaseService
         {
             purchase.PaymentTypeId = model.PaymentTypeId;
             purchase.Notes = model.Notes;
+            ApplyBillNo(purchase, model.BillNo);
             if (model.PurchaseDate.HasValue)
                 purchase.PurchaseDate = model.PurchaseDate.Value;
             await _dbContext.SaveChangesAsync();
@@ -243,6 +250,7 @@ public class PurchaseService : IPurchaseService
         purchase.StatusId = model.StatusId;
         purchase.PaymentTypeId = model.PaymentTypeId;
         purchase.Notes = model.Notes;
+        ApplyBillNo(purchase, model.BillNo);
         if (model.PurchaseDate.HasValue)
             purchase.PurchaseDate = model.PurchaseDate.Value;
         await _dbContext.SaveChangesAsync();
@@ -358,12 +366,6 @@ public class PurchaseService : IPurchaseService
         if (purchase.StatusId == StatusReceived)
             return Response.ErrorResponse("Validation failed", "Cannot delete a received purchase. Cancel it instead.");
 
-        var linkedTransactions = await _dbContext.Transactions
-            .Where(t => t.PurchaseId == id)
-            .ToListAsync();
-        if (linkedTransactions.Count > 0)
-            _dbContext.Transactions.RemoveRange(linkedTransactions);
-
         _dbContext.PurchaseLines.RemoveRange(purchase.PurchaseLines);
         _dbContext.Purchases.Remove(purchase);
         await _dbContext.SaveChangesAsync();
@@ -390,6 +392,7 @@ public class PurchaseService : IPurchaseService
             purchase.StatusId = StatusReceived;
             purchase.PaymentTypeId = model.PaymentTypeId;
             purchase.Notes = model.Notes;
+            ApplyBillNo(purchase, model.BillNo);
             if (model.PurchaseDate.HasValue)
                 purchase.PurchaseDate = model.PurchaseDate.Value;
             await _dbContext.SaveChangesAsync();
@@ -417,7 +420,6 @@ public class PurchaseService : IPurchaseService
                 }
             }
 
-            // Ledger posting: one header-level Transaction
             var purchaseTotal = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost);
             var transMode = MapPaymentTypeToTransMode(purchase.PaymentTypeId ?? 1);
 
@@ -472,7 +474,6 @@ public class PurchaseService : IPurchaseService
             purchase.StatusId = StatusCancelled;
             await _dbContext.SaveChangesAsync();
 
-            // If previously Received, reverse stock and ledger
             if (previousStatusId == StatusReceived)
             {
                 foreach (var line in purchase.PurchaseLines)
@@ -496,7 +497,6 @@ public class PurchaseService : IPurchaseService
                     }
                 }
 
-                // Reverse stock: Manual Out per line (undo the In)
                 foreach (var line in purchase.PurchaseLines)
                 {
                     if (line.ProductId is null) continue;
@@ -521,7 +521,6 @@ public class PurchaseService : IPurchaseService
                     }
                 }
 
-                // Compensating ledger entry (opposite: Debit, negative amount)
                 var purchaseTotal = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost);
                 var transMode = MapPaymentTypeToTransMode(purchase.PaymentTypeId ?? 1);
                 var reversalDate = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -543,6 +542,15 @@ public class PurchaseService : IPurchaseService
                 };
                 await _dbContext.Transactions.AddAsync(reversalTxn);
                 await _dbContext.SaveChangesAsync();
+
+                var existingAllocations = await _dbContext.PaymentAllocations
+                    .Where(a => a.PurchaseId == purchase.Id)
+                    .ToListAsync();
+                if (existingAllocations.Count > 0)
+                {
+                    _dbContext.PaymentAllocations.RemoveRange(existingAllocations);
+                    await _dbContext.SaveChangesAsync();
+                }
             }
 
             await transaction.CommitAsync();
@@ -613,6 +621,7 @@ public class PurchaseService : IPurchaseService
             PurchaseDateHijri = purchase.PurchaseDateHijri,
             PurchaseDateHijriDisplay = HijriDateHelper.FormatForDisplay(purchase.PurchaseDateHijri),
             Notes = purchase.Notes,
+            BillNo = purchase.BillNo,
             CreatedAt = purchase.CreatedAt,
             Total = total,
             AmountPaid = amountPaid,
@@ -628,5 +637,15 @@ public class PurchaseService : IPurchaseService
                 UnitCost = l.UnitCost
             }).ToList()
         };
+    }
+
+    /// <summary>
+    /// Status-only updates omit BillNo (null) and must not wipe the stored value.
+    /// Edit sends a string (possibly empty) to set or clear it.
+    /// </summary>
+    private static void ApplyBillNo(Purchase purchase, string? billNo)
+    {
+        if (billNo is null) return;
+        purchase.BillNo = string.IsNullOrWhiteSpace(billNo) ? null : billNo.Trim();
     }
 }

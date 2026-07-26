@@ -70,7 +70,9 @@ export const useTransactionList = () => {
       const q = search.trim().toLowerCase();
       result = result.filter(
         (t) =>
-          t.clientName.toLowerCase().includes(q) || t.transCategoryName.toLowerCase().includes(q),
+          t.clientName.toLowerCase().includes(q) ||
+          t.transCategoryName.toLowerCase().includes(q) ||
+          (t.billNo ?? '').toLowerCase().includes(q),
       );
     }
 

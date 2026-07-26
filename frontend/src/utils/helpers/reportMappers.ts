@@ -87,6 +87,7 @@ const mapApiBalanceHistoryPoint = (v: MonthlyBalancePoint): BalanceHistoryPoint 
 
 const mapApiClientOrderRow = (v: ClientOrderSummary): ClientOrderRow => ({
   orderId: v.orderId ?? 0,
+  billNo: v.billNo ?? null,
   orderDate: v.orderDate ?? '',
   orderDateHijriDisplay: v.orderDateHijriDisplay ?? null,
   statusName: v.statusName ?? '',
@@ -98,6 +99,7 @@ const mapApiClientOrderRow = (v: ClientOrderSummary): ClientOrderRow => ({
 
 const mapApiClientPurchaseRow = (v: ClientPurchaseSummary): ClientPurchaseRow => ({
   purchaseId: v.purchaseId ?? 0,
+  billNo: v.billNo ?? null,
   purchaseDate: v.purchaseDate ?? '',
   purchaseDateHijriDisplay: v.purchaseDateHijriDisplay ?? null,
   statusName: v.statusName ?? '',
@@ -115,6 +117,7 @@ const mapApiClientPaymentRow = (v: ClientPaymentSummary): ClientPaymentRow => ({
   modeName: v.modeName ?? '',
   amount: v.amount ?? 0,
   isReversed: v.isReversed ?? false,
+  billNos: v.billNos ?? [],
 });
 
 export const mapApiClientDetail = (v: ClientDetailViewModel): ClientDetailReportData => ({

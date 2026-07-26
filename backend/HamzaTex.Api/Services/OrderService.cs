@@ -20,8 +20,8 @@ public interface IOrderService
     Task<Response<List<OrderDto>>> GetAllAsync(int userId, bool isAdmin);
     /// <summary>Get paginated orders. Admin sees all; non-admins see only their own orders.</summary>
     Task<Response<PagedList<OrderDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin);
-    /// <summary>Filter orders by clientId, statusId, and/or date range.</summary>
-    Task<Response<List<OrderDto>>> GetFilteredAsync(int? clientId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin);
+    /// <summary>Filter orders by clientId, statusId, date range, and/or a free-text search matching BillNo or client name.</summary>
+    Task<Response<List<OrderDto>>> GetFilteredAsync(int? clientId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, string? search, int userId, bool isAdmin);
     /// <summary>Update order header and handle status transitions (Delivered → stock+ledger, Cancelled → reversal).</summary>
     Task<Response<OrderDto>> UpdateByIdAsync(int id, UpdateOrderDto model, int userId, bool isAdmin);
     /// <summary>Replace all lines on a Pending or InProgress order. Syncs the linked Draft invoice. Blocked for Delivered/Cancelled orders.</summary>
@@ -101,6 +101,7 @@ public class OrderService : IOrderService
                 OrderDate = model.OrderDate,
                 OrderDateHijri = orderDateHijri,
                 Notes = model.Notes,
+                BillNo = model.BillNo,
                 CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
 
@@ -180,7 +181,7 @@ public class OrderService : IOrderService
     }
 
     public async Task<Response<List<OrderDto>>> GetFilteredAsync(
-        int? clientId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, int userId, bool isAdmin)
+        int? clientId, int? statusId, DateOnly? dateFrom, DateOnly? dateTo, string? search, int userId, bool isAdmin)
     {
         var query = OrderQueryWithIncludes().AsNoTracking();
 
@@ -198,6 +199,11 @@ public class OrderService : IOrderService
 
         if (dateTo.HasValue)
             query = query.Where(o => o.OrderDate <= dateTo.Value);
+
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(o =>
+                (o.BillNo != null && o.BillNo.Contains(search)) ||
+                (o.Client != null && o.Client.Name.Contains(search)));
 
         var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
         return Response<List<OrderDto>>.SuccessResponse(orders.Select(o => ToDto(o)).ToList(), "Filtered orders fetched successfully.");
@@ -227,6 +233,7 @@ public class OrderService : IOrderService
             // Idempotent: already delivered, just update other fields
             if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
             order.Notes = model.Notes;
+            ApplyBillNo(order, model.BillNo);
             if (model.OrderDate.HasValue)
                 order.OrderDate = model.OrderDate.Value;
             await _dbContext.SaveChangesAsync();
@@ -260,6 +267,7 @@ public class OrderService : IOrderService
         order.StatusId = model.StatusId;
         if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
         order.Notes = model.Notes;
+        ApplyBillNo(order, model.BillNo);
         if (model.OrderDate.HasValue)
             order.OrderDate = model.OrderDate.Value;
         await _dbContext.SaveChangesAsync();
@@ -380,13 +388,6 @@ public class OrderService : IOrderService
         if (order.StatusId == StatusDelivered)
             return Response.ErrorResponse("Validation failed", "Cannot delete a delivered order. Cancel it instead.");
 
-        // Remove any transactions linked to this order (e.g. reversal rows on a cancelled-after-delivery order)
-        var linkedTransactions = await _dbContext.Transactions
-            .Where(t => t.OrderId == id)
-            .ToListAsync();
-        if (linkedTransactions.Count > 0)
-            _dbContext.Transactions.RemoveRange(linkedTransactions);
-
         _dbContext.OrderLines.RemoveRange(order.OrderLines);
         _dbContext.Orders.Remove(order);
         await _dbContext.SaveChangesAsync();
@@ -405,6 +406,7 @@ public class OrderService : IOrderService
             order.StatusId = StatusDelivered;
             if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
             order.Notes = model.Notes;
+            ApplyBillNo(order, model.BillNo);
             if (model.OrderDate.HasValue)
                 order.OrderDate = model.OrderDate.Value;
             await _dbContext.SaveChangesAsync();
@@ -550,6 +552,14 @@ public class OrderService : IOrderService
                 };
                 await _dbContext.Transactions.AddAsync(reversalTxn);
                 await _dbContext.SaveChangesAsync();
+                var existingAllocations = await _dbContext.PaymentAllocations
+                    .Where(a => a.OrderId == order.Id)
+                    .ToListAsync();
+                if (existingAllocations.Count > 0)
+                {
+                    _dbContext.PaymentAllocations.RemoveRange(existingAllocations);
+                    await _dbContext.SaveChangesAsync();
+                }
             }
 
             await transaction.CommitAsync();
@@ -661,6 +671,7 @@ public class OrderService : IOrderService
             OrderDateHijri = order.OrderDateHijri,
             OrderDateHijriDisplay = HijriDateHelper.FormatForDisplay(order.OrderDateHijri),
             Notes = order.Notes,
+            BillNo = order.BillNo,
             CreatedAt = order.CreatedAt,
             Total = total,
             AmountReceived = amountPaid,
@@ -676,5 +687,15 @@ public class OrderService : IOrderService
                 UnitPrice = l.UnitPrice
             }).ToList()
         };
+    }
+
+    /// <summary>
+    /// Status-only updates omit BillNo (null) and must not wipe the stored value.
+    /// Edit sends a string (possibly empty) to set or clear it.
+    /// </summary>
+    private static void ApplyBillNo(Order order, string? billNo)
+    {
+        if (billNo is null) return;
+        order.BillNo = string.IsNullOrWhiteSpace(billNo) ? null : billNo.Trim();
     }
 }

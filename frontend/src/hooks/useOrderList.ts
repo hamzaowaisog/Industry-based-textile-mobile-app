@@ -56,7 +56,10 @@ export const useOrderList = () => {
     if (statusId !== null) result = result.filter((o) => o.statusId === statusId);
     if (search.trim()) {
       const q = search.toLowerCase();
-      result = result.filter((o) => o.clientName.toLowerCase().includes(q));
+      result = result.filter(
+        (o) =>
+          o.clientName.toLowerCase().includes(q) || (o.billNo ?? '').toLowerCase().includes(q),
+      );
     }
     return result;
   }, [allOrders, activeTab, search]);

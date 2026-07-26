@@ -415,7 +415,7 @@ export const usePurchaseDeletePurchase = <TError = Response,
       return useMutation(getPurchaseDeletePurchaseMutationOptions(options), queryClient);
     }
     /**
- * @summary Filter purchases by supplierId, statusId, and/or date range.
+ * @summary Filter purchases by supplierId, statusId, date range, and/or a free-text search matching BillNo or supplier name.
  */
 export const purchaseGetFilteredPurchases = (
     params?: PurchaseGetFilteredPurchasesParams,
@@ -487,7 +487,7 @@ export function usePurchaseGetFilteredPurchases<TData = Awaited<ReturnType<typeo
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Filter purchases by supplierId, statusId, and/or date range.
+ * @summary Filter purchases by supplierId, statusId, date range, and/or a free-text search matching BillNo or supplier name.
  */
 
 export function usePurchaseGetFilteredPurchases<TData = Awaited<ReturnType<typeof purchaseGetFilteredPurchases>>, TError = unknown>(

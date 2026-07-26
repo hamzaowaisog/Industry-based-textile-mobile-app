@@ -194,7 +194,13 @@ export const PaymentDetailComponent = ({
                   ]}
                 >
                   <Text style={styles.allocationLabel}>
-                    {a.orderId ? `ORD-${a.orderId}` : a.purchaseId ? `PUR-${a.purchaseId}` : '—'}
+                    {a.billNo
+                      ? t('payments.billNoLabel', { billNo: a.billNo })
+                      : a.orderId
+                        ? `ORD-${a.orderId}`
+                        : a.purchaseId
+                          ? `PUR-${a.purchaseId}`
+                          : '—'}
                   </Text>
                   <AppAmount value={a.allocatedAmount ?? 0} size={14} />
                 </View>

@@ -9,6 +9,7 @@ import { AppBadge } from '@components/common/AppBadge';
 import { AppCard } from '@components/common/AppCard';
 import { AppIconTile } from '@components/common/AppIconTile';
 import { AppRow } from '@components/common/AppRow';
+import { BillNoInlineList } from '@components/common/BillNoInlineList';
 
 import { getStatusStyle } from '@utils/helpers/clientDetailContent';
 
@@ -33,7 +34,11 @@ export const ClientDetailTabContent = ({ tab, detail }: ClientDetailTabContentPr
             <AppCard key={o.orderId} padding={14}>
               <AppRow
                 leading={<AppIconTile Icon={ShoppingBagIcon} color={colors.primary} size={36} />}
-                primary={t('reports.clientDetail.orderRef', { id: o.orderId })}
+                primary={
+                  o.billNo
+                    ? t('orders.billNoLabel', { billNo: o.billNo })
+                    : t('reports.clientDetail.orderRef', { id: o.orderId })
+                }
                 secondary={
                   o.orderDateHijriDisplay ? `${o.orderDate} · ${o.orderDateHijriDisplay}` : o.orderDate
                 }
@@ -63,7 +68,11 @@ export const ClientDetailTabContent = ({ tab, detail }: ClientDetailTabContentPr
             <AppCard key={p.purchaseId} padding={14}>
               <AppRow
                 leading={<AppIconTile Icon={TruckIcon} color={colors.warning} size={36} />}
-                primary={t('reports.clientDetail.purchaseRef', { id: p.purchaseId })}
+                primary={
+                  p.billNo
+                    ? t('purchases.billNoLabel', { billNo: p.billNo })
+                    : t('reports.clientDetail.purchaseRef', { id: p.purchaseId })
+                }
                 secondary={
                   p.purchaseDateHijriDisplay
                     ? `${p.purchaseDate} · ${p.purchaseDateHijriDisplay}`
@@ -103,6 +112,7 @@ export const ClientDetailTabContent = ({ tab, detail }: ClientDetailTabContentPr
             rightSub={p.isReversed ? t('reports.clientDetail.reversed') : undefined}
             chevron={false}
           />
+          <BillNoInlineList billNos={p.billNos} />
         </AppCard>
       ))}
     </View>

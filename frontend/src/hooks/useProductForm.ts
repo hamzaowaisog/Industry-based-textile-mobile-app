@@ -27,11 +27,11 @@ import type { ProductFormValues } from '../types/products.types';
 const DEFAULT_VALUES: ProductFormValues = {
   name: '',
   sku: '',
-  unitId: 0,
+  unitId: AppConstants.UNIT.METER,
   defaultCost: '',
   defaultPrice: '',
-  quantity: '0',
-  reorderLevel: '0',
+  quantity: '',
+  reorderLevel: '',
 };
 
 export const useProductForm = () => {
@@ -50,6 +50,11 @@ export const useProductForm = () => {
     return PRODUCT_UNIT_OPTIONS.map((u, i) => ({ id: i + 1, name: u }));
   }, [metaUnits]);
 
+  const defaultUnitId = useMemo(() => {
+    const meter = unitItems.find((u) => u.name.toLowerCase() === 'm');
+    return meter?.id ?? AppConstants.UNIT.METER;
+  }, [unitItems]);
+
   const { data: existingProduct, isLoading: loading } = useQuery({
     queryKey: queryKeys.products.detail(productId!),
     queryFn: () => fetchProductDetailAsync(productId!),
@@ -65,11 +70,12 @@ export const useProductForm = () => {
         defaultCost: String(existingProduct.defaultCost),
         defaultPrice: String(existingProduct.defaultPrice),
         quantity: '0',
-        reorderLevel: String(existingProduct.reorderLevel),
+        reorderLevel:
+          existingProduct.reorderLevel === 0 ? '' : String(existingProduct.reorderLevel),
       };
     }
-    return DEFAULT_VALUES;
-  }, [isEdit, existingProduct]);
+    return { ...DEFAULT_VALUES, unitId: defaultUnitId };
+  }, [isEdit, existingProduct, defaultUnitId]);
 
   const isDiscardingRef = useRef(false);
 

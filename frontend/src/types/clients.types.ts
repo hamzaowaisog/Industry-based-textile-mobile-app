@@ -34,6 +34,7 @@ export type ClientTab = 'orders' | 'purchases' | 'payments' | 'invoices' | 'tran
 export type ClientInvoiceSummary = {
   invoiceId: number;
   invoiceNumber: string;
+  billNo: string | null;
   issueDate: string | null;
   issueDateHijriDisplay: string | null;
   dueDate: string | null;

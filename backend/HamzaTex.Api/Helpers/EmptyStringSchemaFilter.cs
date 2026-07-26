@@ -35,6 +35,7 @@ public class EmptyStringSchemaFilter : ISchemaFilter
 
         // General
         { "notes",             "Optional notes here" },
+        { "billno",            "INV-2024-0456" },
         { "description",       "Brief description" },
         { "message",           "Operation completed successfully" },
         { "title",             "Sample Title" },

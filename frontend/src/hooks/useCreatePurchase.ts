@@ -39,6 +39,7 @@ const INITIAL_VALUES: CreatePurchaseFormValues = {
   supplierName: '',
   paymentTypeId: AppConstants.PAYMENT_TYPE.CASH,
   notes: '',
+  billNo: '',
   lines: [],
 };
 

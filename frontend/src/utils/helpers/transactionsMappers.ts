@@ -9,6 +9,9 @@ import type {
 export const mapApiTransactionToRow = (t: TransactionDto): TransactionRow => ({
   id: t.id ?? 0,
   clientName: t.clientName ?? '',
+  billNo: t.billNo ?? null,
+  billNos: t.billNos ?? [],
+  unallocatedAmount: t.unallocatedAmount ?? null,
   transTypeId: t.transTypeId ?? 0,
   transTypeName: t.transTypeName ?? '',
   transCategoryId: t.transCategoryId ?? 0,
@@ -27,6 +30,9 @@ export const mapApiTransactionSummary = (s: TransactionSummaryDto): TransactionS
 export const mapApiTransactionDetail = (t: TransactionDto): TransactionDetail => ({
   id: t.id ?? 0,
   clientName: t.clientName ?? '',
+  billNo: t.billNo ?? null,
+  billNos: t.billNos ?? [],
+  unallocatedAmount: t.unallocatedAmount ?? null,
   userName: t.userName ?? '',
   orderId: t.orderId ?? null,
   purchaseId: t.purchaseId ?? null,

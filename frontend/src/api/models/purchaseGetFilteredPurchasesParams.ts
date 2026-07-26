@@ -11,4 +11,5 @@ supplierId?: number;
 statusId?: number;
 dateFrom?: string;
 dateTo?: string;
+search?: string;
 };

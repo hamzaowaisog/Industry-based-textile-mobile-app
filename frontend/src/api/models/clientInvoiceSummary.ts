@@ -11,6 +11,8 @@ export interface ClientInvoiceSummary {
   /** @nullable */
   invoiceNumber?: string | null;
   /** @nullable */
+  billNo?: string | null;
+  /** @nullable */
   issueDate?: string | null;
   /**
      * Hijri equivalent of IssueDate, formatted for display (e.g. "06 Muharram 1448").

@@ -31,6 +31,11 @@ export const PurchaseCard = React.memo(({ purchase, onPress }: PurchaseCardProps
         <View style={styles.left}>
           <Text style={styles.purchaseId}>{`PUR-${purchase.id}`}</Text>
           <Text style={styles.supplierName}>{purchase.supplierName}</Text>
+          {!!purchase.billNo && (
+            <Text style={styles.date}>
+              {t('purchases.billNoLabel', { billNo: purchase.billNo })}
+            </Text>
+          )}
           <Text style={styles.date}>{purchase.purchaseDate}</Text>
           <AppHijriDateLabel value={purchase.purchaseDateHijriDisplay} />
         </View>
