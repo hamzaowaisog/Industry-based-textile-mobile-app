@@ -34,6 +34,11 @@ export interface TransactionDto {
      * @nullable
      */
   billNos?: string[] | null;
+  /**
+     * For Payment-driven rows (Cash In/Out): portion of the underlying Payment not yet applied to any Order/Purchase. Null for non-Payment rows.
+     * @nullable
+     */
+  unallocatedAmount?: number | null;
   /** @nullable */
   transTypeId?: number | null;
   /** @nullable */

@@ -857,5 +857,6 @@ public class PaymentService : IPaymentService
         AllocatedBillNos = string.Join(", ", p.Allocations
             .Select(a => a.Order?.BillNo ?? a.Purchase?.BillNo)
             .Where(b => !string.IsNullOrWhiteSpace(b))),
+        UnallocatedAmount = p.Amount - p.Allocations.Sum(a => a.AllocatedAmount),
     };
 }

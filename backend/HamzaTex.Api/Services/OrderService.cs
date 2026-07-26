@@ -388,13 +388,6 @@ public class OrderService : IOrderService
         if (order.StatusId == StatusDelivered)
             return Response.ErrorResponse("Validation failed", "Cannot delete a delivered order. Cancel it instead.");
 
-        // Remove any transactions linked to this order (e.g. reversal rows on a cancelled-after-delivery order)
-        var linkedTransactions = await _dbContext.Transactions
-            .Where(t => t.OrderId == id)
-            .ToListAsync();
-        if (linkedTransactions.Count > 0)
-            _dbContext.Transactions.RemoveRange(linkedTransactions);
-
         _dbContext.OrderLines.RemoveRange(order.OrderLines);
         _dbContext.Orders.Remove(order);
         await _dbContext.SaveChangesAsync();
@@ -559,6 +552,14 @@ public class OrderService : IOrderService
                 };
                 await _dbContext.Transactions.AddAsync(reversalTxn);
                 await _dbContext.SaveChangesAsync();
+                var existingAllocations = await _dbContext.PaymentAllocations
+                    .Where(a => a.OrderId == order.Id)
+                    .ToListAsync();
+                if (existingAllocations.Count > 0)
+                {
+                    _dbContext.PaymentAllocations.RemoveRange(existingAllocations);
+                    await _dbContext.SaveChangesAsync();
+                }
             }
 
             await transaction.CommitAsync();

@@ -565,6 +565,7 @@ public class ReportService : IReportService
                     .Where(b => !string.IsNullOrWhiteSpace(b))
                     .Select(b => b!)
                     .ToList(),
+                UnallocatedAmount = p.Amount - p.Allocations.Sum(a => a.AllocatedAmount),
             }).ToList(),
             Invoices = invoices.Select(i => new ClientInvoiceSummary
             {

@@ -37,6 +37,9 @@ public class PaymentDto
 
     /// <summary>All linked Bill Nos, comma-separated, for flat table displays (PDF list export). Empty string if unallocated.</summary>
     public string AllocatedBillNos { get; set; } = string.Empty;
+
+    /// <summary>Portion of Amount not yet applied to any Order/Purchase (e.g. released by a cancelled order/purchase). Available as credit.</summary>
+    public decimal UnallocatedAmount { get; set; }
 }
 
 public class AllocationItemDto

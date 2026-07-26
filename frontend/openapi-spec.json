@@ -6920,6 +6920,11 @@
             },
             "description": "Bill Nos of every Order/Purchase this payment is allocated to. Empty when unallocated.",
             "nullable": true
+          },
+          "unallocatedAmount": {
+            "type": "number",
+            "description": "Portion of Amount not yet applied to any Order/Purchase (e.g. released by a cancelled order/purchase). Available as credit.",
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -9298,6 +9303,11 @@
             "description": "All linked Bill Nos, comma-separated, for flat table displays (PDF list export). Empty string if unallocated.",
             "nullable": true,
             "example": "string"
+          },
+          "unallocatedAmount": {
+            "type": "number",
+            "description": "Portion of Amount not yet applied to any Order/Purchase (e.g. released by a cancelled order/purchase). Available as credit.",
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -11107,6 +11117,12 @@
               "type": "string"
             },
             "description": "All distinct bill numbers behind this transaction, unjoined. A Payment applied across several delivered Orders/Purchases carries one entry per bill.",
+            "nullable": true
+          },
+          "unallocatedAmount": {
+            "type": "number",
+            "description": "For Payment-driven rows (Cash In/Out): portion of the underlying Payment not yet applied to any Order/Purchase. Null for non-Payment rows.",
+            "format": "double",
             "nullable": true
           },
           "transTypeId": {

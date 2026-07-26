@@ -116,6 +116,9 @@ public class ClientPaymentSummary
 
     /// <summary>Bill Nos of every Order/Purchase this payment is allocated to. Empty when unallocated.</summary>
     public List<string> BillNos { get; set; } = [];
+
+    /// <summary>Portion of Amount not yet applied to any Order/Purchase (e.g. released by a cancelled order/purchase). Available as credit.</summary>
+    public decimal UnallocatedAmount { get; set; }
 }
 
 public class ClientInvoiceSummary

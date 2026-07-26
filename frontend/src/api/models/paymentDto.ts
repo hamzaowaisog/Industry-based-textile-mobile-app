@@ -48,4 +48,6 @@ export interface PaymentDto {
      * @nullable
      */
   allocatedBillNos?: string | null;
+  /** Portion of Amount not yet applied to any Order/Purchase (e.g. released by a cancelled order/purchase). Available as credit. */
+  unallocatedAmount?: number;
 }

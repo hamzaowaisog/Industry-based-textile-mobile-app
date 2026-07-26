@@ -88,13 +88,18 @@ public class TransactionService : ITransactionService
 
     /// <summary>
     /// A Payment transaction split across multiple delivered Orders/Purchases has null OrderId/PurchaseId
-    /// on the Transaction row itself (see ledger posting convention), so its bill numbers must be recovered
-    /// from the linked Payment's allocations. Batches one query per page/list instead of per-row.
+    /// on the Transaction row itself, so its bill numbers must be recovered from the linked Payment's allocations.
+    /// Batches one query per page/list instead of per-row. Payment-driven rows always source both BillNos and
+    /// UnallocatedAmount from the live Payment.Allocations so that a later cancel/delete which releases an
+    /// allocation reflects immediately, even when the Transaction row still carries a stale OrderId/PurchaseId
+    /// snapshot from a previously single-allocated payment.
     /// </summary>
-    private async Task<Dictionary<int, List<string>>> BuildPaymentBillNosAsync(IEnumerable<Transaction> transactions)
+    private sealed record PaymentTxContext(List<string> BillNos, decimal UnallocatedAmount);
+
+    private async Task<Dictionary<int, PaymentTxContext>> BuildPaymentContextAsync(IEnumerable<Transaction> transactions)
     {
         var candidateIds = transactions
-            .Where(t => t.TransCategoryId is 5 or 6 && !t.OrderId.HasValue && !t.PurchaseId.HasValue)
+            .Where(t => t.TransCategoryId is 5 or 6)
             .Select(t => t.Id)
             .ToList();
         if (candidateIds.Count == 0) return new();
@@ -108,23 +113,32 @@ public class TransactionService : ITransactionService
 
         return payments.ToDictionary(
             p => p.TransactionId!.Value,
-            p => p.Allocations
-                .Select(a => a.Order?.BillNo ?? a.Purchase?.BillNo)
-                .Where(b => !string.IsNullOrWhiteSpace(b))
-                .Select(b => b!)
-                .Distinct()
-                .ToList());
+            p => new PaymentTxContext(
+                p.Allocations
+                    .Select(a => a.Order?.BillNo ?? a.Purchase?.BillNo)
+                    .Where(b => !string.IsNullOrWhiteSpace(b))
+                    .Select(b => b!)
+                    .Distinct()
+                    .ToList(),
+                p.Amount - p.Allocations.Sum(a => a.AllocatedAmount)));
     }
 
-    private static TransactionDto ToDto(Transaction t, IReadOnlyDictionary<int, List<string>>? paymentBillNos = null)
+    private static TransactionDto ToDto(Transaction t, IReadOnlyDictionary<int, PaymentTxContext>? paymentContext = null)
     {
         List<string> billNos;
-        if (!string.IsNullOrWhiteSpace(t.Order?.BillNo))
+        decimal? unallocatedAmount = null;
+
+        if (t.TransCategoryId is 5 or 6
+            && paymentContext is not null
+            && paymentContext.TryGetValue(t.Id, out var ctx))
+        {
+            billNos = ctx.BillNos;
+            unallocatedAmount = ctx.UnallocatedAmount;
+        }
+        else if (!string.IsNullOrWhiteSpace(t.Order?.BillNo))
             billNos = [t.Order!.BillNo!];
         else if (!string.IsNullOrWhiteSpace(t.Purchase?.BillNo))
             billNos = [t.Purchase!.BillNo!];
-        else if (paymentBillNos is not null && paymentBillNos.TryGetValue(t.Id, out var found))
-            billNos = found;
         else
             billNos = [];
 
@@ -141,6 +155,7 @@ public class TransactionService : ITransactionService
         PurchaseId      = t.PurchaseId,
         BillNo          = billNos.Count > 0 ? string.Join(", ", billNos) : null,
         BillNos         = billNos,
+        UnallocatedAmount = unallocatedAmount,
         TransTypeId     = t.TransTypeId,
         TransTypeName   = t.TransType?.Name,
         TransModeId     = t.TransModeId,
@@ -205,8 +220,8 @@ public class TransactionService : ITransactionService
         var created = await WithIncludes(_db.Transactions.AsNoTracking())
             .FirstAsync(t => t.Id == entity.Id);
 
-        var createdBillNos = await BuildPaymentBillNosAsync([created]);
-        return Response<TransactionDto>.SuccessResponse(ToDto(created, createdBillNos), "Transaction created.");
+        var createdCtx = await BuildPaymentContextAsync([created]);
+        return Response<TransactionDto>.SuccessResponse(ToDto(created, createdCtx), "Transaction created.");
     }
 
     public async Task<Response<TransactionDto>> GetByIdAsync(int id, int userId, bool isAdmin)
@@ -217,8 +232,8 @@ public class TransactionService : ITransactionService
         if (entity is null || (!isAdmin && entity.UserId != userId))
             return Response<TransactionDto>.ErrorResponse("Not found", $"Transaction with ID '{id}' was not found.");
 
-        var billNos = await BuildPaymentBillNosAsync([entity]);
-        return Response<TransactionDto>.SuccessResponse(ToDto(entity, billNos), "Transaction fetched.");
+        var ctx = await BuildPaymentContextAsync([entity]);
+        return Response<TransactionDto>.SuccessResponse(ToDto(entity, ctx), "Transaction fetched.");
     }
 
     public async Task<Response<PagedList<TransactionDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
@@ -231,8 +246,8 @@ public class TransactionService : ITransactionService
         query = query.OrderByDescending(t => t.TransDate).ThenByDescending(t => t.Id);
 
         var paged = await PagedList<Transaction>.CreateAsync(query, page, pageSize);
-        var billNos = await BuildPaymentBillNosAsync(paged.Items);
-        var pagedList = new PagedList<TransactionDto>(paged.Items.Select(t => ToDto(t, billNos)).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
+        var ctx = await BuildPaymentContextAsync(paged.Items);
+        var pagedList = new PagedList<TransactionDto>(paged.Items.Select(t => ToDto(t, ctx)).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
 
         return Response<PagedList<TransactionDto>>.SuccessResponse(pagedList, "Transactions fetched.");
     }
@@ -249,9 +264,9 @@ public class TransactionService : ITransactionService
             .ThenByDescending(t => t.Id)
             .ToListAsync();
 
-        var billNos = await BuildPaymentBillNosAsync(list);
+        var ctx = await BuildPaymentContextAsync(list);
         return Response<List<TransactionDto>>.SuccessResponse(
-            list.Select(t => ToDto(t, billNos)).ToList(), "Transactions fetched.");
+            list.Select(t => ToDto(t, ctx)).ToList(), "Transactions fetched.");
     }
 
     public async Task<Response<TransactionSummaryDto>> GetSummaryAsync(int userId, bool isAdmin)
@@ -285,9 +300,9 @@ public class TransactionService : ITransactionService
             .ThenByDescending(t => t.Id)
             .ToListAsync();
 
-        var billNos = await BuildPaymentBillNosAsync(list);
+        var ctx = await BuildPaymentContextAsync(list);
         return Response<List<TransactionDto>>.SuccessResponse(
-            list.Select(t => ToDto(t, billNos)).ToList(), "Transactions fetched.");
+            list.Select(t => ToDto(t, ctx)).ToList(), "Transactions fetched.");
     }
 
     public async Task<Response<List<TransactionDto>>> GetFilteredAsync(
@@ -310,9 +325,9 @@ public class TransactionService : ITransactionService
             .ThenByDescending(t => t.Id)
             .ToListAsync();
 
-        var billNos = await BuildPaymentBillNosAsync(list);
+        var ctx = await BuildPaymentContextAsync(list);
         return Response<List<TransactionDto>>.SuccessResponse(
-            list.Select(t => ToDto(t, billNos)).ToList(), "Transactions fetched.");
+            list.Select(t => ToDto(t, ctx)).ToList(), "Transactions fetched.");
     }
 
     public async Task<Response<TransactionDto>> UpdateByIdAsync(int id, UpdateTransactionDto model)
@@ -332,7 +347,6 @@ public class TransactionService : ITransactionService
         entity.TransDate       = model.TransDate;
         entity.Notes           = model.Notes;
         entity.ClientId        = model.ClientId;
-        // Null means "keep current value" — callers cannot explicitly clear these fields via PUT.
         entity.TransTypeId     = model.TransTypeId ?? entity.TransTypeId;
         entity.TransModeId     = model.TransModeId ?? entity.TransModeId;
 
@@ -341,8 +355,8 @@ public class TransactionService : ITransactionService
         var updated = await WithIncludes(_db.Transactions.AsNoTracking())
             .FirstAsync(t => t.Id == id);
 
-        var billNos = await BuildPaymentBillNosAsync([updated]);
-        return Response<TransactionDto>.SuccessResponse(ToDto(updated, billNos), "Transaction updated.");
+        var ctx = await BuildPaymentContextAsync([updated]);
+        return Response<TransactionDto>.SuccessResponse(ToDto(updated, ctx), "Transaction updated.");
     }
 
     public async Task<Response> DeleteByIdAsync(int id)

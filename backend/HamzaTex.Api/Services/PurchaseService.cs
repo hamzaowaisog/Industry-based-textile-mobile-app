@@ -366,12 +366,6 @@ public class PurchaseService : IPurchaseService
         if (purchase.StatusId == StatusReceived)
             return Response.ErrorResponse("Validation failed", "Cannot delete a received purchase. Cancel it instead.");
 
-        var linkedTransactions = await _dbContext.Transactions
-            .Where(t => t.PurchaseId == id)
-            .ToListAsync();
-        if (linkedTransactions.Count > 0)
-            _dbContext.Transactions.RemoveRange(linkedTransactions);
-
         _dbContext.PurchaseLines.RemoveRange(purchase.PurchaseLines);
         _dbContext.Purchases.Remove(purchase);
         await _dbContext.SaveChangesAsync();
@@ -426,7 +420,6 @@ public class PurchaseService : IPurchaseService
                 }
             }
 
-            // Ledger posting: one header-level Transaction
             var purchaseTotal = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost);
             var transMode = MapPaymentTypeToTransMode(purchase.PaymentTypeId ?? 1);
 
@@ -481,7 +474,6 @@ public class PurchaseService : IPurchaseService
             purchase.StatusId = StatusCancelled;
             await _dbContext.SaveChangesAsync();
 
-            // If previously Received, reverse stock and ledger
             if (previousStatusId == StatusReceived)
             {
                 foreach (var line in purchase.PurchaseLines)
@@ -505,7 +497,6 @@ public class PurchaseService : IPurchaseService
                     }
                 }
 
-                // Reverse stock: Manual Out per line (undo the In)
                 foreach (var line in purchase.PurchaseLines)
                 {
                     if (line.ProductId is null) continue;
@@ -530,7 +521,6 @@ public class PurchaseService : IPurchaseService
                     }
                 }
 
-                // Compensating ledger entry (opposite: Debit, negative amount)
                 var purchaseTotal = purchase.PurchaseLines.Sum(l => l.Qty * l.UnitCost);
                 var transMode = MapPaymentTypeToTransMode(purchase.PaymentTypeId ?? 1);
                 var reversalDate = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -552,6 +542,15 @@ public class PurchaseService : IPurchaseService
                 };
                 await _dbContext.Transactions.AddAsync(reversalTxn);
                 await _dbContext.SaveChangesAsync();
+
+                var existingAllocations = await _dbContext.PaymentAllocations
+                    .Where(a => a.PurchaseId == purchase.Id)
+                    .ToListAsync();
+                if (existingAllocations.Count > 0)
+                {
+                    _dbContext.PaymentAllocations.RemoveRange(existingAllocations);
+                    await _dbContext.SaveChangesAsync();
+                }
             }
 
             await transaction.CommitAsync();

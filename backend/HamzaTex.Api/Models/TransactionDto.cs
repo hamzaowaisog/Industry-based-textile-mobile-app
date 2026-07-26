@@ -22,6 +22,9 @@ public class TransactionDto
     /// <summary>All distinct bill numbers behind this transaction, unjoined. A Payment applied across several delivered Orders/Purchases carries one entry per bill.</summary>
     public List<string> BillNos { get; set; } = new();
 
+    /// <summary>For Payment-driven rows (Cash In/Out): portion of the underlying Payment not yet applied to any Order/Purchase. Null for non-Payment rows.</summary>
+    public decimal? UnallocatedAmount { get; set; }
+
     public int? TransTypeId { get; set; }
     public string? TransTypeName { get; set; }
 
