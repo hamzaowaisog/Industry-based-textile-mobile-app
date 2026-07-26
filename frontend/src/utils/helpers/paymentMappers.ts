@@ -31,6 +31,7 @@ export const mapApiPaymentToRow = (p: PaymentDto): PaymentRow => {
     isReversed: !!p.isReversed,
     allocatedBillNos: billNos.join(', '),
     billNos,
+    unallocatedAmount: p.unallocatedAmount ?? 0,
   };
 };
 
@@ -60,4 +61,5 @@ export const mapApiPaymentDetail = (p: PaymentDto): PaymentDetail => ({
   isCashSettled: !!p.isCashSettled,
   allocations: p.allocations ?? [],
   billNos: collectBillNos(p),
+  unallocatedAmount: p.unallocatedAmount ?? 0,
 });

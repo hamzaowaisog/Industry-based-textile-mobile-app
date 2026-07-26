@@ -16,6 +16,7 @@ export type PaymentRow = {
   isReversed: boolean;
   allocatedBillNos: string;
   billNos: string[];
+  unallocatedAmount: number;
 };
 
 export type PaymentAllocation = PaymentAllocationDto;
@@ -46,6 +47,7 @@ export type PaymentDetail = {
   isCashSettled: boolean;
   allocations: PaymentAllocation[];
   billNos: string[];
+  unallocatedAmount: number;
 };
 
 export type AllocationFormValues = {

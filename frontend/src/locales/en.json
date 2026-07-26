@@ -741,6 +741,8 @@
     "clientLocked": "Client pre-selected from previous screen",
     "linkedBill": "Linked Bill: {{billNo}}",
     "billNoLabel": "Bill #{{billNo}}",
+    "unallocatedBadge": "Unallocated: {{amount}}",
+    "unallocatedDetail": "Unallocated (available as credit)",
     "balanceHelper": "Currently owes you {{amount}}",
     "balancePaidHelper": "You owe {{amount}}",
     "amountHelperReceived": "Money coming into your account",
@@ -1042,6 +1044,8 @@
     "searchPlaceholder": "Search by client or category…",
     "netForPeriod": "Net for the period",
     "billNoLabel": "Bill #{{billNo}}",
+    "unallocatedBadge": "Unallocated: {{amount}}",
+    "unallocatedDetail": "Unallocated (available as credit)",
     "filters": {
       "credit": "Credit",
       "debit": "Debit"

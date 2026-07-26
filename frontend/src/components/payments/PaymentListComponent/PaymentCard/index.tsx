@@ -11,10 +11,13 @@ import { AppCard } from '@components/common/AppCard';
 import { AppHijriDateLabel } from '@components/common/AppHijriDateLabel';
 import { BillNoInlineList } from '@components/common/BillNoInlineList';
 
+import { formatAmount } from '@utils/helpers/formatCurrency';
 import { getInitials } from '@utils/helpers/textHelpers';
 import { getPaymentDirectionColor, isPaymentReceived } from '@utils/helpers/paymentContent';
 
 import { colors } from '@theme/colors';
+
+import { AppConstants } from '@constants/appConstants';
 
 import type { PaymentCardProps } from '../../../../types/payments.types';
 import { styles } from './styles';
@@ -74,6 +77,16 @@ export const PaymentCard = React.memo(({ payment, onPress }: PaymentCardProps) =
 
         <View style={styles.footerRow}>
           <Text style={styles.reference}>{`HT-PAYMENT-${payment.id}`}</Text>
+          {payment.unallocatedAmount > 0 && (
+            <AppBadge
+              label={t('payments.unallocatedBadge', {
+                amount: `${AppConstants.APP.CURRENCY} ${formatAmount(payment.unallocatedAmount)}`,
+              })}
+              bg={colors.warningLight}
+              fg={colors.warning}
+              size="sm"
+            />
+          )}
         </View>
       </AppCard>
     </View>

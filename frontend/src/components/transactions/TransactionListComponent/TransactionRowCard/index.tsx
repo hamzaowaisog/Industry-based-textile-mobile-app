@@ -5,17 +5,22 @@ import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { AppAmount } from '@components/common/AppAmount';
+import { AppBadge } from '@components/common/AppBadge';
 import { AppCard } from '@components/common/AppCard';
 import { AppIconTile } from '@components/common/AppIconTile';
 import { AppRow } from '@components/common/AppRow';
 import { BillNoInlineList } from '@components/common/BillNoInlineList';
 
+import { formatAmount } from '@utils/helpers/formatCurrency';
 import {
   TRANS_CATEGORY_ICONS,
   getTransTypeColor,
   getTransTypeSign,
 } from '@utils/helpers/transactionsContent';
 
+import { colors } from '@theme/colors';
+
+import { AppConstants } from '@constants/appConstants';
 import { WalletIcon } from '@constants/svgAssets';
 
 import type { TransactionRowCardProps } from '../../../../types/transactions.types';
@@ -52,6 +57,18 @@ export const TransactionRowCard = React.memo(
         {showInlineList && (
           <View style={styles.billNoRow}>
             <BillNoInlineList billNos={billNos} />
+          </View>
+        )}
+        {transaction.unallocatedAmount != null && transaction.unallocatedAmount > 0 && (
+          <View style={styles.billNoRow}>
+            <AppBadge
+              label={t('transactions.unallocatedBadge', {
+                amount: `${AppConstants.APP.CURRENCY} ${formatAmount(transaction.unallocatedAmount)}`,
+              })}
+              bg={colors.warningLight}
+              fg={colors.warning}
+              size="sm"
+            />
           </View>
         )}
       </AppCard>
