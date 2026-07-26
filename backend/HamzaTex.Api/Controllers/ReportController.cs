@@ -389,46 +389,46 @@ public class ReportController : BaseController
         if (d.Orders.Count > 0)
             model.Sections.Add(new TableSection(
                 $"Orders ({d.Orders.Count})",
-                Headers:    new[] { "#", "Date", "Hijri Date", "Status", "Total", "Paid", "Outstanding", "Payment" },
+                Headers:    new[] { "#", "Bill No", "Date", "Hijri Date", "Status", "Total", "Paid", "Outstanding", "Payment" },
                 Rows:       d.Orders.Select((o, i) => new[]
                 {
-                    (i + 1).ToString(), o.OrderDate.ToString("dd MMM yyyy"), o.OrderDateHijriDisplay ?? "—", o.StatusName,
+                    (i + 1).ToString(), o.BillNo ?? "—", o.OrderDate.ToString("dd MMM yyyy"), o.OrderDateHijriDisplay ?? "—", o.StatusName,
                     Curr(o.Total), Curr(o.AmountPaid), Curr(o.Outstanding), o.PaymentStatus
                 }),
-                RightAlign: new[] { 4, 5, 6 }));
+                RightAlign: new[] { 5, 6, 7 }));
 
         if (d.Purchases.Count > 0)
             model.Sections.Add(new TableSection(
                 $"Purchases ({d.Purchases.Count})",
-                Headers:    new[] { "#", "Date", "Hijri Date", "Status", "Total", "Paid", "Outstanding", "Payment" },
+                Headers:    new[] { "#", "Bill No", "Date", "Hijri Date", "Status", "Total", "Paid", "Outstanding", "Payment" },
                 Rows:       d.Purchases.Select((p, i) => new[]
                 {
-                    (i + 1).ToString(), p.PurchaseDate.ToString("dd MMM yyyy"), p.PurchaseDateHijriDisplay ?? "—", p.StatusName,
+                    (i + 1).ToString(), p.BillNo ?? "—", p.PurchaseDate.ToString("dd MMM yyyy"), p.PurchaseDateHijriDisplay ?? "—", p.StatusName,
                     Curr(p.Total), Curr(p.AmountPaid), Curr(p.Outstanding), p.PaymentStatus
                 }),
-                RightAlign: new[] { 4, 5, 6 }));
+                RightAlign: new[] { 5, 6, 7 }));
 
         if (d.Payments.Count > 0)
             model.Sections.Add(new TableSection(
                 $"Payments ({d.Payments.Count})",
-                Headers:    new[] { "#", "Date", "Hijri Date", "Direction", "Mode", "Amount" },
+                Headers:    new[] { "#", "Date", "Hijri Date", "Direction", "Mode", "Bill No(s)", "Amount" },
                 Rows:       d.Payments.Select((p, i) => new[]
                 {
                     (i + 1).ToString(), p.PaymentDate.ToString("dd MMM yyyy"), p.PaymentDateHijriDisplay ?? "—",
-                    p.DirectionName, p.ModeName, Curr(p.Amount)
+                    p.DirectionName, p.ModeName, p.BillNos.Count > 0 ? string.Join(", ", p.BillNos) : "—", Curr(p.Amount)
                 }),
-                RightAlign: new[] { 5 }));
+                RightAlign: new[] { 6 }));
 
         if (d.RecentTransactions.Count > 0)
             model.Sections.Add(new TableSection(
                 $"Recent Transactions ({d.RecentTransactions.Count})",
-                Headers:    new[] { "#", "Date", "Hijri Date", "Category", "Type", "Amount" },
+                Headers:    new[] { "#", "Date", "Hijri Date", "Bill No", "Category", "Type", "Amount" },
                 Rows:       d.RecentTransactions.Select((t, i) => new[]
                 {
                     (i + 1).ToString(), t.TransDate.ToString("dd MMM yyyy"), t.TransDateHijriDisplay ?? "—",
-                    t.CategoryName, t.TypeName, Curr(t.Amount)
+                    t.BillNo ?? "—", t.CategoryName, t.TypeName, Curr(t.Amount)
                 }),
-                RightAlign: new[] { 5 }));
+                RightAlign: new[] { 6 }));
 
         model.Closing = new ClosingSummary(
             "CLOSING BALANCE", $"As of {DateTime.Now:dd MMM yyyy}",

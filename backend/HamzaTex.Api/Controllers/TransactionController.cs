@@ -232,6 +232,7 @@ public class TransactionController : BaseController
                     Rows: new[]
                     {
                         new[] { "Source", t.Source ?? "—" },
+                        new[] { "Bill No", t.BillNo ?? "—" },
                         new[] { "Mode", t.TransModeName ?? "—" },
                         new[] { "Client", t.ClientName ?? "—" },
                         new[] { "Date", t.TransDate.ToString("dd MMM yyyy") },

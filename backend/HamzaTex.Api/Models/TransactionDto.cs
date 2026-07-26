@@ -16,6 +16,12 @@ public class TransactionDto
     public int? OrderId { get; set; }
     public int? PurchaseId { get; set; }
 
+    /// <summary>Comma-joined bill numbers for this transaction (single value for Order/Purchase rows; may list several for a Payment split across multiple bills). Null for Expense/Manual rows.</summary>
+    public string? BillNo { get; set; }
+
+    /// <summary>All distinct bill numbers behind this transaction, unjoined. A Payment applied across several delivered Orders/Purchases carries one entry per bill.</summary>
+    public List<string> BillNos { get; set; } = new();
+
     public int? TransTypeId { get; set; }
     public string? TransTypeName { get; set; }
 

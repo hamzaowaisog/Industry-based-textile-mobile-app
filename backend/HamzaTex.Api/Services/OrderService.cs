@@ -233,7 +233,7 @@ public class OrderService : IOrderService
             // Idempotent: already delivered, just update other fields
             if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
             order.Notes = model.Notes;
-            order.BillNo = model.BillNo;
+            ApplyBillNo(order, model.BillNo);
             if (model.OrderDate.HasValue)
                 order.OrderDate = model.OrderDate.Value;
             await _dbContext.SaveChangesAsync();
@@ -267,7 +267,7 @@ public class OrderService : IOrderService
         order.StatusId = model.StatusId;
         if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
         order.Notes = model.Notes;
-        order.BillNo = model.BillNo;
+        ApplyBillNo(order, model.BillNo);
         if (model.OrderDate.HasValue)
             order.OrderDate = model.OrderDate.Value;
         await _dbContext.SaveChangesAsync();
@@ -413,7 +413,7 @@ public class OrderService : IOrderService
             order.StatusId = StatusDelivered;
             if (model.PaymentTypeId.HasValue) order.PaymentTypeId = model.PaymentTypeId.Value;
             order.Notes = model.Notes;
-            order.BillNo = model.BillNo;
+            ApplyBillNo(order, model.BillNo);
             if (model.OrderDate.HasValue)
                 order.OrderDate = model.OrderDate.Value;
             await _dbContext.SaveChangesAsync();
@@ -686,5 +686,15 @@ public class OrderService : IOrderService
                 UnitPrice = l.UnitPrice
             }).ToList()
         };
+    }
+
+    /// <summary>
+    /// Status-only updates omit BillNo (null) and must not wipe the stored value.
+    /// Edit sends a string (possibly empty) to set or clear it.
+    /// </summary>
+    private static void ApplyBillNo(Order order, string? billNo)
+    {
+        if (billNo is null) return;
+        order.BillNo = string.IsNullOrWhiteSpace(billNo) ? null : billNo.Trim();
     }
 }

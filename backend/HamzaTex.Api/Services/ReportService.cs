@@ -299,6 +299,7 @@ public class ReportService : IReportService
         var payments = await _db.Payments.AsNoTracking()
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
+            .Include(p => p.Allocations)
             .Where(p => clientIds.Contains(p.PartyClientId) && p.OriginalPaymentId == null)
             .OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.Id)
             .ToListAsync();
@@ -403,6 +404,7 @@ public class ReportService : IReportService
         var payments = await _db.Payments.AsNoTracking()
             .Include(p => p.PaymentDirection)
             .Include(p => p.TransMode)
+            .Include(p => p.Allocations)
             .Where(p => p.PartyClientId == clientId && p.OriginalPaymentId == null)
             .OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.Id)
             .ToListAsync();
@@ -443,6 +445,41 @@ public class ReportService : IReportService
         Dictionary<int, decimal> orderAllocations,
         Dictionary<int, decimal> purchaseAllocations)
     {
+        var orderBillNoById = orders.ToDictionary(o => o.Id, o => o.BillNo);
+        var purchaseBillNoById = purchases.ToDictionary(p => p.Id, p => p.BillNo);
+
+        // A Payment split across multiple delivered Orders/Purchases has null OrderId/PurchaseId on its
+        // Transaction row (see ledger posting convention), so recover its bill numbers via the payment's allocations.
+        var paymentBillNosByTransactionId = payments
+            .Where(p => p.TransactionId.HasValue)
+            .ToDictionary(
+                p => p.TransactionId!.Value,
+                p => p.Allocations
+                    .Select(a => a.OrderId.HasValue
+                        ? orderBillNoById.GetValueOrDefault(a.OrderId.Value)
+                        : a.PurchaseId.HasValue
+                            ? purchaseBillNoById.GetValueOrDefault(a.PurchaseId.Value)
+                            : null)
+                    .Where(b => !string.IsNullOrWhiteSpace(b))
+                    .Select(b => b!)
+                    .Distinct()
+                    .ToList());
+
+        List<string> GetTransactionBillNos(Transaction t)
+        {
+            if (t.OrderId.HasValue)
+            {
+                var bn = orderBillNoById.GetValueOrDefault(t.OrderId.Value);
+                return string.IsNullOrWhiteSpace(bn) ? [] : [bn];
+            }
+            if (t.PurchaseId.HasValue)
+            {
+                var bn = purchaseBillNoById.GetValueOrDefault(t.PurchaseId.Value);
+                return string.IsNullOrWhiteSpace(bn) ? [] : [bn];
+            }
+            return paymentBillNosByTransactionId.GetValueOrDefault(t.Id) ?? [];
+        }
+
         var deliveredOrders = orders.Where(o => o.StatusId == StatusDelivered).ToList();
         var deliveredPurchases = purchases.Where(p => p.StatusId == StatusDelivered).ToList();
         var totalOrderAmount = deliveredOrders.Sum(o => o.OrderLines.Sum(l => l.Qty * l.UnitPrice));
@@ -458,6 +495,7 @@ public class ReportService : IReportService
             return new ClientOrderSummary
             {
                 OrderId = o.Id,
+                BillNo = o.BillNo,
                 OrderDate = o.OrderDate,
                 OrderDateHijriDisplay = HijriDateHelper.FormatForDisplay(o.OrderDateHijri),
                 StatusName = o.Status?.Name ?? "Unknown",
@@ -476,6 +514,7 @@ public class ReportService : IReportService
             return new ClientPurchaseSummary
             {
                 PurchaseId = p.Id,
+                BillNo = p.BillNo,
                 PurchaseDate = p.PurchaseDate,
                 PurchaseDateHijriDisplay = HijriDateHelper.FormatForDisplay(p.PurchaseDateHijri),
                 StatusName = p.Status?.Name ?? "Unknown",
@@ -517,11 +556,25 @@ public class ReportService : IReportService
                 ModeName = p.TransMode?.Name ?? "Unknown",
                 Amount = p.Amount,
                 IsReversed = p.IsReversed,
+                BillNos = p.Allocations
+                    .Select(a => a.OrderId.HasValue
+                        ? orderBillNoById.GetValueOrDefault(a.OrderId.Value)
+                        : a.PurchaseId.HasValue
+                            ? purchaseBillNoById.GetValueOrDefault(a.PurchaseId.Value)
+                            : null)
+                    .Where(b => !string.IsNullOrWhiteSpace(b))
+                    .Select(b => b!)
+                    .ToList(),
             }).ToList(),
             Invoices = invoices.Select(i => new ClientInvoiceSummary
             {
                 InvoiceId = i.Id,
                 InvoiceNumber = i.InvoiceNumber,
+                BillNo = i.OrderId.HasValue
+                    ? orderBillNoById.GetValueOrDefault(i.OrderId.Value)
+                    : i.PurchaseId.HasValue
+                        ? purchaseBillNoById.GetValueOrDefault(i.PurchaseId.Value)
+                        : null,
                 IssueDate = i.IssueDate,
                 IssueDateHijriDisplay = HijriDateHelper.FormatForDisplay(i.IssueDateHijri),
                 DueDate = i.DueDate,
@@ -533,15 +586,21 @@ public class ReportService : IReportService
             RecentTransactions = transactions
                 .OrderByDescending(t => t.TransDate).ThenByDescending(t => t.Id)
                 .Take(20)
-                .Select(t => new ClientTransactionSummary
+                .Select(t =>
+                {
+                    var billNos = GetTransactionBillNos(t);
+                    return new ClientTransactionSummary
                 {
                     TransactionId = t.Id,
+                    BillNo = billNos.Count > 0 ? string.Join(", ", billNos) : null,
+                    BillNos = billNos,
                     TransDate = t.TransDate,
                     TransDateHijriDisplay = HijriDateHelper.FormatForDisplay(t.TransDateHijri),
                     CategoryName = t.TransCategory?.Name ?? "Unknown",
                     TypeName = t.TransType?.Name ?? "Unknown",
                     Amount = t.Amount,
                     IsReversal = t.Notes?.StartsWith("REVERSAL of Payment", StringComparison.OrdinalIgnoreCase) ?? false,
+                };
                 }).ToList(),
             BalanceHistory = BuildBalanceHistory(transactions, client.OpeningBalance ?? 0),
         };

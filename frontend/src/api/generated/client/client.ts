@@ -570,7 +570,7 @@ export const useClientSetClientActive = <TError = Response | ProblemDetails,
       return useMutation(getClientSetClientActiveMutationOptions(options), queryClient);
     }
     /**
- * @summary Download a client list as a PDF report. Admin sees all clients; non-admins see only their own.
+ * @summary Download a client list as a PDF report. Admin sees all clients; non-admins see only their own. Outstanding is shown as Receivable (customers) and Payable (suppliers).
  */
 export const clientGetAllClientsPdf = (
 
@@ -641,7 +641,7 @@ export function useClientGetAllClientsPdf<TData = Awaited<ReturnType<typeof clie
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Download a client list as a PDF report. Admin sees all clients; non-admins see only their own.
+ * @summary Download a client list as a PDF report. Admin sees all clients; non-admins see only their own. Outstanding is shown as Receivable (customers) and Payable (suppliers).
  */
 
 export function useClientGetAllClientsPdf<TData = Awaited<ReturnType<typeof clientGetAllClientsPdf>>, TError = unknown>(

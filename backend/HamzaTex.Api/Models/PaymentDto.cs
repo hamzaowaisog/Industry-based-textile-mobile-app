@@ -7,6 +7,9 @@ public class PaymentAllocationDto
     public int? OrderId { get; set; }
     public int? PurchaseId { get; set; }
     public decimal AllocatedAmount { get; set; }
+
+    /// <summary>Bill No of the linked Order or Purchase for this allocation.</summary>
+    public string? BillNo { get; set; }
 }
 
 public class PaymentDto
@@ -31,6 +34,9 @@ public class PaymentDto
     public int? OriginalPaymentId { get; set; }
     public bool IsCashSettled { get; set; }
     public List<PaymentAllocationDto> Allocations { get; set; } = new();
+
+    /// <summary>All linked Bill Nos, comma-separated, for flat table displays (PDF list export). Empty string if unallocated.</summary>
+    public string AllocatedBillNos { get; set; } = string.Empty;
 }
 
 public class AllocationItemDto

@@ -78,6 +78,7 @@ public class MonthlyBalancePoint
 public class ClientOrderSummary
 {
     public int OrderId { get; set; }
+    public string? BillNo { get; set; }
     public DateOnly OrderDate { get; set; }
     /// <summary>Hijri equivalent of OrderDate, formatted for display (e.g. "06 Muharram 1448").</summary>
     public string? OrderDateHijriDisplay { get; set; }
@@ -91,6 +92,7 @@ public class ClientOrderSummary
 public class ClientPurchaseSummary
 {
     public int PurchaseId { get; set; }
+    public string? BillNo { get; set; }
     public DateOnly PurchaseDate { get; set; }
     /// <summary>Hijri equivalent of PurchaseDate, formatted for display (e.g. "06 Muharram 1448").</summary>
     public string? PurchaseDateHijriDisplay { get; set; }
@@ -111,12 +113,16 @@ public class ClientPaymentSummary
     public string ModeName { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public bool IsReversed { get; set; }
+
+    /// <summary>Bill Nos of every Order/Purchase this payment is allocated to. Empty when unallocated.</summary>
+    public List<string> BillNos { get; set; } = [];
 }
 
 public class ClientInvoiceSummary
 {
     public int InvoiceId { get; set; }
     public string InvoiceNumber { get; set; } = string.Empty;
+    public string? BillNo { get; set; }
     public DateOnly? IssueDate { get; set; }
     /// <summary>Hijri equivalent of IssueDate, formatted for display (e.g. "06 Muharram 1448").</summary>
     public string? IssueDateHijriDisplay { get; set; }
@@ -131,6 +137,10 @@ public class ClientInvoiceSummary
 public class ClientTransactionSummary
 {
     public int TransactionId { get; set; }
+    public string? BillNo { get; set; }
+
+    /// <summary>All distinct bill numbers behind this transaction. A Payment split across several delivered Orders/Purchases carries one entry per bill.</summary>
+    public List<string> BillNos { get; set; } = [];
     public DateOnly TransDate { get; set; }
     /// <summary>Hijri equivalent of TransDate, formatted for display (e.g. "06 Muharram 1448").</summary>
     public string? TransDateHijriDisplay { get; set; }

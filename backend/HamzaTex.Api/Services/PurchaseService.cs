@@ -226,7 +226,7 @@ public class PurchaseService : IPurchaseService
         {
             purchase.PaymentTypeId = model.PaymentTypeId;
             purchase.Notes = model.Notes;
-            purchase.BillNo = model.BillNo;
+            ApplyBillNo(purchase, model.BillNo);
             if (model.PurchaseDate.HasValue)
                 purchase.PurchaseDate = model.PurchaseDate.Value;
             await _dbContext.SaveChangesAsync();
@@ -250,7 +250,7 @@ public class PurchaseService : IPurchaseService
         purchase.StatusId = model.StatusId;
         purchase.PaymentTypeId = model.PaymentTypeId;
         purchase.Notes = model.Notes;
-        purchase.BillNo = model.BillNo;
+        ApplyBillNo(purchase, model.BillNo);
         if (model.PurchaseDate.HasValue)
             purchase.PurchaseDate = model.PurchaseDate.Value;
         await _dbContext.SaveChangesAsync();
@@ -398,7 +398,7 @@ public class PurchaseService : IPurchaseService
             purchase.StatusId = StatusReceived;
             purchase.PaymentTypeId = model.PaymentTypeId;
             purchase.Notes = model.Notes;
-            purchase.BillNo = model.BillNo;
+            ApplyBillNo(purchase, model.BillNo);
             if (model.PurchaseDate.HasValue)
                 purchase.PurchaseDate = model.PurchaseDate.Value;
             await _dbContext.SaveChangesAsync();
@@ -638,5 +638,15 @@ public class PurchaseService : IPurchaseService
                 UnitCost = l.UnitCost
             }).ToList()
         };
+    }
+
+    /// <summary>
+    /// Status-only updates omit BillNo (null) and must not wipe the stored value.
+    /// Edit sends a string (possibly empty) to set or clear it.
+    /// </summary>
+    private static void ApplyBillNo(Purchase purchase, string? billNo)
+    {
+        if (billNo is null) return;
+        purchase.BillNo = string.IsNullOrWhiteSpace(billNo) ? null : billNo.Trim();
     }
 }

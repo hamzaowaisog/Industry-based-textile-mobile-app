@@ -923,7 +923,7 @@
     "/api/Client/pdf": {
       "get": {
         "tags": ["Client"],
-        "summary": "Download a client list as a PDF report. Admin sees all clients; non-admins see only their own.",
+        "summary": "Download a client list as a PDF report. Admin sees all clients; non-admins see only their own. Outstanding is shown as Receivable (customers) and Payable (suppliers).",
         "operationId": "client_getAllClientsPdf",
         "responses": {
           "200": {
@@ -6780,6 +6780,11 @@
             "nullable": true,
             "example": "string"
           },
+          "billNo": {
+            "type": "string",
+            "nullable": true,
+            "example": "INV-2024-0456"
+          },
           "issueDate": {
             "type": "string",
             "format": "date",
@@ -6828,6 +6833,11 @@
             "type": "integer",
             "format": "int32",
             "example": 1
+          },
+          "billNo": {
+            "type": "string",
+            "nullable": true,
+            "example": "INV-2024-0456"
           },
           "orderDate": {
             "type": "string",
@@ -6902,6 +6912,14 @@
           },
           "isReversed": {
             "type": "boolean"
+          },
+          "billNos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Bill Nos of every Order/Purchase this payment is allocated to. Empty when unallocated.",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -6913,6 +6931,11 @@
             "type": "integer",
             "format": "int32",
             "example": 1
+          },
+          "billNo": {
+            "type": "string",
+            "nullable": true,
+            "example": "INV-2024-0456"
           },
           "purchaseDate": {
             "type": "string",
@@ -6958,6 +6981,19 @@
             "type": "integer",
             "format": "int32",
             "example": 1
+          },
+          "billNo": {
+            "type": "string",
+            "nullable": true,
+            "example": "INV-2024-0456"
+          },
+          "billNos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "All distinct bill numbers behind this transaction. A Payment split across several delivered Orders/Purchases carries one entry per bill.",
+            "nullable": true
           },
           "transDate": {
             "type": "string",
@@ -7777,6 +7813,12 @@
             "nullable": true,
             "example": 1
           },
+          "billNo": {
+            "type": "string",
+            "description": "Bill No of the linked Order or Purchase, if any (null for standalone invoices).",
+            "nullable": true,
+            "example": "INV-2024-0456"
+          },
           "clientId": {
             "type": "integer",
             "format": "int32",
@@ -7933,6 +7975,12 @@
             "format": "int32",
             "nullable": true,
             "example": 1
+          },
+          "billNo": {
+            "type": "string",
+            "description": "Bill No of the linked Order or Purchase, if any (null for standalone invoices).",
+            "nullable": true,
+            "example": "INV-2024-0456"
           },
           "clientId": {
             "type": "integer",
@@ -9076,6 +9124,12 @@
             "type": "number",
             "format": "double",
             "example": 150000
+          },
+          "billNo": {
+            "type": "string",
+            "description": "Bill No of the linked Order or Purchase for this allocation.",
+            "nullable": true,
+            "example": "INV-2024-0456"
           }
         },
         "additionalProperties": false
@@ -9238,6 +9292,12 @@
               "$ref": "#/components/schemas/PaymentAllocationDto"
             },
             "nullable": true
+          },
+          "allocatedBillNos": {
+            "type": "string",
+            "description": "All linked Bill Nos, comma-separated, for flat table displays (PDF list export). Empty string if unallocated.",
+            "nullable": true,
+            "example": "string"
           }
         },
         "additionalProperties": false
@@ -11034,6 +11094,20 @@
             "format": "int32",
             "nullable": true,
             "example": 1
+          },
+          "billNo": {
+            "type": "string",
+            "description": "Comma-joined bill numbers for this transaction (single value for Order/Purchase rows; may list several for a Payment split across multiple bills). Null for Expense/Manual rows.",
+            "nullable": true,
+            "example": "INV-2024-0456"
+          },
+          "billNos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "All distinct bill numbers behind this transaction, unjoined. A Payment applied across several delivered Orders/Purchases carries one entry per bill.",
+            "nullable": true
           },
           "transTypeId": {
             "type": "integer",

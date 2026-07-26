@@ -43,4 +43,9 @@ export interface PaymentDto {
   isCashSettled?: boolean;
   /** @nullable */
   allocations?: PaymentAllocationDto[] | null;
+  /**
+     * All linked Bill Nos, comma-separated, for flat table displays (PDF list export). Empty string if unallocated.
+     * @nullable
+     */
+  allocatedBillNos?: string | null;
 }

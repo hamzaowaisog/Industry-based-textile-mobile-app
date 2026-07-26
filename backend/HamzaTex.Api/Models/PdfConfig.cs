@@ -104,6 +104,7 @@ public static class EntityPdfConfigs
 
     public static readonly PdfColumnConfig[] Payment = [
         PdfColumnConfig.Create("PartyClientName", "Client", weight: 1.7f),
+        PdfColumnConfig.Create("AllocatedBillNos", "Bill No(s)", weight: 1.3f),
         PdfColumnConfig.Create("PaymentDirectionName", "Direction", fixedWidthMm: 24),
         PdfColumnConfig.Create("TransModeName", "Mode", fixedWidthMm: 22),
         PdfColumnConfig.Create("Amount", "Amount (PKR)", PdfColumnFormat.Currency, fixedWidthMm: 26),
@@ -143,6 +144,7 @@ public static class EntityPdfConfigs
 
     public static readonly PdfColumnConfig[] Transaction = [
         PdfColumnConfig.Create("Source", "Source", fixedWidthMm: 22),
+        PdfColumnConfig.Create("BillNo", "Bill No", fixedWidthMm: 24),
         PdfColumnConfig.Create("TransCategoryName", "Category", weight: 1.2f),
         PdfColumnConfig.Create("TransTypeName", "Type", fixedWidthMm: 20),
         PdfColumnConfig.Create("TransModeName", "Mode", fixedWidthMm: 22),
@@ -194,6 +196,7 @@ public static class EntityPdfConfigs
     public static readonly PdfColumnConfig[] Invoice =
     [
         PdfColumnConfig.Create("InvoiceNumber", nameof(InvoiceDto.InvoiceNumber)),
+        PdfColumnConfig.Create("BillNo",        nameof(InvoiceDto.BillNo)),
         PdfColumnConfig.Create("Client",        nameof(InvoiceDto.ClientName)),
         PdfColumnConfig.Create("Direction",     nameof(InvoiceDto.Direction)),
         PdfColumnConfig.Create("Status",        nameof(InvoiceDto.StatusName)),

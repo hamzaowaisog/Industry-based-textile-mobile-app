@@ -276,13 +276,14 @@ public class PaymentController : BaseController
             {
                 new TableSection(
                     "Allocations",
-                    Headers:    new[] { "#", "Order", "Purchase", "Allocated" },
-                    RightAlign: new[] { 3 },
+                    Headers:    new[] { "#", "Order", "Purchase", "Bill No", "Allocated" },
+                    RightAlign: new[] { 4 },
                     Rows:       p.Allocations.Select((a, i) => new[]
                     {
                         (i + 1).ToString(),
                         a.OrderId?.ToString() ?? "—",
                         a.PurchaseId?.ToString() ?? "—",
+                        a.BillNo ?? "—",
                         PdfFormat.Rs(a.AllocatedAmount),
                     })),
             },

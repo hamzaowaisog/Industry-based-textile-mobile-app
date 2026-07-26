@@ -155,7 +155,7 @@ public class ClientController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Download a client list as a PDF report. Admin sees all clients; non-admins see only their own.</summary>
+    /// <summary>Download a client list as a PDF report. Admin sees all clients; non-admins see only their own. Outstanding is shown as Receivable (customers) and Payable (suppliers).</summary>
     [HttpGet("pdf")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -168,9 +168,53 @@ public class ClientController : BaseController
         if (!response.Success)
             return BadRequest(response.Message);
 
-        var clients = response.Data ?? new List<ClientDto>();
-        var pdfBytes = _pdfService.CreatePdf("Clients", "List of clients. All amounts in PKR.", clients, EntityPdfConfigs.Client, new PdfOptions { ShowRowNumbers = true, SummaryProperty = "OpeningBalance", SummaryLabel = "Total Opening Balance (PKR)" });
-        return File(pdfBytes, "application/pdf", "clients.pdf");
+        var clients   = response.Data ?? new List<ClientDto>();
+        var customers = clients.Where(c => c.ClientTypeId == 1).ToList();
+        var suppliers = clients.Where(c => c.ClientTypeId == 2).ToList();
+        var receivable = customers.Where(c => c.OutstandingBalance > 0).Sum(c => c.OutstandingBalance);
+        var payable    = suppliers.Where(c => c.OutstandingBalance > 0).Sum(c => c.OutstandingBalance);
+
+        var sections = new List<TableSection>();
+        if (customers.Count > 0)
+            sections.Add(new TableSection(
+                $"Customers ({customers.Count}) — Receivable",
+                Headers:    new[] { "#", "Client", "Phone", "Outstanding" },
+                Rows:       customers.Select((c, i) => new[]
+                {
+                    (i + 1).ToString(), c.Name, c.Phone ?? "—", PdfFormat.Rs(c.OutstandingBalance),
+                }),
+                RightAlign: new[] { 3 }));
+
+        if (suppliers.Count > 0)
+            sections.Add(new TableSection(
+                $"Suppliers ({suppliers.Count}) — Payable",
+                Headers:    new[] { "#", "Supplier", "Phone", "Outstanding" },
+                Rows:       suppliers.Select((c, i) => new[]
+                {
+                    (i + 1).ToString(), c.Name, c.Phone ?? "—", PdfFormat.Rs(c.OutstandingBalance),
+                }),
+                RightAlign: new[] { 3 }));
+
+        var model = new HamzaTexDocumentModel
+        {
+            DocumentLabel       = "CLIENTS",
+            Reference           = $"HT-{DateTime.Now:yyyyMMdd-HHmm}",
+            IssuedDate          = DateTime.Now,
+            PreparedFor         = "Management",
+            PreparedForSubtitle = "Outstanding balances — receivable and payable",
+            PeriodLabel         = "GENERATED",
+            PeriodValue         = DateTime.Now.ToString("dd MMM yyyy"),
+            Stats = new()
+            {
+                new Stat($"Customers ({customers.Count})", PdfFormat.Rs(receivable)),
+                new Stat($"Suppliers ({suppliers.Count})", PdfFormat.Rs(payable)),
+                new Stat("Receivable (they owe us)", PdfFormat.Rs(receivable)),
+                new Stat("Payable (we owe them)", PdfFormat.Rs(payable), Highlight: true),
+            },
+            Sections = sections,
+        };
+
+        return File(_pdfService.CreateDocument(model), "application/pdf", "clients.pdf");
     }
 
     /// <summary>Download a single client's full dossier as a branded PDF — profile, orders, purchases, payments, recent transactions, and current balance. Reuses the report aggregate so figures match the screen.</summary>
@@ -213,11 +257,12 @@ public class ClientController : BaseController
             {
                 new TableSection(
                     "Orders",
-                    Headers:    new[] { "#", "Date", "Hijri Date", "Status", "Total", "Paid", "Outstanding" },
-                    RightAlign: new[] { 4, 5, 6 },
+                    Headers:    new[] { "#", "Bill No", "Date", "Hijri Date", "Status", "Total", "Paid", "Outstanding" },
+                    RightAlign: new[] { 5, 6, 7 },
                     Rows:       d.Orders.Select((o, i) => new[]
                     {
                         (i + 1).ToString(),
+                        o.BillNo ?? "—",
                         o.OrderDate.ToString("dd MMM yyyy"),
                         o.OrderDateHijriDisplay ?? "—",
                         o.StatusName,
@@ -227,11 +272,12 @@ public class ClientController : BaseController
                     })),
                 new TableSection(
                     "Purchases",
-                    Headers:    new[] { "#", "Date", "Hijri Date", "Status", "Total", "Paid", "Outstanding" },
-                    RightAlign: new[] { 4, 5, 6 },
+                    Headers:    new[] { "#", "Bill No", "Date", "Hijri Date", "Status", "Total", "Paid", "Outstanding" },
+                    RightAlign: new[] { 5, 6, 7 },
                     Rows:       d.Purchases.Select((p, i) => new[]
                     {
                         (i + 1).ToString(),
+                        p.BillNo ?? "—",
                         p.PurchaseDate.ToString("dd MMM yyyy"),
                         p.PurchaseDateHijriDisplay ?? "—",
                         p.StatusName,
@@ -241,8 +287,8 @@ public class ClientController : BaseController
                     })),
                 new TableSection(
                     "Payments",
-                    Headers:    new[] { "#", "Date", "Hijri Date", "Direction", "Mode", "Amount" },
-                    RightAlign: new[] { 5 },
+                    Headers:    new[] { "#", "Date", "Hijri Date", "Direction", "Mode", "Bill No(s)", "Amount" },
+                    RightAlign: new[] { 6 },
                     Rows:       d.Payments.Select((p, i) => new[]
                     {
                         (i + 1).ToString(),
@@ -250,17 +296,19 @@ public class ClientController : BaseController
                         p.PaymentDateHijriDisplay ?? "—",
                         p.DirectionName,
                         p.ModeName,
+                        p.BillNos.Count > 0 ? string.Join(", ", p.BillNos) : "—",
                         PdfFormat.Rs(p.Amount) + (p.IsReversed ? " (rev)" : ""),
                     })),
                 new TableSection(
                     "Recent Transactions",
-                    Headers:    new[] { "#", "Date", "Hijri Date", "Category", "Type", "Amount" },
-                    RightAlign: new[] { 5 },
+                    Headers:    new[] { "#", "Date", "Hijri Date", "Bill No", "Category", "Type", "Amount" },
+                    RightAlign: new[] { 6 },
                     Rows:       d.RecentTransactions.Select((t, i) => new[]
                     {
                         (i + 1).ToString(),
                         t.TransDate.ToString("dd MMM yyyy"),
                         t.TransDateHijriDisplay ?? "—",
+                        t.BillNo ?? "—",
                         t.CategoryName,
                         t.TypeName,
                         PdfFormat.Rs(t.Amount) + (t.IsReversal ? " (rev)" : ""),

@@ -67,7 +67,9 @@ public class TransactionService : ITransactionService
          .Include(t => t.User)
          .Include(t => t.TransType)
          .Include(t => t.TransMode)
-         .Include(t => t.TransCategory);
+         .Include(t => t.TransCategory)
+         .Include(t => t.Order)
+         .Include(t => t.Purchase);
 
     private static string DeriveSource(Transaction t)
     {
@@ -84,8 +86,50 @@ public class TransactionService : ITransactionService
         !t.Expenses.Any() &&
         t.TransCategoryId is not (5 or 6);
 
-    private static TransactionDto ToDto(Transaction t) => new()
+    /// <summary>
+    /// A Payment transaction split across multiple delivered Orders/Purchases has null OrderId/PurchaseId
+    /// on the Transaction row itself (see ledger posting convention), so its bill numbers must be recovered
+    /// from the linked Payment's allocations. Batches one query per page/list instead of per-row.
+    /// </summary>
+    private async Task<Dictionary<int, List<string>>> BuildPaymentBillNosAsync(IEnumerable<Transaction> transactions)
     {
+        var candidateIds = transactions
+            .Where(t => t.TransCategoryId is 5 or 6 && !t.OrderId.HasValue && !t.PurchaseId.HasValue)
+            .Select(t => t.Id)
+            .ToList();
+        if (candidateIds.Count == 0) return new();
+
+        var payments = await _db.Payments
+            .AsNoTracking()
+            .Where(p => p.TransactionId.HasValue && candidateIds.Contains(p.TransactionId.Value))
+            .Include(p => p.Allocations).ThenInclude(a => a.Order)
+            .Include(p => p.Allocations).ThenInclude(a => a.Purchase)
+            .ToListAsync();
+
+        return payments.ToDictionary(
+            p => p.TransactionId!.Value,
+            p => p.Allocations
+                .Select(a => a.Order?.BillNo ?? a.Purchase?.BillNo)
+                .Where(b => !string.IsNullOrWhiteSpace(b))
+                .Select(b => b!)
+                .Distinct()
+                .ToList());
+    }
+
+    private static TransactionDto ToDto(Transaction t, IReadOnlyDictionary<int, List<string>>? paymentBillNos = null)
+    {
+        List<string> billNos;
+        if (!string.IsNullOrWhiteSpace(t.Order?.BillNo))
+            billNos = [t.Order!.BillNo!];
+        else if (!string.IsNullOrWhiteSpace(t.Purchase?.BillNo))
+            billNos = [t.Purchase!.BillNo!];
+        else if (paymentBillNos is not null && paymentBillNos.TryGetValue(t.Id, out var found))
+            billNos = found;
+        else
+            billNos = [];
+
+        return new()
+        {
         Id              = t.Id,
         ClientId        = t.ClientId,
         ClientName      = t.Client?.Name,
@@ -95,6 +139,8 @@ public class TransactionService : ITransactionService
         UserName        = t.User?.Name,
         OrderId         = t.OrderId,
         PurchaseId      = t.PurchaseId,
+        BillNo          = billNos.Count > 0 ? string.Join(", ", billNos) : null,
+        BillNos         = billNos,
         TransTypeId     = t.TransTypeId,
         TransTypeName   = t.TransType?.Name,
         TransModeId     = t.TransModeId,
@@ -109,7 +155,8 @@ public class TransactionService : ITransactionService
         CreatedAt       = t.CreatedAt,
         Source          = DeriveSource(t),
         IsManual        = DeriveIsManual(t),
-    };
+        };
+    }
 
     /// <summary>
     /// Returns a non-null error response if the transaction is auto-posted and must not be mutated.
@@ -158,7 +205,8 @@ public class TransactionService : ITransactionService
         var created = await WithIncludes(_db.Transactions.AsNoTracking())
             .FirstAsync(t => t.Id == entity.Id);
 
-        return Response<TransactionDto>.SuccessResponse(ToDto(created), "Transaction created.");
+        var createdBillNos = await BuildPaymentBillNosAsync([created]);
+        return Response<TransactionDto>.SuccessResponse(ToDto(created, createdBillNos), "Transaction created.");
     }
 
     public async Task<Response<TransactionDto>> GetByIdAsync(int id, int userId, bool isAdmin)
@@ -169,7 +217,8 @@ public class TransactionService : ITransactionService
         if (entity is null || (!isAdmin && entity.UserId != userId))
             return Response<TransactionDto>.ErrorResponse("Not found", $"Transaction with ID '{id}' was not found.");
 
-        return Response<TransactionDto>.SuccessResponse(ToDto(entity), "Transaction fetched.");
+        var billNos = await BuildPaymentBillNosAsync([entity]);
+        return Response<TransactionDto>.SuccessResponse(ToDto(entity, billNos), "Transaction fetched.");
     }
 
     public async Task<Response<PagedList<TransactionDto>>> GetAllPaginatedAsync(int page, int pageSize, int userId, bool isAdmin)
@@ -182,7 +231,8 @@ public class TransactionService : ITransactionService
         query = query.OrderByDescending(t => t.TransDate).ThenByDescending(t => t.Id);
 
         var paged = await PagedList<Transaction>.CreateAsync(query, page, pageSize);
-        var pagedList = new PagedList<TransactionDto>(paged.Items.Select(ToDto).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
+        var billNos = await BuildPaymentBillNosAsync(paged.Items);
+        var pagedList = new PagedList<TransactionDto>(paged.Items.Select(t => ToDto(t, billNos)).ToList(), paged.Page, paged.PageSize, paged.TotalCount);
 
         return Response<PagedList<TransactionDto>>.SuccessResponse(pagedList, "Transactions fetched.");
     }
@@ -199,8 +249,9 @@ public class TransactionService : ITransactionService
             .ThenByDescending(t => t.Id)
             .ToListAsync();
 
+        var billNos = await BuildPaymentBillNosAsync(list);
         return Response<List<TransactionDto>>.SuccessResponse(
-            list.Select(ToDto).ToList(), "Transactions fetched.");
+            list.Select(t => ToDto(t, billNos)).ToList(), "Transactions fetched.");
     }
 
     public async Task<Response<TransactionSummaryDto>> GetSummaryAsync(int userId, bool isAdmin)
@@ -234,8 +285,9 @@ public class TransactionService : ITransactionService
             .ThenByDescending(t => t.Id)
             .ToListAsync();
 
+        var billNos = await BuildPaymentBillNosAsync(list);
         return Response<List<TransactionDto>>.SuccessResponse(
-            list.Select(ToDto).ToList(), "Transactions fetched.");
+            list.Select(t => ToDto(t, billNos)).ToList(), "Transactions fetched.");
     }
 
     public async Task<Response<List<TransactionDto>>> GetFilteredAsync(
@@ -258,8 +310,9 @@ public class TransactionService : ITransactionService
             .ThenByDescending(t => t.Id)
             .ToListAsync();
 
+        var billNos = await BuildPaymentBillNosAsync(list);
         return Response<List<TransactionDto>>.SuccessResponse(
-            list.Select(ToDto).ToList(), "Transactions fetched.");
+            list.Select(t => ToDto(t, billNos)).ToList(), "Transactions fetched.");
     }
 
     public async Task<Response<TransactionDto>> UpdateByIdAsync(int id, UpdateTransactionDto model)
@@ -288,7 +341,8 @@ public class TransactionService : ITransactionService
         var updated = await WithIncludes(_db.Transactions.AsNoTracking())
             .FirstAsync(t => t.Id == id);
 
-        return Response<TransactionDto>.SuccessResponse(ToDto(updated), "Transaction updated.");
+        var billNos = await BuildPaymentBillNosAsync([updated]);
+        return Response<TransactionDto>.SuccessResponse(ToDto(updated, billNos), "Transaction updated.");
     }
 
     public async Task<Response> DeleteByIdAsync(int id)
