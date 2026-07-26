@@ -20,4 +20,11 @@ export interface ClientPaymentSummary {
   modeName?: string | null;
   amount?: number;
   isReversed?: boolean;
+  /**
+     * Bill Nos of every Order/Purchase this payment is allocated to. Empty when unallocated.
+     * @nullable
+     */
+  billNos?: string[] | null;
+  /** Portion of Amount not yet applied to any Order/Purchase (e.g. released by a cancelled order/purchase). Available as credit. */
+  unallocatedAmount?: number;
 }

@@ -131,9 +131,9 @@ export const InvoiceDetailComponent = ({
           </Text>
           <AppAmount value={invoice.totalAmount} size={34} />
           <Text style={styles.heroMeta}>
-            {`${t('invoices.detail.issued')} ${invoice.issueDate ?? '—'} · ${t(
-              'invoices.detail.due',
-            )} ${invoice.dueDate ?? '—'}`}
+            {invoice.billNo
+              ? `${t('invoices.billNoLabel', { billNo: invoice.billNo })} · ${t('invoices.detail.issued')} ${invoice.issueDate ?? '—'} · ${t('invoices.detail.due')} ${invoice.dueDate ?? '—'}`
+              : `${t('invoices.detail.issued')} ${invoice.issueDate ?? '—'} · ${t('invoices.detail.due')} ${invoice.dueDate ?? '—'}`}
           </Text>
         </View>
 
@@ -275,7 +275,7 @@ export const InvoiceDetailComponent = ({
             {showIssue && (
               <View style={styles.flexBtn}>
                 <AppButton
-                  variant="success"
+                  variant="primary"
                   label={t('invoices.detail.issue')}
                   onPress={onIssue}
                   loading={submitting}

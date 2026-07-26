@@ -8,6 +8,13 @@
 
 export interface ClientTransactionSummary {
   transactionId?: number;
+  /** @nullable */
+  billNo?: string | null;
+  /**
+     * All distinct bill numbers behind this transaction. A Payment split across several delivered Orders/Purchases carries one entry per bill.
+     * @nullable
+     */
+  billNos?: string[] | null;
   transDate?: string;
   /**
      * Hijri equivalent of TransDate, formatted for display (e.g. "06 Muharram 1448").

@@ -64,7 +64,11 @@ export const usePaymentList = () => {
     }
     if (search.trim()) {
       const q = search.toLowerCase();
-      result = result.filter((p) => p.partyClientName.toLowerCase().includes(q));
+      result = result.filter(
+        (p) =>
+          p.partyClientName.toLowerCase().includes(q) ||
+          p.allocatedBillNos.toLowerCase().includes(q),
+      );
     }
     return result;
   }, [allPayments, activeTab, search]);

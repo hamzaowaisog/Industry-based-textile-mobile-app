@@ -1,6 +1,9 @@
 export type TransactionRow = {
   id: number;
   clientName: string;
+  billNo: string | null;
+  billNos: string[];
+  unallocatedAmount: number | null;
   transTypeId: number;
   transTypeName: string;
   transCategoryId: number;
@@ -19,6 +22,9 @@ export type TransactionSummary = {
 export type TransactionDetail = {
   id: number;
   clientName: string;
+  billNo: string | null;
+  billNos: string[];
+  unallocatedAmount: number | null;
   userName: string;
   orderId: number | null;
   purchaseId: number | null;

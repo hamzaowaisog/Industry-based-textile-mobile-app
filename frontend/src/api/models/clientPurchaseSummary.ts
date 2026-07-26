@@ -8,6 +8,8 @@
 
 export interface ClientPurchaseSummary {
   purchaseId?: number;
+  /** @nullable */
+  billNo?: string | null;
   purchaseDate?: string;
   /**
      * Hijri equivalent of PurchaseDate, formatted for display (e.g. "06 Muharram 1448").

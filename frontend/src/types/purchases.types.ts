@@ -17,6 +17,7 @@ export type PurchaseRow = {
   total: number;
   amountPaid: number;
   paymentStatus: string | null;
+  billNo: string | null;
 };
 
 export type PurchaseDetail = {
@@ -30,6 +31,7 @@ export type PurchaseDetail = {
   purchaseDate: string;
   purchaseDateHijriDisplay: string | null;
   notes: string | null;
+  billNo: string | null;
   createdAt: string | null;
   total: number;
   amountPaid: number;
@@ -51,12 +53,14 @@ export type CreatePurchaseFormValues = {
   supplierName: string;
   paymentTypeId: number;
   notes: string;
+  billNo: string;
   lines: PurchaseLineFormValues[];
 };
 
 export type EditPurchaseFormValues = {
   paymentTypeId: number;
   notes: string;
+  billNo: string;
   lines: PurchaseLineFormValues[];
 };
 

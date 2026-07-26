@@ -56,7 +56,10 @@ export const usePurchaseList = () => {
     if (statusId !== null) result = result.filter((p) => p.statusId === statusId);
     if (search.trim()) {
       const q = search.toLowerCase();
-      result = result.filter((p) => p.supplierName.toLowerCase().includes(q));
+      result = result.filter(
+        (p) =>
+          p.supplierName.toLowerCase().includes(q) || (p.billNo ?? '').toLowerCase().includes(q),
+      );
     }
     return result;
   }, [allPurchases, activeTab, search]);

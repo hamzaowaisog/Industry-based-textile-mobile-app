@@ -9,6 +9,7 @@ public class PurchaseCreateViewModel
     /// <summary>Optional Hijri override, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from PurchaseDate.</summary>
     public string? PurchaseDateHijri { get; set; }
     public string? Notes { get; set; }
+    public string? BillNo { get; set; }
     public List<PurchaseLineCreateViewModel> Lines { get; set; } = [];
 }
 
@@ -26,6 +27,7 @@ public class PurchaseUpdateViewModel
     /// <summary>Omit or null to leave the existing purchase date unchanged.</summary>
     public DateOnly? PurchaseDate { get; set; }
     public string? Notes { get; set; }
+    public string? BillNo { get; set; }
 }
 
 public class PurchaseLinesUpdateViewModel

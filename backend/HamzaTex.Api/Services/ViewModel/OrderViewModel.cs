@@ -9,6 +9,7 @@ public class OrderCreateViewModel
     /// <summary>Optional Hijri override, "yyyy-MM-dd" in Hijri terms. Omit to auto-compute from OrderDate.</summary>
     public string? OrderDateHijri { get; set; }
     public string? Notes { get; set; }
+    public string? BillNo { get; set; }
     public List<OrderLineCreateViewModel> Lines { get; set; } = new();
 }
 
@@ -25,6 +26,7 @@ public class OrderUpdateViewModel
     /// <summary>Omit or null to leave the existing payment type unchanged.</summary>
     public int? PaymentTypeId { get; set; }
     public string? Notes { get; set; }
+    public string? BillNo { get; set; }
     /// <summary>Omit or null to leave the existing order date unchanged.</summary>
     public DateOnly? OrderDate { get; set; }
 }

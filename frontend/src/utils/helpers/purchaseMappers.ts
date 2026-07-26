@@ -12,6 +12,7 @@ export const mapApiPurchaseToRow = (p: PurchaseDto): PurchaseRow => ({
   total: p.total ?? 0,
   amountPaid: p.amountPaid ?? 0,
   paymentStatus: p.paymentStatus ?? null,
+  billNo: p.billNo ?? null,
 });
 
 export const mapApiPurchaseDetail = (p: PurchaseDto): PurchaseDetail => ({
@@ -25,6 +26,7 @@ export const mapApiPurchaseDetail = (p: PurchaseDto): PurchaseDetail => ({
   purchaseDate: p.purchaseDate ?? '',
   purchaseDateHijriDisplay: p.purchaseDateHijriDisplay ?? null,
   notes: p.notes ?? null,
+  billNo: p.billNo ?? null,
   createdAt: p.createdAt ?? null,
   total: p.total ?? 0,
   amountPaid: p.amountPaid ?? 0,

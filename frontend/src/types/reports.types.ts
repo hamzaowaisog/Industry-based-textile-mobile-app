@@ -69,6 +69,7 @@ export type BalanceHistoryPoint = {
 
 export type ClientOrderRow = {
   orderId: number;
+  billNo: string | null;
   orderDate: string;
   orderDateHijriDisplay: string | null;
   statusName: string;
@@ -80,6 +81,7 @@ export type ClientOrderRow = {
 
 export type ClientPurchaseRow = {
   purchaseId: number;
+  billNo: string | null;
   purchaseDate: string;
   purchaseDateHijriDisplay: string | null;
   statusName: string;
@@ -97,6 +99,7 @@ export type ClientPaymentRow = {
   modeName: string;
   amount: number;
   isReversed: boolean;
+  billNos: string[];
 };
 
 export type ClientDetailReportData = {

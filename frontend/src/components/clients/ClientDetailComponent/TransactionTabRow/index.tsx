@@ -9,6 +9,7 @@ import { AppBadge } from '@components/common/AppBadge';
 import { AppCard } from '@components/common/AppCard';
 import { AppIconTile } from '@components/common/AppIconTile';
 import { AppRow } from '@components/common/AppRow';
+import { BillNoInlineList } from '@components/common/BillNoInlineList';
 
 import { colors } from '@theme/colors';
 
@@ -18,6 +19,7 @@ import { TagIcon } from '@constants/svgAssets';
 export const TransactionTabRow = ({ item }: { item: ClientTransactionSummary }) => {
   const { t } = useTranslation();
   const isCredit = item.typeName?.toLowerCase() === 'credit';
+  const billNos = item.billNos ?? [];
   return (
     <AppCard padding={14}>
       <AppRow
@@ -26,9 +28,11 @@ export const TransactionTabRow = ({ item }: { item: ClientTransactionSummary }) 
         }
         primary={item.categoryName ?? ''}
         secondary={
-          item.transDateHijriDisplay
-            ? `${item.transDate} · ${item.transDateHijriDisplay}`
-            : item.transDate
+          billNos.length === 1
+            ? `${t('transactions.billNoLabel', { billNo: billNos[0] })} · ${item.transDate}`
+            : item.transDateHijriDisplay
+              ? `${item.transDate} · ${item.transDateHijriDisplay}`
+              : item.transDate
         }
         right={
           <>
@@ -49,6 +53,7 @@ export const TransactionTabRow = ({ item }: { item: ClientTransactionSummary }) 
           </>
         }
       />
+      {billNos.length > 1 && <BillNoInlineList billNos={billNos} />}
     </AppCard>
   );
 };

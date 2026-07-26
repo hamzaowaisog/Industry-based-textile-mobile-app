@@ -26,6 +26,8 @@ export interface OrderDto {
   /** @nullable */
   notes?: string | null;
   /** @nullable */
+  billNo?: string | null;
+  /** @nullable */
   createdAt?: string | null;
   total?: number;
   amountReceived?: number;

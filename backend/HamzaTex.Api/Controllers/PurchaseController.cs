@@ -44,6 +44,7 @@ public class PurchaseController : BaseController
             PurchaseDate = model.PurchaseDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
             PurchaseDateHijri = model.PurchaseDateHijri,
             Notes = model.Notes,
+            BillNo = model.BillNo,
             Lines = model.Lines.Select(l => new CreatePurchaseLineDto
             {
                 ProductId = l.ProductId,
@@ -83,7 +84,7 @@ public class PurchaseController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Filter purchases by supplierId, statusId, and/or date range.</summary>
+    /// <summary>Filter purchases by supplierId, statusId, date range, and/or a free-text search matching BillNo or supplier name.</summary>
     [HttpGet("filtered")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<List<PurchaseDto>>), StatusCodes.Status200OK)]
@@ -91,12 +92,13 @@ public class PurchaseController : BaseController
         [FromQuery] int? supplierId = null,
         [FromQuery] int? statusId = null,
         [FromQuery] DateOnly? dateFrom = null,
-        [FromQuery] DateOnly? dateTo = null)
+        [FromQuery] DateOnly? dateTo = null,
+        [FromQuery] string? search = null)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
 
-        var response = await _purchaseService.GetFilteredAsync(supplierId, statusId, dateFrom, dateTo, userId.Value, IsAdmin());
+        var response = await _purchaseService.GetFilteredAsync(supplierId, statusId, dateFrom, dateTo, search, userId.Value, IsAdmin());
         return ToActionResult(response);
     }
 
@@ -119,6 +121,7 @@ public class PurchaseController : BaseController
             StatusId = model.StatusId,
             PaymentTypeId = model.PaymentTypeId,
             Notes = model.Notes,
+            BillNo = model.BillNo,
             PurchaseDate = model.PurchaseDate
         };
 
@@ -221,6 +224,7 @@ public class PurchaseController : BaseController
             PeriodValue         = p.PurchaseDate.ToString("dd MMM yyyy"),
             Stats = new()
             {
+                new Stat("Bill No", !string.IsNullOrWhiteSpace(p.BillNo) ? p.BillNo : "—"),
                 new Stat("Status", p.StatusName ?? "—"),
                 new Stat("Total", PdfFormat.Rs(p.Total)),
                 new Stat("Paid", PdfFormat.Rs(p.AmountPaid)),

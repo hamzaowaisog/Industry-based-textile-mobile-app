@@ -7,6 +7,7 @@ import { AppBottomBar } from '@components/common/AppBottomBar';
 import { AppButton } from '@components/common/AppButton';
 import { AppInputField } from '@components/common/AppInputField';
 import { AppKeyboardAwareScrollView } from '@components/common/AppKeyboardAwareScrollView';
+import { BillNoInlineList } from '@components/common/BillNoInlineList';
 import { FieldLabel } from '@components/common/FieldLabel';
 
 import { formatPKR } from '@utils/helpers/formatCurrency';
@@ -80,6 +81,8 @@ export const EditPaymentComponent = ({
             editable={false}
             helper={t('payments.edit.immutableClient')}
           />
+
+          <BillNoInlineList billNos={payment.billNos ?? []} />
 
           <AppInputField
             label={t('payments.direction')}

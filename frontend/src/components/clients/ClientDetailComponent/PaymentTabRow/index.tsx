@@ -11,10 +11,14 @@ import { AppBadge } from '@components/common/AppBadge';
 import { AppCard } from '@components/common/AppCard';
 import { AppIconTile } from '@components/common/AppIconTile';
 import { AppRow } from '@components/common/AppRow';
+import { BillNoInlineList } from '@components/common/BillNoInlineList';
 
 import { colors } from '@theme/colors';
 
+import { AppConstants } from '@constants/appConstants';
 import { CreditCardIcon } from '@constants/svgAssets';
+
+import { formatAmount } from '@utils/helpers/formatCurrency';
 
 export const PaymentTabRow = ({ item }: { item: ClientPaymentSummary }) => {
   const { t } = useTranslation();
@@ -50,6 +54,19 @@ export const PaymentTabRow = ({ item }: { item: ClientPaymentSummary }) => {
             </>
           }
         />
+        <BillNoInlineList billNos={item.billNos ?? []} />
+        {(item.unallocatedAmount ?? 0) > 0 && (
+          <View style={{ marginTop: 6 }}>
+            <AppBadge
+              label={t('payments.unallocatedBadge', {
+                amount: `${AppConstants.APP.CURRENCY} ${formatAmount(item.unallocatedAmount ?? 0)}`,
+              })}
+              bg={colors.warningLight}
+              fg={colors.warning}
+              size="sm"
+            />
+          </View>
+        )}
       </AppCard>
     </View>
   );

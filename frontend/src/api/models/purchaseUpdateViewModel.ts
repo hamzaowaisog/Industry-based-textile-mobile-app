@@ -16,4 +16,6 @@ export interface PurchaseUpdateViewModel {
   purchaseDate?: string | null;
   /** @nullable */
   notes?: string | null;
+  /** @nullable */
+  billNo?: string | null;
 }

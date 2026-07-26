@@ -44,6 +44,7 @@ public class OrderController : BaseController
             OrderDate = model.OrderDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
             OrderDateHijri = model.OrderDateHijri,
             Notes = model.Notes,
+            BillNo = model.BillNo,
             Lines = model.Lines.Select(l => new CreateOrderLineDto
             {
                 ProductId = l.ProductId,
@@ -83,7 +84,7 @@ public class OrderController : BaseController
         return ToActionResult(response);
     }
 
-    /// <summary>Filter orders by clientId, statusId, and/or date range.</summary>
+    /// <summary>Filter orders by clientId, statusId, date range, and/or a free-text search matching BillNo or client name.</summary>
     [HttpGet("filtered")]
     [Authorize(Policy = "Authenticated")]
     [ProducesResponseType(typeof(Response<List<OrderDto>>), StatusCodes.Status200OK)]
@@ -91,12 +92,13 @@ public class OrderController : BaseController
         [FromQuery] int? clientId = null,
         [FromQuery] int? statusId = null,
         [FromQuery] DateOnly? dateFrom = null,
-        [FromQuery] DateOnly? dateTo = null)
+        [FromQuery] DateOnly? dateTo = null,
+        [FromQuery] string? search = null)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized("User identifier is missing or invalid in the token.");
 
-        var response = await _orderService.GetFilteredAsync(clientId, statusId, dateFrom, dateTo, userId.Value, IsAdmin());
+        var response = await _orderService.GetFilteredAsync(clientId, statusId, dateFrom, dateTo, search, userId.Value, IsAdmin());
         return ToActionResult(response);
     }
 
@@ -119,6 +121,7 @@ public class OrderController : BaseController
             StatusId = model.StatusId,
             PaymentTypeId = model.PaymentTypeId,
             Notes = model.Notes,
+            BillNo = model.BillNo,
             OrderDate = model.OrderDate
         };
 
@@ -221,6 +224,7 @@ public class OrderController : BaseController
             PeriodValue         = o.OrderDate.ToString("dd MMM yyyy"),
             Stats = new()
             {
+                new Stat("Bill No", !string.IsNullOrWhiteSpace(o.BillNo) ? o.BillNo : "—"),
                 new Stat("Status", o.StatusName ?? "—"),
                 new Stat("Total", PdfFormat.Rs(o.Total)),
                 new Stat("Received", PdfFormat.Rs(o.AmountReceived)),

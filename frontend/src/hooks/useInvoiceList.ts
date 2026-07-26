@@ -65,7 +65,10 @@ export const useInvoiceList = () => {
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
-        (i) => i.invoiceNumber.toLowerCase().includes(q) || i.clientName.toLowerCase().includes(q),
+        (i) =>
+          i.invoiceNumber.toLowerCase().includes(q) ||
+          i.clientName.toLowerCase().includes(q) ||
+          (i.billNo ?? '').toLowerCase().includes(q),
       );
     }
     return result;

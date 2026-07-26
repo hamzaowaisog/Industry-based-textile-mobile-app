@@ -9,11 +9,15 @@ import { AppAvatar } from '@components/common/AppAvatar';
 import { AppBadge } from '@components/common/AppBadge';
 import { AppCard } from '@components/common/AppCard';
 import { AppHijriDateLabel } from '@components/common/AppHijriDateLabel';
+import { BillNoInlineList } from '@components/common/BillNoInlineList';
 
+import { formatAmount } from '@utils/helpers/formatCurrency';
 import { getInitials } from '@utils/helpers/textHelpers';
 import { getPaymentDirectionColor, isPaymentReceived } from '@utils/helpers/paymentContent';
 
 import { colors } from '@theme/colors';
+
+import { AppConstants } from '@constants/appConstants';
 
 import type { PaymentCardProps } from '../../../../types/payments.types';
 import { styles } from './styles';
@@ -22,6 +26,7 @@ export const PaymentCard = React.memo(({ payment, onPress }: PaymentCardProps) =
   const { t } = useTranslation();
   const received = isPaymentReceived(payment.paymentDirectionId);
   const directionColor = getPaymentDirectionColor(payment.paymentDirectionId);
+  const billNos = payment.billNos ?? [];
 
   return (
     <View style={payment.isReversed ? styles.reversed : undefined}>
@@ -40,6 +45,13 @@ export const PaymentCard = React.memo(({ payment, onPress }: PaymentCardProps) =
             <Text style={styles.sub} numberOfLines={1}>
               {`${payment.paymentDate} · ${payment.transModeName}`}
             </Text>
+            {billNos.length === 1 ? (
+              <Text style={styles.billNo} numberOfLines={1}>
+                {t('payments.billNoLabel', { billNo: billNos[0] })}
+              </Text>
+            ) : (
+              <BillNoInlineList billNos={billNos} />
+            )}
             <AppHijriDateLabel value={payment.paymentDateHijriDisplay} />
           </View>
 
@@ -65,6 +77,16 @@ export const PaymentCard = React.memo(({ payment, onPress }: PaymentCardProps) =
 
         <View style={styles.footerRow}>
           <Text style={styles.reference}>{`HT-PAYMENT-${payment.id}`}</Text>
+          {payment.unallocatedAmount > 0 && (
+            <AppBadge
+              label={t('payments.unallocatedBadge', {
+                amount: `${AppConstants.APP.CURRENCY} ${formatAmount(payment.unallocatedAmount)}`,
+              })}
+              bg={colors.warningLight}
+              fg={colors.warning}
+              size="sm"
+            />
+          )}
         </View>
       </AppCard>
     </View>

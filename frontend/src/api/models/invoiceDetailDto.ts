@@ -19,6 +19,11 @@ export interface InvoiceDetailDto {
   orderId?: number | null;
   /** @nullable */
   purchaseId?: number | null;
+  /**
+     * Bill No of the linked Order or Purchase, if any (null for standalone invoices).
+     * @nullable
+     */
+  billNo?: string | null;
   clientId?: number;
   /** @nullable */
   clientName?: string | null;

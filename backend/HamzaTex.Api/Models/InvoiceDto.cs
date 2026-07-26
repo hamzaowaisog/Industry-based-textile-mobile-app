@@ -7,6 +7,9 @@ public class InvoiceDto
     public string InvoiceNumber { get; set; } = string.Empty;
     public int? OrderId { get; set; }
     public int? PurchaseId { get; set; }
+
+    /// <summary>Bill No of the linked Order or Purchase, if any (null for standalone invoices).</summary>
+    public string? BillNo { get; set; }
     public int ClientId { get; set; }
     public string ClientName { get; set; } = string.Empty;
     public string ClientTypeName { get; set; } = string.Empty; // "Customer" | "Supplier"

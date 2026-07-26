@@ -62,6 +62,7 @@ export const createOrderAsync = async (
       paymentTypeId: values.paymentTypeId,
       orderDate: values.orderDate || null,
       notes: values.notes.trim() || null,
+      billNo: values.billNo.trim() || null,
       lines: values.lines.map((l) => ({
         productId: l.productId,
         qty: parseFloat(l.qty),
@@ -98,9 +99,15 @@ export const updateOrderHeaderAsync = async (
   statusId: number,
   paymentTypeId: number,
   notes: string,
+  billNo: string,
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    const payload: OrderUpdateViewModel = { statusId, paymentTypeId, notes: notes.trim() || null };
+    const payload: OrderUpdateViewModel = {
+      statusId,
+      paymentTypeId,
+      notes: notes.trim() || null,
+      billNo: billNo.trim(),
+    };
     const res = await orderUpdateOrder(id, payload);
     const r = parseApiResponse(res, i18n.t('orders.edit.errorTitle'));
     if (!r.success) return { success: false, error: r.error };

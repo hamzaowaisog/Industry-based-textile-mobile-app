@@ -67,6 +67,7 @@ export const mapApiClientDetail = (d: ClientDetailViewModel): ClientDetail => ({
   invoices: (d.invoices ?? []).map((i) => ({
     invoiceId: i.invoiceId ?? 0,
     invoiceNumber: i.invoiceNumber ?? '',
+    billNo: i.billNo ?? null,
     issueDate: i.issueDate ?? null,
     issueDateHijriDisplay: i.issueDateHijriDisplay ?? null,
     dueDate: i.dueDate ?? null,

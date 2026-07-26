@@ -33,6 +33,9 @@ public partial class Order
 
     public string? Notes { get; set; }
 
+    [MaxLength(50)]
+    public string? BillNo { get; set; }
+
     public DateOnly? CreatedAt { get; set; }
 
     public virtual Client? Client { get; set; }

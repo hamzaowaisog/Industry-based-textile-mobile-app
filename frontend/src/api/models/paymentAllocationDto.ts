@@ -14,4 +14,9 @@ export interface PaymentAllocationDto {
   /** @nullable */
   purchaseId?: number | null;
   allocatedAmount?: number;
+  /**
+     * Bill No of the linked Order or Purchase for this allocation.
+     * @nullable
+     */
+  billNo?: string | null;
 }

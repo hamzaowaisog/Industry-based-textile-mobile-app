@@ -218,6 +218,14 @@ export const OrderDetailComponent = ({
                 <Text style={styles.dateCellValue}>{order.paymentTypeName}</Text>
               </View>
             </View>
+            {!!order.billNo && (
+              <View style={styles.dateGrid}>
+                <View style={styles.dateCell}>
+                  <Text style={styles.dateCellLabel}>{t('orders.detail.billNo')}</Text>
+                  <Text style={styles.dateCellValue}>{order.billNo}</Text>
+                </View>
+              </View>
+            )}
           </AppCard>
         </View>
 

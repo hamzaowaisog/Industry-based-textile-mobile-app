@@ -415,7 +415,7 @@ export const useOrderDeleteOrder = <TError = Response,
       return useMutation(getOrderDeleteOrderMutationOptions(options), queryClient);
     }
     /**
- * @summary Filter orders by clientId, statusId, and/or date range.
+ * @summary Filter orders by clientId, statusId, date range, and/or a free-text search matching BillNo or client name.
  */
 export const orderGetFilteredOrders = (
     params?: OrderGetFilteredOrdersParams,
@@ -487,7 +487,7 @@ export function useOrderGetFilteredOrders<TData = Awaited<ReturnType<typeof orde
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Filter orders by clientId, statusId, and/or date range.
+ * @summary Filter orders by clientId, statusId, date range, and/or a free-text search matching BillNo or client name.
  */
 
 export function useOrderGetFilteredOrders<TData = Awaited<ReturnType<typeof orderGetFilteredOrders>>, TError = unknown>(
